@@ -1,0 +1,56 @@
+#!/bin/sh
+
+if test `id -u` = 0; then
+  echo "This installer will now attempt to install the 'xournal' binary in"
+  echo "/usr/local/bin and the support files in /usr/local/share/xournal."
+  echo "Press Control-C to abort, or Enter to proceed."
+  read
+
+  test -z /usr/local/bin || mkdir -p /usr/local/bin
+  install -c src/xournal /usr/local/bin/xournal
+
+  install -d /usr/local/share/xournal/pixmaps
+  for pixmap in pixmaps/*; do
+    install -c -m 644 $pixmap /usr/local/share/xournal/pixmaps
+  done
+
+  install -d /usr/local/share/xournal/html-doc
+  for docfile in html-doc/*; do
+    if test -f $docfile; then
+      install -c -m 644 $docfile /usr/local/share/xournal/html-doc
+    fi
+  done
+  if test ! -e /usr/local/share/xournal/html-doc/pixmaps; then
+    ln -s ../pixmaps /usr/local/share/xournal/html-doc/pixmaps
+  fi
+else
+  echo "To install xournal in /usr/local, you must run this installer as root."
+  echo "This installer will now attempt to install xournal in your home directory."
+  echo "Press Control-C to abort, or select a directory for the installation"
+  echo "(the binary will be installed in this location, and the support files will"
+  echo "be installed into subdirectories called pixmaps/ and html-doc/)."
+  echo
+  echo -n "Location [default: $HOME/bin]: "
+  read location
+  if test -z $location; then
+    location=$HOME/bin
+  fi
+
+  test -z $location || mkdir -p $location
+  install -c src/xournal $location/xournal
+
+  install -d $location/pixmaps
+  for pixmap in pixmaps/*; do
+    install -c -m 644 $pixmap $location/pixmaps
+  done
+
+  install -d $location/html-doc
+  for docfile in html-doc/*; do
+    if test -f $docfile; then
+      install -c -m 644 $docfile $location/html-doc
+    fi
+  done
+  if test ! -e $location/html-doc/pixmaps; then
+    ln -s ../pixmaps $location/html-doc/pixmaps
+  fi
+fi
