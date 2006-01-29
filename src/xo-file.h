@@ -1,0 +1,31 @@
+#define GS_CMDLINE \
+  "gs -sDEVICE=bmp16m -r%f -q -sOutputFile=- " \
+  "-dNOPAUSE -dBATCH -dTextAlphaBits=4 -dGraphicsAlphaBits=4 %s"
+
+#define GS_BITMAP_DPI 144   // was: (DEFAULT_ZOOM * 72)
+
+#define TMPDIR_TEMPLATE "/tmp/xournalpdf.XXXXXX"
+
+#define PDFTOPPM_ARGV \
+     { "pdftoppm", "-q", "-f", pageno_str, "-l", pageno_str, \
+       "-r", dpi_str, pdf_filename, ppm_root, NULL }
+
+#define PDFTOPPM_PRINTING_DPI 150
+
+void new_journal(void);
+gboolean save_journal(const char *filename);
+gboolean close_journal(void);
+gboolean open_journal(char *filename);
+
+struct Background *attempt_load_pix_bg(char *filename, gboolean attach);
+GList *attempt_load_gv_bg(char *filename);
+struct Background *attempt_screenshot_bg(void);
+
+void cancel_bgpdf_request(struct BgPdfRequest *req);
+void add_bgpdf_request(int pageno, double zoom, gboolean printing);
+void bgpdf_spawn_child(void);
+void shutdown_bgpdf(void);
+gboolean init_bgpdf(char *pdfname, gboolean create_pages, int file_domain);
+
+void bgpdf_create_page_with_bg(int pageno, struct BgPdfPage *bgpg);
+void bgpdf_update_bg(int pageno, struct BgPdfPage *bgpg);
