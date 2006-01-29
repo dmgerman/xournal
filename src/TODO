@@ -1,0 +1,22 @@
+- lasso selection tool
+- prefs file, save prefs
+- recent files list
+
+- flatten (incl undo/redo...) - enabled only if nlayers>1
+- bg: apply to all pages
+- recolor selection
+- move selection to another page by drag-drop
+   (should apply to vertspacer when origin moves to another page,
+     but in the up direction only do so when all the stuff fits on prev page)
+
+- text tool, font chooser, default font
+- color chooser (papercolor, pen color)
+- printing: print-to-PDF? (with & without pdf background to merge)
+            opacity issue for highlighter strokes (maybe print them below ?)
+            save gnome printer settings (throughout a session, and on disk)
+                 (maybe a separate config file .xournal/gnome-print-settings)
+....
+- file print-options, own print-to-ps/pdf 
+- help index
+- pressure sensitivity
+- convert to/from Jarnal format

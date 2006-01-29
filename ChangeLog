@@ -1,0 +1,14 @@
+Version 0.2 (Jan 29, 2006):
+  - PDF file annotation using xpdf's pdftoppm
+     (PDF backgrounds updated asynchronously at all resolutions) 
+  - PS/PDF backgrounds (as bitmaps at fixed resolution) using ghostscript
+  - option to antialias and filter bitmap backgrounds when zooming
+  - option to emulate eraser tip with right mouse button
+  - binary installer allows non-root installation without compiling
+  - full-screen mode
+
+Version 0.1.1 (Jan 5, 2006): 
+  - two bugfixes
+  - backward compatibility with GTK+ 2.4
+
+Version 0.1   (Jan 2, 2006): initial release
