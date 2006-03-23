@@ -174,7 +174,7 @@ void init_stuff (int argc, char *argv[])
   dev_list = gdk_devices_list();
   while (dev_list != NULL) {
     device = (GdkDevice *)dev_list->data;
-    if (device->source == GDK_SOURCE_PEN || device->source == GDK_SOURCE_ERASER) {
+    if (device->source != GDK_SOURCE_MOUSE) {
       /* get around a GDK bug: map the valuator range CORRECTLY to [0,1] */
 #if ENABLE_XINPUT_BUGFIX
       gdk_device_set_axis_use(device, 0, GDK_AXIS_IGNORE);
@@ -183,6 +183,7 @@ void init_stuff (int argc, char *argv[])
       gdk_device_set_mode(device, GDK_MODE_SCREEN);
       can_xinput = TRUE;
     }
+    else gdk_device_set_mode(device, GDK_MODE_DISABLED);
     dev_list = dev_list->next;
   }
   if (!can_xinput)

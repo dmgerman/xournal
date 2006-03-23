@@ -1,3 +1,7 @@
+Version ?:
+  - can specify on command line a PDF file to annotate
+  - fixed a bug in XInput initialization (thanks to Luca de Cicco)
+
 Version 0.2 (Jan 29, 2006):
   - PDF file annotation using xpdf's pdftoppm
      (PDF backgrounds updated asynchronously at all resolutions) 
@@ -5,7 +9,7 @@ Version 0.2 (Jan 29, 2006):
   - option to antialias and filter bitmap backgrounds when zooming
   - option to emulate eraser tip with right mouse button
   - binary installer allows non-root installation without compiling
-  - full-screen mode
+  - full-screen mode (patch contributed by Luca De Cicco)
 
 Version 0.1.1 (Jan 5, 2006): 
   - two bugfixes

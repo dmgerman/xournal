@@ -560,6 +560,7 @@ gboolean open_journal(char *filename)
   char buffer[1000];
   int len;
   gchar *tmpfn;
+  gboolean maybe_pdf;
   
   f = gzopen(filename, "r");
   if (f==NULL) return FALSE;
@@ -575,10 +576,14 @@ gboolean open_journal(char *filename)
   tmpFilename = filename;
   error = NULL;
   tmpBg_pdf = NULL;
+  maybe_pdf = TRUE;
 
   while (valid && !gzeof(f)) {
     len = gzread(f, buffer, 1000);
     if (len<0) valid = FALSE;
+    if (maybe_pdf && len>=4 && !strncmp(buffer, "%PDF", 4))
+      { valid = FALSE; break; } // most likely pdf
+    else maybe_pdf = FALSE;
     if (len<=0) break;
     valid = g_markup_parse_context_parse(context, buffer, len, &error);
   }
@@ -586,9 +591,19 @@ gboolean open_journal(char *filename)
   if (valid) valid = g_markup_parse_context_end_parse(context, &error);
   if (tmpJournal.npages == 0) valid = FALSE;
   g_markup_parse_context_free(context);
+  
   if (!valid) {
     delete_journal(&tmpJournal);
-    return FALSE;
+    if (!maybe_pdf) return FALSE;
+    // essentially same as on_fileNewBackground from here on
+    ui.saved = TRUE;
+    close_journal();
+    while (bgpdf.status != STATUS_NOT_INIT) gtk_main_iteration();
+    new_journal();
+    ui.zoom = DEFAULT_ZOOM;
+    gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
+    update_page_stuff();
+    return init_bgpdf(filename, TRUE, DOMAIN_ABSOLUTE);
   }
   
   ui.saved = TRUE; // force close_journal() to do its job
@@ -631,7 +646,7 @@ gboolean open_journal(char *filename)
   ui.cur_layer = (struct Layer *)(g_list_last(ui.cur_page->layers)->data);
   ui.saved = TRUE;
   ui.zoom = DEFAULT_ZOOM;
-  update_file_name(filename);
+  update_file_name(g_strdup(filename));
   gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
   make_canvas_items();
   update_page_stuff();
@@ -781,8 +796,11 @@ struct Background *attempt_screenshot_bg(void)
 void end_bgpdf_shutdown(void)
 {
   if (bgpdf.tmpdir!=NULL) {
-    g_unlink(bgpdf.tmpfile_copy);
-    g_free(bgpdf.tmpfile_copy);
+    if (bgpdf.tmpfile_copy!=NULL) {
+      g_unlink(bgpdf.tmpfile_copy);
+      g_free(bgpdf.tmpfile_copy);
+      bgpdf.tmpfile_copy = NULL;
+    }
     g_rmdir(bgpdf.tmpdir);  
     g_free(bgpdf.tmpdir);
     bgpdf.tmpdir = NULL;
@@ -1006,16 +1024,18 @@ gboolean init_bgpdf(char *pdfname, gboolean create_pages, int file_domain)
   gsize filelen;
   
   if (bgpdf.status != STATUS_NOT_INIT) return FALSE;
+  bgpdf.tmpfile_copy = NULL;
   bgpdf.tmpdir = mkdtemp(g_strdup(TMPDIR_TEMPLATE));
   if (!bgpdf.tmpdir) return FALSE;
   // make a local copy and check if it's a PDF
-  if (!g_file_get_contents(pdfname, &filebuf, &filelen, NULL)) return FALSE;
+  if (!g_file_get_contents(pdfname, &filebuf, &filelen, NULL))
+    { end_bgpdf_shutdown(); return FALSE; }
   if (filelen < 4 || strncmp(filebuf, "%PDF", 4))
-    { g_free(filebuf); return FALSE; }
+    { g_free(filebuf); end_bgpdf_shutdown(); return FALSE; }
   bgpdf.tmpfile_copy = g_strdup_printf("%s/bg.pdf", bgpdf.tmpdir);
   f = fopen(bgpdf.tmpfile_copy, "w");
   if (f == NULL || fwrite(filebuf, 1, filelen, f) != filelen) 
-    { g_free(filebuf); return FALSE; }
+    { g_free(filebuf); end_bgpdf_shutdown(); return FALSE; }
   fclose(f);
   g_free(filebuf);
   bgpdf.status = STATUS_IDLE;

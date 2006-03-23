@@ -134,7 +134,7 @@ on_fileOpen_activate                   (GtkMenuItem     *menuitem,
   set_cursor_busy(TRUE);
   success = open_journal(filename);
   set_cursor_busy(FALSE);
-  if (success) return;
+  if (success) { g_free(filename); return; }
   
   /* open failed */
   dialog = gtk_message_dialog_new(GTK_WINDOW (winMain), GTK_DIALOG_DESTROY_WITH_PARENT,

@@ -1,3 +1,4 @@
+- non-attached annotation => suggest a derived filename for save-as
 - lasso selection tool
 - prefs file, save prefs
 - recent files list
@@ -5,12 +6,13 @@
 - flatten (incl undo/redo...) - enabled only if nlayers>1
 - bg: apply to all pages
 - recolor selection
+- resize selection
 - move selection to another page by drag-drop
    (should apply to vertspacer when origin moves to another page,
      but in the up direction only do so when all the stuff fits on prev page)
 
 - text tool, font chooser, default font
-- color chooser (papercolor, pen color)
+- color chooser (papercolor, pen color); maybe more default colors
 - printing: print-to-PDF? (with & without pdf background to merge)
             opacity issue for highlighter strokes (maybe print them below ?)
             save gnome printer settings (throughout a session, and on disk)
@@ -19,4 +21,7 @@
 - file print-options, own print-to-ps/pdf 
 - help index
 - pressure sensitivity
+- insert images (screen capture or from file), not as full-page backgrounds
+- more pen/highlighter shapes (chisel)
 - convert to/from Jarnal format
+- recalibration upon screen resize / compensation for miscalibration
