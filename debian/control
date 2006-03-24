@@ -1,0 +1,12 @@
+Source: xournal
+Section: unknown
+Priority: optional
+Maintainer: unknown <frade@asturlinux.org>
+Build-Depends: debhelper (>= 4.0.0)
+Standards-Version: 3.6.0
+
+Package: xournal
+Architecture: any
+Depends: maemo
+Description: xournal application
+ Application to take notes over a PDF
