@@ -1,0 +1,9 @@
+[Desktop Entry]
+Encoding=UTF-8
+Version=0.2
+Type=Application
+Name=Xournal
+Exec=/var/lib/install/usr/bin/xournal
+X-Osso-Service=com.nokia.xournal
+Icon=qgn_list_gene_default_app
+
