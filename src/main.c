@@ -31,7 +31,6 @@ void hide_unimplemented(void)
   gtk_widget_hide(GET_COMPONENT("filePrintOptions"));
   gtk_widget_hide(GET_COMPONENT("journalFlatten"));
   gtk_widget_hide(GET_COMPONENT("papercolorOther"));
-  gtk_widget_hide(GET_COMPONENT("journalApplyAllPages"));
   gtk_widget_hide(GET_COMPONENT("toolsText"));
   gtk_widget_hide(GET_COMPONENT("buttonText"));
   gtk_widget_hide(GET_COMPONENT("toolsSelectRegion"));
@@ -51,10 +50,17 @@ void init_stuff (int argc, char *argv[])
   GdkScreen *screen;
   int i;
   struct Brush *b;
-  gboolean can_xinput;
+  gboolean can_xinput, success;
+  gchar *tmppath, *tmpfn;
 
   // we need an empty canvas prior to creating the journal structures
   canvas = GNOME_CANVAS (gnome_canvas_new_aa ());
+
+  // initialize config file names
+  tmppath = g_build_filename(g_get_home_dir(), CONFIG_DIR, NULL);
+  g_mkdir(tmppath, 0700); // safer (MRU data may be confidential)
+  ui.mrufile = g_build_filename(tmppath, MRU_FILE, NULL);
+  g_free(tmppath);
 
   // initialize data
   // TODO: load this from a preferences file
@@ -84,15 +90,8 @@ void init_stuff (int argc, char *argv[])
   undo = NULL; redo = NULL;
   journal.pages = NULL;
   bgpdf.status = STATUS_NOT_INIT;
- 
-  if (argc == 1) new_journal();
-  else if (!open_journal(argv[1])) {
-    new_journal();
-    w = gtk_message_dialog_new(GTK_WINDOW (winMain), GTK_DIALOG_DESTROY_WITH_PARENT,
-       GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, "Error opening file '%s'", argv[1]);
-    gtk_dialog_run(GTK_DIALOG(w));
-    gtk_widget_destroy(w);
-  }
+
+  new_journal();  
   
   ui.cur_item_type = ITEM_NONE;
   ui.cur_item = NULL;
@@ -207,6 +206,37 @@ void init_stuff (int argc, char *argv[])
     
   update_undo_redo_enabled();
   update_copy_paste_enabled();
+
+  // show everything...
+  
+  gtk_widget_show (winMain);
+  update_cursor();
+
+  // load the MRU
+  
+  init_mru();
+  
+  // and finally, open a file specified on the command line
+  // (moved here because display parameters weren't initialized yet...)
+  
+  if (argc == 1) return;
+  set_cursor_busy(TRUE);
+  if (g_path_is_absolute(argv[1]))
+    tmpfn = g_strdup(argv[1]);
+  else {
+    tmppath = g_get_current_dir();
+    tmpfn = g_build_filename(tmppath, argv[1], NULL);
+    g_free(tmppath);
+  }
+  success = open_journal(tmpfn);
+  g_free(tmpfn);
+  set_cursor_busy(FALSE);
+  if (!success) {
+    w = gtk_message_dialog_new(GTK_WINDOW (winMain), GTK_DIALOG_DESTROY_WITH_PARENT,
+       GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, "Error opening file '%s'", argv[1]);
+    gtk_dialog_run(GTK_DIALOG(w));
+    gtk_widget_destroy(w);
+  }
 }
 
 
@@ -238,13 +268,12 @@ main (int argc, char *argv[])
   
   init_stuff (argc, argv);
   
-  gtk_widget_show (winMain);
-  update_cursor();
-
   gtk_main ();
   
   if (bgpdf.status != STATUS_NOT_INIT) shutdown_bgpdf();
   if (bgpdf.status != STATUS_NOT_INIT) end_bgpdf_shutdown();
+
+  save_mru_list();
   
   return 0;
 }

@@ -1,32 +1,27 @@
-- print range bugfix (SEE PATCH?)
-- non-attached annotation => suggest a derived filename for save-as
-  when opening a PDF file from command-line, store full path in name
-- gtk_message_dialog_format_secondary_text in xo-print.c crashes 2.4 ?
-- lasso selection tool
-- prefs file, save prefs
-- recent files list
+List of features to be implemented (not in any particular order)
+----------------------------------------------------------------
+
 - map tools to stylus buttons (maybe: btn click on toolbar item affects
   the corresponding tool; tool switching cleaner than for eraser)
-- flatten (incl undo/redo...) - enabled only if nlayers>1
-- bg: apply to all pages (SEE PATCH?)
-- recolor selection / change pen stroke thickness
-- resize selection
 - move selection to another page by drag-drop
    (should apply to vertspacer when origin moves to another page,
      but in the up direction only do so when all the stuff fits on prev page)
    (SEE ALSO FEATURE REQUEST 1472482 and reply to it - optional behavior too?)
+- lasso selection tool
+- prefs file, save prefs
+- flatten (incl undo/redo...) - enabled only if nlayers>1
+- resize selection
 - text tool, font chooser, default font
 - color chooser (papercolor, pen color); maybe more default colors
 - printing: print-to-PDF? (with & without pdf background to merge)
             opacity issue for highlighter strokes (maybe print them below ?)
             save gnome printer settings (throughout a session, and on disk)
                  (maybe a separate config file .xournal/gnome-print-settings)
-....
 - file print-options, own print-to-ps/pdf 
 - help index
 - pressure sensitivity
 - insert images (screen capture or from file or from clipboard), 
   not as full-page backgrounds (new ITEM type)
 - more pen/highlighter shapes (chisel)
-- convert to/from Jarnal format
+- convert to/from Jarnal format; to/from MS Journal format???
 - recalibration upon screen resize / compensation for miscalibration

@@ -11,6 +11,8 @@
 #include "xo-support.h"
 #include "xo-callbacks.h"
 #include "xo-misc.h"
+#include "xo-file.h"
+#include "xo-paint.h"
 
 // some global constants
 
@@ -877,7 +879,7 @@ void update_highlighter_props_menu(void)
   }
 }
 
-void do_switch_page(int pg, gboolean rescroll)
+void do_switch_page(int pg, gboolean rescroll, gboolean refresh_all)
 {
   int i;
   struct Layer *layer;
@@ -902,7 +904,10 @@ void do_switch_page(int pg, gboolean rescroll)
   if (rescroll) { // scroll and force a refresh
     gtk_adjustment_set_value(gtk_layout_get_vadjustment(GTK_LAYOUT(canvas)),
       ui.cur_page->voffset*ui.zoom);
-    gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
+    if (refresh_all) 
+      gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
+    else if (!ui.view_continuous)
+      gnome_canvas_item_move(GNOME_CANVAS_ITEM(ui.cur_page->group), 0., 0.);
   }
 }
 
@@ -1047,6 +1052,8 @@ void update_page_stuff(void)
      ui.cur_page->bg->type == BG_SOLID);
   gtk_widget_set_sensitive(GET_COMPONENT("journalSetAsDefault"),
      ui.cur_page->bg->type == BG_SOLID);
+  gtk_widget_set_sensitive(GET_COMPONENT("journalApplyAllPages"),
+     ui.cur_page->bg->type == BG_SOLID);
   
   gtk_widget_set_sensitive(GET_COMPONENT("viewFirstPage"), ui.pageno!=0);
   gtk_widget_set_sensitive(GET_COMPONENT("viewPreviousPage"), ui.pageno!=0);
@@ -1093,6 +1100,7 @@ void update_file_name(char *filename)
   else p = g_utf8_next_char(p);
   g_snprintf(tmp, 100, "Xournal - %s", p);
   gtk_window_set_title(GTK_WINDOW (winMain), tmp);
+  new_mru_entry(filename);
 }
 
 void update_undo_redo_enabled(void)
@@ -1142,7 +1150,9 @@ void process_color_activate(GtkMenuItem *menuitem, int color)
   if (ui.toolno == TOOL_PEN || ui.toolno == TOOL_HIGHLIGHTER)
     set_cur_color(color);
 
-  // later add selection tools
+  if ((ui.toolno == TOOL_SELECTREGION || ui.toolno == TOOL_SELECTRECT) &&
+       ui.selection != NULL)
+    recolor_selection(color);
 
   update_color_buttons();
   update_color_menu();
@@ -1160,6 +1170,8 @@ void process_thickness_activate(GtkMenuItem *menuitem, int tool, int val)
   }
 
   if (tool >= NUM_STROKE_TOOLS) {
+    if ((tool == TOOL_SELECTREGION || tool == TOOL_SELECTRECT) && ui.selection != NULL)
+      rethicken_selection(val);
     update_thickness_buttons(); // undo illegal button selection
     return;
   }

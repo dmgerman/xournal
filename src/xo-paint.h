@@ -17,3 +17,6 @@ void finalize_movesel(void);
 void selection_delete(void);
 void selection_to_clip(void);
 void clipboard_paste(void);
+
+void recolor_selection(int color);
+void rethicken_selection(int val);

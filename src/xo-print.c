@@ -168,15 +168,21 @@ void print_job_render(GnomePrintJob *gpj, int fromPage, int toPage)
   g_signal_connect(wait_dialog, "response", G_CALLBACK (cb_print_abort), &abort);
   
   for (i = fromPage; i <= toPage; i++) {
-    gtk_message_dialog_format_secondary_text(
-              GTK_MESSAGE_DIALOG(wait_dialog), "Page %d", i+1); 
+#if GTK_CHECK_VERSION(2,6,0)
+    if (!gtk_check_version(2, 6, 0))
+      gtk_message_dialog_format_secondary_text(
+             GTK_MESSAGE_DIALOG(wait_dialog), "Page %d", i+1); 
+#endif
     while (gtk_events_pending()) gtk_main_iteration();
     print_page(gpc, (struct Page *)g_list_nth_data(journal.pages, i), i+1,
                                              pgwidth, pgheight, &abort);
     if (abort) break;
   }
-  gtk_message_dialog_format_secondary_text(
+#if GTK_CHECK_VERSION(2,6,0)
+  if (!gtk_check_version(2, 6, 0))
+    gtk_message_dialog_format_secondary_text(
               GTK_MESSAGE_DIALOG(wait_dialog), "Finalizing...");
+#endif
   while (gtk_events_pending()) gtk_main_iteration();
 
   gnome_print_context_close(gpc);  

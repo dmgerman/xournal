@@ -1,6 +1,13 @@
-Version ?:
+Version 0.2.1 (Jun 3, 2006):
+  - recently used files listed in file menu
+  - can change color or thickness of pen strokes in selection
+  - function to apply paper style to all pages
   - can specify on command line a PDF file to annotate
+  - suggest a derived file name for PDF annotation
+  - speed up switching between pages
   - fixed a bug in XInput initialization (thanks to Luca de Cicco)
+  - fixed a bug in print ranges (thanks to Mathieu Bouchard)
+  - fixed a refresh bug in rescaling bitmap backgrounds
 
 Version 0.2 (Jan 29, 2006):
   - PDF file annotation using xpdf's pdftoppm

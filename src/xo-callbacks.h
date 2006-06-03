@@ -479,3 +479,7 @@ void
 on_optionsProgressiveBG_activate       (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
 
+
+void
+on_mru_activate                        (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);

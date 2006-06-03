@@ -47,7 +47,7 @@ void update_file_name(char *filename);
 void update_undo_redo_enabled(void);
 void update_copy_paste_enabled(void);
 
-void do_switch_page(int pg, gboolean rescroll);
+void do_switch_page(int pg, gboolean rescroll, gboolean refresh_all);
 void set_cur_color(int color);
 void process_color_activate(GtkMenuItem *menuitem, int color);
 void process_thickness_activate(GtkMenuItem *menuitem, int tool, int val);

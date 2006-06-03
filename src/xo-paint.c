@@ -774,3 +774,61 @@ void clipboard_paste(void)
   gtk_selection_data_free(sel_data);
   update_copy_paste_enabled();
 }
+
+// modify the color or thickness of pen strokes in a selection
+
+void recolor_selection(int color)
+{
+  GList *itemlist;
+  struct Item *item;
+  struct Brush *brush;
+  
+  if (ui.selection == NULL) return;
+  prepare_new_undo();
+  undo->type = ITEM_REPAINTSEL;
+  undo->itemlist = NULL;
+  undo->auxlist = NULL;
+  for (itemlist = ui.selection->items; itemlist!=NULL; itemlist = itemlist->next) {
+    item = (struct Item *)itemlist->data;
+    if (item->type != ITEM_STROKE || item->brush.tool_type!=TOOL_PEN) continue;
+    // store info for undo
+    undo->itemlist = g_list_append(undo->itemlist, item);
+    brush = (struct Brush *)g_malloc(sizeof(struct Brush));
+    g_memmove(brush, &(item->brush), sizeof(struct Brush));
+    undo->auxlist = g_list_append(undo->auxlist, brush);
+    // repaint the stroke
+    item->brush.color_no = color;
+    item->brush.color_rgba = predef_colors_rgba[color];
+    if (item->canvas_item!=NULL)
+      gnome_canvas_item_set(item->canvas_item, 
+         "fill-color-rgba", item->brush.color_rgba, NULL);
+  }
+}
+
+void rethicken_selection(int val)
+{
+  GList *itemlist;
+  struct Item *item;
+  struct Brush *brush;
+  
+  if (ui.selection == NULL) return;
+  prepare_new_undo();
+  undo->type = ITEM_REPAINTSEL;
+  undo->itemlist = NULL;
+  undo->auxlist = NULL;
+  for (itemlist = ui.selection->items; itemlist!=NULL; itemlist = itemlist->next) {
+    item = (struct Item *)itemlist->data;
+    if (item->type != ITEM_STROKE || item->brush.tool_type!=TOOL_PEN) continue;
+    // store info for undo
+    undo->itemlist = g_list_append(undo->itemlist, item);
+    brush = (struct Brush *)g_malloc(sizeof(struct Brush));
+    g_memmove(brush, &(item->brush), sizeof(struct Brush));
+    undo->auxlist = g_list_append(undo->auxlist, brush);
+    // repaint the stroke
+    item->brush.thickness_no = val;
+    item->brush.thickness = predef_thickness[TOOL_PEN][val];
+    if (item->canvas_item!=NULL)
+      gnome_canvas_item_set(item->canvas_item, 
+         "width-units", item->brush.thickness, NULL);
+  }
+}

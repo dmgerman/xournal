@@ -1107,3 +1107,93 @@ void bgpdf_update_bg(int pageno, struct BgPdfPage *bgpg)
   }
 }
 
+// initialize the recent files list
+void init_mru(void)
+{
+  int i;
+  gsize lfptr;
+  char s[5];
+  GIOChannel *f;
+  gchar *str;
+  GIOStatus status;
+  
+  g_strlcpy(s, "mru0", 5);
+  for (s[3]='0', i=0; i<MRU_SIZE; s[3]++, i++) {
+    ui.mrumenu[i] = GET_COMPONENT(s);
+    ui.mru[i] = NULL;
+  }
+  f = g_io_channel_new_file(ui.mrufile, "r", NULL);
+  if (f) status = G_IO_STATUS_NORMAL;
+  else status = G_IO_STATUS_ERROR;
+  i = 0;
+  while (status == G_IO_STATUS_NORMAL && i<MRU_SIZE) {
+    lfptr = 0;
+    status = g_io_channel_read_line(f, &str, NULL, &lfptr, NULL);
+    if (status == G_IO_STATUS_NORMAL && lfptr>0) {
+      str[lfptr] = 0;
+      ui.mru[i] = str;
+      i++;
+    }
+  }
+  if (f) {
+    g_io_channel_shutdown(f, FALSE, NULL);
+    g_io_channel_unref(f);
+  }
+  update_mru_menu();
+}
+
+void update_mru_menu(void)
+{
+  int i;
+  gboolean anyone = FALSE;
+  
+  for (i=0; i<MRU_SIZE; i++) {
+    if (ui.mru[i]!=NULL) {
+      gtk_label_set_text(GTK_LABEL(gtk_bin_get_child(GTK_BIN(ui.mrumenu[i]))),
+          g_basename(ui.mru[i]));
+      gtk_widget_show(ui.mrumenu[i]);
+      anyone = TRUE;
+    }
+    else gtk_widget_hide(ui.mrumenu[i]);
+  }
+  gtk_widget_set_sensitive(GET_COMPONENT("fileRecentFiles"), anyone);
+}
+
+void new_mru_entry(char *name)
+{
+  int i, j;
+  
+  for (i=0;i<MRU_SIZE;i++) 
+    if (ui.mru[i]!=NULL && !strcmp(ui.mru[i], name)) {
+      g_free(ui.mru[i]);
+      for (j=i+1; j<MRU_SIZE; j++) ui.mru[j-1] = ui.mru[j];
+      ui.mru[MRU_SIZE-1]=NULL;
+    }
+  if (ui.mru[MRU_SIZE-1]!=NULL) g_free(ui.mru[MRU_SIZE-1]);
+  for (j=MRU_SIZE-1; j>=1; j--) ui.mru[j] = ui.mru[j-1];
+  ui.mru[0] = g_strdup(name);
+  update_mru_menu();
+}
+
+void delete_mru_entry(int which)
+{
+  int i;
+  
+  if (ui.mru[which]!=NULL) g_free(ui.mru[which]);
+  for (i=which+1;i<MRU_SIZE;i++) 
+    ui.mru[i-1] = ui.mru[i];
+  ui.mru[MRU_SIZE-1] = NULL;
+  update_mru_menu();
+}
+
+void save_mru_list(void)
+{
+  FILE *f;
+  int i;
+  
+  f = fopen(ui.mrufile, "w");
+  if (f==NULL) return;
+  for (i=0; i<MRU_SIZE; i++)
+    if (ui.mru[i]!=NULL) fprintf(f, "%s\n", ui.mru[i]);
+  fclose(f);
+}

@@ -1,6 +1,12 @@
 #include <gtk/gtk.h>
 #include <libgnomecanvas/libgnomecanvas.h>
 
+// PREF FILES INFO
+
+#define CONFIG_DIR ".xournal"
+#define MRU_FILE "recent-files"
+#define MRU_SIZE 8 
+
 // DATA STRUCTURES AND CONSTANTS
 
 #define PIXEL_MOTION_THRESHOLD 0.3
@@ -133,6 +139,7 @@ typedef struct Item {
 #define ITEM_NEW_DEFAULT_BG 11
 #define ITEM_NEW_PAGE 13
 #define ITEM_DELETE_PAGE 14
+#define ITEM_REPAINTSEL 15
 
 typedef struct Layer {
   GList *items; // the items on the layer, from bottom to top
@@ -195,6 +202,9 @@ typedef struct UIData {
   gboolean emulate_eraser;
   gboolean antialias_bg; // bilinear interpolation on bg pixmaps
   gboolean progressive_bg; // rescale bg's one at a time
+  char *mrufile; // file for the MRU
+  char *mru[MRU_SIZE]; // MRU data
+  GtkWidget *mrumenu[MRU_SIZE];
 } UIData;
 
 typedef struct UndoErasureData {
@@ -211,7 +221,8 @@ typedef struct UndoItem {
   struct Layer *layer2; // for ITEM_DELETE_LAYER with val=-1
   struct Page *page;  // for ITEM_NEW_BG_ONE/RESIZE, ITEM_NEW_PAGE, ITEM_NEW_LAYER, ITEM_DELETE_LAYER, ITEM_DELETE_PAGE
   GList *erasurelist; // for ITEM_ERASURE
-  GList *itemlist;  // for ITEM_MOVESEL, ITEM_PASTE
+  GList *itemlist;  // for ITEM_MOVESEL, ITEM_PASTE, ITEM_REPAINTSEL
+  GList *auxlist;   // for ITEM_REPAINTSEL
   struct Background *bg;  // for ITEM_NEW_BG_ONE/RESIZE, ITEM_NEW_DEFAULT_BG
   int val; // for ITEM_NEW_PAGE, ITEM_NEW_LAYER, ITEM_DELETE_LAYER, ITEM_DELETE_PAGE
   double val_x, val_y; // for ITEM_MOVESEL, ITEM_NEW_BG_RESIZE, ITEM_PAPER_RESIZE, ITEM_NEW_DEFAULT_BG
