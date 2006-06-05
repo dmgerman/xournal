@@ -3,6 +3,7 @@
 #endif
 
 #include <math.h>
+#include <string.h>
 #include <gtk/gtk.h>
 #include <libgnomecanvas/libgnomecanvas.h>
 
@@ -150,8 +151,8 @@ void clear_redo_stack(void)
       redo->page->group = NULL;
       delete_page(redo->page);
     }
-    else if (redo->type == ITEM_MOVESEL) {
-      g_list_free(redo->itemlist);
+    else if (redo->type == ITEM_MOVESEL || redo->type == ITEM_REPAINTSEL) {
+      g_list_free(redo->itemlist); g_list_free(redo->auxlist);
     }
     else if (redo->type == ITEM_PASTE) {
       for (list = redo->itemlist; list!=NULL; list=list->next) {
@@ -199,7 +200,10 @@ void clear_undo_stack(void)
       }
       g_free(undo->bg);
     }
-    else if (undo->type == ITEM_MOVESEL || undo->type == ITEM_PASTE) {
+    else if (undo->type == ITEM_MOVESEL || undo->type == ITEM_REPAINTSEL) {
+      g_list_free(undo->itemlist); g_list_free(undo->auxlist);
+    }
+    else if (undo->type == ITEM_PASTE) {
       g_list_free(undo->itemlist);
     }
     else if (undo->type == ITEM_DELETE_LAYER) {
@@ -586,7 +590,7 @@ void lower_canvas_item_to(GnomeCanvasGroup *g, GnomeCanvasItem *item, GnomeCanva
 
 void update_thickness_buttons(void)
 {
-  if (ui.toolno >= NUM_STROKE_TOOLS) {
+  if (ui.selection!=NULL || ui.toolno[ui.cur_mapping] >= NUM_STROKE_TOOLS) {
     gtk_toggle_tool_button_set_active(
       GTK_TOGGLE_TOOL_BUTTON(GET_COMPONENT("buttonThicknessOther")), TRUE);
   } else 
@@ -611,7 +615,8 @@ void update_thickness_buttons(void)
 
 void update_color_buttons(void)
 {
-  if (ui.toolno != TOOL_PEN && ui.toolno != TOOL_HIGHLIGHTER) {
+  if (ui.selection!=NULL || (ui.toolno[ui.cur_mapping] != TOOL_PEN 
+                          && ui.toolno[ui.cur_mapping] != TOOL_HIGHLIGHTER)) {
     gtk_toggle_tool_button_set_active(
       GTK_TOGGLE_TOOL_BUTTON(GET_COMPONENT("buttonColorOther")), TRUE);
   } else
@@ -668,7 +673,7 @@ void update_color_buttons(void)
 
 void update_tool_buttons(void)
 {
-  switch(ui.toolno) {
+  switch(ui.toolno[ui.cur_mapping]) {
     case TOOL_PEN:
       gtk_toggle_tool_button_set_active(
         GTK_TOGGLE_TOOL_BUTTON(GET_COMPONENT("buttonPen")), TRUE);
@@ -700,14 +705,14 @@ void update_tool_buttons(void)
   }
     
   gtk_toggle_tool_button_set_active(
-    GTK_TOGGLE_TOOL_BUTTON(GET_COMPONENT("buttonRuler")), ui.ruler);
+    GTK_TOGGLE_TOOL_BUTTON(GET_COMPONENT("buttonRuler")), ui.ruler[ui.cur_mapping]);
   update_thickness_buttons();
   update_color_buttons();
 }
 
 void update_tool_menu(void)
 {
-  switch(ui.toolno) {
+  switch(ui.toolno[0]) {
     case TOOL_PEN:
       gtk_check_menu_item_set_active(
         GTK_CHECK_MENU_ITEM(GET_COMPONENT("toolsPen")), TRUE);
@@ -739,20 +744,21 @@ void update_tool_menu(void)
   }
 
   gtk_check_menu_item_set_active(
-    GTK_CHECK_MENU_ITEM(GET_COMPONENT("toolsRuler")), ui.ruler);
+    GTK_CHECK_MENU_ITEM(GET_COMPONENT("toolsRuler")), ui.ruler[0]);
 }
 
 void update_ruler_indicator(void)
 {
   gtk_toggle_tool_button_set_active(
-    GTK_TOGGLE_TOOL_BUTTON(GET_COMPONENT("buttonRuler")), ui.ruler);
+    GTK_TOGGLE_TOOL_BUTTON(GET_COMPONENT("buttonRuler")), ui.ruler[ui.cur_mapping]);
   gtk_check_menu_item_set_active(
-    GTK_CHECK_MENU_ITEM(GET_COMPONENT("toolsRuler")), ui.ruler);
+    GTK_CHECK_MENU_ITEM(GET_COMPONENT("toolsRuler")), ui.ruler[0]);
 }
 
 void update_color_menu(void)
 {
-  if (ui.toolno != TOOL_PEN && ui.toolno != TOOL_HIGHLIGHTER) {
+  if (ui.selection!=NULL || (ui.toolno[ui.cur_mapping] != TOOL_PEN 
+                          && ui.toolno[ui.cur_mapping] != TOOL_HIGHLIGHTER)) {
     gtk_check_menu_item_set_active(
       GTK_CHECK_MENU_ITEM(GET_COMPONENT("colorNA")), TRUE);
   } else
@@ -809,7 +815,7 @@ void update_color_menu(void)
 
 void update_pen_props_menu(void)
 {
-  switch(ui.brushes[TOOL_PEN].thickness_no) {
+  switch(ui.brushes[0][TOOL_PEN].thickness_no) {
     case THICKNESS_VERYFINE:
       gtk_check_menu_item_set_active(
         GTK_CHECK_MENU_ITEM(GET_COMPONENT("penthicknessVeryFine")), TRUE);
@@ -835,7 +841,7 @@ void update_pen_props_menu(void)
 
 void update_eraser_props_menu(void)
 {
-  switch (ui.brushes[TOOL_ERASER].thickness_no) {
+  switch (ui.brushes[0][TOOL_ERASER].thickness_no) {
     case THICKNESS_FINE:
       gtk_check_menu_item_set_active(
         GTK_CHECK_MENU_ITEM(GET_COMPONENT("eraserFine")), TRUE);
@@ -852,18 +858,18 @@ void update_eraser_props_menu(void)
   
   gtk_check_menu_item_set_active(
     GTK_CHECK_MENU_ITEM(GET_COMPONENT("eraserStandard")),
-    ui.brushes[TOOL_ERASER].tool_options == TOOLOPT_ERASER_STANDARD);
+    ui.brushes[0][TOOL_ERASER].tool_options == TOOLOPT_ERASER_STANDARD);
   gtk_check_menu_item_set_active(
     GTK_CHECK_MENU_ITEM(GET_COMPONENT("eraserWhiteout")),
-    ui.brushes[TOOL_ERASER].tool_options == TOOLOPT_ERASER_WHITEOUT);
+    ui.brushes[0][TOOL_ERASER].tool_options == TOOLOPT_ERASER_WHITEOUT);
   gtk_check_menu_item_set_active(
     GTK_CHECK_MENU_ITEM(GET_COMPONENT("eraserDeleteStrokes")),
-    ui.brushes[TOOL_ERASER].tool_options == TOOLOPT_ERASER_STROKES);
+    ui.brushes[0][TOOL_ERASER].tool_options == TOOLOPT_ERASER_STROKES);
 }
 
 void update_highlighter_props_menu(void)
 {
-  switch (ui.brushes[TOOL_HIGHLIGHTER].thickness_no) {
+  switch (ui.brushes[0][TOOL_HIGHLIGHTER].thickness_no) {
     case THICKNESS_FINE:
       gtk_check_menu_item_set_active(
         GTK_CHECK_MENU_ITEM(GET_COMPONENT("highlighterFine")), TRUE);
@@ -877,6 +883,106 @@ void update_highlighter_props_menu(void)
         GTK_CHECK_MENU_ITEM(GET_COMPONENT("highlighterThick")), TRUE);
       break;
   }
+}
+
+void update_mappings_menu_linkings(void)
+{
+  switch (ui.linked_brush[1]) {
+    case BRUSH_LINKED:
+      gtk_check_menu_item_set_active(
+        GTK_CHECK_MENU_ITEM(GET_COMPONENT("button2LinkBrush")), TRUE);
+      break;
+    case BRUSH_COPIED:
+      gtk_check_menu_item_set_active(
+        GTK_CHECK_MENU_ITEM(GET_COMPONENT("button2CopyBrush")), TRUE);
+      break;
+    case BRUSH_STATIC:
+      gtk_check_menu_item_set_active(
+        GTK_CHECK_MENU_ITEM(GET_COMPONENT("button2NABrush")), TRUE);
+      break;
+  }
+  switch (ui.linked_brush[2]) {
+    case BRUSH_LINKED:
+      gtk_check_menu_item_set_active(
+        GTK_CHECK_MENU_ITEM(GET_COMPONENT("button3LinkBrush")), TRUE);
+      break;
+    case BRUSH_COPIED:
+      gtk_check_menu_item_set_active(
+        GTK_CHECK_MENU_ITEM(GET_COMPONENT("button3CopyBrush")), TRUE);
+      break;
+    case BRUSH_STATIC:
+      gtk_check_menu_item_set_active(
+        GTK_CHECK_MENU_ITEM(GET_COMPONENT("button3NABrush")), TRUE);
+      break;
+  }
+}
+
+void update_mappings_menu(void)
+{
+  gtk_check_menu_item_set_active(
+    GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsButtonMappings")), ui.use_erasertip);
+
+  switch(ui.toolno[1]) {
+    case TOOL_PEN:
+      gtk_check_menu_item_set_active(
+        GTK_CHECK_MENU_ITEM(GET_COMPONENT("button2Pen")), TRUE);
+      break;
+    case TOOL_ERASER:
+      gtk_check_menu_item_set_active(
+        GTK_CHECK_MENU_ITEM(GET_COMPONENT("button2Eraser")), TRUE);
+      break;
+    case TOOL_HIGHLIGHTER:
+      gtk_check_menu_item_set_active(
+        GTK_CHECK_MENU_ITEM(GET_COMPONENT("button2Highlighter")), TRUE);
+      break;
+    case TOOL_TEXT:
+      gtk_check_menu_item_set_active(
+        GTK_CHECK_MENU_ITEM(GET_COMPONENT("button2Text")), TRUE);
+      break;
+    case TOOL_SELECTREGION:
+      gtk_check_menu_item_set_active(
+        GTK_CHECK_MENU_ITEM(GET_COMPONENT("button2SelectRegion")), TRUE);
+      break;
+    case TOOL_SELECTRECT:
+      gtk_check_menu_item_set_active(
+        GTK_CHECK_MENU_ITEM(GET_COMPONENT("button2SelectRectangle")), TRUE);
+      break;
+    case TOOL_VERTSPACE:
+      gtk_check_menu_item_set_active(
+        GTK_CHECK_MENU_ITEM(GET_COMPONENT("button2VerticalSpace")), TRUE);
+      break;
+  }
+  switch(ui.toolno[2]) {
+    case TOOL_PEN:
+      gtk_check_menu_item_set_active(
+        GTK_CHECK_MENU_ITEM(GET_COMPONENT("button3Pen")), TRUE);
+      break;
+    case TOOL_ERASER:
+      gtk_check_menu_item_set_active(
+        GTK_CHECK_MENU_ITEM(GET_COMPONENT("button3Eraser")), TRUE);
+      break;
+    case TOOL_HIGHLIGHTER:
+      gtk_check_menu_item_set_active(
+        GTK_CHECK_MENU_ITEM(GET_COMPONENT("button3Highlighter")), TRUE);
+      break;
+    case TOOL_TEXT:
+      gtk_check_menu_item_set_active(
+        GTK_CHECK_MENU_ITEM(GET_COMPONENT("button3Text")), TRUE);
+      break;
+    case TOOL_SELECTREGION:
+      gtk_check_menu_item_set_active(
+        GTK_CHECK_MENU_ITEM(GET_COMPONENT("button3SelectRegion")), TRUE);
+      break;
+    case TOOL_SELECTRECT:
+      gtk_check_menu_item_set_active(
+        GTK_CHECK_MENU_ITEM(GET_COMPONENT("button3SelectRectangle")), TRUE);
+      break;
+    case TOOL_VERTSPACE:
+      gtk_check_menu_item_set_active(
+        GTK_CHECK_MENU_ITEM(GET_COMPONENT("button3VerticalSpace")), TRUE);
+      break;
+  }
+  update_mappings_menu_linkings();
 }
 
 void do_switch_page(int pg, gboolean rescroll, gboolean refresh_all)
@@ -990,7 +1096,7 @@ void update_page_stuff(void)
     gtk_check_menu_item_set_active(
        GTK_CHECK_MENU_ITEM(GET_COMPONENT("viewOnePage")), TRUE);
 
-  if (ui.cur_page->bg->type == BG_SOLID) {
+  if (ui.cur_page->bg->type == BG_SOLID && !ui.bg_apply_all_pages) {
     switch (ui.cur_page->bg->color_no) {
       case COLOR_WHITE:
         gtk_check_menu_item_set_active(
@@ -1049,10 +1155,8 @@ void update_page_stuff(void)
   // enable/disable the page/layer menu items and toolbar buttons
 
   gtk_widget_set_sensitive(GET_COMPONENT("journalPaperColor"), 
-     ui.cur_page->bg->type == BG_SOLID);
+     ui.cur_page->bg->type == BG_SOLID || ui.bg_apply_all_pages);
   gtk_widget_set_sensitive(GET_COMPONENT("journalSetAsDefault"),
-     ui.cur_page->bg->type == BG_SOLID);
-  gtk_widget_set_sensitive(GET_COMPONENT("journalApplyAllPages"),
      ui.cur_page->bg->type == BG_SOLID);
   
   gtk_widget_set_sensitive(GET_COMPONENT("viewFirstPage"), ui.pageno!=0);
@@ -1079,6 +1183,7 @@ void update_toolbar_and_menu(void)
   update_pen_props_menu();
   update_eraser_props_menu();
   update_highlighter_props_menu();
+  update_mappings_menu();
 
   gtk_toggle_tool_button_set_active(
     GTK_TOGGLE_TOOL_BUTTON(GET_COMPONENT("buttonFullscreen")), ui.fullscreen);
@@ -1120,13 +1225,33 @@ void update_copy_paste_enabled(void)
   gtk_widget_set_sensitive(GET_COMPONENT("buttonCopy"), ui.selection!=NULL);
 }
 
+void update_mapping_linkings(int toolno)
+{
+  int i;
+  
+  for (i = 1; i<=NUM_BUTTONS; i++) {
+    if (ui.linked_brush[i] == BRUSH_LINKED) {
+      if (toolno >= 0 && toolno < NUM_STROKE_TOOLS)
+        g_memmove(&(ui.brushes[i][toolno]), &(ui.brushes[0][toolno]), sizeof(struct Brush));
+      ui.ruler[i] = ui.ruler[0];
+      if (ui.toolno[i]!=TOOL_PEN && ui.toolno[i]!=TOOL_HIGHLIGHTER)
+        ui.ruler[i] = FALSE;
+    }
+    if (ui.linked_brush[i] == BRUSH_COPIED && toolno == ui.toolno[i]) {
+      ui.linked_brush[i] = BRUSH_STATIC;
+      if (i==1 || i==2) update_mappings_menu_linkings();
+    }
+  }
+}
+
 void set_cur_color(int color)
 {
   ui.cur_brush->color_no = color;
-  if (ui.toolno == TOOL_HIGHLIGHTER)
+  if (ui.toolno[0] == TOOL_HIGHLIGHTER)
     ui.cur_brush->color_rgba = predef_colors_rgba[color] & HILITER_ALPHA_MASK;
   else
     ui.cur_brush->color_rgba = predef_colors_rgba[color];
+  update_mapping_linkings(ui.toolno[0]);
 }
 
 void process_color_activate(GtkMenuItem *menuitem, int color)
@@ -1139,21 +1264,23 @@ void process_color_activate(GtkMenuItem *menuitem, int color)
       return;
   }
 
-  if (ui.toolno != TOOL_PEN && ui.toolno != TOOL_HIGHLIGHTER
-        && ui.toolno != TOOL_TEXT && ui.selection == NULL) {
-    ui.toolno = TOOL_PEN;
-    ui.cur_brush = ui.brushes+TOOL_PEN;
+  if (ui.cur_mapping != 0) return; // not user-generated
+
+  if (ui.selection != NULL) {
+    recolor_selection(color);
+    update_color_buttons();
+    update_color_menu();
+  }
+  
+  if (ui.toolno[0] != TOOL_PEN && ui.toolno[0] != TOOL_HIGHLIGHTER) {
+    if (ui.selection != NULL) return;
+    ui.toolno[0] = TOOL_PEN;
+    ui.cur_brush = &(ui.brushes[0][TOOL_PEN]);
     update_tool_buttons();
     update_tool_menu();
   }
   
-  if (ui.toolno == TOOL_PEN || ui.toolno == TOOL_HIGHLIGHTER)
-    set_cur_color(color);
-
-  if ((ui.toolno == TOOL_SELECTREGION || ui.toolno == TOOL_SELECTRECT) &&
-       ui.selection != NULL)
-    recolor_selection(color);
-
+  set_cur_color(color);
   update_color_buttons();
   update_color_menu();
   update_cursor();
@@ -1169,16 +1296,21 @@ void process_thickness_activate(GtkMenuItem *menuitem, int tool, int val)
       return;
   }
 
+  if (ui.cur_mapping != 0) return; // not user-generated
+
+  if (ui.selection != NULL && GTK_OBJECT_TYPE(menuitem) != GTK_TYPE_RADIO_MENU_ITEM) {
+    rethicken_selection(val);
+    update_thickness_buttons();
+  }
+
   if (tool >= NUM_STROKE_TOOLS) {
-    if ((tool == TOOL_SELECTREGION || tool == TOOL_SELECTRECT) && ui.selection != NULL)
-      rethicken_selection(val);
     update_thickness_buttons(); // undo illegal button selection
     return;
   }
-  
-  if (ui.brushes[tool].thickness_no == val) return; // avoid loops
-  ui.brushes[tool].thickness_no = val;
-  ui.brushes[tool].thickness = predef_thickness[tool][val];
+
+  ui.brushes[0][tool].thickness_no = val;
+  ui.brushes[0][tool].thickness = predef_thickness[tool][val];
+  update_mapping_linkings(tool);
   
   update_thickness_buttons();
   if (tool == TOOL_PEN) update_pen_props_menu();
@@ -1189,55 +1321,83 @@ void process_thickness_activate(GtkMenuItem *menuitem, int tool, int val)
 
 void process_papercolor_activate(GtkMenuItem *menuitem, int color)
 {
+  struct Page *pg;
+  GList *pglist;
+  gboolean hasdone;
+
   if (!gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem)))
     return;
 
-  if (ui.cur_page->bg->type != BG_SOLID) {
+  if ((ui.cur_page->bg->type != BG_SOLID) || ui.bg_apply_all_pages)
     gtk_check_menu_item_set_active(
       GTK_CHECK_MENU_ITEM(GET_COMPONENT("papercolorNA")), TRUE);
-    return;
+
+  pg = ui.cur_page;
+  hasdone = FALSE;
+  for (pglist = journal.pages; pglist!=NULL; pglist = pglist->next) {
+    if (ui.bg_apply_all_pages) pg = (struct Page *)pglist->data;
+    if (pg->bg->type == BG_SOLID && pg->bg->color_no != color) {
+      prepare_new_undo();
+      if (hasdone) undo->multiop |= MULTIOP_CONT_UNDO;
+      undo->multiop |= MULTIOP_CONT_REDO;
+      hasdone = TRUE;
+      undo->type = ITEM_NEW_BG_ONE;
+      undo->page = pg;
+      undo->bg = (struct Background *)g_memdup(pg->bg, sizeof(struct Background));
+      undo->bg->canvas_item = NULL;
+
+      pg->bg->color_no = color;
+      pg->bg->color_rgba = predef_bgcolors_rgba[color];
+      update_canvas_bg(pg);
+    }
+    if (!ui.bg_apply_all_pages) break;
   }
-
-  if (ui.cur_page->bg->color_no == color) return;
-  
-  reset_selection();
-  prepare_new_undo();
-  undo->type = ITEM_NEW_BG_ONE;
-  undo->page = ui.cur_page;
-  undo->bg = (struct Background *)g_memdup(ui.cur_page->bg, sizeof(struct Background));
-  undo->bg->canvas_item = NULL;
-
-  ui.cur_page->bg->color_no = color;
-  ui.cur_page->bg->color_rgba = predef_bgcolors_rgba[color];
-  update_canvas_bg(ui.cur_page);
+  if (hasdone) undo->multiop -= MULTIOP_CONT_REDO;
 }
 
 void process_paperstyle_activate(GtkMenuItem *menuitem, int style)
 {
+  struct Page *pg;
+  GList *pglist;
+  gboolean hasdone, must_upd;
+
   if (!gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem)))
     return;
 
-  if (ui.cur_page->bg->type == BG_SOLID && ui.cur_page->bg->ruling == style)
-    return;
+  if (ui.bg_apply_all_pages)
+    gtk_check_menu_item_set_active(
+      GTK_CHECK_MENU_ITEM(GET_COMPONENT("paperstyleNA")), TRUE);
 
-  reset_selection();
-  prepare_new_undo();
-  undo->type = ITEM_NEW_BG_ONE;
-  undo->page = ui.cur_page;
-  undo->bg = (struct Background *)g_memdup(ui.cur_page->bg, sizeof(struct Background));
-  undo->bg->canvas_item = NULL;
+  pg = ui.cur_page;
+  hasdone = FALSE;
+  must_upd = FALSE;
+  for (pglist = journal.pages; pglist!=NULL; pglist = pglist->next) {
+    if (ui.bg_apply_all_pages) pg = (struct Page *)pglist->data;
+    if (pg->bg->type != BG_SOLID || pg->bg->ruling != style) {
+      prepare_new_undo();
+      undo->type = ITEM_NEW_BG_ONE;
+      if (hasdone) undo->multiop |= MULTIOP_CONT_UNDO;
+      undo->multiop |= MULTIOP_CONT_REDO;
+      hasdone = TRUE;
+      undo->page = pg;
+      undo->bg = (struct Background *)g_memdup(pg->bg, sizeof(struct Background));
+      undo->bg->canvas_item = NULL;
 
-  if (ui.cur_page->bg->type != BG_SOLID) {
-    ui.cur_page->bg->type = BG_SOLID;
-    ui.cur_page->bg->color_no = COLOR_WHITE;
-    ui.cur_page->bg->color_rgba = predef_bgcolors_rgba[COLOR_WHITE];
-    ui.cur_page->bg->filename = NULL;
-    ui.cur_page->bg->pixbuf = NULL;
-    update_page_stuff();
+      if (pg->bg->type != BG_SOLID) {
+        pg->bg->type = BG_SOLID;
+        pg->bg->color_no = COLOR_WHITE;
+        pg->bg->color_rgba = predef_bgcolors_rgba[COLOR_WHITE];
+        pg->bg->filename = NULL;
+        pg->bg->pixbuf = NULL;
+        must_upd = TRUE;
+      }
+      pg->bg->ruling = style;
+      update_canvas_bg(pg);
+    }
+    if (!ui.bg_apply_all_pages) break;
   }
-
-  ui.cur_page->bg->ruling = style;
-  update_canvas_bg(ui.cur_page);
+  if (hasdone) undo->multiop -= MULTIOP_CONT_REDO;
+  if (must_upd) update_page_stuff();
 }
 
 gboolean ok_to_close(void)
@@ -1279,11 +1439,17 @@ void reset_selection(void)
   g_free(ui.selection);
   ui.selection = NULL;
   update_copy_paste_enabled();
+  update_color_menu();
+  update_thickness_buttons();
+  update_color_buttons();
 }
 
-void move_journal_items_by(GList *itemlist, double dx, double dy)
+void move_journal_items_by(GList *itemlist, double dx, double dy,
+                              struct Layer *l1, struct Layer *l2, GList *depths)
 {
   struct Item *item;
+  GnomeCanvasItem *refitem;
+  GList *link;
   int i;
   double *pt;
   
@@ -1297,6 +1463,63 @@ void move_journal_items_by(GList *itemlist, double dx, double dy)
       item->bbox.top += dy;
       item->bbox.bottom += dy;
     }
+    if (l1 != l2) {
+      // find out where to insert
+      if (depths != NULL) {
+        if (depths->data == NULL) link = l2->items;
+        else {
+          link = g_list_find(l2->items, depths->data);
+          if (link != NULL) link = link->next;
+        }
+      } else link = NULL;
+      l2->items = g_list_insert_before(l2->items, link, item);
+      l2->nitems++;
+      l1->items = g_list_remove(l1->items, item);
+      l1->nitems--;
+    }
+    if (depths != NULL) { // also raise/lower the canvas items
+      if (item->canvas_item!=NULL) {
+        if (depths->data == NULL) link = NULL;
+        else link = g_list_find(l2->items, depths->data);
+        if (link != NULL) refitem = ((struct Item *)(link->data))->canvas_item;
+        else refitem = NULL;
+        lower_canvas_item_to(l2->group, item->canvas_item, refitem);
+      }
+      depths = depths->next;
+    }
     itemlist = itemlist->next;
+  }
+}
+
+// Switch between button mappings
+
+/* NOTE ABOUT BUTTON MAPPINGS: ui.cur_mapping is 0 except while a canvas
+   click event is being processed ... */
+
+void switch_mapping(int m)
+{
+  if (ui.cur_mapping == m) return;
+
+  ui.cur_mapping = m;
+  if (ui.toolno[m] < NUM_STROKE_TOOLS) 
+    ui.cur_brush = &(ui.brushes[m][ui.toolno[m]]);
+  update_tool_buttons();
+  update_color_menu();
+  update_cursor();
+}
+
+void process_mapping_activate(GtkMenuItem *menuitem, int m, int tool)
+{
+  if (!gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem))) return;
+  if (ui.cur_mapping!=0) return;
+  if (ui.toolno[m] == tool) return;
+  ui.toolno[m] = tool;
+  ui.ruler[m] = FALSE;
+  if (ui.linked_brush[m] == BRUSH_LINKED 
+       && (tool==TOOL_PEN || tool==TOOL_HIGHLIGHTER))
+    ui.ruler[m] = ui.ruler[0];
+  if (ui.linked_brush[m] == BRUSH_COPIED) {
+    ui.linked_brush[m] = BRUSH_STATIC;
+    update_mappings_menu_linkings();
   }
 }

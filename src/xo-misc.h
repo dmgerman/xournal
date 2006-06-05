@@ -41,12 +41,15 @@ void update_color_menu(void);
 void update_pen_props_menu(void);
 void update_eraser_props_menu(void);
 void update_highlighter_props_menu(void);
+void update_mappings_menu_linkings(void);
+void update_mappings_menu(void);
 void update_page_stuff(void);
 void update_toolbar_and_menu(void);
 void update_file_name(char *filename);
 void update_undo_redo_enabled(void);
 void update_copy_paste_enabled(void);
 
+void update_mapping_linkings(int toolno);
 void do_switch_page(int pg, gboolean rescroll, gboolean refresh_all);
 void set_cur_color(int color);
 void process_color_activate(GtkMenuItem *menuitem, int color);
@@ -60,7 +63,13 @@ gboolean page_ops_forbidden(void);
 // selection / clipboard stuff
 
 void reset_selection(void);
-void move_journal_items_by(GList *itemlist, double dx, double dy);
+void move_journal_items_by(GList *itemlist, double dx, double dy,
+                           struct Layer *l1, struct Layer *l2, GList *depths);
+
+// switch between mappings
+
+void switch_mapping(int m);
+void process_mapping_activate(GtkMenuItem *menuitem, int m, int tool);
 
 // defines for paper rulings
 

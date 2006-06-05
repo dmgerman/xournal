@@ -1,3 +1,15 @@
+Version 0.2.2 (Jun 5, 2006):
+  - mapping of tools to stylus buttons (the options menu has new entries
+    to allow the mapping of buttons 2 and 3 to arbitrary tools; the tools
+    menu and toolbar affect the settings for button 1) (see manual)
+  - moving selection by drag-and-drop works across page boundaries
+  - vertical space tool can move items to next page (only when the entire
+    block being moved has crossed the page boundary; items on the new page
+    are not moved)
+  - "apply to all pages" is now a toggle button affecting the behavior of
+    paper size, color, and style commands
+  - change in the behavior of the selection upon switching between tools
+
 Version 0.2.1 (Jun 3, 2006):
   - recently used files listed in file menu
   - can change color or thickness of pen strokes in selection

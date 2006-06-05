@@ -468,7 +468,7 @@ on_viewFullscreen_activate             (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
 
 void
-on_optionsEmulateEraser_activate       (GtkMenuItem     *menuitem,
+on_optionsButtonMappings_activate      (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
 
 void
@@ -483,3 +483,76 @@ on_optionsProgressiveBG_activate       (GtkMenuItem     *menuitem,
 void
 on_mru_activate                        (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
+
+void
+on_button2Pen_activate                 (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_button2Eraser_activate              (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_button2Highlighter_activate         (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_button2Text_activate                (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_button2SelectRegion_activate        (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_button2SelectRectangle_activate     (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_button2VerticalSpace_activate       (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_button2LinkBrush_activate           (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_button2CopyBrush_activate           (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_button3Pen_activate                 (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_button3Eraser_activate              (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_button3Highlighter_activate         (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_button3Text_activate                (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_button3SelectRegion_activate        (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_button3SelectRectangle_activate     (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_button3VerticalSpace_activate       (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_button3LinkBrush_activate           (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_button3CopyBrush_activate           (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+

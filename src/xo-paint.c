@@ -61,7 +61,13 @@ void update_cursor(void)
     gdk_cursor_unref(ui.cursor);
     ui.cursor = NULL;
   }
-  if (ui.toolno == TOOL_PEN) {
+  if (ui.cur_item_type == ITEM_MOVESEL) {
+    if (ui.toolno[ui.cur_mapping] == TOOL_VERTSPACE) 
+      ui.cursor = gdk_cursor_new(GDK_SB_V_DOUBLE_ARROW);
+    else 
+      ui.cursor = gdk_cursor_new(GDK_FLEUR);
+  }
+  else if (ui.toolno[ui.cur_mapping] == TOOL_PEN) {
     fg.red = (ui.cur_brush->color_rgba >> 16) & 0xff00;
     fg.green = (ui.cur_brush->color_rgba >> 8) & 0xff00;
     fg.blue = (ui.cur_brush->color_rgba >> 0) & 0xff00;
@@ -69,14 +75,14 @@ void update_cursor(void)
     ui.cursor = gdk_cursor_new_from_pixmap(source, source, &fg, &bg, 7, 7);
     gdk_bitmap_unref(source);
   }
-  else if (ui.toolno == TOOL_ERASER) {
+  else if (ui.toolno[ui.cur_mapping] == TOOL_ERASER) {
     source = gdk_bitmap_create_from_data(NULL, cursor_eraser_bits, 16, 16);
     mask = gdk_bitmap_create_from_data(NULL, cursor_eraser_mask, 16, 16);
     ui.cursor = gdk_cursor_new_from_pixmap(source, mask, &fg, &bg, 7, 7);
     gdk_bitmap_unref(source);
     gdk_bitmap_unref(mask);
   }
-  else if (ui.toolno == TOOL_HIGHLIGHTER) {
+  else if (ui.toolno[ui.cur_mapping] == TOOL_HIGHLIGHTER) {
     source = gdk_bitmap_create_from_data(NULL, cursor_eraser_bits, 16, 16);
     mask = gdk_bitmap_create_from_data(NULL, cursor_eraser_mask, 16, 16);
     bg.red = (ui.cur_brush->color_rgba >> 16) & 0xff00;
@@ -85,12 +91,6 @@ void update_cursor(void)
     ui.cursor = gdk_cursor_new_from_pixmap(source, mask, &fg, &bg, 7, 7);
     gdk_bitmap_unref(source);
     gdk_bitmap_unref(mask);
-  }
-  else if (ui.cur_item_type == ITEM_MOVESEL) {
-    if (ui.toolno == TOOL_VERTSPACE) 
-      ui.cursor = gdk_cursor_new(GDK_SB_V_DOUBLE_ARROW);
-    else 
-      ui.cursor = gdk_cursor_new(GDK_FLEUR);
   }
   else if (ui.cur_item_type == ITEM_SELECTRECT) {
     ui.cursor = gdk_cursor_new(GDK_TCROSS);
@@ -141,7 +141,7 @@ void create_new_stroke(GdkEvent *event)
   ui.cur_path.num_points = 1;
   get_pointer_coords(event, ui.cur_path.coords);
   
-  if (ui.ruler) 
+  if (ui.ruler[ui.cur_mapping]) 
     ui.cur_item->canvas_item = gnome_canvas_item_new(ui.cur_layer->group,
       gnome_canvas_line_get_type(),
       "cap-style", GDK_CAP_ROUND, "join-style", GDK_JOIN_ROUND,
@@ -157,7 +157,7 @@ void continue_stroke(GdkEvent *event)
   GnomeCanvasPoints seg;
   double *pt;
 
-  if (ui.ruler) {
+  if (ui.ruler[ui.cur_mapping]) {
     pt = ui.cur_path.coords;
   } else {
     realloc_cur_path(ui.cur_path.num_points+1);
@@ -166,7 +166,7 @@ void continue_stroke(GdkEvent *event)
   
   get_pointer_coords(event, pt+2);
   
-  if (ui.ruler)
+  if (ui.ruler[ui.cur_mapping])
     ui.cur_path.num_points = 2;
   else {
     if (hypot(pt[0]-pt[2], pt[1]-pt[3]) < PIXEL_MOTION_THRESHOLD/ui.zoom)
@@ -182,7 +182,7 @@ void continue_stroke(GdkEvent *event)
      upon creation the line just copies the contents of the GnomeCanvasPoints
      into an internal structure */
 
-  if (ui.ruler)
+  if (ui.ruler[ui.cur_mapping])
     gnome_canvas_item_set(ui.cur_item->canvas_item, "points", &seg, NULL);
   else
     gnome_canvas_item_new((GnomeCanvasGroup *)ui.cur_item->canvas_item,
@@ -483,6 +483,10 @@ gboolean start_movesel(GdkEvent *event)
     ui.cur_item_type = ITEM_MOVESEL;
     ui.selection->anchor_x = ui.selection->last_x = pt[0];
     ui.selection->anchor_y = ui.selection->last_y = pt[1];
+    ui.selection->orig_pageno = ui.pageno;
+    ui.selection->move_pageno = ui.pageno;
+    ui.selection->move_layer = ui.selection->layer;
+    ui.selection->move_pagedelta = 0.;
     gnome_canvas_item_set(ui.selection->canvas_item, "dash", NULL, NULL);
     update_cursor();
     return TRUE;
@@ -497,22 +501,29 @@ void start_vertspace(GdkEvent *event)
   struct Item *item;
 
   reset_selection();
-  ui.cur_item_type = ITEM_MOVESEL;
+  ui.cur_item_type = ITEM_MOVESEL_VERT;
   ui.selection = g_new(struct Selection, 1);
-  ui.selection->type = ITEM_MOVESEL;
+  ui.selection->type = ITEM_MOVESEL_VERT;
   ui.selection->items = NULL;
   ui.selection->layer = ui.cur_layer;
 
   get_pointer_coords(event, pt);
+  ui.selection->bbox.top = ui.selection->bbox.bottom = pt[1];
   for (itemlist = ui.cur_layer->items; itemlist!=NULL; itemlist = itemlist->next) {
     item = (struct Item *)itemlist->data;
     if (item->bbox.top >= pt[1]) {
       ui.selection->items = g_list_append(ui.selection->items, item); 
+      if (item->bbox.bottom > ui.selection->bbox.bottom)
+        ui.selection->bbox.bottom = item->bbox.bottom;
     }
   }
 
   ui.selection->anchor_x = ui.selection->last_x = 0;
   ui.selection->anchor_y = ui.selection->last_y = pt[1];
+  ui.selection->orig_pageno = ui.pageno;
+  ui.selection->move_pageno = ui.pageno;
+  ui.selection->move_layer = ui.selection->layer;
+  ui.selection->move_pagedelta = 0.;
   ui.selection->canvas_item = gnome_canvas_item_new(ui.cur_layer->group,
       gnome_canvas_rect_get_type(), "width-pixels", 1, 
       "outline-color-rgba", 0x000000ff,
@@ -523,21 +534,69 @@ void start_vertspace(GdkEvent *event)
 
 void continue_movesel(GdkEvent *event)
 {
-  double pt[2], dx, dy;
+  double pt[2], dx, dy, upmargin;
   GList *list;
   struct Item *item;
+  int tmppageno;
+  struct Page *tmppage;
   
   get_pointer_coords(event, pt);
-  if (ui.toolno == TOOL_VERTSPACE) pt[0] = 0;
+  if (ui.cur_item_type == ITEM_MOVESEL_VERT) pt[0] = 0;
+  pt[1] += ui.selection->move_pagedelta;
+
+  // check for page jumps
+  if (ui.cur_item_type == ITEM_MOVESEL_VERT)
+    upmargin = ui.selection->bbox.bottom - ui.selection->bbox.top;
+  else upmargin = VIEW_CONTINUOUS_SKIP;
+  tmppageno = ui.selection->move_pageno;
+  tmppage = g_list_nth_data(journal.pages, tmppageno);
+  while (ui.view_continuous && (pt[1] < - upmargin)) {
+    if (tmppageno == 0) break;
+    tmppageno--;
+    tmppage = g_list_nth_data(journal.pages, tmppageno);
+    pt[1] += tmppage->height + VIEW_CONTINUOUS_SKIP;
+    ui.selection->move_pagedelta += tmppage->height + VIEW_CONTINUOUS_SKIP;
+  }
+  while (ui.view_continuous && (pt[1] > tmppage->height+VIEW_CONTINUOUS_SKIP)) {
+    if (tmppageno == journal.npages-1) break;
+    pt[1] -= tmppage->height + VIEW_CONTINUOUS_SKIP;
+    ui.selection->move_pagedelta -= tmppage->height + VIEW_CONTINUOUS_SKIP;
+    tmppageno++;
+    tmppage = g_list_nth_data(journal.pages, tmppageno);
+  }
+  
+  if (tmppageno != ui.selection->move_pageno) {
+    // move to a new page !
+    ui.selection->move_pageno = tmppageno;
+    if (tmppageno == ui.selection->orig_pageno)
+      ui.selection->move_layer = ui.selection->layer;
+    else
+      ui.selection->move_layer = (struct Layer *)(g_list_last(
+        ((struct Page *)g_list_nth_data(journal.pages, tmppageno))->layers)->data);
+    gnome_canvas_item_reparent(ui.selection->canvas_item, ui.selection->move_layer->group);
+    for (list = ui.selection->items; list!=NULL; list = list->next) {
+      item = (struct Item *)list->data;
+      if (item->canvas_item!=NULL)
+        gnome_canvas_item_reparent(item->canvas_item, ui.selection->move_layer->group);
+    }
+    // avoid a refresh bug
+    gnome_canvas_item_move(GNOME_CANVAS_ITEM(ui.selection->move_layer->group), 0., 0.);
+    if (ui.cur_item_type == ITEM_MOVESEL_VERT)
+      gnome_canvas_item_set(ui.selection->canvas_item,
+        "x2", tmppage->width+100, 
+        "y1", ui.selection->anchor_y+ui.selection->move_pagedelta, NULL);
+  }
+  
+  // now, process things normally
+
   dx = pt[0] - ui.selection->last_x;
   dy = pt[1] - ui.selection->last_y;
-  
   if (hypot(dx,dy) < 1) return; // don't move subpixel
   ui.selection->last_x = pt[0];
   ui.selection->last_y = pt[1];
-  
+
   // move the canvas items
-  if (ui.toolno == TOOL_VERTSPACE)
+  if (ui.cur_item_type == ITEM_MOVESEL_VERT)
     gnome_canvas_item_set(ui.selection->canvas_item, "y2", pt[1], NULL);
   else 
     gnome_canvas_item_move(ui.selection->canvas_item, dx, dy);
@@ -547,26 +606,38 @@ void continue_movesel(GdkEvent *event)
     if (item->canvas_item != NULL)
       gnome_canvas_item_move(item->canvas_item, dx, dy);
   }
-  
-  /* consider: if view_continuous, move items to a different page if
-     y value gets out of range (same algo as in button_down event
-     processing); then need to reparent the canvas items, delete the
-     Items from the old Layer, insert them on the new Layer, ...
-     and make an undo-event, probably cut-and-paste style... */
 }
 
 void finalize_movesel(void)
 {
+  GList *list, *link;
+  struct Item *item;
+  
   if (ui.selection->items != NULL) {
     prepare_new_undo();
     undo->type = ITEM_MOVESEL;
     undo->itemlist = g_list_copy(ui.selection->items);
     undo->val_x = ui.selection->last_x - ui.selection->anchor_x;
     undo->val_y = ui.selection->last_y - ui.selection->anchor_y;
-    move_journal_items_by(undo->itemlist, undo->val_x, undo->val_y);
+    undo->layer = ui.selection->layer;
+    undo->layer2 = ui.selection->move_layer;
+    undo->auxlist = NULL;
+    // build auxlist = pointers to Item's just before ours (for depths)
+    for (list = ui.selection->items; list!=NULL; list = list->next) {
+      link = g_list_find(ui.selection->layer->items, list->data);
+      if (link!=NULL) link = link->prev;
+      undo->auxlist = g_list_append(undo->auxlist, ((link!=NULL) ? link->data : NULL));
+    }
+    ui.selection->layer = ui.selection->move_layer;
+    move_journal_items_by(undo->itemlist, undo->val_x, undo->val_y,
+                          undo->layer, undo->layer2, 
+                          (undo->layer == undo->layer2)?undo->auxlist:NULL);
   }
 
-  if (ui.toolno == TOOL_VERTSPACE)
+  if (ui.selection->move_pageno!=ui.selection->orig_pageno) 
+    do_switch_page(ui.selection->move_pageno, FALSE, FALSE);
+    
+  if (ui.cur_item_type == ITEM_MOVESEL_VERT)
     reset_selection();
   else {
     ui.selection->bbox.left += undo->val_x;
@@ -697,12 +768,6 @@ void clipboard_paste(void)
   if (sel_data == NULL) return; // paste failed
   
   reset_selection();
-  ui.toolno = TOOL_SELECTRECT;
-  ui.ruler = FALSE;
-  update_tool_buttons();
-  update_tool_menu();
-  update_color_menu();
-  update_cursor();
   
   ui.selection = g_new(struct Selection, 1);
   p = sel_data->data + sizeof(int);

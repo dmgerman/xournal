@@ -530,10 +530,14 @@ on_editUndo_activate                   (GtkMenuItem     *menuitem,
   else if (undo->type == ITEM_MOVESEL) {
     for (itemlist = undo->itemlist; itemlist != NULL; itemlist = itemlist->next) {
       it = (struct Item *)itemlist->data;
-      if (it->canvas_item != NULL)
+      if (it->canvas_item != NULL) {
+        if (undo->layer != undo->layer2)
+          gnome_canvas_item_reparent(it->canvas_item, undo->layer->group);
         gnome_canvas_item_move(it->canvas_item, -undo->val_x, -undo->val_y);
+      }
     }
-    move_journal_items_by(undo->itemlist, -undo->val_x, -undo->val_y);
+    move_journal_items_by(undo->itemlist, -undo->val_x, -undo->val_y,
+                            undo->layer2, undo->layer, undo->auxlist);
   }
   else if (undo->type == ITEM_PASTE) {
     for (itemlist = undo->itemlist; itemlist != NULL; itemlist = itemlist->next) {
@@ -726,10 +730,14 @@ on_editRedo_activate                   (GtkMenuItem     *menuitem,
   else if (redo->type == ITEM_MOVESEL) {
     for (itemlist = redo->itemlist; itemlist != NULL; itemlist = itemlist->next) {
       it = (struct Item *)itemlist->data;
-      if (it->canvas_item != NULL)
+      if (it->canvas_item != NULL) {
+        if (redo->layer != redo->layer2)
+          gnome_canvas_item_reparent(it->canvas_item, redo->layer2->group);
         gnome_canvas_item_move(it->canvas_item, redo->val_x, redo->val_y);
+      }
     }
-    move_journal_items_by(redo->itemlist, redo->val_x, redo->val_y);
+    move_journal_items_by(redo->itemlist, redo->val_x, redo->val_y,
+                            redo->layer, redo->layer2, NULL);
   }
   else if (redo->type == ITEM_PASTE) {
     for (itemlist = redo->itemlist; itemlist != NULL; itemlist = itemlist->next) {
@@ -1176,6 +1184,8 @@ on_journalPaperSize_activate           (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
   int i, response;
+  struct Page *pg;
+  GList *pglist;
   
   papersize_dialog = create_papersizeDialog();
   papersize_width = ui.cur_page->width;
@@ -1198,18 +1208,25 @@ on_journalPaperSize_activate           (GtkMenuItem     *menuitem,
   response = gtk_dialog_run(GTK_DIALOG(papersize_dialog));
   gtk_widget_destroy(papersize_dialog);
   if (response != GTK_RESPONSE_OK) return;
-  
-  prepare_new_undo();
-  undo->type = ITEM_PAPER_RESIZE;
-  undo->page = ui.cur_page;
-  undo->val_x = ui.cur_page->width;
-  undo->val_y = ui.cur_page->height;
 
-  if (papersize_width_valid) ui.cur_page->width = papersize_width;
-  if (papersize_height_valid) ui.cur_page->height = papersize_height;
-
-  make_page_clipbox(ui.cur_page);
-  update_canvas_bg(ui.cur_page);
+  pg = ui.cur_page;
+  for (pglist = journal.pages; pglist!=NULL; pglist = pglist->next) {
+    if (ui.bg_apply_all_pages) pg = (struct Page *)pglist->data;
+    prepare_new_undo();
+    if (ui.bg_apply_all_pages) {
+      if (pglist->next!=NULL) undo->multiop |= MULTIOP_CONT_REDO;
+      if (pglist->prev!=NULL) undo->multiop |= MULTIOP_CONT_UNDO;
+    }
+    undo->type = ITEM_PAPER_RESIZE;
+    undo->page = pg;
+    undo->val_x = pg->width;
+    undo->val_y = pg->height;
+    if (papersize_width_valid) pg->width = papersize_width;
+    if (papersize_height_valid) pg->height = papersize_height;
+    make_page_clipbox(pg);
+    update_canvas_bg(pg);
+    if (!ui.bg_apply_all_pages) break;
+  }
   do_switch_page(ui.pageno, TRUE, TRUE);
 }
 
@@ -1466,6 +1483,14 @@ void
 on_journalApplyAllPages_activate       (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
+  gboolean active;
+  
+  active = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem));
+  if (active == ui.bg_apply_all_pages) return;
+  ui.bg_apply_all_pages = active;
+  update_page_stuff();
+  
+/* THIS IS THE OLD VERSION OF THE FEATURE -- APPLIED CURRENT BG TO ALL
   struct Page *page;
   GList *pglist;
   
@@ -1491,6 +1516,8 @@ on_journalApplyAllPages_activate       (GtkMenuItem     *menuitem,
     update_canvas_bg(page);
   }
   do_switch_page(ui.pageno, TRUE, TRUE);
+*/
+
 }
 
 
@@ -1506,12 +1533,14 @@ on_toolsPen_activate                   (GtkMenuItem     *menuitem,
       return;
   }
   
-  if (ui.toolno == TOOL_PEN) return;
-  
+  if (ui.cur_mapping != 0) return;
+  if (ui.toolno[0] == TOOL_PEN) return;
+
   reset_selection();
-  ui.toolno = TOOL_PEN;
-  ui.ruler = FALSE;
-  ui.cur_brush = ui.brushes+TOOL_PEN;
+  ui.toolno[0] = TOOL_PEN;
+  ui.ruler[0] = FALSE;
+  ui.cur_brush = &(ui.brushes[0][TOOL_PEN]);
+  update_mapping_linkings(TOOL_PEN);
   update_tool_buttons();
   update_tool_menu();
   update_color_menu();
@@ -1531,12 +1560,14 @@ on_toolsEraser_activate                (GtkMenuItem     *menuitem,
       return;
   }
   
-  if (ui.toolno == TOOL_ERASER) return;
+  if (ui.cur_mapping != 0) return;
+  if (ui.toolno[0] == TOOL_ERASER) return;
   
   reset_selection();
-  ui.toolno = TOOL_ERASER;
-  ui.ruler = FALSE;
-  ui.cur_brush = ui.brushes+TOOL_ERASER;
+  ui.toolno[0] = TOOL_ERASER;
+  ui.ruler[0] = FALSE;
+  ui.cur_brush = &(ui.brushes[0][TOOL_ERASER]);
+  update_mapping_linkings(TOOL_ERASER);
   update_tool_buttons();
   update_tool_menu();
   update_color_menu();
@@ -1556,12 +1587,14 @@ on_toolsHighlighter_activate           (GtkMenuItem     *menuitem,
       return;
   }
   
-  if (ui.toolno == TOOL_HIGHLIGHTER) return;
+  if (ui.cur_mapping != 0) return; // not user-generated
+  if (ui.toolno[0] == TOOL_HIGHLIGHTER) return;
   
   reset_selection();
-  ui.toolno = TOOL_HIGHLIGHTER;
-  ui.ruler = FALSE;
-  ui.cur_brush = ui.brushes+TOOL_HIGHLIGHTER;
+  ui.toolno[0] = TOOL_HIGHLIGHTER;
+  ui.ruler[0] = FALSE;
+  ui.cur_brush = &(ui.brushes[0][TOOL_HIGHLIGHTER]);
+  update_mapping_linkings(TOOL_HIGHLIGHTER);
   update_tool_buttons();
   update_tool_menu();
   update_color_menu();
@@ -1597,10 +1630,12 @@ on_toolsSelectRectangle_activate       (GtkMenuItem     *menuitem,
       return;
   }
   
-  if (ui.toolno == TOOL_SELECTRECT) return;
+  if (ui.cur_mapping != 0) return; // not user-generated
+  if (ui.toolno[0] == TOOL_SELECTRECT) return;
   
-  ui.toolno = TOOL_SELECTRECT;
-  ui.ruler = FALSE;
+  ui.toolno[0] = TOOL_SELECTRECT;
+  ui.ruler[0] = FALSE;
+  update_mapping_linkings(-1);
   update_tool_buttons();
   update_tool_menu();
   update_color_menu();
@@ -1620,11 +1655,13 @@ on_toolsVerticalSpace_activate         (GtkMenuItem     *menuitem,
       return;
   }
   
-  if (ui.toolno == TOOL_VERTSPACE) return;
+  if (ui.cur_mapping != 0) return; // not user-generated
+  if (ui.toolno[0] == TOOL_VERTSPACE) return;
   
   reset_selection();
-  ui.toolno = TOOL_VERTSPACE;
-  ui.ruler = FALSE;
+  ui.toolno[0] = TOOL_VERTSPACE;
+  ui.ruler[0] = FALSE;
+  update_mapping_linkings(-1);
   update_tool_buttons();
   update_tool_menu();
   update_color_menu();
@@ -1798,7 +1835,8 @@ on_eraserStandard_activate             (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
   if (!gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem))) return;
-  ui.brushes[TOOL_ERASER].tool_options = TOOLOPT_ERASER_STANDARD;
+  ui.brushes[0][TOOL_ERASER].tool_options = TOOLOPT_ERASER_STANDARD;
+  update_mapping_linkings(TOOL_ERASER);
 }
 
 
@@ -1807,7 +1845,8 @@ on_eraserWhiteout_activate             (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
   if (!gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem))) return;
-  ui.brushes[TOOL_ERASER].tool_options = TOOLOPT_ERASER_WHITEOUT;
+  ui.brushes[0][TOOL_ERASER].tool_options = TOOLOPT_ERASER_WHITEOUT;
+  update_mapping_linkings(TOOL_ERASER);
 }
 
 
@@ -1816,7 +1855,8 @@ on_eraserDeleteStrokes_activate        (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
   if (!gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem))) return;
-  ui.brushes[TOOL_ERASER].tool_options = TOOLOPT_ERASER_STROKES;
+  ui.brushes[0][TOOL_ERASER].tool_options = TOOLOPT_ERASER_STROKES;
+  update_mapping_linkings(TOOL_ERASER);
 }
 
 
@@ -1856,10 +1896,13 @@ void
 on_toolsDefaultPen_activate            (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
+  switch_mapping(0);
   reset_selection();
-  g_memmove(ui.brushes+TOOL_PEN, ui.default_brushes+TOOL_PEN, sizeof(struct Brush));
-  ui.toolno = TOOL_PEN;
-  ui.cur_brush = ui.brushes+TOOL_PEN;
+  g_memmove(&(ui.brushes[0][TOOL_PEN]), ui.default_brushes+TOOL_PEN, sizeof(struct Brush));
+  ui.toolno[0] = TOOL_PEN;
+  ui.cur_brush = &(ui.brushes[0][TOOL_PEN]);
+  ui.ruler[0] = FALSE;
+  update_mapping_linkings(TOOL_PEN);
   update_tool_buttons();
   update_tool_menu();
   update_pen_props_menu();
@@ -1872,10 +1915,13 @@ void
 on_toolsDefaultEraser_activate         (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
+  switch_mapping(0);
   reset_selection();
-  g_memmove(ui.brushes+TOOL_ERASER, ui.default_brushes+TOOL_ERASER, sizeof(struct Brush));
-  ui.toolno = TOOL_ERASER;
-  ui.cur_brush = ui.brushes+TOOL_ERASER;
+  g_memmove(&(ui.brushes[0][TOOL_ERASER]), ui.default_brushes+TOOL_ERASER, sizeof(struct Brush));
+  ui.toolno[0] = TOOL_ERASER;
+  ui.cur_brush = &(ui.brushes[0][TOOL_ERASER]);
+  ui.ruler[0] = FALSE;
+  update_mapping_linkings(TOOL_ERASER);
   update_tool_buttons();
   update_tool_menu();
   update_eraser_props_menu();
@@ -1888,10 +1934,13 @@ void
 on_toolsDefaultHighlighter_activate    (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
+  switch_mapping(0);
   reset_selection();
-  g_memmove(ui.brushes+TOOL_HIGHLIGHTER, ui.default_brushes+TOOL_HIGHLIGHTER, sizeof(struct Brush));
-  ui.toolno = TOOL_HIGHLIGHTER;
-  ui.cur_brush = ui.brushes+TOOL_HIGHLIGHTER;
+  g_memmove(&(ui.brushes[0][TOOL_HIGHLIGHTER]), ui.default_brushes+TOOL_HIGHLIGHTER, sizeof(struct Brush));
+  ui.toolno[0] = TOOL_HIGHLIGHTER;
+  ui.cur_brush = &(ui.brushes[0][TOOL_HIGHLIGHTER]);
+  ui.ruler[0] = FALSE;
+  update_mapping_linkings(TOOL_HIGHLIGHTER);
   update_tool_buttons();
   update_tool_menu();
   update_highlighter_props_menu();
@@ -1911,8 +1960,9 @@ void
 on_toolsSetAsDefault_activate          (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  if (ui.toolno < NUM_STROKE_TOOLS)
-    g_memmove(ui.default_brushes+ui.toolno, ui.brushes+ui.toolno, sizeof(struct Brush));
+  if (ui.cur_mapping!=0) return;
+  if (ui.toolno[0] < NUM_STROKE_TOOLS)
+    g_memmove(ui.default_brushes+ui.toolno[0], &(ui.brushes[0][ui.toolno[0]]), sizeof(struct Brush));
 }
 
 
@@ -1927,19 +1977,21 @@ on_toolsRuler_activate                 (GtkMenuItem     *menuitem,
   else
     active = gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON (menuitem));
 
-  if (active == ui.ruler) return;
+  if (ui.cur_mapping != 0) return;
+  if (active == ui.ruler[0]) return;
   
-  if (active && (ui.toolno!=TOOL_PEN && ui.toolno!=TOOL_HIGHLIGHTER)) {
+  if (active && (ui.toolno[0]!=TOOL_PEN && ui.toolno[0]!=TOOL_HIGHLIGHTER)) {
     reset_selection();
-    ui.toolno = TOOL_PEN;
-    ui.cur_brush = ui.brushes+TOOL_PEN;
+    ui.toolno[0] = TOOL_PEN;
+    ui.cur_brush = &(ui.brushes[0][TOOL_PEN]);
     update_color_menu();
     update_tool_buttons();
     update_tool_menu();
     update_cursor();
   }
   
-  ui.ruler = active;
+  ui.ruler[0] = active;
+  update_mapping_linkings(ui.toolno[0]);
   update_ruler_indicator();
 }
 
@@ -1980,14 +2032,17 @@ void
 on_buttonToolDefault_clicked           (GtkToolButton   *toolbutton,
                                         gpointer         user_data)
 {
-  if (ui.toolno < NUM_STROKE_TOOLS) {
-    g_memmove(ui.brushes+ui.toolno, ui.default_brushes+ui.toolno, sizeof(struct Brush));
+  switch_mapping(0);
+  if (ui.toolno[0] < NUM_STROKE_TOOLS) {
+    g_memmove(&(ui.brushes[0][ui.toolno[0]]), ui.default_brushes+ui.toolno[0], sizeof(struct Brush));
+    ui.ruler[0] = FALSE;
+    update_mapping_linkings(ui.toolno[0]);
     update_thickness_buttons();
     update_color_buttons();
     update_color_menu();
-    if (ui.toolno == TOOL_PEN) update_pen_props_menu();
-    if (ui.toolno == TOOL_ERASER) update_eraser_props_menu();
-    if (ui.toolno == TOOL_HIGHLIGHTER) update_highlighter_props_menu();
+    if (ui.toolno[0] == TOOL_PEN) update_pen_props_menu();
+    if (ui.toolno[0] == TOOL_ERASER) update_eraser_props_menu();
+    if (ui.toolno[0] == TOOL_HIGHLIGHTER) update_highlighter_props_menu();
     update_cursor();
   }
 }
@@ -1997,7 +2052,8 @@ void
 on_buttonFine_clicked                  (GtkToolButton   *toolbutton,
                                         gpointer         user_data)
 {
-  process_thickness_activate((GtkMenuItem*)toolbutton, ui.toolno, THICKNESS_FINE);
+  if (ui.cur_mapping != 0) return;
+  process_thickness_activate((GtkMenuItem*)toolbutton, ui.toolno[0], THICKNESS_FINE);
 }
 
 
@@ -2005,7 +2061,8 @@ void
 on_buttonMedium_clicked                (GtkToolButton   *toolbutton,
                                         gpointer         user_data)
 {
-  process_thickness_activate((GtkMenuItem*)toolbutton, ui.toolno, THICKNESS_MEDIUM);
+  if (ui.cur_mapping != 0) return;
+  process_thickness_activate((GtkMenuItem*)toolbutton, ui.toolno[0], THICKNESS_MEDIUM);
 }
 
 
@@ -2013,7 +2070,8 @@ void
 on_buttonThick_clicked                 (GtkToolButton   *toolbutton,
                                         gpointer         user_data)
 {
-  process_thickness_activate((GtkMenuItem*)toolbutton, ui.toolno, THICKNESS_THICK);
+  if (ui.cur_mapping != 0) return;
+  process_thickness_activate((GtkMenuItem*)toolbutton, ui.toolno[0], THICKNESS_THICK);
 }
 
 
@@ -2026,6 +2084,7 @@ on_canvas_button_press_event           (GtkWidget       *widget,
   gboolean page_change;
   struct Page *tmppage;
   GtkWidget *dialog;
+  int mapping;
   
   if (ui.cur_item_type != ITEM_NONE) return FALSE; // we're already doing something
   if (event->button > 3) return FALSE; // no painting with the mouse wheel!
@@ -2038,19 +2097,9 @@ on_canvas_button_press_event           (GtkWidget       *widget,
   }
   else if (event->device->source != GDK_SOURCE_MOUSE) return FALSE;
 
-  if ((ui.use_xinput && event->device->source == GDK_SOURCE_ERASER) ||
-      (ui.emulate_eraser && event->button >= 2)) {
-    ui.saved_toolno = ui.toolno;
-    ui.saved_ruler = ui.ruler;
-    reset_selection();
-    ui.toolno = TOOL_ERASER;
-    ui.ruler = FALSE;
-    ui.cur_brush = ui.brushes + TOOL_ERASER;
-    update_tool_buttons();
-    update_tool_menu();
-    update_color_menu();
-    update_cursor();
-  }
+  if (ui.use_erasertip && event->device->source == GDK_SOURCE_ERASER)
+       mapping = NUM_BUTTONS;
+  else mapping = event->button-1;
 
   // check whether we're in a page
   page_change = FALSE;
@@ -2075,16 +2124,6 @@ on_canvas_button_press_event           (GtkWidget       *widget,
   // can't paint on the background...
 
   if (ui.cur_layer == NULL) {
-    if (ui.saved_toolno >=0) {
-      ui.toolno = ui.saved_toolno;
-      ui.ruler = ui.saved_ruler;
-      ui.saved_toolno = -1;
-      if (ui.toolno < NUM_STROKE_TOOLS) ui.cur_brush = ui.brushes + ui.toolno;
-      update_tool_buttons();
-      update_tool_menu();
-      update_color_menu();
-      update_cursor();
-    }
     /* warn */
     dialog = gtk_message_dialog_new(GTK_WINDOW(winMain), GTK_DIALOG_MODAL,
       GTK_MESSAGE_WARNING, GTK_BUTTONS_OK, "Drawing is not allowed on the "
@@ -2094,24 +2133,33 @@ on_canvas_button_press_event           (GtkWidget       *widget,
     on_viewShowLayer_activate(NULL, NULL);
     return;
   }
+
+  // switch mappings if needed
   
-  // process the event
   ui.which_mouse_button = event->button;
+  switch_mapping(mapping);
+
+  // if this can be a selection move, then it takes precedence over anything else  
+  if (start_movesel((GdkEvent *)event)) return FALSE;
   
-  if (ui.toolno == TOOL_PEN || ui.toolno == TOOL_HIGHLIGHTER ||
-     (ui.toolno == TOOL_ERASER && ui.cur_brush->tool_options == TOOLOPT_ERASER_WHITEOUT)) {
+  if (ui.toolno[mapping] != TOOL_SELECTREGION && ui.toolno[mapping] != TOOL_SELECTRECT)
+    reset_selection();
+
+  // process the event
+  
+  if (ui.toolno[mapping] == TOOL_PEN || ui.toolno[mapping] == TOOL_HIGHLIGHTER ||
+        (ui.toolno[mapping] == TOOL_ERASER && ui.cur_brush->tool_options == TOOLOPT_ERASER_WHITEOUT)) {
     create_new_stroke((GdkEvent *)event);
   } 
-  else if (ui.toolno == TOOL_ERASER) {
+  else if (ui.toolno[mapping] == TOOL_ERASER) {
     ui.cur_item_type = ITEM_ERASURE;
     do_eraser((GdkEvent *)event, ui.cur_brush->thickness/2,
                ui.cur_brush->tool_options == TOOLOPT_ERASER_STROKES);
   }
-  else if (ui.toolno == TOOL_SELECTRECT) {
-    if (!start_movesel((GdkEvent *)event))
-      start_selectrect((GdkEvent *)event);
+  else if (ui.toolno[mapping] == TOOL_SELECTRECT) {
+    start_selectrect((GdkEvent *)event);
   }
-  else if (ui.toolno == TOOL_VERTSPACE) {
+  else if (ui.toolno[mapping] == TOOL_VERTSPACE) {
     start_vertspace((GdkEvent *)event);
   }
   return FALSE;
@@ -2133,17 +2181,6 @@ on_canvas_button_release_event         (GtkWidget       *widget,
   }
   else if (event->device->source != GDK_SOURCE_MOUSE) return FALSE;
 
-  if (ui.saved_toolno >= 0) {
-    ui.toolno = ui.saved_toolno;
-    ui.ruler = ui.saved_ruler;
-    ui.saved_toolno = -1;
-    if (ui.toolno < NUM_STROKE_TOOLS) ui.cur_brush = ui.brushes + ui.toolno;
-    update_tool_buttons();
-    update_tool_menu();
-    update_color_menu();
-    update_cursor();
-  }
-  
   if (ui.cur_item_type == ITEM_STROKE) {
     finalize_stroke();
   }
@@ -2153,10 +2190,11 @@ on_canvas_button_release_event         (GtkWidget       *widget,
   else if (ui.cur_item_type == ITEM_SELECTRECT) {
     finalize_selectrect();
   }
-  else if (ui.cur_item_type == ITEM_MOVESEL) {
+  else if (ui.cur_item_type == ITEM_MOVESEL || ui.cur_item_type == ITEM_MOVESEL_VERT) {
     finalize_movesel();
   }
-  
+
+  switch_mapping(0);
   return FALSE;
 }
 
@@ -2219,9 +2257,10 @@ on_canvas_motion_notify_event          (GtkWidget       *widget,
     else if (ui.cur_item_type == ITEM_SELECTRECT) {
       finalize_selectrect();
     }
-    else if (ui.cur_item_type == ITEM_MOVESEL) {
+    else if (ui.cur_item_type == ITEM_MOVESEL || ui.cur_item_type == ITEM_MOVESEL_VERT) {
       finalize_movesel();
     }
+    switch_mapping(0);
     return FALSE;
   }
   
@@ -2239,7 +2278,7 @@ on_canvas_motion_notify_event          (GtkWidget       *widget,
     gnome_canvas_item_set(ui.selection->canvas_item,
                                "x2", pt[0], "y2", pt[1], NULL);
   }
-  else if (ui.cur_item_type == ITEM_MOVESEL) {
+  else if (ui.cur_item_type == ITEM_MOVESEL || ui.cur_item_type == ITEM_MOVESEL_VERT) {
     continue_movesel((GdkEvent *)event);
   }
   
@@ -2530,11 +2569,12 @@ on_viewFullscreen_activate             (GtkMenuItem     *menuitem,
 
 
 void
-on_optionsEmulateEraser_activate       (GtkMenuItem     *menuitem,
+on_optionsButtonMappings_activate      (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  ui.emulate_eraser =
+  ui.use_erasertip =
     gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem));
+  update_mappings_menu();
 }
 
 
@@ -2590,5 +2630,177 @@ on_mru_activate                        (GtkMenuItem     *menuitem,
   gtk_dialog_run(GTK_DIALOG(dialog));
   gtk_widget_destroy(dialog);
   delete_mru_entry(which);
+}
+
+
+void
+on_button2Pen_activate                 (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+  process_mapping_activate(menuitem, 1, TOOL_PEN);
+}
+
+
+void
+on_button2Eraser_activate              (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+  process_mapping_activate(menuitem, 1, TOOL_ERASER);
+}
+
+
+void
+on_button2Highlighter_activate         (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+  process_mapping_activate(menuitem, 1, TOOL_HIGHLIGHTER);
+}
+
+
+void
+on_button2Text_activate                (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+
+}
+
+
+void
+on_button2SelectRegion_activate        (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+  process_mapping_activate(menuitem, 1, TOOL_SELECTREGION);
+}
+
+
+void
+on_button2SelectRectangle_activate     (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+  process_mapping_activate(menuitem, 1, TOOL_SELECTRECT);
+}
+
+
+void
+on_button2VerticalSpace_activate       (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+  process_mapping_activate(menuitem, 1, TOOL_VERTSPACE);
+}
+
+
+void
+on_button2LinkBrush_activate           (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+  int i;
+  
+  if (!gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem))) return;
+  ui.linked_brush[1] = BRUSH_LINKED;
+  for (i=0;i<NUM_STROKE_TOOLS;i++) update_mapping_linkings(i);
+}
+
+
+void
+on_button2CopyBrush_activate           (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+  if (!gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem))) return;
+  if (ui.toolno[1] >= NUM_STROKE_TOOLS) {
+    ui.linked_brush[1] = BRUSH_STATIC;
+    update_mappings_menu_linkings();
+    return;
+  }
+  ui.linked_brush[1] = BRUSH_COPIED;
+  g_memmove(&(ui.brushes[1][ui.toolno[1]]), &(ui.brushes[0][ui.toolno[1]]), sizeof(struct Brush));
+  ui.ruler[1] = ui.ruler[0];
+  if (ui.toolno[1]!=TOOL_PEN && ui.toolno[1]!=TOOL_HIGHLIGHTER)
+    ui.ruler[1] = FALSE;
+}
+
+
+void
+on_button3Pen_activate                 (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+  process_mapping_activate(menuitem, 2, TOOL_PEN);
+}
+
+
+void
+on_button3Eraser_activate              (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+  process_mapping_activate(menuitem, 2, TOOL_ERASER);
+}
+
+
+void
+on_button3Highlighter_activate         (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+  process_mapping_activate(menuitem, 2, TOOL_HIGHLIGHTER);
+}
+
+
+void
+on_button3Text_activate                (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+
+}
+
+
+void
+on_button3SelectRegion_activate        (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+  process_mapping_activate(menuitem, 2, TOOL_SELECTREGION);
+}
+
+
+void
+on_button3SelectRectangle_activate     (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+  process_mapping_activate(menuitem, 2, TOOL_SELECTRECT);
+}
+
+
+void
+on_button3VerticalSpace_activate       (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+  process_mapping_activate(menuitem, 2, TOOL_VERTSPACE);
+}
+
+
+void
+on_button3LinkBrush_activate           (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+  int i;
+  
+  if (!gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem))) return;
+  ui.linked_brush[2] = BRUSH_LINKED;
+  for (i=0;i<NUM_STROKE_TOOLS;i++) update_mapping_linkings(i);
+}
+
+
+void
+on_button3CopyBrush_activate           (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+  if (!gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem))) return;
+  if (ui.toolno[2] >= NUM_STROKE_TOOLS) {
+    ui.linked_brush[2] = BRUSH_STATIC;
+    update_mappings_menu_linkings();
+    return;
+  }
+  ui.linked_brush[2] = BRUSH_COPIED;
+  g_memmove(&(ui.brushes[2][ui.toolno[2]]), &(ui.brushes[0][ui.toolno[2]]), sizeof(struct Brush));
+  ui.ruler[2] = ui.ruler[0];
+  if (ui.toolno[2]!=TOOL_PEN && ui.toolno[2]!=TOOL_HIGHLIGHTER)
+    ui.ruler[2] = FALSE;
 }
 

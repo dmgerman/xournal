@@ -98,6 +98,7 @@ extern guint predef_bgcolors_rgba[COLOR_MAX];
 #define TOOL_SELECTRECT   5
 #define TOOL_VERTSPACE    6
 #define NUM_STROKE_TOOLS  3
+#define NUM_BUTTONS       3
 
 #define TOOLOPT_ERASER_STANDARD     0
 #define TOOLOPT_ERASER_WHITEOUT     1
@@ -140,6 +141,7 @@ typedef struct Item {
 #define ITEM_NEW_PAGE 13
 #define ITEM_DELETE_PAGE 14
 #define ITEM_REPAINTSEL 15
+#define ITEM_MOVESEL_VERT 16
 
 typedef struct Layer {
   GList *items; // the items on the layer, from bottom to top
@@ -163,33 +165,37 @@ typedef struct Journal {
 } Journal;
 
 typedef struct Selection {
-  int type;
+  int type;  // ITEM_SELECTRECT, ITEM_MOVESEL_VERT
   BBox bbox; // the rectangle bbox of the selection
   struct Layer *layer; // the layer on which the selection lives
   double anchor_x, anchor_y, last_x, last_y; // for selection motion
   GnomeCanvasItem *canvas_item; // if the selection box is on screen 
   GList *items; // the selected items (a list of struct Item)
+  int move_pageno, orig_pageno; // if selection moves to a different page
+  struct Layer *move_layer;
+  float move_pagedelta;
 } Selection;
 
 typedef struct UIData {
   int pageno, layerno; // the current page and layer
   struct Page *cur_page;
   struct Layer *cur_layer;
-  int toolno;  // the number of the currently selected tool
   gboolean saved; // is file saved ?
   struct Brush *cur_brush;  // the brush in use (one of brushes[...])
-  struct Brush brushes[NUM_STROKE_TOOLS]; // the current pen, eraser, hiliter
+  int toolno[NUM_BUTTONS+1];  // the number of the currently selected tool
+  struct Brush brushes[NUM_BUTTONS+1][NUM_STROKE_TOOLS]; // the current pen, eraser, hiliter
   struct Brush default_brushes[NUM_STROKE_TOOLS]; // the default ones
-  gboolean ruler; // whether we're in ruler mode
+  gboolean ruler[NUM_BUTTONS+1]; // whether each button is in ruler mode
+  int linked_brush[NUM_BUTTONS+1]; // whether brushes are linked across buttons
+  int cur_mapping; // the current button number for mappings
+  gboolean use_erasertip;
+  int which_mouse_button; // the mouse button drawing the current path
   struct Page default_page;  // the model for the default page
   int layerbox_length;  // the number of entries registered in the layers combo-box
   struct Item *cur_item; // the item being drawn, or NULL
   int cur_item_type;
   GnomeCanvasPoints cur_path; // the path being drawn
   int cur_path_storage_alloc;
-  int which_mouse_button; // the mouse button drawing the current path
-  int saved_toolno;  // while using an eraser device
-  gboolean saved_ruler;
   double zoom; // zoom factor, in pixels per pt
   gboolean use_xinput; // use input devices instead of core pointer
   gboolean allow_xinput; // allow use of xinput ?
@@ -199,13 +205,17 @@ typedef struct UIData {
   gboolean in_update_page_stuff; // semaphore to avoid scrollbar retroaction
   struct Selection *selection;
   GdkCursor *cursor;
-  gboolean emulate_eraser;
   gboolean antialias_bg; // bilinear interpolation on bg pixmaps
   gboolean progressive_bg; // rescale bg's one at a time
   char *mrufile; // file for the MRU
   char *mru[MRU_SIZE]; // MRU data
   GtkWidget *mrumenu[MRU_SIZE];
+  gboolean bg_apply_all_pages;
 } UIData;
+
+#define BRUSH_LINKED 0
+#define BRUSH_COPIED 1
+#define BRUSH_STATIC 2
 
 typedef struct UndoErasureData {
   struct Item *item; // the item that got erased
@@ -217,12 +227,12 @@ typedef struct UndoErasureData {
 typedef struct UndoItem {
   int type;
   struct Item *item; // for ITEM_STROKE
-  struct Layer *layer; // for ITEM_STROKE, ITEM_ERASURE, ITEM_PASTE, ITEM_NEW_LAYER, ITEM_DELETE_LAYER
-  struct Layer *layer2; // for ITEM_DELETE_LAYER with val=-1
+  struct Layer *layer; // for ITEM_STROKE, ITEM_ERASURE, ITEM_PASTE, ITEM_NEW_LAYER, ITEM_DELETE_LAYER, ITEM_MOVESEL
+  struct Layer *layer2; // for ITEM_DELETE_LAYER with val=-1, ITEM_MOVESEL
   struct Page *page;  // for ITEM_NEW_BG_ONE/RESIZE, ITEM_NEW_PAGE, ITEM_NEW_LAYER, ITEM_DELETE_LAYER, ITEM_DELETE_PAGE
   GList *erasurelist; // for ITEM_ERASURE
   GList *itemlist;  // for ITEM_MOVESEL, ITEM_PASTE, ITEM_REPAINTSEL
-  GList *auxlist;   // for ITEM_REPAINTSEL
+  GList *auxlist;   // for ITEM_REPAINTSEL (brushes), ITEM_MOVESEL (depths)
   struct Background *bg;  // for ITEM_NEW_BG_ONE/RESIZE, ITEM_NEW_DEFAULT_BG
   int val; // for ITEM_NEW_PAGE, ITEM_NEW_LAYER, ITEM_DELETE_LAYER, ITEM_DELETE_PAGE
   double val_x, val_y; // for ITEM_MOVESEL, ITEM_NEW_BG_RESIZE, ITEM_PAPER_RESIZE, ITEM_NEW_DEFAULT_BG

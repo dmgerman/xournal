@@ -33,8 +33,12 @@ void hide_unimplemented(void)
   gtk_widget_hide(GET_COMPONENT("papercolorOther"));
   gtk_widget_hide(GET_COMPONENT("toolsText"));
   gtk_widget_hide(GET_COMPONENT("buttonText"));
+  gtk_widget_hide(GET_COMPONENT("button2Text"));
+  gtk_widget_hide(GET_COMPONENT("button3Text"));
   gtk_widget_hide(GET_COMPONENT("toolsSelectRegion"));
   gtk_widget_hide(GET_COMPONENT("buttonSelectRegion"));
+  gtk_widget_hide(GET_COMPONENT("button2SelectRegion"));
+  gtk_widget_hide(GET_COMPONENT("button3SelectRegion"));
   gtk_widget_hide(GET_COMPONENT("colorOther"));
   gtk_widget_hide(GET_COMPONENT("toolsTextFont"));
   gtk_widget_hide(GET_COMPONENT("toolsDefaultText"));
@@ -48,7 +52,7 @@ void init_stuff (int argc, char *argv[])
   GList *dev_list;
   GdkDevice *device;
   GdkScreen *screen;
-  int i;
+  int i, j;
   struct Brush *b;
   gboolean can_xinput, success;
   gchar *tmppath, *tmpfn;
@@ -98,17 +102,23 @@ void init_stuff (int argc, char *argv[])
   ui.cur_path.coords = NULL;
   ui.cur_path_storage_alloc = 0;
   ui.cur_path.ref_count = 1;
-  ui.toolno = TOOL_PEN;
-  ui.cur_brush = ui.brushes + TOOL_PEN;
-  ui.ruler = FALSE;
+
   ui.selection = NULL;
   ui.cursor = NULL;
+  ui.bg_apply_all_pages = FALSE;
 
-  ui.brushes[TOOL_PEN].color_no = COLOR_BLACK;
-  ui.brushes[TOOL_ERASER].color_no = COLOR_WHITE;
-  ui.brushes[TOOL_HIGHLIGHTER].color_no = COLOR_YELLOW;
+  ui.cur_brush = &(ui.brushes[0][TOOL_PEN]);
+  ui.toolno[0] = TOOL_PEN;
+  for (i=1; i<=NUM_BUTTONS; i++) ui.toolno[i] = TOOL_ERASER;
+  for (i=0; i<=NUM_BUTTONS; i++) {
+    ui.ruler[i] = FALSE;
+    ui.linked_brush[i] = BRUSH_LINKED;
+  }
+  ui.brushes[0][TOOL_PEN].color_no = COLOR_BLACK;
+  ui.brushes[0][TOOL_ERASER].color_no = COLOR_WHITE;
+  ui.brushes[0][TOOL_HIGHLIGHTER].color_no = COLOR_YELLOW;
   for (i=0; i < NUM_STROKE_TOOLS; i++) {
-    b = ui.brushes + i;
+    b = &(ui.brushes[0][i]);
     b->tool_type = i;
     b->color_rgba = predef_colors_rgba[b->color_no];
     if (i == TOOL_HIGHLIGHTER) {
@@ -117,13 +127,18 @@ void init_stuff (int argc, char *argv[])
     b->thickness_no = THICKNESS_MEDIUM;
     b->thickness = predef_thickness[i][b->thickness_no];
     b->tool_options = 0;
-    g_memmove(ui.default_brushes+i, ui.brushes+i, sizeof(struct Brush));
+    g_memmove(ui.default_brushes+i, b, sizeof(struct Brush));
+    for (j=1; j<=NUM_BUTTONS; j++) 
+      g_memmove(&(ui.brushes[j][i]), b, sizeof(struct Brush));
   }
+  ui.cur_mapping = 0;
+  ui.use_erasertip = FALSE;
 
   // initialize various interface elements
   
   gtk_window_set_default_size(GTK_WINDOW (winMain), 720, 480);
   update_toolbar_and_menu();
+
   // set up and initialize the canvas
 
   gtk_widget_show (GTK_WIDGET (canvas));
@@ -167,8 +182,6 @@ void init_stuff (int argc, char *argv[])
   ui.screen_width = gdk_screen_get_width(screen);
   ui.screen_height = gdk_screen_get_height(screen);
   
-  ui.saved_toolno = -1;
-
   can_xinput = FALSE;
   dev_list = gdk_devices_list();
   while (dev_list != NULL) {
@@ -190,7 +203,6 @@ void init_stuff (int argc, char *argv[])
 
   ui.use_xinput = ui.allow_xinput && can_xinput;
   ui.antialias_bg = TRUE;
-  ui.emulate_eraser = FALSE;
   ui.progressive_bg = TRUE;
 
   gtk_check_menu_item_set_active(
@@ -199,8 +211,6 @@ void init_stuff (int argc, char *argv[])
     GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsAntialiasBG")), ui.antialias_bg);
   gtk_check_menu_item_set_active(
     GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsProgressiveBG")), ui.progressive_bg);
-  gtk_check_menu_item_set_active(
-    GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsEmulateEraser")), ui.emulate_eraser);
 
   hide_unimplemented();
     

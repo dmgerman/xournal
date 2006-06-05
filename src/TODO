@@ -1,12 +1,6 @@
 List of features to be implemented (not in any particular order)
 ----------------------------------------------------------------
 
-- map tools to stylus buttons (maybe: btn click on toolbar item affects
-  the corresponding tool; tool switching cleaner than for eraser)
-- move selection to another page by drag-drop
-   (should apply to vertspacer when origin moves to another page,
-     but in the up direction only do so when all the stuff fits on prev page)
-   (SEE ALSO FEATURE REQUEST 1472482 and reply to it - optional behavior too?)
 - lasso selection tool
 - prefs file, save prefs
 - flatten (incl undo/redo...) - enabled only if nlayers>1
@@ -25,3 +19,6 @@ List of features to be implemented (not in any particular order)
 - more pen/highlighter shapes (chisel)
 - convert to/from Jarnal format; to/from MS Journal format???
 - recalibration upon screen resize / compensation for miscalibration
+- find a better behavior for vertical space tool across page boundaries ?
+- document the file format
+

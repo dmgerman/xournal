@@ -24,7 +24,7 @@
   Xournal User's Manual
 </h2>
 <p style="font-size: 0.95em; text-align: center; color: rgb(0,0,0)">
- Version 0.2.1
+ Version 0.2.2
 </p>
 <hr />
 <p>
@@ -93,12 +93,10 @@ the Pen Options submenu of the Tools menu).
 </p>
 <h3 class="subsub"><img src="pixmaps/eraser.png"> The eraser</h3>
 <p>
-The eraser lets you erase what you have drawn. If your tablet's stylus
-has an eraser tip, and if the XInput extensions are enabled, the eraser
-will be automatically selected when drawing with the eraser tip.
-Another possibility is to enable the "Emulate Eraser" option in the Options
-menu, which lets you use button 2 or 3 on the stylus (mouse middle or right button)
-as an eraser.<br />
+The eraser lets you erase what you have drawn. 
+By default, stylus buttons 2 and 3 (mouse middle or right buttons) are
+mapped to the eraser tool.
+<br />
 The eraser comes in three different thicknesses (selected using the
 <a href="manual.html#thicknesses">thickness</a> toolbar buttons),
 and can operate in three different modes (Eraser Options submenu of
@@ -160,7 +158,9 @@ the Tools menu):
   All the strokes which are entirely contained within the rectangular region
   are selected.
   The selection can be moved within its page by clicking inside the
-  selection rectangle and dragging the cursor.
+  selection rectangle and dragging the cursor. If the cursor is dragged
+  to a different page, the selection will be moved to the topmost layer of
+  that page.
 </p>
 <p>
   The selection can be cut, duplicated, etc. (including to a different page
@@ -182,6 +182,14 @@ the Tools menu):
   space, or change the page height to an appropriate value (using the
   "Paper Size" entry in the Journal menu).
 </p>
+<p>
+  If you drag the cursor below the bottom of the page (so that the
+  entire block being moved has become invisible), the items will be moved
+  to the next page (topmost layer); however, any items that were already
+  present on the next page are left unchanged. Similarly, dragging the
+  cursor above the top of the page so that the entire block being moved
+  becomes invisible results in the items being moved to the previous page.
+</p>
 <h3 class="subsub">Undo and redo</h3>
 <p>
   All operations performed on the currently open journal (drawing, erasing,
@@ -190,6 +198,36 @@ the Tools menu):
   the corresponding entries in the Edit menu.<br />
   There is no limit to the depth of the undo/redo stack. It is cleared only
   when you quit the application or open a new journal.
+</p>
+<a name="mappings"></a>
+<h3 class="subsub">Button mappings</h3>
+<p>
+  Stylus buttons 2 and 3 (mouse middle and right buttons) can be mapped
+  to different tools using the appropriate submenus in the Options menu
+  (whereas the Tools menu and the toolbar buttons affect the primary tool
+  assigned to button 1). The default mapping is the eraser.
+</p>
+<p><b>Advanced configuration:</b>
+  if a secondary button is mapped to a drawing tool (pen, eraser, or
+  highlighter), the default is to "dynamically link" its settings to those
+  of the primary tool, which means that each drawing tool has common
+  settings (color, thickness, etc.) for all buttons.
+  Dynamic linking of brush settings
+  can be disabled by selecting the "Copy of current brush" option in the
+  "Button mapping" submenu. The settings of the tool for button 2 or 3 are
+  copied from the button 1 settings at the time when you select the option,
+  and afterwards they are no longer updated when the button 1 settings are
+  modified, thus making it possible to assign pens of different colors or
+  thicknesses to different buttons.
+</p>
+<p>
+  Another option that affects button mappings is the "Eraser tip" option.
+  If this option is turned on and the XInput extensions are enabled, then
+  the eraser tip of your tablet's stylus will automatically be remapped to
+  the eraser tool. This behavior, which overrides all other button mappings,
+  is most useful if your X server is configured to map the eraser tip of
+  your tablet's stylus to button 1.
+</p>
 <hr />
 <a name="pages-layers"></a>
 <h2 class="subtitle">Pages, layers, and backgrounds</h2>
@@ -439,17 +477,36 @@ List of known bugs/misfeatures (no need to report them again):
  <li> print settings are not saved from one print command to the next.</li>
  <li> printing to PDF and/or printing page backgrounds generates large files.</li>
  <li> preferences are not saved on disk.</li>
- <li> selection cannot be dragged across page boundaries.</li>
 </ul>
 If you find a sequence of operations which crashes Xournal in a reproducible
 manner, please send detailed instructions on how to reproduce the crash. 
 A core file may also be helpful.
 </p>
+<p>
+Bug reports and suggestions can also be submitted on Xournal's
+<a href="http://www.sourceforge.net/projects/xournal/">SourceForge page.</a>
+</p>
 <hr />
 <a name="changelog"></a>
 <h2 class="subtitle">Version history</h2>
 <p>
-Version 0.2.1 (Jun 3, 2006):
+Version 0.2.2 (June 5, 2006):
+<ul>
+ <li>mapping of tools to stylus buttons (the options menu has new entries
+    to allow the mapping of buttons 2 and 3 to arbitrary tools; the tools
+    menu and toolbar affect the settings for button 1)
+    (see <a href="manual.html#mappings">here</a>)</li>
+ <li>moving selection by drag-and-drop works across page boundaries</li>
+ <li>vertical space tool can move items to next page (only when the entire
+    block being moved has crossed the page boundary; items on the new page
+    are not moved)</li>
+ <li>"apply to all pages" is now a toggle button affecting the behavior of
+    paper size, color, and style commands</li>
+ <li>change in the behavior of the selection upon switching between tools</li>
+</ul>
+</p>
+<p>
+Version 0.2.1 (June 3, 2006):
 <ul>
  <li>recently used files listed in file menu</li>
  <li>can change color or thickness of pen strokes in selection</li>
@@ -488,9 +545,9 @@ Version 0.1 (January 2, 2006): initial release.
 Features yet to be implemented:
 <ul>
  <li>freeform selection tool</li>
- <li>preferences file; persistent printer settings; recent files list</li>
+ <li>preferences file; persistent printer settings</li>
  <li>native PDF print feature</li>
- <li>various functionalities (flatten layers, drag-and-drop across pages, ...)</li>
+ <li>various functionalities (flatten layers, ...)</li>
 </ul>
 </p>
 <hr />
