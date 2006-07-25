@@ -24,7 +24,7 @@
   Xournal User's Manual
 </h2>
 <p style="font-size: 0.95em; text-align: center; color: rgb(0,0,0)">
- Version 0.2.2
+ Version 0.3
 </p>
 <hr />
 <p>
@@ -427,10 +427,10 @@ PDF files (for example <i>pdfmerge</i>).
 <h2 class="subtitle">Printing</h2>
 <p>
 Xournal uses the gnome-print architecture for printing. While it is very
-powerful, some aspects of the API leave to be desired,
-and future versions of Xournal will probably also include a native
-Postscript/PDF printing feature.
+powerful, some aspects of the API leave to be desired. As of version 0.3,
+Xournal also includes a native PDF printing feature.
 </p>
+<h3 class="subsub">Printing via gnome-print</h3>
 <p>
 The "Printer" tab of the print dialog box lets you select a printer
 (either one of the printers installed on your system, or the generic
@@ -448,18 +448,34 @@ attempts to pre-fill the output file name (for the Postscript driver
 this often fails due to gnome-print API issues).
 </p>
 <p>
-The "Print to PDF" entry of the File menu directly generates a PDF file
-using the PDF virtual printer, without bringing up the dialog box
-(the page size is the default one for that printer, usually A4). 
 Note that the PDF virtual printer produces files that are very large
-and far from optimal, so in the current state of things it is better
-to generate a Postscript file and use a converter such as ps2pdf.
-</p>
-<p>
+and far from optimal, so its use is not recommended.
 The gnome-print architecture also forces page backgrounds (bitmaps
 and PDF) to be generated as uncompressed bitmaps, which leads to gigantic
-print job files. An alternative to gnome-print will be
-implemented in a future release of Xournal.
+print job files. A better alternative is to export a PDF file, and
+print the PDF file.
+</p>
+<h3 class="subsub">Exporting to PDF</h3>
+<p>
+Starting with version 0.3, Xournal provides its own PDF rendering
+engine. The "Export to PDF" command (in the File menu) produces a
+PDF-1.4 file from the currently loaded document. The resulting PDF
+file is much more compact than those produced via gnome-print, and
+its pages have the same size as in Xournal. Highlighter strokes
+are rendered in a partially transparent manner (note however that
+applications such as xpdf and ghostview do not always handle
+PDF transparency properly).
+</p>
+<p>
+Xournal also includes a PDF file parser compatible with PDF format
+version 1.4; the compression features of PDF 1.5 (Acrobat 6) are
+not supported. When exporting a document that uses PDF
+backgrounds, Xournal attempts to preserve most of the structure of
+the original PDF file (however, auxiliary data such as thumbnails, hyperlinks,
+and annotations are lost). If Xournal is unable to parse the PDF
+file, the backgrounds are converted to (compressed) bitmaps and a new
+PDF file is generated from scratch.
+</p>
 <hr />
 <a name="author"></a>
 <h2 class="subtitle">Author information, license, bug-reports</h2>
@@ -470,14 +486,7 @@ Xournal is written by Denis Auroux
 </p>
 <p>Feel free to contact me with bug reports and suggestions; I apologize
 in advance if I am unable to respond properly to some requests.
-List of known bugs/misfeatures (no need to report them again):
-<ul>
- <li> highlighter strokes become opaque on printouts (apparently a bug in
-      libgnomeprint).</li>
- <li> print settings are not saved from one print command to the next.</li>
- <li> printing to PDF and/or printing page backgrounds generates large files.</li>
- <li> preferences are not saved on disk.</li>
-</ul>
+</p><p>
 If you find a sequence of operations which crashes Xournal in a reproducible
 manner, please send detailed instructions on how to reproduce the crash. 
 A core file may also be helpful.
@@ -489,6 +498,18 @@ Bug reports and suggestions can also be submitted on Xournal's
 <hr />
 <a name="changelog"></a>
 <h2 class="subtitle">Version history</h2>
+<p>
+Version 0.3 (July 23, 2006):
+<ul>
+ <li>new PDF rendering engine: export to PDF generates optimized files
+   (smaller and more accurate)</li>
+ <li>export to PDF handles PDF backgrounds (up to PDF-1.4) natively
+    (without conversion to bitmap)</li>
+ <li>default thickness of erasers and highlighters slightly increased</li>
+ <li>zoom dialog box with input box and "fit to page height" option</li>
+ <li>file format documentation added to the user's manual</li>
+</ul>
+</p>
 <p>
 Version 0.2.2 (June 5, 2006):
 <ul>
@@ -546,18 +567,141 @@ Features yet to be implemented:
 <ul>
  <li>freeform selection tool</li>
  <li>preferences file; persistent printer settings</li>
- <li>native PDF print feature</li>
  <li>various functionalities (flatten layers, ...)</li>
 </ul>
 </p>
 <hr />
 <a name="file-format"></a>
 <h2 class="subtitle">The file format</h2>
+<h3 class="subsub">Overall structure</h3>
 <p>
-XOJ files are gzipped XML-like files. A more precise documentation of
-the file format will be added at a later date. Meanwhile, most of the
-format should be easy to figure out by trial-and-error or by looking
-at the source; if some details are unclear, feel free to ask.
+Xournal stores its data in gzipped XML-like files. The gzipped data consists
+of a succession of XML tags describing the document. By convention, the
+first few lines contain a header in the following format:
+<pre>
+&lt;?xml version="1.0" standalone="no"?&gt;
+&lt;title&gt;Xournal document - see http://math.mit.edu/~auroux/software/xournal/&lt;/title&gt;
+&lt;xournal version="..."/&gt;
+</pre>
+The &lt;title&gt; and &lt;xournal&gt; tags may only appear within the file
+header (not within the pages of the document). The <i>version</i> attribute of
+the &lt;xournal&gt; tag indicates which version of Xournal was used to
+create the document; it is currently ignored, but may be used in a later
+release if the file format changes in an incompatible manner.
+</p>
+<p>
+The rest of the file is a sequence of pages, specified by a
+&lt;page&gt; tag, whose attributes <i>width</i> and <i>height</i> specify the
+physical size of the page in points (1/72 in). The width and height
+parameters are floating point values. The format of a page is therefore:
+<pre>
+&lt;page width="..." height="..."&gt;
+... page contents ...
+&lt;/page&gt;
+</pre>
+</p>
+<h3 class="subsub">Page background</h3>
+<p>
+The first entry within a page describes the page background.
+It consists of a &lt;background&gt; tag followed by several mandatory
+XML attributes. The first attribute is always <i>type</i>, which
+can take three possible values: "solid" for a solid background, "pixmap"
+for a bitmap background, and "pdf" if the background is a page of a PDF
+document. The rest of the attributes depends on the type of background.
+<ul>
+<li><p> Solid background: <tt>&lt;background type="solid" color="..."
+style="..." /&gt;</tt> <br />The <i>color</i> attribute takes one of
+the standard values "white", "yellow", "pink", "orange", "blue", "green",
+or can specify a hexadecimal RGBA value in the format "#rrggbbaa". The
+<i>style</i> attribute takes one of the standard values "plain", "lined",
+"ruled", or "graph".</p>
+</li>
+<li><p> Bitmap background: <tt>&lt;background type="pixmap" domain="..."
+filename="..." /&gt;</tt> <br />
+The <i>domain</i> attribute takes one of the standard values "absolute",
+"attach", or "clone". A value of "absolute" indicates that the bitmap is
+found in the file specified by <i>filename</i>. The bitmap can be in any
+format recognized by the gdk-pixbuf library; this includes most of the
+common bitmap formats (JPEG, PNG, BMP, GIF, PCX, PNM, TIFF, ...).
+<br />A value
+of "attach" indicates that the bitmap is an attachment to the Xournal file.
+The bitmap is in PNG format, and resides in a file whose name is derived
+from that of the main Xournal file by appending to it a dot and the contents
+of the <i>filename</i> attribute. For example, if the Xournal file is in
+<tt>file.xoj</tt> and the <i>filename</i> attribute is <tt>"bg_1.png"</tt>
+then the bitmap file is <tt>file.xoj.bg_1.png</tt> (Xournal saves attached
+bitmaps sequentially in files ...bg_1.png, ...bg_2.png, etc.)
+<br />A value of "clone" indicates that the bitmap is identical to the
+background of a previous page of the journal; the <i>filename</i> attribute
+then specifies the page number, starting with 0 for the first page. For
+example, if a <i>filename</i> value of <tt>"1"</tt> indicates that the
+background bitmap is identical to that of the second page.
+</p>
+</li>
+<li><p> PDF background: <tt>&lt;background type="pdf" domain="..."
+filename="..." pageno="..." /&gt;</tt> or
+<tt>&lt;background type="pdf" pageno="..." /&gt;</tt>
+<br />The <i>domain</i> and <i>filename</i> attributes must be specified
+for the first page of the journal that uses a PDF background, and must
+be omitted subsequently for every other page that uses a PDF background.
+The <i>domain</i> attribute takes one of the standard values
+"absolute" and "attach"; the PDF document is to be found in the file
+specified by <i>filename</i> (if <i>domain</i> is "absolute"), or in the
+file whose name is obtained by appending a dot and the contents of the
+<i>filename</i> attribute to the name of the main Xournal file (if
+<i>domain</i> is "attach"). The <i>pageno</i> attribute specifies which
+page of the PDF file is used as background, starting with 1 for the first
+page of the PDF file.
+</p>
+</li>
+</ul>
+</p>
+<h3 class="subsub">Layers and strokes</h3>
+<p>
+After the line specifying the background, the remainder of a &lt;page&gt;
+section is occupied by one or more layer sections
+<pre>&lt;layer&gt; ... &lt;/layer&gt;</pre>
+describing the various strokes within a layer. Every page must
+contain at least one layer; a layer may be empty. The successive layers
+are listed in their stacking order, from bottom to top.
+</p>
+<p>
+A layer consist of a collection of items, listed in the order in which
+they should be drawn
+(from bottom-most to top-most).
+As of the current version, the only legal contents within a layer are 
+strokes. The format of a stroke is:
+<pre>&lt;stroke tool="..." color="..." width="..."&gt;
+... list of coordinates ...
+&lt;/stroke&gt;
+</pre>
+The <i>tool</i> attribute can take the values "pen", "highlighter", or
+"eraser" depending on the tool used to create the stroke (pen, highlighter,
+or whiteout eraser); a value of "highlighter" indicates that the stroke
+should be painted in a partially transparent manner (Xournal uses an alpha
+coefficient of 0.5).
+The <i>color</i> attribute can take one of the standard values "black",
+"blue", "red", "green", "gray", "lightblue", "lightgreen", "magenta",
+"orange", "yellow", "white", or can specify a hexadecimal RGBA value in
+the format "#rrggbbaa". The <i>width</i> attribute is a floating-point
+number and specifies the width of the stroke in points (1/72 in).
+</p>
+<p>
+The list of coordinates is simply a succession of floating-point values,
+separated by whitespace.
+The number of given values must be even; consecutive pairs of values give
+the <i>x</i> and <i>y</i> coordinates of each point along the stroke.
+These values are expressed in points (1/72 in). The coordinates (0,0)
+represent the top-left corner of the page: hence x is measured from the left
+of the page, and y is measured from the top of the page.
+</p>
+<p>
+Every stroke must contain at least two points (four floating point values).
+Moreover, two consecutive points on the stroke should be spaced no more
+than 5 units apart or so; longer line segments should be subdivided as
+appropriate (otherwise the eraser tool will not interact properly with the
+stroke). The default precision used by Xournal for the x,y coordinates is
+0.01 unit (1/7200 in).
 </p>
 <hr />
 <a name="installation"></a>

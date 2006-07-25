@@ -355,16 +355,15 @@ on_filePrintPDF_activate               (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
 
-  GtkWidget *dialog;
+  GtkWidget *dialog, *warning_dialog;
   GtkFileFilter *filt_all, *filt_pdf;
   char *filename, *in_fn;
   char stime[30];
   time_t curtime;
-  GnomePrintJob *gpj;
-  GnomePrintConfig *config;
-
+  int response;
+  gboolean warn;
   
-  dialog = gtk_file_chooser_dialog_new("Print to PDF", GTK_WINDOW (winMain),
+  dialog = gtk_file_chooser_dialog_new("Export to PDF", GTK_WINDOW (winMain),
      GTK_FILE_CHOOSER_ACTION_SAVE, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
      GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT, NULL);
      
@@ -392,27 +391,37 @@ on_filePrintPDF_activate               (GtkMenuItem     *menuitem,
   gtk_file_filter_add_pattern(filt_pdf, "*.pdf");
   gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (dialog), filt_pdf);
   gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (dialog), filt_all);
-  
-  // somehow this doesn't seem to be set by default
   gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_ACCEPT);
-
-  if (gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_ACCEPT) {
-    g_free(in_fn);
-    gtk_widget_destroy(dialog);
-    return;
-  }
-  filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
   g_free(in_fn);
+  
+  do {
+    if (gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_ACCEPT) {
+      gtk_widget_destroy(dialog);
+      return;
+    }
+    filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
+    warn = g_file_test(filename, G_FILE_TEST_EXISTS);
+    if (warn) {
+      warning_dialog = gtk_message_dialog_new(GTK_WINDOW(winMain),
+        GTK_DIALOG_MODAL, GTK_MESSAGE_QUESTION, GTK_BUTTONS_YES_NO,
+        "Should the file %s be overwritten?", filename);
+      if (gtk_dialog_run(GTK_DIALOG(warning_dialog)) == GTK_RESPONSE_YES)
+        warn = FALSE;
+      gtk_widget_destroy(warning_dialog);
+    }
+  } while(warn);
+    
   gtk_widget_destroy(dialog);
-  
-  config = gnome_print_config_default();
-  gnome_print_config_set(config, (guchar *)"Printer", (guchar *)"PDF");
-  gpj = gnome_print_job_new(config);
-  gnome_print_job_print_to_file(gpj, filename);
-  
-  print_job_render(gpj, 0, journal.npages-1);
-  gnome_print_config_unref(config);
 
+  set_cursor_busy(TRUE);
+  if (!print_to_pdf(filename)) {
+    set_cursor_busy(FALSE);
+    dialog = gtk_message_dialog_new(GTK_WINDOW (winMain), GTK_DIALOG_DESTROY_WITH_PARENT,
+      GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, "Error creating file '%s'", filename);
+    gtk_dialog_run(GTK_DIALOG(dialog));
+    gtk_widget_destroy(dialog);
+  }
+  set_cursor_busy(FALSE);
   g_free(filename);
 }
 
@@ -2554,6 +2563,10 @@ on_viewFullscreen_activate             (GtkMenuItem     *menuitem,
 
   if (active == ui.fullscreen) return;
   ui.fullscreen = active;
+  gtk_check_menu_item_set_active(
+    GTK_CHECK_MENU_ITEM(GET_COMPONENT("viewFullscreen")), ui.fullscreen);
+  gtk_toggle_tool_button_set_active(
+    GTK_TOGGLE_TOOL_BUTTON(GET_COMPONENT("buttonFullscreen")), ui.fullscreen);
 
   if (ui.fullscreen) {
     gtk_window_fullscreen(GTK_WINDOW(winMain));
@@ -2802,5 +2815,107 @@ on_button3CopyBrush_activate           (GtkMenuItem     *menuitem,
   ui.ruler[2] = ui.ruler[0];
   if (ui.toolno[2]!=TOOL_PEN && ui.toolno[2]!=TOOL_HIGHLIGHTER)
     ui.ruler[2] = FALSE;
+}
+
+// the set zoom dialog
+
+GtkWidget *zoom_dialog;
+double zoom_percent;
+
+void
+on_viewSetZoom_activate                (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+  int response;
+  double test_w, test_h;
+  
+  zoom_dialog = create_zoomDialog();
+  zoom_percent = 100*ui.zoom / DEFAULT_ZOOM;
+  gtk_spin_button_set_value(GTK_SPIN_BUTTON(g_object_get_data(
+        G_OBJECT(zoom_dialog), "spinZoom")), zoom_percent);
+  test_w = 100*(GTK_WIDGET(canvas))->allocation.width/ui.cur_page->width/DEFAULT_ZOOM;
+  test_h = 100*(GTK_WIDGET(canvas))->allocation.height/ui.cur_page->height/DEFAULT_ZOOM;
+  if (zoom_percent > 99.9 && zoom_percent < 100.1) 
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(g_object_get_data(
+           G_OBJECT(zoom_dialog), "radioZoom100")), TRUE);
+  else if (zoom_percent > test_w-0.1 && zoom_percent < test_w+0.1)
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(g_object_get_data(
+           G_OBJECT(zoom_dialog), "radioZoomWidth")), TRUE);
+  else if (zoom_percent > test_h-0.1 && zoom_percent < test_h+0.1)
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(g_object_get_data(
+           G_OBJECT(zoom_dialog), "radioZoomHeight")), TRUE);
+  else gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(g_object_get_data(
+           G_OBJECT(zoom_dialog), "radioZoom")), TRUE);
+  gtk_widget_show(zoom_dialog);
+  
+  do {
+    response = gtk_dialog_run(GTK_DIALOG(zoom_dialog));
+    if (response == GTK_RESPONSE_OK || response == GTK_RESPONSE_APPLY) {
+      ui.zoom = DEFAULT_ZOOM*zoom_percent/100;
+      gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
+      rescale_bg_pixmaps();
+    }
+  } while (response == GTK_RESPONSE_APPLY);
+  
+  gtk_widget_destroy(zoom_dialog);
+}
+
+
+void
+on_spinZoom_value_changed              (GtkSpinButton   *spinbutton,
+                                        gpointer         user_data)
+{
+  double val;
+
+  val = gtk_spin_button_get_value(GTK_SPIN_BUTTON(g_object_get_data(
+             G_OBJECT(zoom_dialog), "spinZoom")));
+  if (val<1) return;
+  if (val<10) val=10.;
+  if (val>1500) val=1500.;
+  if (val<zoom_percent-1 || val>zoom_percent+1)
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(g_object_get_data(
+           G_OBJECT(zoom_dialog), "radioZoom")), TRUE);
+  zoom_percent = val;
+}
+
+
+void
+on_radioZoom_toggled                   (GtkToggleButton *togglebutton,
+                                        gpointer         user_data)
+{
+  // nothing to do
+}
+
+
+void
+on_radioZoom100_toggled                (GtkToggleButton *togglebutton,
+                                        gpointer         user_data)
+{
+  if (!gtk_toggle_button_get_active(togglebutton)) return;
+  zoom_percent = 100.;
+  gtk_spin_button_set_value(GTK_SPIN_BUTTON(g_object_get_data(
+        G_OBJECT(zoom_dialog), "spinZoom")), zoom_percent);
+}
+
+
+void
+on_radioZoomWidth_toggled              (GtkToggleButton *togglebutton,
+                                        gpointer         user_data)
+{
+  if (!gtk_toggle_button_get_active(togglebutton)) return;
+  zoom_percent = 100*(GTK_WIDGET(canvas))->allocation.width/ui.cur_page->width/DEFAULT_ZOOM;
+  gtk_spin_button_set_value(GTK_SPIN_BUTTON(g_object_get_data(
+        G_OBJECT(zoom_dialog), "spinZoom")), zoom_percent);
+}
+
+
+void
+on_radioZoomHeight_toggled             (GtkToggleButton *togglebutton,
+                                        gpointer         user_data)
+{
+  if (!gtk_toggle_button_get_active(togglebutton)) return;
+  zoom_percent = 100*(GTK_WIDGET(canvas))->allocation.height/ui.cur_page->height/DEFAULT_ZOOM;
+  gtk_spin_button_set_value(GTK_SPIN_BUTTON(g_object_get_data(
+        G_OBJECT(zoom_dialog), "spinZoom")), zoom_percent);
 }
 

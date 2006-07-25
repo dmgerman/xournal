@@ -61,12 +61,10 @@ void update_cursor(void)
     gdk_cursor_unref(ui.cursor);
     ui.cursor = NULL;
   }
-  if (ui.cur_item_type == ITEM_MOVESEL) {
-    if (ui.toolno[ui.cur_mapping] == TOOL_VERTSPACE) 
-      ui.cursor = gdk_cursor_new(GDK_SB_V_DOUBLE_ARROW);
-    else 
-      ui.cursor = gdk_cursor_new(GDK_FLEUR);
-  }
+  if (ui.cur_item_type == ITEM_MOVESEL_VERT)
+    ui.cursor = gdk_cursor_new(GDK_SB_V_DOUBLE_ARROW);
+  else if (ui.cur_item_type == ITEM_MOVESEL)
+    ui.cursor = gdk_cursor_new(GDK_FLEUR);
   else if (ui.toolno[ui.cur_mapping] == TOOL_PEN) {
     fg.red = (ui.cur_brush->color_rgba >> 16) & 0xff00;
     fg.green = (ui.cur_brush->color_rgba >> 8) & 0xff00;

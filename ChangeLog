@@ -1,3 +1,12 @@
+Version 0.3 (Jul 23, 2006):
+  - new PDF rendering engine: export to PDF generates optimized files
+    (smaller and more accurate)
+  - export to PDF handles PDF backgrounds (up to PDF-1.4) natively
+    (without conversion to bitmap)
+  - default thickness of erasers and highlighters slightly increased
+  - zoom dialog box with input box and "fit to page height" option
+  - file format documentation added to the user's manual
+
 Version 0.2.2 (Jun 5, 2006):
   - mapping of tools to stylus buttons (the options menu has new entries
     to allow the mapping of buttons 2 and 3 to arbitrary tools; the tools

@@ -138,6 +138,7 @@ gboolean save_journal(const char *filename)
             tmpf = fopen(tmpfn, "w");
             if (tmpf != NULL && fwrite(pdfbuf, 1, pdflen, tmpf) == pdflen)
               success = TRUE;
+            g_free(pdfbuf);
             fclose(tmpf);
           }
           if (!success) {

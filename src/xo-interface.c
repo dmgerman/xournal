@@ -36,7 +36,7 @@ create_winMain (void)
   GtkWidget *menuFile_menu;
   GtkWidget *fileNew;
   GtkWidget *fileNewBackground;
-  GtkWidget *image577;
+  GtkWidget *image599;
   GtkWidget *fileOpen;
   GtkWidget *fileSave;
   GtkWidget *fileSaveAs;
@@ -53,7 +53,7 @@ create_winMain (void)
   GtkWidget *mru7;
   GtkWidget *separator22;
   GtkWidget *filePrintOptions;
-  GtkWidget *image578;
+  GtkWidget *image600;
   GtkWidget *filePrint;
   GtkWidget *filePrintPDF;
   GtkWidget *separator2;
@@ -79,21 +79,22 @@ create_winMain (void)
   GtkWidget *viewZoomOut;
   GtkWidget *viewNormalSize;
   GtkWidget *viewPageWidth;
-  GtkWidget *image579;
+  GtkWidget *image601;
+  GtkWidget *viewSetZoom;
   GtkWidget *separator5;
   GtkWidget *viewFirstPage;
-  GtkWidget *image580;
+  GtkWidget *image602;
   GtkWidget *viewPreviousPage;
-  GtkWidget *image581;
+  GtkWidget *image603;
   GtkWidget *viewNextPage;
-  GtkWidget *image582;
+  GtkWidget *image604;
   GtkWidget *viewLastPage;
-  GtkWidget *image583;
+  GtkWidget *image605;
   GtkWidget *separator6;
   GtkWidget *viewShowLayer;
-  GtkWidget *image584;
+  GtkWidget *image606;
   GtkWidget *viewHideLayer;
-  GtkWidget *image585;
+  GtkWidget *image607;
   GtkWidget *menuJournal;
   GtkWidget *menuJournal_menu;
   GtkWidget *journalNewPageBefore;
@@ -128,7 +129,7 @@ create_winMain (void)
   GtkWidget *journalApplyAllPages;
   GtkWidget *separator23;
   GtkWidget *journalLoadBackground;
-  GtkWidget *image586;
+  GtkWidget *image608;
   GtkWidget *journalScreenshot;
   GtkWidget *separator19;
   GtkWidget *journalDefaultBackground;
@@ -146,7 +147,7 @@ create_winMain (void)
   GtkWidget *toolsVerticalSpace;
   GtkWidget *separator16;
   GtkWidget *toolsColor;
-  GtkWidget *image587;
+  GtkWidget *image609;
   GtkWidget *toolsColor_menu;
   GSList *colorBlack_group = NULL;
   GtkWidget *colorBlack;
@@ -189,7 +190,7 @@ create_winMain (void)
   GtkWidget *highlighterMedium;
   GtkWidget *highlighterThick;
   GtkWidget *toolsTextFont;
-  GtkWidget *image588;
+  GtkWidget *image610;
   GtkWidget *separator10;
   GtkWidget *toolsDefaultPen;
   GtkWidget *toolsDefaultEraser;
@@ -265,6 +266,7 @@ create_winMain (void)
   GtkWidget *buttonPageWidth;
   GtkWidget *buttonZoomIn;
   GtkWidget *buttonNormalSize;
+  GtkWidget *buttonZoomSet;
   GtkWidget *tmp_image;
   GtkWidget *buttonFullscreen;
   GtkWidget *toolbarPen;
@@ -348,9 +350,9 @@ create_winMain (void)
   gtk_widget_show (fileNewBackground);
   gtk_container_add (GTK_CONTAINER (menuFile_menu), fileNewBackground);
 
-  image577 = gtk_image_new_from_stock ("gtk-open", GTK_ICON_SIZE_MENU);
-  gtk_widget_show (image577);
-  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (fileNewBackground), image577);
+  image599 = gtk_image_new_from_stock ("gtk-open", GTK_ICON_SIZE_MENU);
+  gtk_widget_show (image599);
+  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (fileNewBackground), image599);
 
   fileOpen = gtk_image_menu_item_new_from_stock ("gtk-open", accel_group);
   gtk_widget_show (fileOpen);
@@ -417,15 +419,15 @@ create_winMain (void)
   gtk_widget_show (filePrintOptions);
   gtk_container_add (GTK_CONTAINER (menuFile_menu), filePrintOptions);
 
-  image578 = gtk_image_new_from_stock ("gtk-preferences", GTK_ICON_SIZE_MENU);
-  gtk_widget_show (image578);
-  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (filePrintOptions), image578);
+  image600 = gtk_image_new_from_stock ("gtk-preferences", GTK_ICON_SIZE_MENU);
+  gtk_widget_show (image600);
+  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (filePrintOptions), image600);
 
   filePrint = gtk_image_menu_item_new_from_stock ("gtk-print", accel_group);
   gtk_widget_show (filePrint);
   gtk_container_add (GTK_CONTAINER (menuFile_menu), filePrint);
 
-  filePrintPDF = gtk_menu_item_new_with_mnemonic ("Print to PDF");
+  filePrintPDF = gtk_menu_item_new_with_mnemonic ("Export to PDF");
   gtk_widget_show (filePrintPDF);
   gtk_container_add (GTK_CONTAINER (menuFile_menu), filePrintPDF);
 
@@ -485,6 +487,7 @@ create_winMain (void)
   viewContinuous_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (viewContinuous));
   gtk_widget_show (viewContinuous);
   gtk_container_add (GTK_CONTAINER (menuView_menu), viewContinuous);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (viewContinuous), TRUE);
 
   viewOnePage = gtk_radio_menu_item_new_with_mnemonic (viewContinuous_group, "One Page");
   viewContinuous_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (viewOnePage));
@@ -522,9 +525,13 @@ create_winMain (void)
   gtk_widget_show (viewPageWidth);
   gtk_container_add (GTK_CONTAINER (menuView_menu), viewPageWidth);
 
-  image579 = gtk_image_new_from_stock ("gtk-zoom-fit", GTK_ICON_SIZE_MENU);
-  gtk_widget_show (image579);
-  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (viewPageWidth), image579);
+  image601 = gtk_image_new_from_stock ("gtk-zoom-fit", GTK_ICON_SIZE_MENU);
+  gtk_widget_show (image601);
+  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (viewPageWidth), image601);
+
+  viewSetZoom = gtk_menu_item_new_with_mnemonic ("Set Zoom");
+  gtk_widget_show (viewSetZoom);
+  gtk_container_add (GTK_CONTAINER (menuView_menu), viewSetZoom);
 
   separator5 = gtk_separator_menu_item_new ();
   gtk_widget_show (separator5);
@@ -535,33 +542,33 @@ create_winMain (void)
   gtk_widget_show (viewFirstPage);
   gtk_container_add (GTK_CONTAINER (menuView_menu), viewFirstPage);
 
-  image580 = gtk_image_new_from_stock ("gtk-goto-first", GTK_ICON_SIZE_MENU);
-  gtk_widget_show (image580);
-  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (viewFirstPage), image580);
+  image602 = gtk_image_new_from_stock ("gtk-goto-first", GTK_ICON_SIZE_MENU);
+  gtk_widget_show (image602);
+  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (viewFirstPage), image602);
 
   viewPreviousPage = gtk_image_menu_item_new_with_mnemonic ("Previous Page");
   gtk_widget_show (viewPreviousPage);
   gtk_container_add (GTK_CONTAINER (menuView_menu), viewPreviousPage);
 
-  image581 = gtk_image_new_from_stock ("gtk-go-back", GTK_ICON_SIZE_MENU);
-  gtk_widget_show (image581);
-  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (viewPreviousPage), image581);
+  image603 = gtk_image_new_from_stock ("gtk-go-back", GTK_ICON_SIZE_MENU);
+  gtk_widget_show (image603);
+  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (viewPreviousPage), image603);
 
   viewNextPage = gtk_image_menu_item_new_with_mnemonic ("Next Page");
   gtk_widget_show (viewNextPage);
   gtk_container_add (GTK_CONTAINER (menuView_menu), viewNextPage);
 
-  image582 = gtk_image_new_from_stock ("gtk-go-forward", GTK_ICON_SIZE_MENU);
-  gtk_widget_show (image582);
-  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (viewNextPage), image582);
+  image604 = gtk_image_new_from_stock ("gtk-go-forward", GTK_ICON_SIZE_MENU);
+  gtk_widget_show (image604);
+  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (viewNextPage), image604);
 
   viewLastPage = gtk_image_menu_item_new_with_mnemonic ("Last Page");
   gtk_widget_show (viewLastPage);
   gtk_container_add (GTK_CONTAINER (menuView_menu), viewLastPage);
 
-  image583 = gtk_image_new_from_stock ("gtk-goto-last", GTK_ICON_SIZE_MENU);
-  gtk_widget_show (image583);
-  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (viewLastPage), image583);
+  image605 = gtk_image_new_from_stock ("gtk-goto-last", GTK_ICON_SIZE_MENU);
+  gtk_widget_show (image605);
+  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (viewLastPage), image605);
 
   separator6 = gtk_separator_menu_item_new ();
   gtk_widget_show (separator6);
@@ -572,17 +579,17 @@ create_winMain (void)
   gtk_widget_show (viewShowLayer);
   gtk_container_add (GTK_CONTAINER (menuView_menu), viewShowLayer);
 
-  image584 = gtk_image_new_from_stock ("gtk-add", GTK_ICON_SIZE_MENU);
-  gtk_widget_show (image584);
-  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (viewShowLayer), image584);
+  image606 = gtk_image_new_from_stock ("gtk-add", GTK_ICON_SIZE_MENU);
+  gtk_widget_show (image606);
+  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (viewShowLayer), image606);
 
   viewHideLayer = gtk_image_menu_item_new_with_mnemonic ("Hide Layer");
   gtk_widget_show (viewHideLayer);
   gtk_container_add (GTK_CONTAINER (menuView_menu), viewHideLayer);
 
-  image585 = gtk_image_new_from_stock ("gtk-remove", GTK_ICON_SIZE_MENU);
-  gtk_widget_show (image585);
-  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (viewHideLayer), image585);
+  image607 = gtk_image_new_from_stock ("gtk-remove", GTK_ICON_SIZE_MENU);
+  gtk_widget_show (image607);
+  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (viewHideLayer), image607);
 
   menuJournal = gtk_menu_item_new_with_mnemonic ("_Journal");
   gtk_widget_show (menuJournal);
@@ -644,36 +651,43 @@ create_winMain (void)
   papercolorWhite_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (papercolorWhite));
   gtk_widget_show (papercolorWhite);
   gtk_container_add (GTK_CONTAINER (journalPaperColor_menu), papercolorWhite);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (papercolorWhite), TRUE);
 
   papercolorYellow = gtk_radio_menu_item_new_with_mnemonic (papercolorWhite_group, "yellow paper");
   papercolorWhite_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (papercolorYellow));
   gtk_widget_show (papercolorYellow);
   gtk_container_add (GTK_CONTAINER (journalPaperColor_menu), papercolorYellow);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (papercolorYellow), TRUE);
 
   papercolorPink = gtk_radio_menu_item_new_with_mnemonic (papercolorWhite_group, "pink paper");
   papercolorWhite_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (papercolorPink));
   gtk_widget_show (papercolorPink);
   gtk_container_add (GTK_CONTAINER (journalPaperColor_menu), papercolorPink);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (papercolorPink), TRUE);
 
   papercolorOrange = gtk_radio_menu_item_new_with_mnemonic (papercolorWhite_group, "orange paper");
   papercolorWhite_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (papercolorOrange));
   gtk_widget_show (papercolorOrange);
   gtk_container_add (GTK_CONTAINER (journalPaperColor_menu), papercolorOrange);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (papercolorOrange), TRUE);
 
   papercolorBlue = gtk_radio_menu_item_new_with_mnemonic (papercolorWhite_group, "blue paper");
   papercolorWhite_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (papercolorBlue));
   gtk_widget_show (papercolorBlue);
   gtk_container_add (GTK_CONTAINER (journalPaperColor_menu), papercolorBlue);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (papercolorBlue), TRUE);
 
   papercolorGreen = gtk_radio_menu_item_new_with_mnemonic (papercolorWhite_group, "green paper");
   papercolorWhite_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (papercolorGreen));
   gtk_widget_show (papercolorGreen);
   gtk_container_add (GTK_CONTAINER (journalPaperColor_menu), papercolorGreen);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (papercolorGreen), TRUE);
 
   papercolorOther = gtk_radio_menu_item_new_with_mnemonic (papercolorWhite_group, "other...");
   papercolorWhite_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (papercolorOther));
   gtk_widget_show (papercolorOther);
   gtk_container_add (GTK_CONTAINER (journalPaperColor_menu), papercolorOther);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (papercolorOther), TRUE);
 
   papercolorNA = gtk_radio_menu_item_new_with_mnemonic (papercolorWhite_group, "NA");
   papercolorWhite_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (papercolorNA));
@@ -691,21 +705,25 @@ create_winMain (void)
   paperstylePlain_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (paperstylePlain));
   gtk_widget_show (paperstylePlain);
   gtk_container_add (GTK_CONTAINER (journalPaperStyle_menu), paperstylePlain);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (paperstylePlain), TRUE);
 
   paperstyleLined = gtk_radio_menu_item_new_with_mnemonic (paperstylePlain_group, "lined");
   paperstylePlain_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (paperstyleLined));
   gtk_widget_show (paperstyleLined);
   gtk_container_add (GTK_CONTAINER (journalPaperStyle_menu), paperstyleLined);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (paperstyleLined), TRUE);
 
   paperstyleRuled = gtk_radio_menu_item_new_with_mnemonic (paperstylePlain_group, "ruled");
   paperstylePlain_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (paperstyleRuled));
   gtk_widget_show (paperstyleRuled);
   gtk_container_add (GTK_CONTAINER (journalPaperStyle_menu), paperstyleRuled);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (paperstyleRuled), TRUE);
 
   paperstyleGraph = gtk_radio_menu_item_new_with_mnemonic (paperstylePlain_group, "graph");
   paperstylePlain_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (paperstyleGraph));
   gtk_widget_show (paperstyleGraph);
   gtk_container_add (GTK_CONTAINER (journalPaperStyle_menu), paperstyleGraph);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (paperstyleGraph), TRUE);
 
   paperstyleNA = gtk_radio_menu_item_new_with_mnemonic (paperstylePlain_group, "NA");
   paperstylePlain_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (paperstyleNA));
@@ -725,9 +743,9 @@ create_winMain (void)
   gtk_widget_show (journalLoadBackground);
   gtk_container_add (GTK_CONTAINER (menuJournal_menu), journalLoadBackground);
 
-  image586 = gtk_image_new_from_stock ("gtk-open", GTK_ICON_SIZE_MENU);
-  gtk_widget_show (image586);
-  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (journalLoadBackground), image586);
+  image608 = gtk_image_new_from_stock ("gtk-open", GTK_ICON_SIZE_MENU);
+  gtk_widget_show (image608);
+  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (journalLoadBackground), image608);
 
   journalScreenshot = gtk_menu_item_new_with_mnemonic ("Background Screenshot");
   gtk_widget_show (journalScreenshot);
@@ -757,21 +775,25 @@ create_winMain (void)
   toolsPen_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (toolsPen));
   gtk_widget_show (toolsPen);
   gtk_container_add (GTK_CONTAINER (menuTools_menu), toolsPen);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (toolsPen), TRUE);
 
   toolsEraser = gtk_radio_menu_item_new_with_mnemonic (toolsPen_group, "_Eraser");
   toolsPen_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (toolsEraser));
   gtk_widget_show (toolsEraser);
   gtk_container_add (GTK_CONTAINER (menuTools_menu), toolsEraser);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (toolsEraser), TRUE);
 
   toolsHighlighter = gtk_radio_menu_item_new_with_mnemonic (toolsPen_group, "_Highlighter");
   toolsPen_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (toolsHighlighter));
   gtk_widget_show (toolsHighlighter);
   gtk_container_add (GTK_CONTAINER (menuTools_menu), toolsHighlighter);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (toolsHighlighter), TRUE);
 
   toolsText = gtk_radio_menu_item_new_with_mnemonic (toolsPen_group, "_Text");
   toolsPen_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (toolsText));
   gtk_widget_show (toolsText);
   gtk_container_add (GTK_CONTAINER (menuTools_menu), toolsText);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (toolsText), TRUE);
 
   separator9 = gtk_separator_menu_item_new ();
   gtk_widget_show (separator9);
@@ -782,11 +804,13 @@ create_winMain (void)
   toolsPen_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (toolsSelectRegion));
   gtk_widget_show (toolsSelectRegion);
   gtk_container_add (GTK_CONTAINER (menuTools_menu), toolsSelectRegion);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (toolsSelectRegion), TRUE);
 
   toolsSelectRectangle = gtk_radio_menu_item_new_with_mnemonic (toolsPen_group, "Select Rectangle");
   toolsPen_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (toolsSelectRectangle));
   gtk_widget_show (toolsSelectRectangle);
   gtk_container_add (GTK_CONTAINER (menuTools_menu), toolsSelectRectangle);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (toolsSelectRectangle), TRUE);
 
   toolsVerticalSpace = gtk_radio_menu_item_new_with_mnemonic (toolsPen_group, "Vertical Space");
   toolsPen_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (toolsVerticalSpace));
@@ -803,9 +827,9 @@ create_winMain (void)
   gtk_widget_show (toolsColor);
   gtk_container_add (GTK_CONTAINER (menuTools_menu), toolsColor);
 
-  image587 = gtk_image_new_from_stock ("gtk-select-color", GTK_ICON_SIZE_MENU);
-  gtk_widget_show (image587);
-  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (toolsColor), image587);
+  image609 = gtk_image_new_from_stock ("gtk-select-color", GTK_ICON_SIZE_MENU);
+  gtk_widget_show (image609);
+  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (toolsColor), image609);
 
   toolsColor_menu = gtk_menu_new ();
   gtk_menu_item_set_submenu (GTK_MENU_ITEM (toolsColor), toolsColor_menu);
@@ -814,26 +838,31 @@ create_winMain (void)
   colorBlack_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (colorBlack));
   gtk_widget_show (colorBlack);
   gtk_container_add (GTK_CONTAINER (toolsColor_menu), colorBlack);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (colorBlack), TRUE);
 
   colorBlue = gtk_radio_menu_item_new_with_mnemonic (colorBlack_group, "blue");
   colorBlack_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (colorBlue));
   gtk_widget_show (colorBlue);
   gtk_container_add (GTK_CONTAINER (toolsColor_menu), colorBlue);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (colorBlue), TRUE);
 
   colorRed = gtk_radio_menu_item_new_with_mnemonic (colorBlack_group, "red");
   colorBlack_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (colorRed));
   gtk_widget_show (colorRed);
   gtk_container_add (GTK_CONTAINER (toolsColor_menu), colorRed);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (colorRed), TRUE);
 
   colorGreen = gtk_radio_menu_item_new_with_mnemonic (colorBlack_group, "green");
   colorBlack_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (colorGreen));
   gtk_widget_show (colorGreen);
   gtk_container_add (GTK_CONTAINER (toolsColor_menu), colorGreen);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (colorGreen), TRUE);
 
   colorGray = gtk_radio_menu_item_new_with_mnemonic (colorBlack_group, "gray");
   colorBlack_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (colorGray));
   gtk_widget_show (colorGray);
   gtk_container_add (GTK_CONTAINER (toolsColor_menu), colorGray);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (colorGray), TRUE);
 
   separator17 = gtk_separator_menu_item_new ();
   gtk_widget_show (separator17);
@@ -844,36 +873,43 @@ create_winMain (void)
   colorBlack_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (colorLightBlue));
   gtk_widget_show (colorLightBlue);
   gtk_container_add (GTK_CONTAINER (toolsColor_menu), colorLightBlue);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (colorLightBlue), TRUE);
 
   colorLightGreen = gtk_radio_menu_item_new_with_mnemonic (colorBlack_group, "light green");
   colorBlack_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (colorLightGreen));
   gtk_widget_show (colorLightGreen);
   gtk_container_add (GTK_CONTAINER (toolsColor_menu), colorLightGreen);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (colorLightGreen), TRUE);
 
   colorMagenta = gtk_radio_menu_item_new_with_mnemonic (colorBlack_group, "magenta");
   colorBlack_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (colorMagenta));
   gtk_widget_show (colorMagenta);
   gtk_container_add (GTK_CONTAINER (toolsColor_menu), colorMagenta);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (colorMagenta), TRUE);
 
   colorOrange = gtk_radio_menu_item_new_with_mnemonic (colorBlack_group, "orange");
   colorBlack_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (colorOrange));
   gtk_widget_show (colorOrange);
   gtk_container_add (GTK_CONTAINER (toolsColor_menu), colorOrange);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (colorOrange), TRUE);
 
   colorYellow = gtk_radio_menu_item_new_with_mnemonic (colorBlack_group, "yellow");
   colorBlack_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (colorYellow));
   gtk_widget_show (colorYellow);
   gtk_container_add (GTK_CONTAINER (toolsColor_menu), colorYellow);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (colorYellow), TRUE);
 
   colorWhite = gtk_radio_menu_item_new_with_mnemonic (colorBlack_group, "white");
   colorBlack_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (colorWhite));
   gtk_widget_show (colorWhite);
   gtk_container_add (GTK_CONTAINER (toolsColor_menu), colorWhite);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (colorWhite), TRUE);
 
   colorOther = gtk_radio_menu_item_new_with_mnemonic (colorBlack_group, "other...");
   colorBlack_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (colorOther));
   gtk_widget_show (colorOther);
   gtk_container_add (GTK_CONTAINER (toolsColor_menu), colorOther);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (colorOther), TRUE);
 
   colorNA = gtk_radio_menu_item_new_with_mnemonic (colorBlack_group, "NA");
   colorBlack_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (colorNA));
@@ -891,21 +927,25 @@ create_winMain (void)
   penthicknessVeryFine_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (penthicknessVeryFine));
   gtk_widget_show (penthicknessVeryFine);
   gtk_container_add (GTK_CONTAINER (toolsPenOptions_menu), penthicknessVeryFine);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (penthicknessVeryFine), TRUE);
 
   penthicknessFine = gtk_radio_menu_item_new_with_mnemonic (penthicknessVeryFine_group, "fine");
   penthicknessVeryFine_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (penthicknessFine));
   gtk_widget_show (penthicknessFine);
   gtk_container_add (GTK_CONTAINER (toolsPenOptions_menu), penthicknessFine);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (penthicknessFine), TRUE);
 
   penthicknessMedium = gtk_radio_menu_item_new_with_mnemonic (penthicknessVeryFine_group, "medium");
   penthicknessVeryFine_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (penthicknessMedium));
   gtk_widget_show (penthicknessMedium);
   gtk_container_add (GTK_CONTAINER (toolsPenOptions_menu), penthicknessMedium);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (penthicknessMedium), TRUE);
 
   penthicknessThick = gtk_radio_menu_item_new_with_mnemonic (penthicknessVeryFine_group, "thick");
   penthicknessVeryFine_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (penthicknessThick));
   gtk_widget_show (penthicknessThick);
   gtk_container_add (GTK_CONTAINER (toolsPenOptions_menu), penthicknessThick);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (penthicknessThick), TRUE);
 
   penthicknessVeryThick = gtk_radio_menu_item_new_with_mnemonic (penthicknessVeryFine_group, "very thick");
   penthicknessVeryFine_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (penthicknessVeryThick));
@@ -924,11 +964,13 @@ create_winMain (void)
   eraserFine_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (eraserFine));
   gtk_widget_show (eraserFine);
   gtk_container_add (GTK_CONTAINER (toolsEraserOptions_menu), eraserFine);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (eraserFine), TRUE);
 
   eraserMedium = gtk_radio_menu_item_new_with_mnemonic (eraserFine_group, "medium");
   eraserFine_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (eraserMedium));
   gtk_widget_show (eraserMedium);
   gtk_container_add (GTK_CONTAINER (toolsEraserOptions_menu), eraserMedium);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (eraserMedium), TRUE);
 
   eraserThick = gtk_radio_menu_item_new_with_mnemonic (eraserFine_group, "thick");
   eraserFine_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (eraserThick));
@@ -945,11 +987,13 @@ create_winMain (void)
   eraserStandard_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (eraserStandard));
   gtk_widget_show (eraserStandard);
   gtk_container_add (GTK_CONTAINER (toolsEraserOptions_menu), eraserStandard);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (eraserStandard), TRUE);
 
   eraserWhiteout = gtk_radio_menu_item_new_with_mnemonic (eraserStandard_group, "whiteout");
   eraserStandard_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (eraserWhiteout));
   gtk_widget_show (eraserWhiteout);
   gtk_container_add (GTK_CONTAINER (toolsEraserOptions_menu), eraserWhiteout);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (eraserWhiteout), TRUE);
 
   eraserDeleteStrokes = gtk_radio_menu_item_new_with_mnemonic (eraserStandard_group, "delete strokes");
   eraserStandard_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (eraserDeleteStrokes));
@@ -968,11 +1012,13 @@ create_winMain (void)
   highlighterFine_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (highlighterFine));
   gtk_widget_show (highlighterFine);
   gtk_container_add (GTK_CONTAINER (toolsHighlighterOptions_menu), highlighterFine);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (highlighterFine), TRUE);
 
   highlighterMedium = gtk_radio_menu_item_new_with_mnemonic (highlighterFine_group, "medium");
   highlighterFine_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (highlighterMedium));
   gtk_widget_show (highlighterMedium);
   gtk_container_add (GTK_CONTAINER (toolsHighlighterOptions_menu), highlighterMedium);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (highlighterMedium), TRUE);
 
   highlighterThick = gtk_radio_menu_item_new_with_mnemonic (highlighterFine_group, "thick");
   highlighterFine_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (highlighterThick));
@@ -984,9 +1030,9 @@ create_winMain (void)
   gtk_widget_show (toolsTextFont);
   gtk_container_add (GTK_CONTAINER (menuTools_menu), toolsTextFont);
 
-  image588 = gtk_image_new_from_stock ("gtk-select-font", GTK_ICON_SIZE_MENU);
-  gtk_widget_show (image588);
-  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (toolsTextFont), image588);
+  image610 = gtk_image_new_from_stock ("gtk-select-font", GTK_ICON_SIZE_MENU);
+  gtk_widget_show (image610);
+  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (toolsTextFont), image610);
 
   separator10 = gtk_separator_menu_item_new ();
   gtk_widget_show (separator10);
@@ -1054,31 +1100,37 @@ create_winMain (void)
   button2Pen_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (button2Eraser));
   gtk_widget_show (button2Eraser);
   gtk_container_add (GTK_CONTAINER (button2_mapping_menu), button2Eraser);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (button2Eraser), TRUE);
 
   button2Highlighter = gtk_radio_menu_item_new_with_mnemonic (button2Pen_group, "Highlighter");
   button2Pen_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (button2Highlighter));
   gtk_widget_show (button2Highlighter);
   gtk_container_add (GTK_CONTAINER (button2_mapping_menu), button2Highlighter);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (button2Highlighter), TRUE);
 
   button2Text = gtk_radio_menu_item_new_with_mnemonic (button2Pen_group, "Text");
   button2Pen_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (button2Text));
   gtk_widget_show (button2Text);
   gtk_container_add (GTK_CONTAINER (button2_mapping_menu), button2Text);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (button2Text), TRUE);
 
   button2SelectRegion = gtk_radio_menu_item_new_with_mnemonic (button2Pen_group, "Select Region");
   button2Pen_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (button2SelectRegion));
   gtk_widget_show (button2SelectRegion);
   gtk_container_add (GTK_CONTAINER (button2_mapping_menu), button2SelectRegion);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (button2SelectRegion), TRUE);
 
   button2SelectRectangle = gtk_radio_menu_item_new_with_mnemonic (button2Pen_group, "Select Rectangle");
   button2Pen_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (button2SelectRectangle));
   gtk_widget_show (button2SelectRectangle);
   gtk_container_add (GTK_CONTAINER (button2_mapping_menu), button2SelectRectangle);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (button2SelectRectangle), TRUE);
 
   button2VerticalSpace = gtk_radio_menu_item_new_with_mnemonic (button2Pen_group, "Vertical Space");
   button2Pen_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (button2VerticalSpace));
   gtk_widget_show (button2VerticalSpace);
   gtk_container_add (GTK_CONTAINER (button2_mapping_menu), button2VerticalSpace);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (button2VerticalSpace), TRUE);
 
   separator24 = gtk_separator_menu_item_new ();
   gtk_widget_show (separator24);
@@ -1089,15 +1141,18 @@ create_winMain (void)
   button2LinkBrush_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (button2LinkBrush));
   gtk_widget_show (button2LinkBrush);
   gtk_container_add (GTK_CONTAINER (button2_mapping_menu), button2LinkBrush);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (button2LinkBrush), TRUE);
 
   button2CopyBrush = gtk_radio_menu_item_new_with_mnemonic (button2LinkBrush_group, "Copy of Current Brush");
   button2LinkBrush_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (button2CopyBrush));
   gtk_widget_show (button2CopyBrush);
   gtk_container_add (GTK_CONTAINER (button2_mapping_menu), button2CopyBrush);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (button2CopyBrush), TRUE);
 
   button2NABrush = gtk_radio_menu_item_new_with_mnemonic (button2LinkBrush_group, "NA");
   button2LinkBrush_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (button2NABrush));
   gtk_container_add (GTK_CONTAINER (button2_mapping_menu), button2NABrush);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (button2NABrush), TRUE);
 
   button3_mapping = gtk_menu_item_new_with_mnemonic ("Button 3 Mapping");
   gtk_widget_show (button3_mapping);
@@ -1116,31 +1171,37 @@ create_winMain (void)
   button3Pen_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (button3Eraser));
   gtk_widget_show (button3Eraser);
   gtk_container_add (GTK_CONTAINER (button3_mapping_menu), button3Eraser);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (button3Eraser), TRUE);
 
   button3Highlighter = gtk_radio_menu_item_new_with_mnemonic (button3Pen_group, "Highlighter");
   button3Pen_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (button3Highlighter));
   gtk_widget_show (button3Highlighter);
   gtk_container_add (GTK_CONTAINER (button3_mapping_menu), button3Highlighter);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (button3Highlighter), TRUE);
 
   button3Text = gtk_radio_menu_item_new_with_mnemonic (button3Pen_group, "Text");
   button3Pen_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (button3Text));
   gtk_widget_show (button3Text);
   gtk_container_add (GTK_CONTAINER (button3_mapping_menu), button3Text);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (button3Text), TRUE);
 
   button3SelectRegion = gtk_radio_menu_item_new_with_mnemonic (button3Pen_group, "Select Region");
   button3Pen_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (button3SelectRegion));
   gtk_widget_show (button3SelectRegion);
   gtk_container_add (GTK_CONTAINER (button3_mapping_menu), button3SelectRegion);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (button3SelectRegion), TRUE);
 
   button3SelectRectangle = gtk_radio_menu_item_new_with_mnemonic (button3Pen_group, "Select Rectangle");
   button3Pen_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (button3SelectRectangle));
   gtk_widget_show (button3SelectRectangle);
   gtk_container_add (GTK_CONTAINER (button3_mapping_menu), button3SelectRectangle);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (button3SelectRectangle), TRUE);
 
   button3VerticalSpace = gtk_radio_menu_item_new_with_mnemonic (button3Pen_group, "Vertical Space");
   button3Pen_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (button3VerticalSpace));
   gtk_widget_show (button3VerticalSpace);
   gtk_container_add (GTK_CONTAINER (button3_mapping_menu), button3VerticalSpace);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (button3VerticalSpace), TRUE);
 
   separator25 = gtk_separator_menu_item_new ();
   gtk_widget_show (separator25);
@@ -1151,15 +1212,18 @@ create_winMain (void)
   button3LinkBrush_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (button3LinkBrush));
   gtk_widget_show (button3LinkBrush);
   gtk_container_add (GTK_CONTAINER (button3_mapping_menu), button3LinkBrush);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (button3LinkBrush), TRUE);
 
   button3CopyBrush = gtk_radio_menu_item_new_with_mnemonic (button3LinkBrush_group, "Copy of Current Brush");
   button3LinkBrush_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (button3CopyBrush));
   gtk_widget_show (button3CopyBrush);
   gtk_container_add (GTK_CONTAINER (button3_mapping_menu), button3CopyBrush);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (button3CopyBrush), TRUE);
 
   button3NABrush = gtk_radio_menu_item_new_with_mnemonic (button3LinkBrush_group, "NA");
   button3LinkBrush_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (button3NABrush));
   gtk_container_add (GTK_CONTAINER (button3_mapping_menu), button3NABrush);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (button3NABrush), TRUE);
 
   separator18 = gtk_separator_menu_item_new ();
   gtk_widget_show (separator18);
@@ -1306,6 +1370,11 @@ create_winMain (void)
   gtk_widget_show (buttonNormalSize);
   gtk_container_add (GTK_CONTAINER (toolbarMain), buttonNormalSize);
   gtk_tool_item_set_tooltip (GTK_TOOL_ITEM (buttonNormalSize), tooltips, "Normal Size", NULL);
+
+  buttonZoomSet = (GtkWidget*) gtk_tool_button_new_from_stock ("gtk-find");
+  gtk_widget_show (buttonZoomSet);
+  gtk_container_add (GTK_CONTAINER (toolbarMain), buttonZoomSet);
+  gtk_tool_item_set_tooltip (GTK_TOOL_ITEM (buttonZoomSet), tooltips, "Set Zoom", NULL);
 
   buttonFullscreen = (GtkWidget*) gtk_toggle_tool_button_new ();
   gtk_tool_button_set_label (GTK_TOOL_BUTTON (buttonFullscreen), "");
@@ -1772,6 +1841,9 @@ create_winMain (void)
   g_signal_connect ((gpointer) viewPageWidth, "activate",
                     G_CALLBACK (on_viewPageWidth_activate),
                     NULL);
+  g_signal_connect ((gpointer) viewSetZoom, "activate",
+                    G_CALLBACK (on_viewSetZoom_activate),
+                    NULL);
   g_signal_connect ((gpointer) viewFirstPage, "activate",
                     G_CALLBACK (on_viewFirstPage_activate),
                     NULL);
@@ -2099,6 +2171,9 @@ create_winMain (void)
   g_signal_connect ((gpointer) buttonNormalSize, "clicked",
                     G_CALLBACK (on_viewNormalSize_activate),
                     NULL);
+  g_signal_connect ((gpointer) buttonZoomSet, "clicked",
+                    G_CALLBACK (on_viewSetZoom_activate),
+                    NULL);
   g_signal_connect ((gpointer) buttonFullscreen, "toggled",
                     G_CALLBACK (on_viewFullscreen_activate),
                     NULL);
@@ -2189,7 +2264,7 @@ create_winMain (void)
   GLADE_HOOKUP_OBJECT (winMain, menuFile_menu, "menuFile_menu");
   GLADE_HOOKUP_OBJECT (winMain, fileNew, "fileNew");
   GLADE_HOOKUP_OBJECT (winMain, fileNewBackground, "fileNewBackground");
-  GLADE_HOOKUP_OBJECT (winMain, image577, "image577");
+  GLADE_HOOKUP_OBJECT (winMain, image599, "image599");
   GLADE_HOOKUP_OBJECT (winMain, fileOpen, "fileOpen");
   GLADE_HOOKUP_OBJECT (winMain, fileSave, "fileSave");
   GLADE_HOOKUP_OBJECT (winMain, fileSaveAs, "fileSaveAs");
@@ -2206,7 +2281,7 @@ create_winMain (void)
   GLADE_HOOKUP_OBJECT (winMain, mru7, "mru7");
   GLADE_HOOKUP_OBJECT (winMain, separator22, "separator22");
   GLADE_HOOKUP_OBJECT (winMain, filePrintOptions, "filePrintOptions");
-  GLADE_HOOKUP_OBJECT (winMain, image578, "image578");
+  GLADE_HOOKUP_OBJECT (winMain, image600, "image600");
   GLADE_HOOKUP_OBJECT (winMain, filePrint, "filePrint");
   GLADE_HOOKUP_OBJECT (winMain, filePrintPDF, "filePrintPDF");
   GLADE_HOOKUP_OBJECT (winMain, separator2, "separator2");
@@ -2231,21 +2306,22 @@ create_winMain (void)
   GLADE_HOOKUP_OBJECT (winMain, viewZoomOut, "viewZoomOut");
   GLADE_HOOKUP_OBJECT (winMain, viewNormalSize, "viewNormalSize");
   GLADE_HOOKUP_OBJECT (winMain, viewPageWidth, "viewPageWidth");
-  GLADE_HOOKUP_OBJECT (winMain, image579, "image579");
+  GLADE_HOOKUP_OBJECT (winMain, image601, "image601");
+  GLADE_HOOKUP_OBJECT (winMain, viewSetZoom, "viewSetZoom");
   GLADE_HOOKUP_OBJECT (winMain, separator5, "separator5");
   GLADE_HOOKUP_OBJECT (winMain, viewFirstPage, "viewFirstPage");
-  GLADE_HOOKUP_OBJECT (winMain, image580, "image580");
+  GLADE_HOOKUP_OBJECT (winMain, image602, "image602");
   GLADE_HOOKUP_OBJECT (winMain, viewPreviousPage, "viewPreviousPage");
-  GLADE_HOOKUP_OBJECT (winMain, image581, "image581");
+  GLADE_HOOKUP_OBJECT (winMain, image603, "image603");
   GLADE_HOOKUP_OBJECT (winMain, viewNextPage, "viewNextPage");
-  GLADE_HOOKUP_OBJECT (winMain, image582, "image582");
+  GLADE_HOOKUP_OBJECT (winMain, image604, "image604");
   GLADE_HOOKUP_OBJECT (winMain, viewLastPage, "viewLastPage");
-  GLADE_HOOKUP_OBJECT (winMain, image583, "image583");
+  GLADE_HOOKUP_OBJECT (winMain, image605, "image605");
   GLADE_HOOKUP_OBJECT (winMain, separator6, "separator6");
   GLADE_HOOKUP_OBJECT (winMain, viewShowLayer, "viewShowLayer");
-  GLADE_HOOKUP_OBJECT (winMain, image584, "image584");
+  GLADE_HOOKUP_OBJECT (winMain, image606, "image606");
   GLADE_HOOKUP_OBJECT (winMain, viewHideLayer, "viewHideLayer");
-  GLADE_HOOKUP_OBJECT (winMain, image585, "image585");
+  GLADE_HOOKUP_OBJECT (winMain, image607, "image607");
   GLADE_HOOKUP_OBJECT (winMain, menuJournal, "menuJournal");
   GLADE_HOOKUP_OBJECT (winMain, menuJournal_menu, "menuJournal_menu");
   GLADE_HOOKUP_OBJECT (winMain, journalNewPageBefore, "journalNewPageBefore");
@@ -2278,7 +2354,7 @@ create_winMain (void)
   GLADE_HOOKUP_OBJECT (winMain, journalApplyAllPages, "journalApplyAllPages");
   GLADE_HOOKUP_OBJECT (winMain, separator23, "separator23");
   GLADE_HOOKUP_OBJECT (winMain, journalLoadBackground, "journalLoadBackground");
-  GLADE_HOOKUP_OBJECT (winMain, image586, "image586");
+  GLADE_HOOKUP_OBJECT (winMain, image608, "image608");
   GLADE_HOOKUP_OBJECT (winMain, journalScreenshot, "journalScreenshot");
   GLADE_HOOKUP_OBJECT (winMain, separator19, "separator19");
   GLADE_HOOKUP_OBJECT (winMain, journalDefaultBackground, "journalDefaultBackground");
@@ -2295,7 +2371,7 @@ create_winMain (void)
   GLADE_HOOKUP_OBJECT (winMain, toolsVerticalSpace, "toolsVerticalSpace");
   GLADE_HOOKUP_OBJECT (winMain, separator16, "separator16");
   GLADE_HOOKUP_OBJECT (winMain, toolsColor, "toolsColor");
-  GLADE_HOOKUP_OBJECT (winMain, image587, "image587");
+  GLADE_HOOKUP_OBJECT (winMain, image609, "image609");
   GLADE_HOOKUP_OBJECT (winMain, toolsColor_menu, "toolsColor_menu");
   GLADE_HOOKUP_OBJECT (winMain, colorBlack, "colorBlack");
   GLADE_HOOKUP_OBJECT (winMain, colorBlue, "colorBlue");
@@ -2333,7 +2409,7 @@ create_winMain (void)
   GLADE_HOOKUP_OBJECT (winMain, highlighterMedium, "highlighterMedium");
   GLADE_HOOKUP_OBJECT (winMain, highlighterThick, "highlighterThick");
   GLADE_HOOKUP_OBJECT (winMain, toolsTextFont, "toolsTextFont");
-  GLADE_HOOKUP_OBJECT (winMain, image588, "image588");
+  GLADE_HOOKUP_OBJECT (winMain, image610, "image610");
   GLADE_HOOKUP_OBJECT (winMain, separator10, "separator10");
   GLADE_HOOKUP_OBJECT (winMain, toolsDefaultPen, "toolsDefaultPen");
   GLADE_HOOKUP_OBJECT (winMain, toolsDefaultEraser, "toolsDefaultEraser");
@@ -2404,6 +2480,7 @@ create_winMain (void)
   GLADE_HOOKUP_OBJECT (winMain, buttonPageWidth, "buttonPageWidth");
   GLADE_HOOKUP_OBJECT (winMain, buttonZoomIn, "buttonZoomIn");
   GLADE_HOOKUP_OBJECT (winMain, buttonNormalSize, "buttonNormalSize");
+  GLADE_HOOKUP_OBJECT (winMain, buttonZoomSet, "buttonZoomSet");
   GLADE_HOOKUP_OBJECT (winMain, buttonFullscreen, "buttonFullscreen");
   GLADE_HOOKUP_OBJECT (winMain, toolbarPen, "toolbarPen");
   GLADE_HOOKUP_OBJECT (winMain, buttonPen, "buttonPen");
@@ -2708,5 +2785,135 @@ create_aboutDialog (void)
   GLADE_HOOKUP_OBJECT (aboutDialog, closebutton1, "closebutton1");
 
   return aboutDialog;
+}
+
+GtkWidget*
+create_zoomDialog (void)
+{
+  GtkWidget *zoomDialog;
+  GtkWidget *dialog_vbox3;
+  GtkWidget *vbox1;
+  GtkWidget *hbox4;
+  GtkWidget *radioZoom;
+  GSList *radioZoom_group = NULL;
+  GtkObject *spinZoom_adj;
+  GtkWidget *spinZoom;
+  GtkWidget *label1;
+  GtkWidget *radioZoom100;
+  GtkWidget *radioZoomWidth;
+  GtkWidget *radioZoomHeight;
+  GtkWidget *dialog_action_area3;
+  GtkWidget *cancelbutton2;
+  GtkWidget *button1;
+  GtkWidget *button2;
+
+  zoomDialog = gtk_dialog_new ();
+  gtk_window_set_title (GTK_WINDOW (zoomDialog), "Set Zoom");
+  gtk_window_set_modal (GTK_WINDOW (zoomDialog), TRUE);
+  gtk_window_set_type_hint (GTK_WINDOW (zoomDialog), GDK_WINDOW_TYPE_HINT_DIALOG);
+
+  dialog_vbox3 = GTK_DIALOG (zoomDialog)->vbox;
+  gtk_widget_show (dialog_vbox3);
+
+  vbox1 = gtk_vbox_new (FALSE, 2);
+  gtk_widget_show (vbox1);
+  gtk_box_pack_start (GTK_BOX (dialog_vbox3), vbox1, FALSE, FALSE, 0);
+  gtk_container_set_border_width (GTK_CONTAINER (vbox1), 8);
+
+  hbox4 = gtk_hbox_new (FALSE, 0);
+  gtk_widget_show (hbox4);
+  gtk_box_pack_start (GTK_BOX (vbox1), hbox4, FALSE, FALSE, 0);
+
+  radioZoom = gtk_radio_button_new_with_mnemonic (NULL, "Zoom: ");
+  gtk_widget_show (radioZoom);
+  gtk_box_pack_start (GTK_BOX (hbox4), radioZoom, FALSE, FALSE, 0);
+  gtk_container_set_border_width (GTK_CONTAINER (radioZoom), 4);
+  gtk_radio_button_set_group (GTK_RADIO_BUTTON (radioZoom), radioZoom_group);
+  radioZoom_group = gtk_radio_button_get_group (GTK_RADIO_BUTTON (radioZoom));
+
+  spinZoom_adj = gtk_adjustment_new (100, 10, 1500, 5, 20, 20);
+  spinZoom = gtk_spin_button_new (GTK_ADJUSTMENT (spinZoom_adj), 1, 0);
+  gtk_widget_show (spinZoom);
+  gtk_box_pack_start (GTK_BOX (hbox4), spinZoom, FALSE, TRUE, 5);
+  gtk_spin_button_set_numeric (GTK_SPIN_BUTTON (spinZoom), TRUE);
+
+  label1 = gtk_label_new ("%");
+  gtk_widget_show (label1);
+  gtk_box_pack_start (GTK_BOX (hbox4), label1, FALSE, TRUE, 0);
+  gtk_misc_set_alignment (GTK_MISC (label1), 0.48, 0.5);
+
+  radioZoom100 = gtk_radio_button_new_with_mnemonic (NULL, "Normal size (100%)");
+  gtk_widget_show (radioZoom100);
+  gtk_box_pack_start (GTK_BOX (vbox1), radioZoom100, FALSE, FALSE, 0);
+  gtk_container_set_border_width (GTK_CONTAINER (radioZoom100), 4);
+  gtk_radio_button_set_group (GTK_RADIO_BUTTON (radioZoom100), radioZoom_group);
+  radioZoom_group = gtk_radio_button_get_group (GTK_RADIO_BUTTON (radioZoom100));
+
+  radioZoomWidth = gtk_radio_button_new_with_mnemonic (NULL, "Page Width");
+  gtk_widget_show (radioZoomWidth);
+  gtk_box_pack_start (GTK_BOX (vbox1), radioZoomWidth, FALSE, FALSE, 0);
+  gtk_container_set_border_width (GTK_CONTAINER (radioZoomWidth), 4);
+  gtk_radio_button_set_group (GTK_RADIO_BUTTON (radioZoomWidth), radioZoom_group);
+  radioZoom_group = gtk_radio_button_get_group (GTK_RADIO_BUTTON (radioZoomWidth));
+
+  radioZoomHeight = gtk_radio_button_new_with_mnemonic (NULL, "Page Height");
+  gtk_widget_show (radioZoomHeight);
+  gtk_box_pack_start (GTK_BOX (vbox1), radioZoomHeight, FALSE, FALSE, 0);
+  gtk_container_set_border_width (GTK_CONTAINER (radioZoomHeight), 4);
+  gtk_radio_button_set_group (GTK_RADIO_BUTTON (radioZoomHeight), radioZoom_group);
+  radioZoom_group = gtk_radio_button_get_group (GTK_RADIO_BUTTON (radioZoomHeight));
+
+  dialog_action_area3 = GTK_DIALOG (zoomDialog)->action_area;
+  gtk_widget_show (dialog_action_area3);
+  gtk_button_box_set_layout (GTK_BUTTON_BOX (dialog_action_area3), GTK_BUTTONBOX_END);
+
+  cancelbutton2 = gtk_button_new_from_stock ("gtk-cancel");
+  gtk_widget_show (cancelbutton2);
+  gtk_dialog_add_action_widget (GTK_DIALOG (zoomDialog), cancelbutton2, GTK_RESPONSE_CANCEL);
+  GTK_WIDGET_SET_FLAGS (cancelbutton2, GTK_CAN_DEFAULT);
+
+  button1 = gtk_button_new_from_stock ("gtk-apply");
+  gtk_widget_show (button1);
+  gtk_dialog_add_action_widget (GTK_DIALOG (zoomDialog), button1, GTK_RESPONSE_APPLY);
+  GTK_WIDGET_SET_FLAGS (button1, GTK_CAN_DEFAULT);
+
+  button2 = gtk_button_new_from_stock ("gtk-ok");
+  gtk_widget_show (button2);
+  gtk_dialog_add_action_widget (GTK_DIALOG (zoomDialog), button2, GTK_RESPONSE_OK);
+  GTK_WIDGET_SET_FLAGS (button2, GTK_CAN_DEFAULT);
+
+  g_signal_connect ((gpointer) radioZoom, "toggled",
+                    G_CALLBACK (on_radioZoom_toggled),
+                    NULL);
+  g_signal_connect ((gpointer) spinZoom, "value_changed",
+                    G_CALLBACK (on_spinZoom_value_changed),
+                    NULL);
+  g_signal_connect ((gpointer) radioZoom100, "toggled",
+                    G_CALLBACK (on_radioZoom100_toggled),
+                    NULL);
+  g_signal_connect ((gpointer) radioZoomWidth, "toggled",
+                    G_CALLBACK (on_radioZoomWidth_toggled),
+                    NULL);
+  g_signal_connect ((gpointer) radioZoomHeight, "toggled",
+                    G_CALLBACK (on_radioZoomHeight_toggled),
+                    NULL);
+
+  /* Store pointers to all widgets, for use by lookup_widget(). */
+  GLADE_HOOKUP_OBJECT_NO_REF (zoomDialog, zoomDialog, "zoomDialog");
+  GLADE_HOOKUP_OBJECT_NO_REF (zoomDialog, dialog_vbox3, "dialog_vbox3");
+  GLADE_HOOKUP_OBJECT (zoomDialog, vbox1, "vbox1");
+  GLADE_HOOKUP_OBJECT (zoomDialog, hbox4, "hbox4");
+  GLADE_HOOKUP_OBJECT (zoomDialog, radioZoom, "radioZoom");
+  GLADE_HOOKUP_OBJECT (zoomDialog, spinZoom, "spinZoom");
+  GLADE_HOOKUP_OBJECT (zoomDialog, label1, "label1");
+  GLADE_HOOKUP_OBJECT (zoomDialog, radioZoom100, "radioZoom100");
+  GLADE_HOOKUP_OBJECT (zoomDialog, radioZoomWidth, "radioZoomWidth");
+  GLADE_HOOKUP_OBJECT (zoomDialog, radioZoomHeight, "radioZoomHeight");
+  GLADE_HOOKUP_OBJECT_NO_REF (zoomDialog, dialog_action_area3, "dialog_action_area3");
+  GLADE_HOOKUP_OBJECT (zoomDialog, cancelbutton2, "cancelbutton2");
+  GLADE_HOOKUP_OBJECT (zoomDialog, button1, "button1");
+  GLADE_HOOKUP_OBJECT (zoomDialog, button2, "button2");
+
+  return zoomDialog;
 }
 

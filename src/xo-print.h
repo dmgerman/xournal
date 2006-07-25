@@ -1,1 +1,51 @@
+typedef struct XrefTable {
+  int *data;
+  int last;
+  int n_alloc;
+} XrefTable;
+
+typedef struct PdfPageDesc {
+  struct PdfObj *resources, *mediabox, *contents;
+  int rotate;
+} PdfPageDesc;
+
+typedef struct PdfInfo {
+  int startxref;
+  struct PdfObj *trailerdict;
+  int npages;
+  struct PdfPageDesc *pages;
+} PdfInfo;
+
+typedef struct PdfObj {
+  int type;
+  int intval;
+  double realval;
+  char *str;
+  int len, num;
+  struct PdfObj **elts;
+  char **names;
+} PdfObj;
+
+#define PDFTYPE_CST 0    // intval: true=1, false=0, null=-1
+#define PDFTYPE_INT 1    // intval
+#define PDFTYPE_REAL 2   // realval
+#define PDFTYPE_STRING 3 // str, len
+#define PDFTYPE_NAME 4   // str
+#define PDFTYPE_ARRAY 5  // num, elts
+#define PDFTYPE_DICT 6   // num, elts, names
+#define PDFTYPE_STREAM 7 // dict: num, elts, names; data: str, len
+#define PDFTYPE_REF 8    // intval, num
+
+struct PdfObj *parse_pdf_object(char **ptr, char *eof);
+void free_pdfobj(struct PdfObj *obj);
+struct PdfObj *dup_pdfobj(struct PdfObj *obj);
+struct PdfObj *get_pdfobj(GString *pdfbuf, struct XrefTable *xref, struct PdfObj *obj);
+void make_xref(struct XrefTable *xref, int nobj, int offset);
+
+gboolean pdf_parse_info(GString *pdfbuf, struct PdfInfo *pdfinfo, struct XrefTable *xref);
+
+// main printing functions
+
+gboolean print_to_pdf(char *filename);
+
 void print_job_render(GnomePrintJob *gpj, int fromPage, int toPage);

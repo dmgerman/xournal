@@ -7,11 +7,8 @@ List of features to be implemented (not in any particular order)
 - resize selection
 - text tool, font chooser, default font
 - color chooser (papercolor, pen color); maybe more default colors
-- printing: print-to-PDF? (with & without pdf background to merge)
-            opacity issue for highlighter strokes (maybe print them below ?)
-            save gnome printer settings (throughout a session, and on disk)
-                 (maybe a separate config file .xournal/gnome-print-settings)
-- file print-options, own print-to-ps/pdf 
+- printing: print-options, save printer settings (throughout a session,
+   and on disk) (maybe a separate config file .xournal/gnome-print-settings)
 - help index
 - pressure sensitivity
 - insert images (screen capture or from file or from clipboard), 
@@ -20,5 +17,4 @@ List of features to be implemented (not in any particular order)
 - convert to/from Jarnal format; to/from MS Journal format???
 - recalibration upon screen resize / compensation for miscalibration
 - find a better behavior for vertical space tool across page boundaries ?
-- document the file format
-
+- key mappings (pgup/dn for full page, up/dn for scroll)

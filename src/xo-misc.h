@@ -76,8 +76,8 @@ void process_mapping_activate(GtkMenuItem *menuitem, int m, int tool);
 #define RULING_MARGIN_COLOR 0xff0080ff
 #define RULING_COLOR 0x40a0ffff
 #define RULING_THICKNESS 0.5
-#define RULING_LEFTMARGIN 72
-#define RULING_TOPMARGIN 80
-#define RULING_SPACING 24
+#define RULING_LEFTMARGIN 72.0
+#define RULING_TOPMARGIN 80.0
+#define RULING_SPACING 24.0
 #define RULING_BOTTOMMARGIN RULING_SPACING
 #define RULING_GRAPHSPACING 14.17

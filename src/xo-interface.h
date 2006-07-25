@@ -7,3 +7,4 @@ GtkWidget* create_fontDialog (void);
 GtkWidget* create_colorChooserDialog (void);
 GtkWidget* create_papersizeDialog (void);
 GtkWidget* create_aboutDialog (void);
+GtkWidget* create_zoomDialog (void);

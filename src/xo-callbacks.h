@@ -556,3 +556,27 @@ void
 on_button3CopyBrush_activate           (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
 
+
+void
+on_viewSetZoom_activate                (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_spinZoom_value_changed              (GtkSpinButton   *spinbutton,
+                                        gpointer         user_data);
+
+void
+on_radioZoom_toggled                   (GtkToggleButton *togglebutton,
+                                        gpointer         user_data);
+
+void
+on_radioZoom100_toggled                (GtkToggleButton *togglebutton,
+                                        gpointer         user_data);
+
+void
+on_radioZoomWidth_toggled              (GtkToggleButton *togglebutton,
+                                        gpointer         user_data);
+
+void
+on_radioZoomHeight_toggled             (GtkToggleButton *togglebutton,
+                                        gpointer         user_data);

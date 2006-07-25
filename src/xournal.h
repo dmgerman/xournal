@@ -12,7 +12,7 @@
 #define PIXEL_MOTION_THRESHOLD 0.3
 #define MAX_AXES 12
 #define EPSILON 1E-7
-#define MAX_ZOOM 20
+#define MAX_ZOOM 20.0
 #define DEFAULT_ZOOM 1.3333333333
 #define MIN_ZOOM 0.2
 
