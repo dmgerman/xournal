@@ -13,6 +13,7 @@
 #include <math.h>
 #include <gdk/gdkx.h>
 #include <X11/Xlib.h>
+#include <locale.h>
 
 #include "xournal.h"
 #include "xo-interface.h"
@@ -81,6 +82,8 @@ gboolean save_journal(const char *filename)
   f = gzopen(filename, "w");
   if (f==NULL) return FALSE;
   chk_attach_names();
+
+  setlocale(LC_NUMERIC, "C");
   
   gzprintf(f, "<?xml version=\"1.0\" standalone=\"no\"?>\n"
      "<title>Xournal document - see http://math.mit.edu/~auroux/software/xournal/</title>\n"
@@ -179,6 +182,8 @@ gboolean save_journal(const char *filename)
     gzprintf(f, "</page>\n");
   }
   gzclose(f);
+  setlocale(LC_NUMERIC, "");
+
   return TRUE;
 }
 
@@ -199,6 +204,13 @@ gboolean close_journal(void)
   return TRUE;
   /* note: various members of ui and journal are now in invalid states,
      use new_journal() to reinitialize them */
+}
+
+// sanitize a string containing floats, in case it may have , instead of .
+
+void cleanup_numeric(char *s)
+{
+  while (*s!=0) { if (*s==',') *s='.'; s++; }
 }
 
 // the XML parser functions for open_journal()
@@ -253,13 +265,15 @@ void xoj_parser_start_element(GMarkupParseContext *context,
     while (*attribute_names!=NULL) {
       if (!strcmp(*attribute_names, "width")) {
         if (has_attr & 1) *error = xoj_invalid();
-        tmpPage->width = strtod(*attribute_values, &ptr);
+        cleanup_numeric((gchar *)*attribute_values);
+        tmpPage->width = g_ascii_strtod(*attribute_values, &ptr);
         if (ptr == *attribute_values) *error = xoj_invalid();
         has_attr |= 1;
       }
       else if (!strcmp(*attribute_names, "height")) {
         if (has_attr & 2) *error = xoj_invalid();
-        tmpPage->height = strtod(*attribute_values, &ptr);
+        cleanup_numeric((gchar *)*attribute_values);
+        tmpPage->height = g_ascii_strtod(*attribute_values, &ptr);
         if (ptr == *attribute_values) *error = xoj_invalid();
         has_attr |= 2;
       }
@@ -374,7 +388,7 @@ void xoj_parser_start_element(GMarkupParseContext *context,
       else if (!strcmp(*attribute_names, "pageno")) {
         if (tmpPage->bg->type != BG_PDF || (has_attr & 32))
           { *error = xoj_invalid(); return; }
-        tmpPage->bg->file_page_seq = strtod(*attribute_values, &ptr);
+        tmpPage->bg->file_page_seq = strtol(*attribute_values, &ptr, 10);
         if (ptr == *attribute_values) *error = xoj_invalid();
         has_attr |= 32;
       }
@@ -415,7 +429,8 @@ void xoj_parser_start_element(GMarkupParseContext *context,
     while (*attribute_names!=NULL) {
       if (!strcmp(*attribute_names, "width")) {
         if (has_attr & 1) *error = xoj_invalid();
-        tmpItem->brush.thickness = strtod(*attribute_values, &ptr);
+        cleanup_numeric((gchar *)*attribute_values);
+        tmpItem->brush.thickness = g_ascii_strtod(*attribute_values, &ptr);
         if (ptr == *attribute_values) *error = xoj_invalid();
         has_attr |= 1;
       }
@@ -496,11 +511,12 @@ void xoj_parser_text(GMarkupParseContext *context,
   element_name = g_markup_parse_context_get_element(context);
   if (element_name == NULL) return;
   if (!strcmp(element_name, "stroke")) {
+    cleanup_numeric((gchar *)text);
     ptr = text;
     n = 0;
     while (text_len > 0) {
       realloc_cur_path(n/2 + 1);
-      ui.cur_path.coords[n] = strtod(text, (char **)(&ptr));
+      ui.cur_path.coords[n] = g_ascii_strtod(text, (char **)(&ptr));
       if (ptr == text) break;
       text_len -= (ptr - text);
       text = ptr;

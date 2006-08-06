@@ -7,6 +7,7 @@
 #include <libgnomeprint/gnome-print-job.h>
 #include <zlib.h>
 #include <string.h>
+#include <locale.h>
 
 #include "xournal.h"
 #include "xo-misc.h"
@@ -182,7 +183,7 @@ struct PdfObj *parse_pdf_object(char **ptr, char *eof)
   if (q!=p) {
     if (*q == '.') {
       obj->type = PDFTYPE_REAL;
-      obj->realval = strtod(p, ptr);
+      obj->realval = g_ascii_strtod(p, ptr);
       return obj;
     }
     if (ispdfspace(*q)) {
@@ -820,6 +821,7 @@ gboolean print_to_pdf(char *filename)
   
   f = fopen(filename, "w");
   if (f == NULL) return FALSE;
+  setlocale(LC_NUMERIC, "C");
   annot = FALSE;
   xref.data = NULL;
   uses_pdf = FALSE;
@@ -992,9 +994,15 @@ gboolean print_to_pdf(char *filename)
   g_free(xref.data);
   if (annot) {
     free_pdfobj(pdfinfo.trailerdict);
-    // ...
+    if (pdfinfo.pages!=NULL)
+      for (i=0; i<pdfinfo.npages; i++) {
+        free_pdfobj(pdfinfo.pages[i].resources);
+        free_pdfobj(pdfinfo.pages[i].mediabox);
+        free_pdfobj(pdfinfo.pages[i].contents);
+      }
   }
   
+  setlocale(LC_NUMERIC, "");
   if (fwrite(pdfbuf->str, 1, pdfbuf->len, f) < pdfbuf->len) {
     fclose(f);
     g_string_free(pdfbuf, TRUE);

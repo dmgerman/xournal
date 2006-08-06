@@ -1,3 +1,6 @@
+Version 0.3.1 (Aug 3, 2006):
+  - fixed a file format bug on systems with non-standard numeric locale
+
 Version 0.3 (Jul 23, 2006):
   - new PDF rendering engine: export to PDF generates optimized files
     (smaller and more accurate)
