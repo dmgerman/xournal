@@ -543,7 +543,7 @@ gboolean user_wants_second_chance(char **filename)
   if (response != GTK_RESPONSE_YES) return FALSE;
   dialog = gtk_file_chooser_dialog_new("Open PDF", GTK_WINDOW (winMain),
      GTK_FILE_CHOOSER_ACTION_OPEN, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-     GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT, NULL);
+     GTK_STOCK_OPEN, GTK_RESPONSE_OK, NULL);
 
   filt_all = gtk_file_filter_new();
   gtk_file_filter_set_name(filt_all, "All files");
@@ -554,7 +554,7 @@ gboolean user_wants_second_chance(char **filename)
   gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (dialog), filt_pdf);
   gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (dialog), filt_all);
 
-  if (gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_ACCEPT) {
+  if (gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_OK) {
     gtk_widget_destroy(dialog);
     return FALSE;
   }

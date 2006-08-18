@@ -47,7 +47,7 @@ on_fileNewBackground_activate          (GtkMenuItem     *menuitem,
   
   dialog = gtk_file_chooser_dialog_new("Open PDF", GTK_WINDOW (winMain),
      GTK_FILE_CHOOSER_ACTION_OPEN, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-     GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT, NULL);
+     GTK_STOCK_OPEN, GTK_RESPONSE_OK, NULL);
      
   filt_all = gtk_file_filter_new();
   gtk_file_filter_set_name(filt_all, "All files");
@@ -62,7 +62,7 @@ on_fileNewBackground_activate          (GtkMenuItem     *menuitem,
   gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(attach_opt), FALSE);
   gtk_file_chooser_set_extra_widget(GTK_FILE_CHOOSER (dialog), attach_opt);
   
-  if (gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_ACCEPT) {
+  if (gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_OK) {
     gtk_widget_destroy(dialog);
     return;
   }
@@ -113,7 +113,7 @@ on_fileOpen_activate                   (GtkMenuItem     *menuitem,
   
   dialog = gtk_file_chooser_dialog_new("Open Journal", GTK_WINDOW (winMain),
      GTK_FILE_CHOOSER_ACTION_OPEN, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-     GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT, NULL);
+     GTK_STOCK_OPEN, GTK_RESPONSE_OK, NULL);
      
   filt_all = gtk_file_filter_new();
   gtk_file_filter_set_name(filt_all, "All files");
@@ -124,7 +124,7 @@ on_fileOpen_activate                   (GtkMenuItem     *menuitem,
   gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (dialog), filt_xoj);
   gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (dialog), filt_all);
   
-  if (gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_ACCEPT) {
+  if (gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_OK) {
     gtk_widget_destroy(dialog);
     return;
   }
@@ -185,7 +185,7 @@ on_fileSaveAs_activate                 (GtkMenuItem     *menuitem,
   
   dialog = gtk_file_chooser_dialog_new("Save Journal", GTK_WINDOW (winMain),
      GTK_FILE_CHOOSER_ACTION_SAVE, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-     GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT, NULL);
+     GTK_STOCK_SAVE, GTK_RESPONSE_OK, NULL);
      
   if (ui.filename!=NULL) {
     gtk_file_chooser_set_filename(GTK_FILE_CHOOSER (dialog), ui.filename);
@@ -215,10 +215,10 @@ on_fileSaveAs_activate                 (GtkMenuItem     *menuitem,
   gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (dialog), filt_all);
   
   // somehow this doesn't seem to be set by default
-  gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_ACCEPT);
+  gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_OK);
 
   do {
-    if (gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_ACCEPT) {
+    if (gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_OK) {
       gtk_widget_destroy(dialog);
       return;
     }
@@ -365,7 +365,7 @@ on_filePrintPDF_activate               (GtkMenuItem     *menuitem,
   
   dialog = gtk_file_chooser_dialog_new("Export to PDF", GTK_WINDOW (winMain),
      GTK_FILE_CHOOSER_ACTION_SAVE, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-     GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT, NULL);
+     GTK_STOCK_SAVE, GTK_RESPONSE_OK, NULL);
      
   if (ui.filename!=NULL) {
     if (g_str_has_suffix(ui.filename, ".xoj")) {
@@ -391,11 +391,11 @@ on_filePrintPDF_activate               (GtkMenuItem     *menuitem,
   gtk_file_filter_add_pattern(filt_pdf, "*.pdf");
   gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (dialog), filt_pdf);
   gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (dialog), filt_all);
-  gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_ACCEPT);
+  gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_OK);
   g_free(in_fn);
   
   do {
-    if (gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_ACCEPT) {
+    if (gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_OK) {
       gtk_widget_destroy(dialog);
       return;
     }
@@ -1343,7 +1343,7 @@ on_journalLoadBackground_activate      (GtkMenuItem     *menuitem,
   
   dialog = gtk_file_chooser_dialog_new("Open Background", GTK_WINDOW (winMain),
      GTK_FILE_CHOOSER_ACTION_OPEN, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-     GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT, NULL);
+     GTK_STOCK_OPEN, GTK_RESPONSE_OK, NULL);
      
   filt_all = gtk_file_filter_new();
   gtk_file_filter_set_name(filt_all, "All files");
@@ -1371,7 +1371,7 @@ on_journalLoadBackground_activate      (GtkMenuItem     *menuitem,
   gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(attach_opt), FALSE);
   gtk_file_chooser_set_extra_widget(GTK_FILE_CHOOSER (dialog), attach_opt);
   
-  if (gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_ACCEPT) {
+  if (gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_OK) {
     gtk_widget_destroy(dialog);
     return;
   }

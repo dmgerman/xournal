@@ -75,6 +75,8 @@ create_winMain (void)
   GtkWidget *separator20;
   GtkWidget *viewFullscreen;
   GtkWidget *separator4;
+  GtkWidget *menuViewZoom;
+  GtkWidget *menuViewZoom_menu;
   GtkWidget *viewZoomIn;
   GtkWidget *viewZoomOut;
   GtkWidget *viewNormalSize;
@@ -243,6 +245,8 @@ create_winMain (void)
   GtkWidget *helpIndex;
   GtkWidget *helpAbout;
   GtkWidget *toolbarMain;
+  GtkWidget *newButton;
+  GtkWidget *openButton;
   GtkIconSize tmp_toolbar_icon_size;
   GtkWidget *saveButton;
   GtkWidget *toolitem11;
@@ -509,21 +513,28 @@ create_winMain (void)
   gtk_container_add (GTK_CONTAINER (menuView_menu), separator4);
   gtk_widget_set_sensitive (separator4, FALSE);
 
+  menuViewZoom = gtk_menu_item_new_with_mnemonic ("_Zoom");
+  gtk_widget_show (menuViewZoom);
+  gtk_container_add (GTK_CONTAINER (menuView_menu), menuViewZoom);
+
+  menuViewZoom_menu = gtk_menu_new ();
+  gtk_menu_item_set_submenu (GTK_MENU_ITEM (menuViewZoom), menuViewZoom_menu);
+  
   viewZoomIn = gtk_image_menu_item_new_from_stock ("gtk-zoom-in", accel_group);
   gtk_widget_show (viewZoomIn);
-  gtk_container_add (GTK_CONTAINER (menuView_menu), viewZoomIn);
+  gtk_container_add (GTK_CONTAINER (menuViewZoom_menu), viewZoomIn);
 
   viewZoomOut = gtk_image_menu_item_new_from_stock ("gtk-zoom-out", accel_group);
   gtk_widget_show (viewZoomOut);
-  gtk_container_add (GTK_CONTAINER (menuView_menu), viewZoomOut);
+  gtk_container_add (GTK_CONTAINER (menuViewZoom_menu), viewZoomOut);
 
   viewNormalSize = gtk_image_menu_item_new_from_stock ("gtk-zoom-100", accel_group);
   gtk_widget_show (viewNormalSize);
-  gtk_container_add (GTK_CONTAINER (menuView_menu), viewNormalSize);
+  gtk_container_add (GTK_CONTAINER (menuViewZoom_menu), viewNormalSize);
 
   viewPageWidth = gtk_image_menu_item_new_with_mnemonic ("Page Width");
   gtk_widget_show (viewPageWidth);
-  gtk_container_add (GTK_CONTAINER (menuView_menu), viewPageWidth);
+  gtk_container_add (GTK_CONTAINER (menuViewZoom_menu), viewPageWidth);
 
   image601 = gtk_image_new_from_stock ("gtk-zoom-fit", GTK_ICON_SIZE_MENU);
   gtk_widget_show (image601);
@@ -531,7 +542,7 @@ create_winMain (void)
 
   viewSetZoom = gtk_menu_item_new_with_mnemonic ("Set Zoom");
   gtk_widget_show (viewSetZoom);
-  gtk_container_add (GTK_CONTAINER (menuView_menu), viewSetZoom);
+  gtk_container_add (GTK_CONTAINER (menuViewZoom_menu), viewSetZoom);
 
   separator5 = gtk_separator_menu_item_new ();
   gtk_widget_show (separator5);
@@ -1267,6 +1278,16 @@ create_winMain (void)
   gtk_box_pack_start (GTK_BOX (vboxMain), toolbarMain, FALSE, FALSE, 0);
   gtk_toolbar_set_style (GTK_TOOLBAR (toolbarMain), GTK_TOOLBAR_ICONS);
   tmp_toolbar_icon_size = gtk_toolbar_get_icon_size (GTK_TOOLBAR (toolbarMain));
+
+  newButton  = (GtkWidget*) gtk_tool_button_new_from_stock ("gtk-new");
+  gtk_widget_show (newButton);
+  gtk_container_add (GTK_CONTAINER (toolbarMain), newButton);
+  gtk_tool_item_set_tooltip (GTK_TOOL_ITEM (newButton), tooltips, "New", NULL);
+  
+  openButton = (GtkWidget*) gtk_tool_button_new_from_stock ("gtk-open");
+  gtk_widget_show (openButton);
+  gtk_container_add (GTK_CONTAINER (toolbarMain), openButton);
+  gtk_tool_item_set_tooltip (GTK_TOOL_ITEM (openButton), tooltips, "Open", NULL);
 
   saveButton = (GtkWidget*) gtk_tool_button_new_from_stock ("gtk-save");
   gtk_widget_show (saveButton);
@@ -2129,6 +2150,12 @@ create_winMain (void)
   g_signal_connect ((gpointer) helpAbout, "activate",
                     G_CALLBACK (on_helpAbout_activate),
                     NULL);
+  g_signal_connect ((gpointer) newButton, "clicked",
+                    G_CALLBACK (on_fileNew_activate),
+                    NULL);
+  g_signal_connect ((gpointer) openButton, "clicked",
+                    G_CALLBACK (on_fileOpen_activate),
+                    NULL);
   g_signal_connect ((gpointer) saveButton, "clicked",
                     G_CALLBACK (on_fileSave_activate),
                     NULL);
@@ -2458,6 +2485,8 @@ create_winMain (void)
   GLADE_HOOKUP_OBJECT (winMain, helpIndex, "helpIndex");
   GLADE_HOOKUP_OBJECT (winMain, helpAbout, "helpAbout");
   GLADE_HOOKUP_OBJECT (winMain, toolbarMain, "toolbarMain");
+  GLADE_HOOKUP_OBJECT (winMain, newButton, "newButton");
+  GLADE_HOOKUP_OBJECT (winMain, openButton, "openButton");
   GLADE_HOOKUP_OBJECT (winMain, saveButton, "saveButton");
   GLADE_HOOKUP_OBJECT (winMain, toolitem11, "toolitem11");
   GLADE_HOOKUP_OBJECT (winMain, vseparator1, "vseparator1");
