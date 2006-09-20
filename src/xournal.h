@@ -97,6 +97,7 @@ extern guint predef_bgcolors_rgba[COLOR_MAX];
 #define TOOL_SELECTREGION 4
 #define TOOL_SELECTRECT   5
 #define TOOL_VERTSPACE    6
+#define TOOL_HAND         7
 #define NUM_STROKE_TOOLS  3
 #define NUM_BUTTONS       3
 
@@ -142,6 +143,7 @@ typedef struct Item {
 #define ITEM_DELETE_PAGE 14
 #define ITEM_REPAINTSEL 15
 #define ITEM_MOVESEL_VERT 16
+#define ITEM_HAND 17
 
 typedef struct Layer {
   GList *items; // the items on the layer, from bottom to top
@@ -200,6 +202,7 @@ typedef struct UIData {
   gboolean use_xinput; // use input devices instead of core pointer
   gboolean allow_xinput; // allow use of xinput ?
   int screen_width, screen_height; // initial screen size, for XInput events
+  double hand_refpt[2];
   char *filename;
   gboolean view_continuous, fullscreen;
   gboolean in_update_page_stuff; // semaphore to avoid scrollbar retroaction

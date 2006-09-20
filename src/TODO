@@ -1,6 +1,7 @@
 List of features to be implemented (not in any particular order)
 ----------------------------------------------------------------
 
+- de-map space key from button bar
 - lasso selection tool
 - prefs file, save prefs
 - flatten (incl undo/redo...) - enabled only if nlayers>1
@@ -18,3 +19,5 @@ List of features to be implemented (not in any particular order)
 - recalibration upon screen resize / compensation for miscalibration
 - find a better behavior for vertical space tool across page boundaries ?
 - key mappings (pgup/dn for full page, up/dn for scroll)
+- zoom increments more flexible (1% instead of 5% ?)
+- copy/paste of an entire page (beware if PDF bg is not compatible!)

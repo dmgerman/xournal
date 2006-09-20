@@ -713,6 +713,10 @@ void update_tool_buttons(void)
       gtk_toggle_tool_button_set_active(
         GTK_TOGGLE_TOOL_BUTTON(GET_COMPONENT("buttonVerticalSpace")), TRUE);
       break;
+    case TOOL_HAND:
+      gtk_toggle_tool_button_set_active(
+        GTK_TOGGLE_TOOL_BUTTON(GET_COMPONENT("buttonHand")), TRUE);
+      break;
   }
     
   gtk_toggle_tool_button_set_active(
@@ -751,6 +755,10 @@ void update_tool_menu(void)
     case TOOL_VERTSPACE:
       gtk_check_menu_item_set_active(
         GTK_CHECK_MENU_ITEM(GET_COMPONENT("toolsVerticalSpace")), TRUE);
+      break;
+    case TOOL_HAND:
+      gtk_check_menu_item_set_active(
+        GTK_CHECK_MENU_ITEM(GET_COMPONENT("toolsHand")), TRUE);
       break;
   }
 

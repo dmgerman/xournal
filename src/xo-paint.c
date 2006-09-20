@@ -93,6 +93,9 @@ void update_cursor(void)
   else if (ui.cur_item_type == ITEM_SELECTRECT) {
     ui.cursor = gdk_cursor_new(GDK_TCROSS);
   }
+  else if (ui.toolno[ui.cur_mapping] == TOOL_HAND) {
+    ui.cursor = gdk_cursor_new(GDK_HAND1);
+  }
   
   gdk_window_set_cursor(GTK_WIDGET(canvas)->window, ui.cursor);
 }
@@ -894,4 +897,16 @@ void rethicken_selection(int val)
       gnome_canvas_item_set(item->canvas_item, 
          "width-units", item->brush.thickness, NULL);
   }
+}
+
+void do_hand(GdkEvent *event)
+{
+  double pt[2], val;
+  int cx, cy;
+  
+  get_pointer_coords(event, pt);
+  gnome_canvas_get_scroll_offsets(canvas, &cx, &cy);
+  cx -= (pt[0]-ui.hand_refpt[0])*ui.zoom;
+  cy -= (pt[1]-ui.hand_refpt[1])*ui.zoom;
+  gnome_canvas_scroll_to(canvas, cx, cy);
 }

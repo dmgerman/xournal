@@ -55,7 +55,7 @@
 		      <signal name="activate" handler="on_fileNewBackground_activate" last_modification_time="Wed, 30 Nov 2005 18:39:59 GMT"/>
 
 		      <child internal-child="image">
-			<widget class="GtkImage" id="image599">
+			<widget class="GtkImage" id="image623">
 			  <property name="visible">True</property>
 			  <property name="stock">gtk-open</property>
 			  <property name="icon_size">1</property>
@@ -200,7 +200,7 @@
 		      <signal name="activate" handler="on_filePrintOptions_activate" last_modification_time="Wed, 30 Nov 2005 18:44:18 GMT"/>
 
 		      <child internal-child="image">
-			<widget class="GtkImage" id="image600">
+			<widget class="GtkImage" id="image624">
 			  <property name="visible">True</property>
 			  <property name="stock">gtk-preferences</property>
 			  <property name="icon_size">1</property>
@@ -419,7 +419,7 @@
 			      <signal name="activate" handler="on_viewPageWidth_activate" last_modification_time="Wed, 30 Nov 2005 19:31:48 GMT"/>
 
 			      <child internal-child="image">
-				<widget class="GtkImage" id="image612">
+				<widget class="GtkImage" id="image625">
 				  <property name="visible">True</property>
 				  <property name="stock">gtk-zoom-fit</property>
 				  <property name="icon_size">1</property>
@@ -459,7 +459,7 @@
 		      <signal name="activate" handler="on_viewFirstPage_activate" last_modification_time="Wed, 30 Nov 2005 19:33:03 GMT"/>
 
 		      <child internal-child="image">
-			<widget class="GtkImage" id="image602">
+			<widget class="GtkImage" id="image626">
 			  <property name="visible">True</property>
 			  <property name="stock">gtk-goto-first</property>
 			  <property name="icon_size">1</property>
@@ -480,7 +480,7 @@
 		      <signal name="activate" handler="on_viewPreviousPage_activate" last_modification_time="Wed, 30 Nov 2005 19:35:41 GMT"/>
 
 		      <child internal-child="image">
-			<widget class="GtkImage" id="image603">
+			<widget class="GtkImage" id="image627">
 			  <property name="visible">True</property>
 			  <property name="stock">gtk-go-back</property>
 			  <property name="icon_size">1</property>
@@ -501,7 +501,7 @@
 		      <signal name="activate" handler="on_viewNextPage_activate" last_modification_time="Wed, 30 Nov 2005 19:35:41 GMT"/>
 
 		      <child internal-child="image">
-			<widget class="GtkImage" id="image604">
+			<widget class="GtkImage" id="image628">
 			  <property name="visible">True</property>
 			  <property name="stock">gtk-go-forward</property>
 			  <property name="icon_size">1</property>
@@ -522,7 +522,7 @@
 		      <signal name="activate" handler="on_viewLastPage_activate" last_modification_time="Wed, 30 Nov 2005 19:35:41 GMT"/>
 
 		      <child internal-child="image">
-			<widget class="GtkImage" id="image605">
+			<widget class="GtkImage" id="image629">
 			  <property name="visible">True</property>
 			  <property name="stock">gtk-goto-last</property>
 			  <property name="icon_size">1</property>
@@ -549,7 +549,7 @@
 		      <signal name="activate" handler="on_viewShowLayer_activate" last_modification_time="Wed, 30 Nov 2005 19:40:23 GMT"/>
 
 		      <child internal-child="image">
-			<widget class="GtkImage" id="image606">
+			<widget class="GtkImage" id="image630">
 			  <property name="visible">True</property>
 			  <property name="stock">gtk-add</property>
 			  <property name="icon_size">1</property>
@@ -570,7 +570,7 @@
 		      <signal name="activate" handler="on_viewHideLayer_activate" last_modification_time="Wed, 30 Nov 2005 19:40:23 GMT"/>
 
 		      <child internal-child="image">
-			<widget class="GtkImage" id="image607">
+			<widget class="GtkImage" id="image631">
 			  <property name="visible">True</property>
 			  <property name="stock">gtk-remove</property>
 			  <property name="icon_size">1</property>
@@ -867,7 +867,7 @@
 		      <signal name="activate" handler="on_journalLoadBackground_activate" last_modification_time="Wed, 30 Nov 2005 20:06:31 GMT"/>
 
 		      <child internal-child="image">
-			<widget class="GtkImage" id="image608">
+			<widget class="GtkImage" id="image632">
 			  <property name="visible">True</property>
 			  <property name="stock">gtk-open</property>
 			  <property name="icon_size">1</property>
@@ -1009,6 +1009,17 @@
 		  </child>
 
 		  <child>
+		    <widget class="GtkRadioMenuItem" id="toolsHand">
+		      <property name="visible">True</property>
+		      <property name="label" translatable="yes">Hand Tool</property>
+		      <property name="use_underline">True</property>
+		      <property name="active">False</property>
+		      <property name="group">toolsPen</property>
+		      <signal name="activate" handler="on_toolsHand_activate" last_modification_time="Wed, 20 Sep 2006 02:20:48 GMT"/>
+		    </widget>
+		  </child>
+
+		  <child>
 		    <widget class="GtkSeparatorMenuItem" id="separator16">
 		      <property name="visible">True</property>
 		    </widget>
@@ -1021,7 +1032,7 @@
 		      <property name="use_underline">True</property>
 
 		      <child internal-child="image">
-			<widget class="GtkImage" id="image609">
+			<widget class="GtkImage" id="image633">
 			  <property name="visible">True</property>
 			  <property name="stock">gtk-select-color</property>
 			  <property name="icon_size">1</property>
@@ -1388,7 +1399,7 @@
 		      <signal name="activate" handler="on_toolsTextFont_activate" last_modification_time="Thu, 01 Dec 2005 20:54:08 GMT"/>
 
 		      <child internal-child="image">
-			<widget class="GtkImage" id="image610">
+			<widget class="GtkImage" id="image634">
 			  <property name="visible">True</property>
 			  <property name="stock">gtk-select-font</property>
 			  <property name="icon_size">1</property>
@@ -1587,6 +1598,17 @@
 			  </child>
 
 			  <child>
+			    <widget class="GtkRadioMenuItem" id="button2Hand">
+			      <property name="visible">True</property>
+			      <property name="label" translatable="yes">Hand Tool</property>
+			      <property name="use_underline">True</property>
+			      <property name="active">False</property>
+			      <property name="group">button2Pen</property>
+			      <signal name="activate" handler="on_button2Hand_activate" last_modification_time="Wed, 20 Sep 2006 02:20:48 GMT"/>
+			    </widget>
+			  </child>
+
+			  <child>
 			    <widget class="GtkSeparatorMenuItem" id="separator24">
 			      <property name="visible">True</property>
 			    </widget>
@@ -1708,6 +1730,17 @@
 			      <property name="active">True</property>
 			      <property name="group">button3Pen</property>
 			      <signal name="activate" handler="on_button3VerticalSpace_activate" last_modification_time="Sun, 04 Jun 2006 14:33:10 GMT"/>
+			    </widget>
+			  </child>
+
+			  <child>
+			    <widget class="GtkRadioMenuItem" id="button3Hand">
+			      <property name="visible">True</property>
+			      <property name="label" translatable="yes">Hand Tool</property>
+			      <property name="use_underline">True</property>
+			      <property name="active">False</property>
+			      <property name="group">button3Pen</property>
+			      <signal name="activate" handler="on_button3Hand_activate" last_modification_time="Wed, 20 Sep 2006 02:20:48 GMT"/>
 			    </widget>
 			  </child>
 
@@ -1843,6 +1876,22 @@
 	  <property name="show_arrow">True</property>
 
 	  <child>
+	    <widget class="GtkToolButton" id="saveButton">
+	      <property name="visible">True</property>
+	      <property name="tooltip" translatable="yes">Save</property>
+	      <property name="stock_id">gtk-save</property>
+	      <property name="visible_horizontal">True</property>
+	      <property name="visible_vertical">True</property>
+	      <property name="is_important">False</property>
+	      <signal name="clicked" handler="on_fileSave_activate" last_modification_time="Fri, 02 Dec 2005 02:19:52 GMT"/>
+	    </widget>
+	    <packing>
+	      <property name="expand">False</property>
+	      <property name="homogeneous">True</property>
+	    </packing>
+	  </child>
+
+	  <child>
 	    <widget class="GtkToolButton" id="newButton">
 	      <property name="visible">True</property>
 	      <property name="tooltip" translatable="yes">New</property>
@@ -1867,22 +1916,6 @@
 	      <property name="visible_vertical">True</property>
 	      <property name="is_important">False</property>
 	      <signal name="clicked" handler="on_fileOpen_activate" last_modification_time="Thu, 10 Aug 2006 15:14:42 GMT"/>
-	    </widget>
-	    <packing>
-	      <property name="expand">False</property>
-	      <property name="homogeneous">True</property>
-	    </packing>
-	  </child>
-
-	  <child>
-	    <widget class="GtkToolButton" id="saveButton">
-	      <property name="visible">True</property>
-	      <property name="tooltip" translatable="yes">Save</property>
-	      <property name="stock_id">gtk-save</property>
-	      <property name="visible_horizontal">True</property>
-	      <property name="visible_vertical">True</property>
-	      <property name="is_important">False</property>
-	      <signal name="clicked" handler="on_fileSave_activate" last_modification_time="Fri, 02 Dec 2005 02:19:52 GMT"/>
 	    </widget>
 	    <packing>
 	      <property name="expand">False</property>
@@ -2394,6 +2427,25 @@
 	      <property name="active">False</property>
 	      <property name="group">buttonPen</property>
 	      <signal name="toggled" handler="on_toolsVerticalSpace_activate" last_modification_time="Thu, 08 Dec 2005 20:50:33 GMT"/>
+	    </widget>
+	    <packing>
+	      <property name="expand">False</property>
+	      <property name="homogeneous">True</property>
+	    </packing>
+	  </child>
+
+	  <child>
+	    <widget class="GtkRadioToolButton" id="buttonHand">
+	      <property name="visible">True</property>
+	      <property name="label" translatable="yes">Hand Tool</property>
+	      <property name="use_underline">True</property>
+	      <property name="icon">hand.png</property>
+	      <property name="visible_horizontal">True</property>
+	      <property name="visible_vertical">True</property>
+	      <property name="is_important">False</property>
+	      <property name="active">False</property>
+	      <property name="group">buttonPen</property>
+	      <signal name="toggled" handler="on_toolsHand_activate" last_modification_time="Wed, 20 Sep 2006 02:21:25 GMT"/>
 	    </widget>
 	    <packing>
 	      <property name="expand">False</property>

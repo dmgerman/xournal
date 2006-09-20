@@ -2156,7 +2156,11 @@ on_canvas_button_press_event           (GtkWidget       *widget,
 
   // process the event
   
-  if (ui.toolno[mapping] == TOOL_PEN || ui.toolno[mapping] == TOOL_HIGHLIGHTER ||
+  if (ui.toolno[mapping] == TOOL_HAND) {
+    ui.cur_item_type = ITEM_HAND;
+    get_pointer_coords((GdkEvent *)event, ui.hand_refpt);
+  } 
+  else if (ui.toolno[mapping] == TOOL_PEN || ui.toolno[mapping] == TOOL_HIGHLIGHTER ||
         (ui.toolno[mapping] == TOOL_ERASER && ui.cur_brush->tool_options == TOOLOPT_ERASER_WHITEOUT)) {
     create_new_stroke((GdkEvent *)event);
   } 
@@ -2201,6 +2205,9 @@ on_canvas_button_release_event         (GtkWidget       *widget,
   }
   else if (ui.cur_item_type == ITEM_MOVESEL || ui.cur_item_type == ITEM_MOVESEL_VERT) {
     finalize_movesel();
+  }
+  else if (ui.cur_item_type == ITEM_HAND) {
+    ui.cur_item_type = ITEM_NONE;
   }
 
   switch_mapping(0);
@@ -2289,6 +2296,9 @@ on_canvas_motion_notify_event          (GtkWidget       *widget,
   }
   else if (ui.cur_item_type == ITEM_MOVESEL || ui.cur_item_type == ITEM_MOVESEL_VERT) {
     continue_movesel((GdkEvent *)event);
+  }
+  else if (ui.cur_item_type == ITEM_HAND) {
+    do_hand((GdkEvent *)event);
   }
   
   return FALSE;
@@ -2917,5 +2927,47 @@ on_radioZoomHeight_toggled             (GtkToggleButton *togglebutton,
   zoom_percent = 100*(GTK_WIDGET(canvas))->allocation.height/ui.cur_page->height/DEFAULT_ZOOM;
   gtk_spin_button_set_value(GTK_SPIN_BUTTON(g_object_get_data(
         G_OBJECT(zoom_dialog), "spinZoom")), zoom_percent);
+}
+
+
+void
+on_toolsHand_activate                  (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+  if (GTK_OBJECT_TYPE(menuitem) == GTK_TYPE_RADIO_MENU_ITEM) {
+    if (!gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem)))
+      return;
+  } else {
+    if (!gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON (menuitem)))
+      return;
+  }
+
+  if (ui.cur_mapping != 0) return;
+  if (ui.toolno[0] == TOOL_HAND) return;
+
+  reset_selection();
+  ui.toolno[0] = TOOL_HAND;
+  ui.ruler[0] = FALSE;
+  update_mapping_linkings(-1);
+  update_tool_buttons();
+  update_tool_menu();
+  update_color_menu();
+  update_cursor();
+}
+
+
+void
+on_button2Hand_activate                (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+  process_mapping_activate(menuitem, 1, TOOL_HAND);
+}
+
+
+void
+on_button3Hand_activate                (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+  process_mapping_activate(menuitem, 2, TOOL_HAND);
 }
 

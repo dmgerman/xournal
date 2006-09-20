@@ -1,8 +1,10 @@
 Version ?:
   - minor UI changes (patch contributed by Eduardo de Barros Lima)
+  - hand tool (partially contributed by Vincenzo Ciancia)
 
 Version 0.3.1 (Aug 3, 2006):
   - fixed a file format bug on systems with non-standard numeric locale
+    (bug reported by Gert Renckens)
 
 Version 0.3 (Jul 23, 2006):
   - new PDF rendering engine: export to PDF generates optimized files

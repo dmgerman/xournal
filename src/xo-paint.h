@@ -7,6 +7,8 @@ void finalize_stroke(void);
 
 void do_eraser(GdkEvent *event, double radius, gboolean whole_strokes);
 
+void do_hand(GdkEvent *event);
+
 void start_selectrect(GdkEvent *event);
 void finalize_selectrect(void);
 gboolean start_movesel(GdkEvent *event);

@@ -36,7 +36,7 @@ create_winMain (void)
   GtkWidget *menuFile_menu;
   GtkWidget *fileNew;
   GtkWidget *fileNewBackground;
-  GtkWidget *image599;
+  GtkWidget *image623;
   GtkWidget *fileOpen;
   GtkWidget *fileSave;
   GtkWidget *fileSaveAs;
@@ -53,7 +53,7 @@ create_winMain (void)
   GtkWidget *mru7;
   GtkWidget *separator22;
   GtkWidget *filePrintOptions;
-  GtkWidget *image600;
+  GtkWidget *image624;
   GtkWidget *filePrint;
   GtkWidget *filePrintPDF;
   GtkWidget *separator2;
@@ -81,22 +81,22 @@ create_winMain (void)
   GtkWidget *viewZoomOut;
   GtkWidget *viewNormalSize;
   GtkWidget *viewPageWidth;
-  GtkWidget *image601;
+  GtkWidget *image625;
   GtkWidget *viewSetZoom;
   GtkWidget *separator5;
   GtkWidget *viewFirstPage;
-  GtkWidget *image602;
+  GtkWidget *image626;
   GtkWidget *viewPreviousPage;
-  GtkWidget *image603;
+  GtkWidget *image627;
   GtkWidget *viewNextPage;
-  GtkWidget *image604;
+  GtkWidget *image628;
   GtkWidget *viewLastPage;
-  GtkWidget *image605;
+  GtkWidget *image629;
   GtkWidget *separator6;
   GtkWidget *viewShowLayer;
-  GtkWidget *image606;
+  GtkWidget *image630;
   GtkWidget *viewHideLayer;
-  GtkWidget *image607;
+  GtkWidget *image631;
   GtkWidget *menuJournal;
   GtkWidget *menuJournal_menu;
   GtkWidget *journalNewPageBefore;
@@ -131,7 +131,7 @@ create_winMain (void)
   GtkWidget *journalApplyAllPages;
   GtkWidget *separator23;
   GtkWidget *journalLoadBackground;
-  GtkWidget *image608;
+  GtkWidget *image632;
   GtkWidget *journalScreenshot;
   GtkWidget *separator19;
   GtkWidget *journalDefaultBackground;
@@ -147,9 +147,10 @@ create_winMain (void)
   GtkWidget *toolsSelectRegion;
   GtkWidget *toolsSelectRectangle;
   GtkWidget *toolsVerticalSpace;
+  GtkWidget *toolsHand;
   GtkWidget *separator16;
   GtkWidget *toolsColor;
-  GtkWidget *image609;
+  GtkWidget *image633;
   GtkWidget *toolsColor_menu;
   GSList *colorBlack_group = NULL;
   GtkWidget *colorBlack;
@@ -192,7 +193,7 @@ create_winMain (void)
   GtkWidget *highlighterMedium;
   GtkWidget *highlighterThick;
   GtkWidget *toolsTextFont;
-  GtkWidget *image610;
+  GtkWidget *image634;
   GtkWidget *separator10;
   GtkWidget *toolsDefaultPen;
   GtkWidget *toolsDefaultEraser;
@@ -215,6 +216,7 @@ create_winMain (void)
   GtkWidget *button2SelectRegion;
   GtkWidget *button2SelectRectangle;
   GtkWidget *button2VerticalSpace;
+  GtkWidget *button2Hand;
   GtkWidget *separator24;
   GSList *button2LinkBrush_group = NULL;
   GtkWidget *button2LinkBrush;
@@ -230,6 +232,7 @@ create_winMain (void)
   GtkWidget *button3SelectRegion;
   GtkWidget *button3SelectRectangle;
   GtkWidget *button3VerticalSpace;
+  GtkWidget *button3Hand;
   GtkWidget *separator25;
   GSList *button3LinkBrush_group = NULL;
   GtkWidget *button3LinkBrush;
@@ -245,10 +248,10 @@ create_winMain (void)
   GtkWidget *helpIndex;
   GtkWidget *helpAbout;
   GtkWidget *toolbarMain;
-  GtkWidget *newButton;
-  GtkWidget *openButton;
   GtkIconSize tmp_toolbar_icon_size;
   GtkWidget *saveButton;
+  GtkWidget *newButton;
+  GtkWidget *openButton;
   GtkWidget *toolitem11;
   GtkWidget *vseparator1;
   GtkWidget *buttonCut;
@@ -285,6 +288,7 @@ create_winMain (void)
   GtkWidget *buttonSelectRegion;
   GtkWidget *buttonSelectRectangle;
   GtkWidget *buttonVerticalSpace;
+  GtkWidget *buttonHand;
   GtkWidget *toolitem16;
   GtkWidget *vseparator6;
   GtkWidget *buttonToolDefault;
@@ -354,9 +358,9 @@ create_winMain (void)
   gtk_widget_show (fileNewBackground);
   gtk_container_add (GTK_CONTAINER (menuFile_menu), fileNewBackground);
 
-  image599 = gtk_image_new_from_stock ("gtk-open", GTK_ICON_SIZE_MENU);
-  gtk_widget_show (image599);
-  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (fileNewBackground), image599);
+  image623 = gtk_image_new_from_stock ("gtk-open", GTK_ICON_SIZE_MENU);
+  gtk_widget_show (image623);
+  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (fileNewBackground), image623);
 
   fileOpen = gtk_image_menu_item_new_from_stock ("gtk-open", accel_group);
   gtk_widget_show (fileOpen);
@@ -423,9 +427,9 @@ create_winMain (void)
   gtk_widget_show (filePrintOptions);
   gtk_container_add (GTK_CONTAINER (menuFile_menu), filePrintOptions);
 
-  image600 = gtk_image_new_from_stock ("gtk-preferences", GTK_ICON_SIZE_MENU);
-  gtk_widget_show (image600);
-  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (filePrintOptions), image600);
+  image624 = gtk_image_new_from_stock ("gtk-preferences", GTK_ICON_SIZE_MENU);
+  gtk_widget_show (image624);
+  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (filePrintOptions), image624);
 
   filePrint = gtk_image_menu_item_new_from_stock ("gtk-print", accel_group);
   gtk_widget_show (filePrint);
@@ -519,7 +523,7 @@ create_winMain (void)
 
   menuViewZoom_menu = gtk_menu_new ();
   gtk_menu_item_set_submenu (GTK_MENU_ITEM (menuViewZoom), menuViewZoom_menu);
-  
+
   viewZoomIn = gtk_image_menu_item_new_from_stock ("gtk-zoom-in", accel_group);
   gtk_widget_show (viewZoomIn);
   gtk_container_add (GTK_CONTAINER (menuViewZoom_menu), viewZoomIn);
@@ -536,9 +540,9 @@ create_winMain (void)
   gtk_widget_show (viewPageWidth);
   gtk_container_add (GTK_CONTAINER (menuViewZoom_menu), viewPageWidth);
 
-  image601 = gtk_image_new_from_stock ("gtk-zoom-fit", GTK_ICON_SIZE_MENU);
-  gtk_widget_show (image601);
-  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (viewPageWidth), image601);
+  image625 = gtk_image_new_from_stock ("gtk-zoom-fit", GTK_ICON_SIZE_MENU);
+  gtk_widget_show (image625);
+  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (viewPageWidth), image625);
 
   viewSetZoom = gtk_menu_item_new_with_mnemonic ("Set Zoom");
   gtk_widget_show (viewSetZoom);
@@ -553,33 +557,33 @@ create_winMain (void)
   gtk_widget_show (viewFirstPage);
   gtk_container_add (GTK_CONTAINER (menuView_menu), viewFirstPage);
 
-  image602 = gtk_image_new_from_stock ("gtk-goto-first", GTK_ICON_SIZE_MENU);
-  gtk_widget_show (image602);
-  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (viewFirstPage), image602);
+  image626 = gtk_image_new_from_stock ("gtk-goto-first", GTK_ICON_SIZE_MENU);
+  gtk_widget_show (image626);
+  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (viewFirstPage), image626);
 
   viewPreviousPage = gtk_image_menu_item_new_with_mnemonic ("Previous Page");
   gtk_widget_show (viewPreviousPage);
   gtk_container_add (GTK_CONTAINER (menuView_menu), viewPreviousPage);
 
-  image603 = gtk_image_new_from_stock ("gtk-go-back", GTK_ICON_SIZE_MENU);
-  gtk_widget_show (image603);
-  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (viewPreviousPage), image603);
+  image627 = gtk_image_new_from_stock ("gtk-go-back", GTK_ICON_SIZE_MENU);
+  gtk_widget_show (image627);
+  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (viewPreviousPage), image627);
 
   viewNextPage = gtk_image_menu_item_new_with_mnemonic ("Next Page");
   gtk_widget_show (viewNextPage);
   gtk_container_add (GTK_CONTAINER (menuView_menu), viewNextPage);
 
-  image604 = gtk_image_new_from_stock ("gtk-go-forward", GTK_ICON_SIZE_MENU);
-  gtk_widget_show (image604);
-  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (viewNextPage), image604);
+  image628 = gtk_image_new_from_stock ("gtk-go-forward", GTK_ICON_SIZE_MENU);
+  gtk_widget_show (image628);
+  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (viewNextPage), image628);
 
   viewLastPage = gtk_image_menu_item_new_with_mnemonic ("Last Page");
   gtk_widget_show (viewLastPage);
   gtk_container_add (GTK_CONTAINER (menuView_menu), viewLastPage);
 
-  image605 = gtk_image_new_from_stock ("gtk-goto-last", GTK_ICON_SIZE_MENU);
-  gtk_widget_show (image605);
-  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (viewLastPage), image605);
+  image629 = gtk_image_new_from_stock ("gtk-goto-last", GTK_ICON_SIZE_MENU);
+  gtk_widget_show (image629);
+  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (viewLastPage), image629);
 
   separator6 = gtk_separator_menu_item_new ();
   gtk_widget_show (separator6);
@@ -590,17 +594,17 @@ create_winMain (void)
   gtk_widget_show (viewShowLayer);
   gtk_container_add (GTK_CONTAINER (menuView_menu), viewShowLayer);
 
-  image606 = gtk_image_new_from_stock ("gtk-add", GTK_ICON_SIZE_MENU);
-  gtk_widget_show (image606);
-  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (viewShowLayer), image606);
+  image630 = gtk_image_new_from_stock ("gtk-add", GTK_ICON_SIZE_MENU);
+  gtk_widget_show (image630);
+  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (viewShowLayer), image630);
 
   viewHideLayer = gtk_image_menu_item_new_with_mnemonic ("Hide Layer");
   gtk_widget_show (viewHideLayer);
   gtk_container_add (GTK_CONTAINER (menuView_menu), viewHideLayer);
 
-  image607 = gtk_image_new_from_stock ("gtk-remove", GTK_ICON_SIZE_MENU);
-  gtk_widget_show (image607);
-  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (viewHideLayer), image607);
+  image631 = gtk_image_new_from_stock ("gtk-remove", GTK_ICON_SIZE_MENU);
+  gtk_widget_show (image631);
+  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (viewHideLayer), image631);
 
   menuJournal = gtk_menu_item_new_with_mnemonic ("_Journal");
   gtk_widget_show (menuJournal);
@@ -754,9 +758,9 @@ create_winMain (void)
   gtk_widget_show (journalLoadBackground);
   gtk_container_add (GTK_CONTAINER (menuJournal_menu), journalLoadBackground);
 
-  image608 = gtk_image_new_from_stock ("gtk-open", GTK_ICON_SIZE_MENU);
-  gtk_widget_show (image608);
-  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (journalLoadBackground), image608);
+  image632 = gtk_image_new_from_stock ("gtk-open", GTK_ICON_SIZE_MENU);
+  gtk_widget_show (image632);
+  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (journalLoadBackground), image632);
 
   journalScreenshot = gtk_menu_item_new_with_mnemonic ("Background Screenshot");
   gtk_widget_show (journalScreenshot);
@@ -829,6 +833,11 @@ create_winMain (void)
   gtk_container_add (GTK_CONTAINER (menuTools_menu), toolsVerticalSpace);
   gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (toolsVerticalSpace), TRUE);
 
+  toolsHand = gtk_radio_menu_item_new_with_mnemonic (toolsPen_group, "Hand Tool");
+  toolsPen_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (toolsHand));
+  gtk_widget_show (toolsHand);
+  gtk_container_add (GTK_CONTAINER (menuTools_menu), toolsHand);
+
   separator16 = gtk_separator_menu_item_new ();
   gtk_widget_show (separator16);
   gtk_container_add (GTK_CONTAINER (menuTools_menu), separator16);
@@ -838,9 +847,9 @@ create_winMain (void)
   gtk_widget_show (toolsColor);
   gtk_container_add (GTK_CONTAINER (menuTools_menu), toolsColor);
 
-  image609 = gtk_image_new_from_stock ("gtk-select-color", GTK_ICON_SIZE_MENU);
-  gtk_widget_show (image609);
-  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (toolsColor), image609);
+  image633 = gtk_image_new_from_stock ("gtk-select-color", GTK_ICON_SIZE_MENU);
+  gtk_widget_show (image633);
+  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (toolsColor), image633);
 
   toolsColor_menu = gtk_menu_new ();
   gtk_menu_item_set_submenu (GTK_MENU_ITEM (toolsColor), toolsColor_menu);
@@ -1041,9 +1050,9 @@ create_winMain (void)
   gtk_widget_show (toolsTextFont);
   gtk_container_add (GTK_CONTAINER (menuTools_menu), toolsTextFont);
 
-  image610 = gtk_image_new_from_stock ("gtk-select-font", GTK_ICON_SIZE_MENU);
-  gtk_widget_show (image610);
-  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (toolsTextFont), image610);
+  image634 = gtk_image_new_from_stock ("gtk-select-font", GTK_ICON_SIZE_MENU);
+  gtk_widget_show (image634);
+  gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (toolsTextFont), image634);
 
   separator10 = gtk_separator_menu_item_new ();
   gtk_widget_show (separator10);
@@ -1143,6 +1152,11 @@ create_winMain (void)
   gtk_container_add (GTK_CONTAINER (button2_mapping_menu), button2VerticalSpace);
   gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (button2VerticalSpace), TRUE);
 
+  button2Hand = gtk_radio_menu_item_new_with_mnemonic (button2Pen_group, "Hand Tool");
+  button2Pen_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (button2Hand));
+  gtk_widget_show (button2Hand);
+  gtk_container_add (GTK_CONTAINER (button2_mapping_menu), button2Hand);
+
   separator24 = gtk_separator_menu_item_new ();
   gtk_widget_show (separator24);
   gtk_container_add (GTK_CONTAINER (button2_mapping_menu), separator24);
@@ -1214,6 +1228,11 @@ create_winMain (void)
   gtk_container_add (GTK_CONTAINER (button3_mapping_menu), button3VerticalSpace);
   gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (button3VerticalSpace), TRUE);
 
+  button3Hand = gtk_radio_menu_item_new_with_mnemonic (button3Pen_group, "Hand Tool");
+  button3Pen_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (button3Hand));
+  gtk_widget_show (button3Hand);
+  gtk_container_add (GTK_CONTAINER (button3_mapping_menu), button3Hand);
+
   separator25 = gtk_separator_menu_item_new ();
   gtk_widget_show (separator25);
   gtk_container_add (GTK_CONTAINER (button3_mapping_menu), separator25);
@@ -1279,20 +1298,20 @@ create_winMain (void)
   gtk_toolbar_set_style (GTK_TOOLBAR (toolbarMain), GTK_TOOLBAR_ICONS);
   tmp_toolbar_icon_size = gtk_toolbar_get_icon_size (GTK_TOOLBAR (toolbarMain));
 
-  newButton  = (GtkWidget*) gtk_tool_button_new_from_stock ("gtk-new");
-  gtk_widget_show (newButton);
-  gtk_container_add (GTK_CONTAINER (toolbarMain), newButton);
-  gtk_tool_item_set_tooltip (GTK_TOOL_ITEM (newButton), tooltips, "New", NULL);
-  
-  openButton = (GtkWidget*) gtk_tool_button_new_from_stock ("gtk-open");
-  gtk_widget_show (openButton);
-  gtk_container_add (GTK_CONTAINER (toolbarMain), openButton);
-  gtk_tool_item_set_tooltip (GTK_TOOL_ITEM (openButton), tooltips, "Open", NULL);
-
   saveButton = (GtkWidget*) gtk_tool_button_new_from_stock ("gtk-save");
   gtk_widget_show (saveButton);
   gtk_container_add (GTK_CONTAINER (toolbarMain), saveButton);
   gtk_tool_item_set_tooltip (GTK_TOOL_ITEM (saveButton), tooltips, "Save", NULL);
+
+  newButton = (GtkWidget*) gtk_tool_button_new_from_stock ("gtk-new");
+  gtk_widget_show (newButton);
+  gtk_container_add (GTK_CONTAINER (toolbarMain), newButton);
+  gtk_tool_item_set_tooltip (GTK_TOOL_ITEM (newButton), tooltips, "New", NULL);
+
+  openButton = (GtkWidget*) gtk_tool_button_new_from_stock ("gtk-open");
+  gtk_widget_show (openButton);
+  gtk_container_add (GTK_CONTAINER (toolbarMain), openButton);
+  gtk_tool_item_set_tooltip (GTK_TOOL_ITEM (openButton), tooltips, "Open", NULL);
 
   toolitem11 = (GtkWidget*) gtk_tool_item_new ();
   gtk_widget_show (toolitem11);
@@ -1505,6 +1524,16 @@ create_winMain (void)
   gtk_tool_item_set_tooltip (GTK_TOOL_ITEM (buttonVerticalSpace), tooltips, "Vertical Space", NULL);
   gtk_radio_tool_button_set_group (GTK_RADIO_TOOL_BUTTON (buttonVerticalSpace), buttonPen_group);
   buttonPen_group = gtk_radio_tool_button_get_group (GTK_RADIO_TOOL_BUTTON (buttonVerticalSpace));
+
+  buttonHand = (GtkWidget*) gtk_radio_tool_button_new (NULL);
+  gtk_tool_button_set_label (GTK_TOOL_BUTTON (buttonHand), "Hand Tool");
+  tmp_image = create_pixmap (winMain, "hand.png");
+  gtk_widget_show (tmp_image);
+  gtk_tool_button_set_icon_widget (GTK_TOOL_BUTTON (buttonHand), tmp_image);
+  gtk_widget_show (buttonHand);
+  gtk_container_add (GTK_CONTAINER (toolbarPen), buttonHand);
+  gtk_radio_tool_button_set_group (GTK_RADIO_TOOL_BUTTON (buttonHand), buttonPen_group);
+  buttonPen_group = gtk_radio_tool_button_get_group (GTK_RADIO_TOOL_BUTTON (buttonHand));
 
   toolitem16 = (GtkWidget*) gtk_tool_item_new ();
   gtk_widget_show (toolitem16);
@@ -1976,6 +2005,9 @@ create_winMain (void)
   g_signal_connect ((gpointer) toolsVerticalSpace, "toggled",
                     G_CALLBACK (on_toolsVerticalSpace_activate),
                     NULL);
+  g_signal_connect ((gpointer) toolsHand, "activate",
+                    G_CALLBACK (on_toolsHand_activate),
+                    NULL);
   g_signal_connect ((gpointer) colorBlack, "toggled",
                     G_CALLBACK (on_colorBlack_activate),
                     NULL);
@@ -2102,6 +2134,9 @@ create_winMain (void)
   g_signal_connect ((gpointer) button2VerticalSpace, "activate",
                     G_CALLBACK (on_button2VerticalSpace_activate),
                     NULL);
+  g_signal_connect ((gpointer) button2Hand, "activate",
+                    G_CALLBACK (on_button2Hand_activate),
+                    NULL);
   g_signal_connect ((gpointer) button2LinkBrush, "activate",
                     G_CALLBACK (on_button2LinkBrush_activate),
                     NULL);
@@ -2129,6 +2164,9 @@ create_winMain (void)
   g_signal_connect ((gpointer) button3VerticalSpace, "activate",
                     G_CALLBACK (on_button3VerticalSpace_activate),
                     NULL);
+  g_signal_connect ((gpointer) button3Hand, "activate",
+                    G_CALLBACK (on_button3Hand_activate),
+                    NULL);
   g_signal_connect ((gpointer) button3LinkBrush, "activate",
                     G_CALLBACK (on_button3LinkBrush_activate),
                     NULL);
@@ -2150,14 +2188,14 @@ create_winMain (void)
   g_signal_connect ((gpointer) helpAbout, "activate",
                     G_CALLBACK (on_helpAbout_activate),
                     NULL);
+  g_signal_connect ((gpointer) saveButton, "clicked",
+                    G_CALLBACK (on_fileSave_activate),
+                    NULL);
   g_signal_connect ((gpointer) newButton, "clicked",
                     G_CALLBACK (on_fileNew_activate),
                     NULL);
   g_signal_connect ((gpointer) openButton, "clicked",
                     G_CALLBACK (on_fileOpen_activate),
-                    NULL);
-  g_signal_connect ((gpointer) saveButton, "clicked",
-                    G_CALLBACK (on_fileSave_activate),
                     NULL);
   g_signal_connect ((gpointer) buttonCut, "clicked",
                     G_CALLBACK (on_editCut_activate),
@@ -2228,6 +2266,9 @@ create_winMain (void)
   g_signal_connect ((gpointer) buttonVerticalSpace, "toggled",
                     G_CALLBACK (on_toolsVerticalSpace_activate),
                     NULL);
+  g_signal_connect ((gpointer) buttonHand, "toggled",
+                    G_CALLBACK (on_toolsHand_activate),
+                    NULL);
   g_signal_connect ((gpointer) buttonToolDefault, "clicked",
                     G_CALLBACK (on_buttonToolDefault_clicked),
                     NULL);
@@ -2291,7 +2332,7 @@ create_winMain (void)
   GLADE_HOOKUP_OBJECT (winMain, menuFile_menu, "menuFile_menu");
   GLADE_HOOKUP_OBJECT (winMain, fileNew, "fileNew");
   GLADE_HOOKUP_OBJECT (winMain, fileNewBackground, "fileNewBackground");
-  GLADE_HOOKUP_OBJECT (winMain, image599, "image599");
+  GLADE_HOOKUP_OBJECT (winMain, image623, "image623");
   GLADE_HOOKUP_OBJECT (winMain, fileOpen, "fileOpen");
   GLADE_HOOKUP_OBJECT (winMain, fileSave, "fileSave");
   GLADE_HOOKUP_OBJECT (winMain, fileSaveAs, "fileSaveAs");
@@ -2308,7 +2349,7 @@ create_winMain (void)
   GLADE_HOOKUP_OBJECT (winMain, mru7, "mru7");
   GLADE_HOOKUP_OBJECT (winMain, separator22, "separator22");
   GLADE_HOOKUP_OBJECT (winMain, filePrintOptions, "filePrintOptions");
-  GLADE_HOOKUP_OBJECT (winMain, image600, "image600");
+  GLADE_HOOKUP_OBJECT (winMain, image624, "image624");
   GLADE_HOOKUP_OBJECT (winMain, filePrint, "filePrint");
   GLADE_HOOKUP_OBJECT (winMain, filePrintPDF, "filePrintPDF");
   GLADE_HOOKUP_OBJECT (winMain, separator2, "separator2");
@@ -2329,26 +2370,28 @@ create_winMain (void)
   GLADE_HOOKUP_OBJECT (winMain, separator20, "separator20");
   GLADE_HOOKUP_OBJECT (winMain, viewFullscreen, "viewFullscreen");
   GLADE_HOOKUP_OBJECT (winMain, separator4, "separator4");
+  GLADE_HOOKUP_OBJECT (winMain, menuViewZoom, "menuViewZoom");
+  GLADE_HOOKUP_OBJECT (winMain, menuViewZoom_menu, "menuViewZoom_menu");
   GLADE_HOOKUP_OBJECT (winMain, viewZoomIn, "viewZoomIn");
   GLADE_HOOKUP_OBJECT (winMain, viewZoomOut, "viewZoomOut");
   GLADE_HOOKUP_OBJECT (winMain, viewNormalSize, "viewNormalSize");
   GLADE_HOOKUP_OBJECT (winMain, viewPageWidth, "viewPageWidth");
-  GLADE_HOOKUP_OBJECT (winMain, image601, "image601");
+  GLADE_HOOKUP_OBJECT (winMain, image625, "image625");
   GLADE_HOOKUP_OBJECT (winMain, viewSetZoom, "viewSetZoom");
   GLADE_HOOKUP_OBJECT (winMain, separator5, "separator5");
   GLADE_HOOKUP_OBJECT (winMain, viewFirstPage, "viewFirstPage");
-  GLADE_HOOKUP_OBJECT (winMain, image602, "image602");
+  GLADE_HOOKUP_OBJECT (winMain, image626, "image626");
   GLADE_HOOKUP_OBJECT (winMain, viewPreviousPage, "viewPreviousPage");
-  GLADE_HOOKUP_OBJECT (winMain, image603, "image603");
+  GLADE_HOOKUP_OBJECT (winMain, image627, "image627");
   GLADE_HOOKUP_OBJECT (winMain, viewNextPage, "viewNextPage");
-  GLADE_HOOKUP_OBJECT (winMain, image604, "image604");
+  GLADE_HOOKUP_OBJECT (winMain, image628, "image628");
   GLADE_HOOKUP_OBJECT (winMain, viewLastPage, "viewLastPage");
-  GLADE_HOOKUP_OBJECT (winMain, image605, "image605");
+  GLADE_HOOKUP_OBJECT (winMain, image629, "image629");
   GLADE_HOOKUP_OBJECT (winMain, separator6, "separator6");
   GLADE_HOOKUP_OBJECT (winMain, viewShowLayer, "viewShowLayer");
-  GLADE_HOOKUP_OBJECT (winMain, image606, "image606");
+  GLADE_HOOKUP_OBJECT (winMain, image630, "image630");
   GLADE_HOOKUP_OBJECT (winMain, viewHideLayer, "viewHideLayer");
-  GLADE_HOOKUP_OBJECT (winMain, image607, "image607");
+  GLADE_HOOKUP_OBJECT (winMain, image631, "image631");
   GLADE_HOOKUP_OBJECT (winMain, menuJournal, "menuJournal");
   GLADE_HOOKUP_OBJECT (winMain, menuJournal_menu, "menuJournal_menu");
   GLADE_HOOKUP_OBJECT (winMain, journalNewPageBefore, "journalNewPageBefore");
@@ -2381,7 +2424,7 @@ create_winMain (void)
   GLADE_HOOKUP_OBJECT (winMain, journalApplyAllPages, "journalApplyAllPages");
   GLADE_HOOKUP_OBJECT (winMain, separator23, "separator23");
   GLADE_HOOKUP_OBJECT (winMain, journalLoadBackground, "journalLoadBackground");
-  GLADE_HOOKUP_OBJECT (winMain, image608, "image608");
+  GLADE_HOOKUP_OBJECT (winMain, image632, "image632");
   GLADE_HOOKUP_OBJECT (winMain, journalScreenshot, "journalScreenshot");
   GLADE_HOOKUP_OBJECT (winMain, separator19, "separator19");
   GLADE_HOOKUP_OBJECT (winMain, journalDefaultBackground, "journalDefaultBackground");
@@ -2396,9 +2439,10 @@ create_winMain (void)
   GLADE_HOOKUP_OBJECT (winMain, toolsSelectRegion, "toolsSelectRegion");
   GLADE_HOOKUP_OBJECT (winMain, toolsSelectRectangle, "toolsSelectRectangle");
   GLADE_HOOKUP_OBJECT (winMain, toolsVerticalSpace, "toolsVerticalSpace");
+  GLADE_HOOKUP_OBJECT (winMain, toolsHand, "toolsHand");
   GLADE_HOOKUP_OBJECT (winMain, separator16, "separator16");
   GLADE_HOOKUP_OBJECT (winMain, toolsColor, "toolsColor");
-  GLADE_HOOKUP_OBJECT (winMain, image609, "image609");
+  GLADE_HOOKUP_OBJECT (winMain, image633, "image633");
   GLADE_HOOKUP_OBJECT (winMain, toolsColor_menu, "toolsColor_menu");
   GLADE_HOOKUP_OBJECT (winMain, colorBlack, "colorBlack");
   GLADE_HOOKUP_OBJECT (winMain, colorBlue, "colorBlue");
@@ -2436,7 +2480,7 @@ create_winMain (void)
   GLADE_HOOKUP_OBJECT (winMain, highlighterMedium, "highlighterMedium");
   GLADE_HOOKUP_OBJECT (winMain, highlighterThick, "highlighterThick");
   GLADE_HOOKUP_OBJECT (winMain, toolsTextFont, "toolsTextFont");
-  GLADE_HOOKUP_OBJECT (winMain, image610, "image610");
+  GLADE_HOOKUP_OBJECT (winMain, image634, "image634");
   GLADE_HOOKUP_OBJECT (winMain, separator10, "separator10");
   GLADE_HOOKUP_OBJECT (winMain, toolsDefaultPen, "toolsDefaultPen");
   GLADE_HOOKUP_OBJECT (winMain, toolsDefaultEraser, "toolsDefaultEraser");
@@ -2458,6 +2502,7 @@ create_winMain (void)
   GLADE_HOOKUP_OBJECT (winMain, button2SelectRegion, "button2SelectRegion");
   GLADE_HOOKUP_OBJECT (winMain, button2SelectRectangle, "button2SelectRectangle");
   GLADE_HOOKUP_OBJECT (winMain, button2VerticalSpace, "button2VerticalSpace");
+  GLADE_HOOKUP_OBJECT (winMain, button2Hand, "button2Hand");
   GLADE_HOOKUP_OBJECT (winMain, separator24, "separator24");
   GLADE_HOOKUP_OBJECT (winMain, button2LinkBrush, "button2LinkBrush");
   GLADE_HOOKUP_OBJECT (winMain, button2CopyBrush, "button2CopyBrush");
@@ -2471,6 +2516,7 @@ create_winMain (void)
   GLADE_HOOKUP_OBJECT (winMain, button3SelectRegion, "button3SelectRegion");
   GLADE_HOOKUP_OBJECT (winMain, button3SelectRectangle, "button3SelectRectangle");
   GLADE_HOOKUP_OBJECT (winMain, button3VerticalSpace, "button3VerticalSpace");
+  GLADE_HOOKUP_OBJECT (winMain, button3Hand, "button3Hand");
   GLADE_HOOKUP_OBJECT (winMain, separator25, "separator25");
   GLADE_HOOKUP_OBJECT (winMain, button3LinkBrush, "button3LinkBrush");
   GLADE_HOOKUP_OBJECT (winMain, button3CopyBrush, "button3CopyBrush");
@@ -2485,9 +2531,9 @@ create_winMain (void)
   GLADE_HOOKUP_OBJECT (winMain, helpIndex, "helpIndex");
   GLADE_HOOKUP_OBJECT (winMain, helpAbout, "helpAbout");
   GLADE_HOOKUP_OBJECT (winMain, toolbarMain, "toolbarMain");
+  GLADE_HOOKUP_OBJECT (winMain, saveButton, "saveButton");
   GLADE_HOOKUP_OBJECT (winMain, newButton, "newButton");
   GLADE_HOOKUP_OBJECT (winMain, openButton, "openButton");
-  GLADE_HOOKUP_OBJECT (winMain, saveButton, "saveButton");
   GLADE_HOOKUP_OBJECT (winMain, toolitem11, "toolitem11");
   GLADE_HOOKUP_OBJECT (winMain, vseparator1, "vseparator1");
   GLADE_HOOKUP_OBJECT (winMain, buttonCut, "buttonCut");
@@ -2522,6 +2568,7 @@ create_winMain (void)
   GLADE_HOOKUP_OBJECT (winMain, buttonSelectRegion, "buttonSelectRegion");
   GLADE_HOOKUP_OBJECT (winMain, buttonSelectRectangle, "buttonSelectRectangle");
   GLADE_HOOKUP_OBJECT (winMain, buttonVerticalSpace, "buttonVerticalSpace");
+  GLADE_HOOKUP_OBJECT (winMain, buttonHand, "buttonHand");
   GLADE_HOOKUP_OBJECT (winMain, toolitem16, "toolitem16");
   GLADE_HOOKUP_OBJECT (winMain, vseparator6, "vseparator6");
   GLADE_HOOKUP_OBJECT (winMain, buttonToolDefault, "buttonToolDefault");

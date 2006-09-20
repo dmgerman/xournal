@@ -580,3 +580,15 @@ on_radioZoomWidth_toggled              (GtkToggleButton *togglebutton,
 void
 on_radioZoomHeight_toggled             (GtkToggleButton *togglebutton,
                                         gpointer         user_data);
+
+void
+on_toolsHand_activate                  (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_button2Hand_activate                (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_button3Hand_activate                (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
