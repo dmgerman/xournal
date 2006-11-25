@@ -1,6 +1,3 @@
-// comment out the line below if you want the thickness settings of v 0.2
-#define NEW_THICKNESS
-
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
@@ -30,19 +27,11 @@ guint predef_bgcolors_rgba[COLOR_MAX] = // meaningless ones set to white
     0xffffffff, 0xa0e8ffff, 0x80ffc0ff, 0xffc0d4ff,
     0xffc080ff, 0xffff80ff, 0xffffffff };
 
-#ifdef NEW_THICKNESS
 double predef_thickness[NUM_STROKE_TOOLS][THICKNESS_MAX] =
   { { 0.42, 0.85, 1.41,  2.26, 5.67 }, // pen thicknesses = 0.15, 0.3, 0.5, 0.8, 2 mm
-    { 2.83, 2.83, 8.50, 19.84, 19.84 }, // eraser thicknesses = 1, 2.5, 5 mm
-    { 2.83, 2.83, 8.50, 19.84, 19.84 }, // highlighter thicknesses = 1, 2.5, 5 mm
+    { 2.83, 2.83, 8.50, 19.84, 19.84 }, // eraser thicknesses = 1, 3, 7 mm
+    { 2.83, 2.83, 8.50, 19.84, 19.84 }, // highlighter thicknesses = 1, 3, 7 mm
   };
-#else
-double predef_thickness[NUM_STROKE_TOOLS][THICKNESS_MAX] =
-  { { 0.42, 0.85, 1.41,  2.26, 5.67 }, // pen thicknesses = 0.15, 0.3, 0.5, 0.8, 2 mm
-    { 2.83, 2.83, 7.08, 14.17, 14.17 }, // eraser thicknesses = 1, 2.5, 5 mm
-    { 2.83, 2.83, 7.08, 14.17, 14.17 }, // highlighter thicknesses = 1, 2.5, 5 mm
-  };
-#endif
 
 // some manipulation functions
 
@@ -556,7 +545,7 @@ void rescale_bg_pixmaps(void)
         set_cursor_busy(FALSE);
       } else
       {
-        pix = GDK_PIXBUF(g_object_get_data(G_OBJECT(pg->bg->canvas_item), "pixbuf"));
+        g_object_get(G_OBJECT(pg->bg->canvas_item), "pixbuf", &pix, NULL);
         if (pix!=pg->bg->pixbuf)
           gnome_canvas_item_set(pg->bg->canvas_item, "pixbuf", pg->bg->pixbuf, NULL);
         pg->bg->pixbuf_scale = 0;

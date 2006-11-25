@@ -592,3 +592,7 @@ on_button2Hand_activate                (GtkMenuItem     *menuitem,
 void
 on_button3Hand_activate                (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
+
+void
+on_optionsPrintRuling_activate         (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);

@@ -1,16 +1,14 @@
 #define GS_CMDLINE \
   "gs -sDEVICE=bmp16m -r%f -q -sOutputFile=- " \
-  "-dNOPAUSE -dBATCH -dTextAlphaBits=4 -dGraphicsAlphaBits=4 %s"
+  "-dNOPAUSE -dBATCH -dEPSCrop -dTextAlphaBits=4 -dGraphicsAlphaBits=4 %s"
 
-#define GS_BITMAP_DPI 144   // was: (DEFAULT_ZOOM * 72)
+extern int GS_BITMAP_DPI, PDFTOPPM_PRINTING_DPI;
 
 #define TMPDIR_TEMPLATE "/tmp/xournalpdf.XXXXXX"
 
 #define PDFTOPPM_ARGV \
      { "pdftoppm", "-q", "-f", pageno_str, "-l", pageno_str, \
        "-r", dpi_str, pdf_filename, ppm_root, NULL }
-
-#define PDFTOPPM_PRINTING_DPI 150
 
 void new_journal(void);
 gboolean save_journal(const char *filename);
@@ -35,3 +33,7 @@ void update_mru_menu(void);
 void new_mru_entry(char *name);
 void delete_mru_entry(int which);
 void save_mru_list(void);
+
+void init_config_default(void);
+void load_config_from_file(void);
+void save_config_to_file(void);

@@ -24,7 +24,7 @@
   Xournal User's Manual
 </h2>
 <p style="font-size: 0.95em; text-align: center; color: rgb(0,0,0)">
- Version 0.3.1
+ Version 0.3.2
 </p>
 <hr />
 <p>
@@ -53,6 +53,7 @@ Xournal can be downloaded at
   <li> <a href="manual.html#tools">The drawing and selection tools</a> </li>
   <li> <a href="manual.html#pages-layers">Pages, layers, and backgrounds</a> </li>
   <li> <a href="manual.html#printing">Printing</a> </li>
+  <li> <a href="manual.html#configuration">Configuration</a> </li>
   <li> <a href="manual.html#author">Author information, license, bug-reports</a> </li>
   <li> <a href="manual.html#changelog">Version history</a> </li>
   <li> <a href="manual.html#file-format">The file format</a> </li>
@@ -189,6 +190,11 @@ the Tools menu):
   present on the next page are left unchanged. Similarly, dragging the
   cursor above the top of the page so that the entire block being moved
   becomes invisible results in the items being moved to the previous page.
+</p>
+<h3 class="subsub"><img src="pixmaps/hand.png"> Hand tool</h3>
+<p>
+  This tool lets you browse the journal; dragging the cursor scrolls the
+  view.
 </p>
 <h3 class="subsub">Undo and redo</h3>
 <p>
@@ -477,6 +483,29 @@ file, the backgrounds are converted to (compressed) bitmaps and a new
 PDF file is generated from scratch.
 </p>
 <hr />
+<a name="configuration"></a>
+<h2 class="subtitle">Configuration</h2>
+<p>
+Starting with version 0.3.2, Xournal's configuration settings can be
+saved to a file (<tt>~user/.xournal/config</tt>) by using the "Save
+Preferences" command in the Options menu. The settings saved in the
+configuration file include in particular:
+<ul>
+<li>general display preferences: zoom level, window size, ...</li>
+<li>default paper settings (as set by the "Set As Default" command in
+the Journal menu)</li>
+<li>default tool settings for the pen, eraser, and highlighter
+(as set by the "Set As Default" command in the Tools menu)</li>
+<li>mappings for buttons 2 and 3</li>
+<li>the various preferences set in the Options menu</li>
+</ul>
+The configuration file also gives access to additional customization
+options which cannot be set from the user interface, such as: the
+display resolution in pixels per inch, the step increment in zoom factors,
+the tool selected at startup, the thickness of the various drawing tools,
+...
+</p>
+<hr />
 <a name="author"></a>
 <h2 class="subtitle">Author information, license, bug-reports</h2>
 <p>
@@ -498,6 +527,15 @@ Bug reports and suggestions can also be submitted on Xournal's
 <hr />
 <a name="changelog"></a>
 <h2 class="subtitle">Version history</h2>
+<p>
+Version 0.3.2 (November 25, 2006):
+<ul>
+ <li>preferences file and Save Preferences command</li>
+ <li>extra customization (via preferences file)</li>
+ <li>minor UI changes (patch contributed by Eduardo de Barros Lima)</li>
+ <li>hand tool (partially contributed by Vincenzo Ciancia)</li>
+ <li>a few bugfixes in rendering of bitmap backgrounds</li>
+</ul>
 <p>
 Version 0.3.1 (August 3, 2006):
 <ul>
@@ -568,14 +606,6 @@ Version 0.1.1 (January 5, 2006):
 </p>
 <p>
 Version 0.1 (January 2, 2006): initial release.
-</p>
-<p>
-Features yet to be implemented:
-<ul>
- <li>freeform selection tool</li>
- <li>preferences file; persistent printer settings</li>
- <li>various functionalities (flatten layers, ...)</li>
-</ul>
 </p>
 <hr />
 <a name="file-format"></a>
@@ -892,19 +922,20 @@ Do not add a list of xsetwacom commands to your startup files).
 </p>
 <h3 class="subsub">Strokes aren't drawn under the cursor...</h3>
 <p>
-This is due to misfeatures in the linuxwacom driver. Typically, this
-will happen in all of the following cases:
+This is due to misfeatures in the linuxwacom driver in versions prior
+to 0.7.6. Typically, this will happen in all of the following cases:
 <ul>
 <li> the calibration settings have been changed after the X server was
 started (using xsetwacom) </li>
 <li> the calibration TopX or TopY values are not 0 </li>
 <li> the display has been rotated </li>
 </ul>
-Future versions of the driver may fix these issues. Meanwhile, you can
+Most of these issues should have been fixed in version 0.7.6 of the
+wacom driver. Otherwise, you can
 either disable XInput support in Xournal (in the Options menu), at a
 price of a severe loss of resolution (and the eraser tip won't be detected
 anymore), or apply this <a href="manual.html#wacompatch">patch</a>
-to the wacom driver.
+to version 0.7.0 of the wacom driver.
 </p>
 <p>
 I have also had a report that one of the workarounds used by Xournal to
@@ -920,8 +951,8 @@ contact me.
 <h3 class="subsub">On-the-fly display rotation</h3>
 <p> 
 You need an X server that supports the RANDR extension, and a
-<a href="manual.html#wacompatch">patched</a> version of the linuxwacom
-driver to support on-the-fly rotation.
+recent (0.7.6 or later) or <a href="manual.html#wacompatch">patched</a> 
+version of the linuxwacom driver to support on-the-fly rotation.
 </p>
 <p>
 To set the tablet in portrait mode:
@@ -951,6 +982,8 @@ distribution).</li>
 <li>The <a href="http://math.mit.edu/~auroux/software/xournal/linuxwacom-rotate-patch.tar.gz">patched
 binaries</a> for the X.org X server.</li>
 </ul>
+This patch has been included in version 0.7.6 of the linuxwacom driver,
+and should now be obsolete.
 </p>
 </body>
 </html>

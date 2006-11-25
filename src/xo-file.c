@@ -22,7 +22,7 @@
 #include "xo-misc.h"
 #include "xo-file.h"
 
-const char *tool_names[NUM_STROKE_TOOLS] = {"pen", "eraser", "highlighter"};
+const char *tool_names[NUM_TOOLS] = {"pen", "eraser", "highlighter", "", "", "selectrect", "vertspace", "hand"};
 const char *color_names[COLOR_MAX] = {"black", "blue", "red", "green",
    "gray", "lightblue", "lightgreen", "magenta", "orange", "yellow", "white"};
 const char *bgtype_names[3] = {"solid", "pixmap", "pdf"};
@@ -30,6 +30,8 @@ const char *bgcolor_names[COLOR_MAX] = {"", "blue", "pink", "green",
    "", "", "", "", "orange", "yellow", "white"};
 const char *bgstyle_names[4] = {"plain", "lined", "ruled", "graph"};
 const char *file_domain_names[3] = {"absolute", "attach", "clone"};
+const char *unit_names[4] = {"cm", "in", "px", "pt"};
+int PDFTOPPM_PRINTING_DPI, GS_BITMAP_DPI;
 
 // creates a new empty journal
 
@@ -1213,4 +1215,436 @@ void save_mru_list(void)
   for (i=0; i<MRU_SIZE; i++)
     if (ui.mru[i]!=NULL) fprintf(f, "%s\n", ui.mru[i]);
   fclose(f);
+}
+
+void init_config_default(void)
+{
+  int i, j;
+
+  DEFAULT_ZOOM = DISPLAY_DPI_DEFAULT/72.0;
+  ui.zoom = 1.0*DEFAULT_ZOOM;
+  ui.default_page.height = 792.0;
+  ui.default_page.width = 612.0;
+  ui.default_page.bg->type = BG_SOLID;
+  ui.default_page.bg->color_no = COLOR_WHITE;
+  ui.default_page.bg->color_rgba = predef_bgcolors_rgba[COLOR_WHITE];
+  ui.default_page.bg->ruling = RULING_LINED;
+  ui.view_continuous = TRUE;
+  ui.allow_xinput = TRUE;
+  ui.bg_apply_all_pages = FALSE;
+  ui.use_erasertip = FALSE;
+  ui.window_default_width = 720;
+  ui.window_default_height = 480;
+  ui.maximize_at_start = FALSE;
+  ui.fullscreen = FALSE;
+  ui.scrollbar_step_increment = 30;
+  ui.zoom_step_increment = 1;
+  ui.zoom_step_factor = 1.5;
+  ui.antialias_bg = TRUE;
+  ui.progressive_bg = TRUE;
+  ui.print_ruling = TRUE;
+  ui.default_unit = UNIT_CM;
+
+  ui.toolno[0] = ui.startuptool = TOOL_PEN;
+  ui.ruler[0] = ui.startupruler = FALSE;
+  for (i=1; i<=NUM_BUTTONS; i++) {
+    ui.toolno[i] = TOOL_ERASER;
+    ui.ruler[i] = FALSE;
+  }
+  for (i=0; i<=NUM_BUTTONS; i++)
+    ui.linked_brush[i] = BRUSH_LINKED;
+  ui.brushes[0][TOOL_PEN].color_no = COLOR_BLACK;
+  ui.brushes[0][TOOL_ERASER].color_no = COLOR_WHITE;
+  ui.brushes[0][TOOL_HIGHLIGHTER].color_no = COLOR_YELLOW;
+  for (i=0; i < NUM_STROKE_TOOLS; i++) {
+    ui.brushes[0][i].thickness_no = THICKNESS_MEDIUM;
+    ui.brushes[0][i].tool_options = 0;
+  }
+  for (i=0; i< NUM_STROKE_TOOLS; i++)
+    for (j=1; j<=NUM_BUTTONS; j++)
+      g_memmove(&(ui.brushes[j][i]), &(ui.brushes[0][i]), sizeof(struct Brush));
+
+  // predef_thickness is already initialized as a global variable
+
+  GS_BITMAP_DPI = 144;
+  PDFTOPPM_PRINTING_DPI = 150;
+}
+
+#if GLIB_CHECK_VERSION(2,6,0)
+
+void update_keyval(const gchar *group_name, const gchar *key,
+                const gchar *comment, gchar *value)
+{
+  gboolean has_it = g_key_file_has_key(ui.config_data, group_name, key, NULL);
+  cleanup_numeric(value);
+  g_key_file_set_value(ui.config_data, group_name, key, value);
+  g_free(value);
+  if (!has_it) g_key_file_set_comment(ui.config_data, group_name, key, comment, NULL);
+}
+
+#endif
+
+void save_config_to_file(void)
+{
+  gchar *buf;
+  FILE *f;
+
+#if GLIB_CHECK_VERSION(2,6,0)
+  // no support for keyval files before Glib 2.6.0
+  if (glib_minor_version<6) return; 
+
+  // save some data...
+  ui.maximize_at_start = (gdk_window_get_state(winMain->window) & GDK_WINDOW_STATE_MAXIMIZED);
+  if (!ui.maximize_at_start && !ui.fullscreen)
+    gdk_drawable_get_size(winMain->window, 
+      &ui.window_default_width, &ui.window_default_height);
+
+  update_keyval("general", "display_dpi",
+    " the display resolution, in pixels per inch",
+    g_strdup_printf("%.2f", DEFAULT_ZOOM*72));
+  update_keyval("general", "initial_zoom",
+    " the initial zoom level, in percent",
+    g_strdup_printf("%.2f", 100*ui.zoom/DEFAULT_ZOOM));
+  update_keyval("general", "window_maximize",
+    " maximize the window at startup (true/false)",
+    g_strdup(ui.maximize_at_start?"true":"false"));
+  update_keyval("general", "window_fullscreen",
+    " start in full screen mode (true/false)",
+    g_strdup(ui.fullscreen?"true":"false"));
+  update_keyval("general", "window_width",
+    " the window width in pixels (when not maximized)",
+    g_strdup_printf("%d", ui.window_default_width));
+  update_keyval("general", "window_height",
+    " the window height in pixels",
+    g_strdup_printf("%d", ui.window_default_height));
+  update_keyval("general", "scrollbar_speed",
+    " scrollbar step increment (in pixels)",
+    g_strdup_printf("%d", ui.scrollbar_step_increment));
+  update_keyval("general", "zoom_dialog_increment",
+    " the step increment in the zoom dialog box",
+    g_strdup_printf("%d", ui.zoom_step_increment));
+  update_keyval("general", "zoom_step_factor",
+    " the multiplicative factor for zoom in/out",
+    g_strdup_printf("%.3f", ui.zoom_step_factor));
+  update_keyval("general", "view_continuous",
+    " document view (true = continuous, false = single page)",
+    g_strdup(ui.view_continuous?"true":"false"));
+  update_keyval("general", "use_xinput",
+    " use XInput extensions (true/false)",
+    g_strdup(ui.allow_xinput?"true":"false"));
+  update_keyval("general", "use_erasertip",
+    " always map eraser tip to eraser (true/false)",
+    g_strdup(ui.use_erasertip?"true":"false"));
+
+  update_keyval("paper", "width",
+    " the default page width, in points (1/72 in)",
+    g_strdup_printf("%.2f", ui.default_page.width));
+  update_keyval("paper", "height",
+    " the default page height, in points (1/72 in)",
+    g_strdup_printf("%.2f", ui.default_page.height));
+  update_keyval("paper", "color",
+    " the default paper color",
+    g_strdup(bgcolor_names[ui.default_page.bg->color_no]));
+  update_keyval("paper", "style",
+    " the default paper style (plain, lined, ruled, or graph)",
+    g_strdup(bgstyle_names[ui.default_page.bg->ruling]));
+  update_keyval("paper", "apply_all",
+    " apply paper style changes to all pages (true/false)",
+    g_strdup(ui.bg_apply_all_pages?"true":"false"));
+  update_keyval("paper", "default_unit",
+    " preferred unit (cm, in, px, pt)",
+    g_strdup(unit_names[ui.default_unit]));
+  update_keyval("paper", "print_ruling",
+    " include paper ruling when printing or exporting to PDF (true/false)",
+    g_strdup(ui.print_ruling?"true":"false"));
+  update_keyval("paper", "antialias_bg",
+    " antialiased bitmap backgrounds (true/false)",
+    g_strdup(ui.antialias_bg?"true":"false"));
+  update_keyval("paper", "progressive_bg",
+    " progressive scaling of bitmap backgrounds (true/false)",
+    g_strdup(ui.progressive_bg?"true":"false"));
+  update_keyval("paper", "gs_bitmap_dpi",
+    " bitmap resolution of PS/PDF backgrounds rendered using ghostscript (dpi)",
+    g_strdup_printf("%d", GS_BITMAP_DPI));
+  update_keyval("paper", "pdftoppm_printing_dpi",
+    " bitmap resolution of PDF backgrounds when printing with libgnomeprint (dpi)",
+    g_strdup_printf("%d", PDFTOPPM_PRINTING_DPI));
+
+  update_keyval("tools", "startup_tool",
+    " selected tool at startup (pen, eraser, highlighter, selectrect, vertspace, hand)",
+    g_strdup(tool_names[ui.startuptool]));
+  update_keyval("tools", "startup_ruler",
+    " ruler mode at startup (true/false) (for pen or highlighter only)",
+    g_strdup(ui.startupruler?"true":"false"));
+  update_keyval("tools", "pen_color",
+    " default pen color",
+    g_strdup(color_names[ui.default_brushes[TOOL_PEN].color_no]));
+  update_keyval("tools", "pen_thickness",
+    " default pen thickness (fine = 1, medium = 2, thick = 3)",
+    g_strdup_printf("%d", ui.default_brushes[TOOL_PEN].thickness_no));
+  update_keyval("tools", "eraser_thickness",
+    " default eraser thickness (fine = 1, medium = 2, thick = 3)",
+    g_strdup_printf("%d", ui.default_brushes[TOOL_ERASER].thickness_no));
+  update_keyval("tools", "eraser_mode",
+    " default eraser mode (standard = 0, whiteout = 1, strokes = 2)",
+    g_strdup_printf("%d", ui.default_brushes[TOOL_ERASER].tool_options));
+  update_keyval("tools", "highlighter_color",
+    " default highlighter color",
+    g_strdup(color_names[ui.default_brushes[TOOL_HIGHLIGHTER].color_no]));
+  update_keyval("tools", "highlighter_thickness",
+    " default highlighter thickness (fine = 1, medium = 2, thick = 3)",
+    g_strdup_printf("%d", ui.default_brushes[TOOL_HIGHLIGHTER].thickness_no));
+  update_keyval("tools", "btn2_tool",
+    " button 2 tool (pen, eraser, highlighter, selectrect, vertspace, hand)",
+    g_strdup(tool_names[ui.toolno[1]]));
+  update_keyval("tools", "btn2_linked",
+    " button 2 brush linked to primary brush (true/false) (overrides all other settings)",
+    g_strdup((ui.linked_brush[1]==BRUSH_LINKED)?"true":"false"));
+  update_keyval("tools", "btn2_ruler",
+    " button 2 ruler mode (true/false) (for pen or highlighter only)",
+    g_strdup(ui.ruler[1]?"true":"false"));
+  update_keyval("tools", "btn2_color",
+    " button 2 brush color (for pen or highlighter only)",
+    g_strdup((ui.toolno[1]<NUM_STROKE_TOOLS)?
+               color_names[ui.brushes[1][ui.toolno[1]].color_no]:"white"));
+  update_keyval("tools", "btn2_thickness",
+    " button 2 brush thickness (pen, eraser, or highlighter only)",
+    g_strdup_printf("%d", (ui.toolno[1]<NUM_STROKE_TOOLS)?
+                            ui.brushes[1][ui.toolno[1]].thickness_no:0));
+  update_keyval("tools", "btn2_erasermode",
+    " button 2 eraser mode (eraser only)",
+    g_strdup_printf("%d", ui.brushes[1][TOOL_ERASER].tool_options));
+  update_keyval("tools", "btn3_tool",
+    " button 3 tool (pen, eraser, highlighter, selectrect, vertspace, hand)",
+    g_strdup(tool_names[ui.toolno[2]]));
+  update_keyval("tools", "btn3_linked",
+    " button 3 brush linked to primary brush (true/false) (overrides all other settings)",
+    g_strdup((ui.linked_brush[2]==BRUSH_LINKED)?"true":"false"));
+  update_keyval("tools", "btn3_ruler",
+    " button 3 ruler mode (true/false) (for pen or highlighter only)",
+    g_strdup(ui.ruler[2]?"true":"false"));
+  update_keyval("tools", "btn3_color",
+    " button 3 brush color (for pen or highlighter only)",
+    g_strdup((ui.toolno[2]<NUM_STROKE_TOOLS)?
+               color_names[ui.brushes[2][ui.toolno[2]].color_no]:"white"));
+  update_keyval("tools", "btn3_thickness",
+    " button 3 brush thickness (pen, eraser, or highlighter only)",
+    g_strdup_printf("%d", (ui.toolno[2]<NUM_STROKE_TOOLS)?
+                            ui.brushes[2][ui.toolno[2]].thickness_no:0));
+  update_keyval("tools", "btn3_erasermode",
+    " button 3 eraser mode (eraser only)",
+    g_strdup_printf("%d", ui.brushes[2][TOOL_ERASER].tool_options));
+
+  update_keyval("tools", "pen_thicknesses",
+    " thickness of the various pens (in points, 1 pt = 1/72 in)",
+    g_strdup_printf("%.2f;%.2f;%.2f;%.2f;%.2f", 
+      predef_thickness[TOOL_PEN][0], predef_thickness[TOOL_PEN][1],
+      predef_thickness[TOOL_PEN][2], predef_thickness[TOOL_PEN][3],
+      predef_thickness[TOOL_PEN][4]));
+  update_keyval("tools", "eraser_thicknesses",
+    " thickness of the various erasers (in points, 1 pt = 1/72 in)",
+    g_strdup_printf("%.2f;%.2f;%.2f", 
+      predef_thickness[TOOL_ERASER][1], predef_thickness[TOOL_ERASER][2],
+      predef_thickness[TOOL_ERASER][3]));
+  update_keyval("tools", "highlighter_thicknesses",
+    " thickness of the various highlighters (in points, 1 pt = 1/72 in)",
+    g_strdup_printf("%.2f;%.2f;%.2f", 
+      predef_thickness[TOOL_HIGHLIGHTER][1], predef_thickness[TOOL_HIGHLIGHTER][2],
+      predef_thickness[TOOL_HIGHLIGHTER][3]));
+  // set comments for keys / groups that don't exist
+  // set keyvals to current options
+
+  buf = g_key_file_to_data(ui.config_data, NULL, NULL);
+  if (buf == NULL) return;
+  f = fopen(ui.configfile, "w");
+  if (f==NULL) { g_free(buf); return; }
+  fputs(buf, f);
+  fclose(f);
+  g_free(buf);
+#endif
+}
+
+#if GLIB_CHECK_VERSION(2,6,0)
+gboolean parse_keyval_float(const gchar *group, const gchar *key, double *val, double inf, double sup)
+{
+  gchar *ret, *end;
+  double conv;
+  
+  ret = g_key_file_get_value(ui.config_data, group, key, NULL);
+  if (ret==NULL) return FALSE;
+  conv = g_ascii_strtod(ret, &end);
+  if (*end!=0) { g_free(ret); return FALSE; }
+  g_free(ret);
+  if (conv < inf || conv > sup) return FALSE;
+  *val = conv;
+  return TRUE;
+}
+
+gboolean parse_keyval_floatlist(const gchar *group, const gchar *key, double *val, int n, double inf, double sup)
+{
+  gchar *ret, *end;
+  double conv[5];
+  int i;
+
+  if (n>5) return FALSE;
+  ret = g_key_file_get_value(ui.config_data, group, key, NULL);
+  if (ret==NULL) return FALSE;
+  end = ret;
+  for (i=0; i<n; i++) {
+    conv[i] = g_ascii_strtod(end, &end);
+    if ((i==n-1 && *end!=0) || (i<n-1 && *end!=';') ||
+        (conv[i] < inf) || (conv[i] > sup)) { g_free(ret); return FALSE; }
+    end++;
+  }
+  g_free(ret);
+  for (i=0; i<n; i++) val[i] = conv[i];
+  return TRUE;
+}
+
+gboolean parse_keyval_int(const gchar *group, const gchar *key, int *val, int inf, int sup)
+{
+  gchar *ret, *end;
+  int conv;
+  
+  ret = g_key_file_get_value(ui.config_data, group, key, NULL);
+  if (ret==NULL) return FALSE;
+  conv = strtol(ret, &end, 10);
+  if (*end!=0) { g_free(ret); return FALSE; }
+  g_free(ret);
+  if (conv < inf || conv > sup) return FALSE;
+  *val = conv;
+  return TRUE;
+}
+
+gboolean parse_keyval_enum(const gchar *group, const gchar *key, int *val, const char **names, int n)
+{
+  gchar *ret;
+  int i;
+  
+  ret = g_key_file_get_value(ui.config_data, group, key, NULL);
+  if (ret==NULL) return FALSE;
+  for (i=0; i<n; i++) {
+    if (!names[i][0]) continue; // "" is for invalid values
+    if (!g_ascii_strcasecmp(ret, names[i]))
+      { *val = i; g_free(ret); return TRUE; }
+  }
+  return FALSE;
+}
+
+gboolean parse_keyval_boolean(const gchar *group, const gchar *key, gboolean *val)
+{
+  gchar *ret;
+  
+  ret = g_key_file_get_value(ui.config_data, group, key, NULL);
+  if (ret==NULL) return FALSE;
+  if (!g_ascii_strcasecmp(ret, "true")) 
+    { *val = TRUE; g_free(ret); return TRUE; }
+  if (!g_ascii_strcasecmp(ret, "false")) 
+    { *val = FALSE; g_free(ret); return TRUE; }
+  g_free(ret);
+  return FALSE;
+}
+
+#endif
+
+void load_config_from_file(void)
+{
+  double f;
+  gboolean b;
+  int i, j;
+  
+#if GLIB_CHECK_VERSION(2,6,0)
+  // no support for keyval files before Glib 2.6.0
+  if (glib_minor_version<6) return; 
+  ui.config_data = g_key_file_new();
+  if (!g_key_file_load_from_file(ui.config_data, ui.configfile, 
+         G_KEY_FILE_KEEP_COMMENTS, NULL)) {
+    g_key_file_free(ui.config_data);
+    ui.config_data = g_key_file_new();
+    g_key_file_set_comment(ui.config_data, NULL, NULL, 
+           " Xournal configuration file.\n"
+           " This file is generated automatically upon saving preferences.\n"
+           " Use caution when editing this file manually.\n", NULL);
+    return;
+  }
+
+  // parse keys from the keyfile to set defaults
+  if (parse_keyval_float("general", "display_dpi", &f, 10., 500.))
+    DEFAULT_ZOOM = f/72.0;
+  if (parse_keyval_float("general", "initial_zoom", &f, 
+              MIN_ZOOM*100/DEFAULT_ZOOM, MAX_ZOOM*100/DEFAULT_ZOOM))
+    ui.zoom = DEFAULT_ZOOM*f/100.0;
+  parse_keyval_boolean("general", "window_maximize", &ui.maximize_at_start);
+  parse_keyval_boolean("general", "window_fullscreen", &ui.fullscreen);
+  parse_keyval_int("general", "window_width", &ui.window_default_width, 10, 5000);
+  parse_keyval_int("general", "window_height", &ui.window_default_height, 10, 5000);
+  parse_keyval_int("general", "scrollbar_speed", &ui.scrollbar_step_increment, 1, 5000);
+  parse_keyval_int("general", "zoom_dialog_increment", &ui.zoom_step_increment, 1, 500);
+  parse_keyval_float("general", "zoom_step_factor", &ui.zoom_step_factor, 1., 5.);
+  parse_keyval_boolean("general", "view_continuous", &ui.view_continuous);
+  parse_keyval_boolean("general", "use_xinput", &ui.allow_xinput);
+  parse_keyval_boolean("general", "use_erasertip", &ui.use_erasertip);
+
+  parse_keyval_float("paper", "width", &ui.default_page.width, 1., 5000.);
+  parse_keyval_float("paper", "height", &ui.default_page.height, 1., 5000.);
+  parse_keyval_enum("paper", "color", &(ui.default_page.bg->color_no), bgcolor_names, COLOR_MAX);
+  ui.default_page.bg->color_rgba = predef_bgcolors_rgba[ui.default_page.bg->color_no];
+  parse_keyval_enum("paper", "style", &(ui.default_page.bg->ruling), bgstyle_names, 4);
+  parse_keyval_boolean("paper", "apply_all", &ui.bg_apply_all_pages);
+  parse_keyval_enum("paper", "default_unit", &ui.default_unit, unit_names, 4);
+  parse_keyval_boolean("paper", "antialias_bg", &ui.antialias_bg);
+  parse_keyval_boolean("paper", "progressive_bg", &ui.progressive_bg);
+  parse_keyval_boolean("paper", "print_ruling", &ui.print_ruling);
+  parse_keyval_int("paper", "gs_bitmap_dpi", &GS_BITMAP_DPI, 1, 1200);
+  parse_keyval_int("paper", "pdftoppm_printing_dpi", &PDFTOPPM_PRINTING_DPI, 1, 1200);
+
+  parse_keyval_enum("tools", "startup_tool", &ui.startuptool, tool_names, NUM_TOOLS);
+  ui.toolno[0] = ui.startuptool;
+  if (ui.startuptool == TOOL_PEN || ui.startuptool == TOOL_HIGHLIGHTER) {
+    parse_keyval_boolean("tools", "startup_ruler", &ui.startupruler);
+    ui.ruler[0] = ui.startupruler;
+  }
+  parse_keyval_enum("tools", "pen_color", &(ui.brushes[0][TOOL_PEN].color_no), color_names, COLOR_MAX);
+  parse_keyval_int("tools", "pen_thickness", &(ui.brushes[0][TOOL_PEN].thickness_no), 0, 4);
+  parse_keyval_int("tools", "eraser_thickness", &(ui.brushes[0][TOOL_ERASER].thickness_no), 1, 3);
+  parse_keyval_int("tools", "eraser_mode", &(ui.brushes[0][TOOL_ERASER].tool_options), 0, 2);
+  parse_keyval_enum("tools", "highlighter_color", &(ui.brushes[0][TOOL_HIGHLIGHTER].color_no), color_names, COLOR_MAX);
+  parse_keyval_int("tools", "highlighter_thickness", &(ui.brushes[0][TOOL_HIGHLIGHTER].thickness_no), 0, 4);
+  for (i=0; i< NUM_STROKE_TOOLS; i++)
+    for (j=1; j<=NUM_BUTTONS; j++)
+      g_memmove(&(ui.brushes[j][i]), &(ui.brushes[0][i]), sizeof(struct Brush));
+
+  parse_keyval_enum("tools", "btn2_tool", &(ui.toolno[1]), tool_names, NUM_TOOLS);
+  if (parse_keyval_boolean("tools", "btn2_linked", &b))
+    ui.linked_brush[1] = b?BRUSH_LINKED:BRUSH_STATIC;
+  parse_keyval_enum("tools", "btn3_tool", &(ui.toolno[2]), tool_names, NUM_TOOLS);
+  if (parse_keyval_boolean("tools", "btn3_linked", &b))
+    ui.linked_brush[2] = b?BRUSH_LINKED:BRUSH_STATIC;
+  for (i=1; i<=NUM_BUTTONS; i++)
+    if (ui.toolno[i]==TOOL_PEN || ui.toolno[i]==TOOL_HIGHLIGHTER)
+      ui.ruler[i] = ui.ruler[0];
+  if (ui.linked_brush[1]!=BRUSH_LINKED) {
+    if (ui.toolno[1]==TOOL_PEN || ui.toolno[1]==TOOL_HIGHLIGHTER) {
+      parse_keyval_boolean("tools", "btn2_ruler", &(ui.ruler[1]));
+      parse_keyval_enum("tools", "btn2_color", &(ui.brushes[1][ui.toolno[1]].color_no), color_names, COLOR_MAX);
+    }
+    if (ui.toolno[1]<NUM_STROKE_TOOLS)
+      parse_keyval_int("tools", "btn2_thickness", &(ui.brushes[1][ui.toolno[1]].thickness_no), 0, 4);
+    if (ui.toolno[1]==TOOL_ERASER)
+      parse_keyval_int("tools", "btn2_erasermode", &(ui.brushes[1][TOOL_ERASER].tool_options), 0, 2);
+  }
+  if (ui.linked_brush[2]!=BRUSH_LINKED) {
+    if (ui.toolno[2]==TOOL_PEN || ui.toolno[2]==TOOL_HIGHLIGHTER) {
+      parse_keyval_boolean("tools", "btn3_ruler", &(ui.ruler[2]));
+      parse_keyval_enum("tools", "btn3_color", &(ui.brushes[2][ui.toolno[2]].color_no), color_names, COLOR_MAX);
+    }
+    if (ui.toolno[2]<NUM_STROKE_TOOLS)
+      parse_keyval_int("tools", "btn3_thickness", &(ui.brushes[2][ui.toolno[2]].thickness_no), 0, 4);
+    if (ui.toolno[2]==TOOL_ERASER)
+      parse_keyval_int("tools", "btn3_erasermode", &(ui.brushes[2][TOOL_ERASER].tool_options), 0, 2);
+  }
+  parse_keyval_floatlist("tools", "pen_thicknesses", predef_thickness[TOOL_PEN], 5, 0.01, 1000.0);
+  parse_keyval_floatlist("tools", "eraser_thicknesses", predef_thickness[TOOL_ERASER]+1, 3, 0.01, 1000.0);
+  parse_keyval_floatlist("tools", "highlighter_thicknesses", predef_thickness[TOOL_HIGHLIGHTER]+1, 3, 0.01, 1000.0);
+#endif
 }

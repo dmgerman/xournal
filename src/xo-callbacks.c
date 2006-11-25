@@ -889,7 +889,7 @@ on_viewZoomIn_activate                 (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
   if (ui.zoom > MAX_ZOOM) return;
-  ui.zoom *= 1.5;
+  ui.zoom *= ui.zoom_step_factor;
   gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
   rescale_bg_pixmaps();
 }
@@ -900,7 +900,7 @@ on_viewZoomOut_activate                (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
   if (ui.zoom < MIN_ZOOM) return;
-  ui.zoom /= 1.5;
+  ui.zoom /= ui.zoom_step_factor;
   gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
   rescale_bg_pixmaps();
 }
@@ -1178,12 +1178,7 @@ gboolean papersize_need_init, papersize_width_valid, papersize_height_valid;
 #define STD_SIZE_LETTER_R 3
 #define STD_SIZE_CUSTOM 4
 
-#define UNIT_CM 0
-#define UNIT_IN 1
-#define UNIT_PX 2
-#define UNIT_PT 3
-
-double unit_sizes[4] = {28.346, 72., 1/DEFAULT_ZOOM, 1.};
+double unit_sizes[4] = {28.346, 72., 72./DISPLAY_DPI_DEFAULT, 1.};
 double std_widths[STD_SIZE_CUSTOM] =  {595.27, 841.89, 612., 792.};
 double std_heights[STD_SIZE_CUSTOM] = {841.89, 595.27, 792., 612.};
 double std_units[STD_SIZE_CUSTOM] = {UNIT_CM, UNIT_CM, UNIT_IN, UNIT_IN};
@@ -1199,7 +1194,8 @@ on_journalPaperSize_activate           (GtkMenuItem     *menuitem,
   papersize_dialog = create_papersizeDialog();
   papersize_width = ui.cur_page->width;
   papersize_height = ui.cur_page->height;
-  papersize_unit = UNIT_CM;
+  papersize_unit = ui.default_unit;
+  unit_sizes[UNIT_PX] = 1./DEFAULT_ZOOM;
 //  if (ui.cur_page->bg->type == BG_PIXMAP) papersize_unit = UNIT_PX;
   papersize_std = STD_SIZE_CUSTOM;
   for (i=0;i<STD_SIZE_CUSTOM;i++)
@@ -2009,7 +2005,7 @@ void
 on_optionsSavePreferences_activate     (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-
+  save_config_to_file();
 }
 
 
@@ -2413,22 +2409,34 @@ void
 on_journalDefaultBackground_activate   (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
+  struct Page *pg;
+  GList *pglist;
+  
   reset_selection();
-  prepare_new_undo();
-  undo->type = ITEM_NEW_BG_RESIZE;
-  undo->page = ui.cur_page;
-  undo->bg = ui.cur_page->bg;
-  undo->val_x = ui.cur_page->width;
-  undo->val_y = ui.cur_page->height; 
   
-  ui.cur_page->bg = (struct Background *)g_memdup(ui.default_page.bg, sizeof(struct Background));
-  ui.cur_page->width = ui.default_page.width;
-  ui.cur_page->height = ui.default_page.height;
-  ui.cur_page->bg->canvas_item = undo->bg->canvas_item;
-  undo->bg->canvas_item = NULL;
+  pg = ui.cur_page;
+  for (pglist = journal.pages; pglist!=NULL; pglist = pglist->next) {
+    if (ui.bg_apply_all_pages) pg = (struct Page *)pglist->data;
+    prepare_new_undo();
+    if (ui.bg_apply_all_pages) {
+      if (pglist->next!=NULL) undo->multiop |= MULTIOP_CONT_REDO;
+      if (pglist->prev!=NULL) undo->multiop |= MULTIOP_CONT_UNDO;
+    }
+    undo->type = ITEM_NEW_BG_RESIZE;
+    undo->page = pg;
+    undo->bg = pg->bg;
+    undo->val_x = pg->width;
+    undo->val_y = pg->height; 
+    pg->bg = (struct Background *)g_memdup(ui.default_page.bg, sizeof(struct Background));
+    pg->width = ui.default_page.width;
+    pg->height = ui.default_page.height;
+    pg->bg->canvas_item = undo->bg->canvas_item;
+    undo->bg->canvas_item = NULL;
   
-  make_page_clipbox(ui.cur_page);
-  update_canvas_bg(ui.cur_page);
+    make_page_clipbox(pg);
+    update_canvas_bg(pg);
+    if (!ui.bg_apply_all_pages) break;
+  }
   do_switch_page(ui.pageno, TRUE, TRUE);
 }
 
@@ -2838,11 +2846,13 @@ on_viewSetZoom_activate                (GtkMenuItem     *menuitem,
 {
   int response;
   double test_w, test_h;
+  GtkSpinButton *spinZoom;
   
   zoom_dialog = create_zoomDialog();
   zoom_percent = 100*ui.zoom / DEFAULT_ZOOM;
-  gtk_spin_button_set_value(GTK_SPIN_BUTTON(g_object_get_data(
-        G_OBJECT(zoom_dialog), "spinZoom")), zoom_percent);
+  spinZoom = GTK_SPIN_BUTTON(g_object_get_data(G_OBJECT(zoom_dialog), "spinZoom"));
+  gtk_spin_button_set_increments(spinZoom, ui.zoom_step_increment, 5*ui.zoom_step_increment);
+  gtk_spin_button_set_value(spinZoom, zoom_percent);
   test_w = 100*(GTK_WIDGET(canvas))->allocation.width/ui.cur_page->width/DEFAULT_ZOOM;
   test_h = 100*(GTK_WIDGET(canvas))->allocation.height/ui.cur_page->height/DEFAULT_ZOOM;
   if (zoom_percent > 99.9 && zoom_percent < 100.1) 
@@ -2969,5 +2979,13 @@ on_button3Hand_activate                (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
   process_mapping_activate(menuitem, 2, TOOL_HAND);
+}
+
+
+void
+on_optionsPrintRuling_activate         (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+  ui.print_ruling = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem));
 }
 

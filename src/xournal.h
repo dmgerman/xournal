@@ -6,6 +6,7 @@
 #define CONFIG_DIR ".xournal"
 #define MRU_FILE "recent-files"
 #define MRU_SIZE 8 
+#define CONFIG_FILE "config"
 
 // DATA STRUCTURES AND CONSTANTS
 
@@ -13,7 +14,7 @@
 #define MAX_AXES 12
 #define EPSILON 1E-7
 #define MAX_ZOOM 20.0
-#define DEFAULT_ZOOM 1.3333333333
+#define DISPLAY_DPI_DEFAULT 96.0
 #define MIN_ZOOM 0.2
 
 /* a string (+ aux data) that maintains a refcount */
@@ -99,6 +100,7 @@ extern guint predef_bgcolors_rgba[COLOR_MAX];
 #define TOOL_VERTSPACE    6
 #define TOOL_HAND         7
 #define NUM_STROKE_TOOLS  3
+#define NUM_TOOLS         8
 #define NUM_BUTTONS       3
 
 #define TOOLOPT_ERASER_STANDARD     0
@@ -204,16 +206,26 @@ typedef struct UIData {
   int screen_width, screen_height; // initial screen size, for XInput events
   double hand_refpt[2];
   char *filename;
-  gboolean view_continuous, fullscreen;
+  gboolean view_continuous, fullscreen, maximize_at_start;
   gboolean in_update_page_stuff; // semaphore to avoid scrollbar retroaction
   struct Selection *selection;
   GdkCursor *cursor;
   gboolean antialias_bg; // bilinear interpolation on bg pixmaps
   gboolean progressive_bg; // rescale bg's one at a time
-  char *mrufile; // file for the MRU
+  char *mrufile, *configfile; // file names for MRU & config
   char *mru[MRU_SIZE]; // MRU data
   GtkWidget *mrumenu[MRU_SIZE];
   gboolean bg_apply_all_pages;
+  int window_default_width, window_default_height, scrollbar_step_increment;
+  gboolean print_ruling; // print the paper ruling ?
+  int default_unit; // the default unit for paper sizes
+  int startuptool; // the default tool at startup
+  gboolean startupruler;
+  int zoom_step_increment; // the increment in the zoom dialog box
+  double zoom_step_factor; // the multiplicative factor in zoom in/out
+#if GLIB_CHECK_VERSION(2,6,0)
+  GKeyFile *config_data;
+#endif
 } UIData;
 
 #define BRUSH_LINKED 0
@@ -301,3 +313,10 @@ extern struct Journal journal;
 extern struct UIData ui;
 extern struct BgPdf bgpdf;
 extern struct UndoItem *undo, *redo;
+
+extern double DEFAULT_ZOOM;
+
+#define UNIT_CM 0
+#define UNIT_IN 1
+#define UNIT_PX 2
+#define UNIT_PT 3

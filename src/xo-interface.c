@@ -241,6 +241,7 @@ create_winMain (void)
   GtkWidget *separator18;
   GtkWidget *optionsAntialiasBG;
   GtkWidget *optionsProgressiveBG;
+  GtkWidget *optionsPrintRuling;
   GtkWidget *separator21;
   GtkWidget *optionsSavePreferences;
   GtkWidget *menuHelp;
@@ -1268,6 +1269,10 @@ create_winMain (void)
   gtk_widget_show (optionsProgressiveBG);
   gtk_container_add (GTK_CONTAINER (menuOptions_menu), optionsProgressiveBG);
 
+  optionsPrintRuling = gtk_check_menu_item_new_with_mnemonic ("Print Paper Ruling");
+  gtk_widget_show (optionsPrintRuling);
+  gtk_container_add (GTK_CONTAINER (menuOptions_menu), optionsPrintRuling);
+
   separator21 = gtk_separator_menu_item_new ();
   gtk_widget_show (separator21);
   gtk_container_add (GTK_CONTAINER (menuOptions_menu), separator21);
@@ -2179,6 +2184,9 @@ create_winMain (void)
   g_signal_connect ((gpointer) optionsProgressiveBG, "activate",
                     G_CALLBACK (on_optionsProgressiveBG_activate),
                     NULL);
+  g_signal_connect ((gpointer) optionsPrintRuling, "activate",
+                    G_CALLBACK (on_optionsPrintRuling_activate),
+                    NULL);
   g_signal_connect ((gpointer) optionsSavePreferences, "activate",
                     G_CALLBACK (on_optionsSavePreferences_activate),
                     NULL);
@@ -2524,6 +2532,7 @@ create_winMain (void)
   GLADE_HOOKUP_OBJECT (winMain, separator18, "separator18");
   GLADE_HOOKUP_OBJECT (winMain, optionsAntialiasBG, "optionsAntialiasBG");
   GLADE_HOOKUP_OBJECT (winMain, optionsProgressiveBG, "optionsProgressiveBG");
+  GLADE_HOOKUP_OBJECT (winMain, optionsPrintRuling, "optionsPrintRuling");
   GLADE_HOOKUP_OBJECT (winMain, separator21, "separator21");
   GLADE_HOOKUP_OBJECT (winMain, optionsSavePreferences, "optionsSavePreferences");
   GLADE_HOOKUP_OBJECT (winMain, menuHelp, "menuHelp");

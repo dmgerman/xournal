@@ -671,6 +671,7 @@ void pdf_draw_solid_background(struct Page *pg, GString *str)
   g_string_append_printf(str, 
     "%.2f %.2f %.2f rg 0 0 %.2f %.2f re f ",
     RGBA_RGB(pg->bg->color_rgba), pg->width, pg->height);
+  if (!ui.print_ruling) return;
   if (pg->bg->ruling == RULING_NONE) return;
   g_string_append_printf(str,
     "%.2f %.2f %.2f RG %.2f w ",
@@ -1028,6 +1029,7 @@ void print_background(GnomePrintContext *gpc, struct Page *pg, gboolean *abort)
     gnome_print_setrgbcolor(gpc, RGBA_RGB(pg->bg->color_rgba));
     gnome_print_rect_filled(gpc, 0, 0, pg->width, pg->height);
 
+    if (!ui.print_ruling) return;
     if (pg->bg->ruling == RULING_NONE) return;
     gnome_print_setrgbcolor(gpc, RGBA_RGB(RULING_COLOR));
     gnome_print_setlinewidth(gpc, RULING_THICKNESS);

@@ -1,6 +1,9 @@
-Version ?:
+Version 0.3.2 (Nov 25, 2006):
+  - preferences file and Save Preferences command
+  - extra customization (via preferences file)
   - minor UI changes (patch contributed by Eduardo de Barros Lima)
   - hand tool (partially contributed by Vincenzo Ciancia)
+  - a few bugfixes in rendering of bitmap backgrounds
 
 Version 0.3.1 (Aug 3, 2006):
   - fixed a file format bug on systems with non-standard numeric locale

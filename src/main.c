@@ -26,6 +26,8 @@ struct BgPdf bgpdf;  // the PDF loader stuff
 struct UIData ui;   // the user interface data
 struct UndoItem *undo, *redo; // the undo and redo stacks
 
+double DEFAULT_ZOOM;
+
 void hide_unimplemented(void)
 {
   gtk_widget_hide(GET_COMPONENT("filePrintOptions"));
@@ -42,7 +44,6 @@ void hide_unimplemented(void)
   gtk_widget_hide(GET_COMPONENT("colorOther"));
   gtk_widget_hide(GET_COMPONENT("toolsTextFont"));
   gtk_widget_hide(GET_COMPONENT("toolsDefaultText"));
-  gtk_widget_hide(GET_COMPONENT("optionsSavePreferences"));
   gtk_widget_hide(GET_COMPONENT("helpIndex"));
 }
 
@@ -57,32 +58,25 @@ void init_stuff (int argc, char *argv[])
   gboolean can_xinput, success;
   gchar *tmppath, *tmpfn;
 
-  // we need an empty canvas prior to creating the journal structures
-  canvas = GNOME_CANVAS (gnome_canvas_new_aa ());
+  // create some data structures needed to populate the preferences
+  ui.default_page.bg = g_new(struct Background, 1);
 
   // initialize config file names
   tmppath = g_build_filename(g_get_home_dir(), CONFIG_DIR, NULL);
-  g_mkdir(tmppath, 0700); // safer (MRU data may be confidential)
+  mkdir(tmppath, 0700); // safer (MRU data may be confidential)
   ui.mrufile = g_build_filename(tmppath, MRU_FILE, NULL);
+  ui.configfile = g_build_filename(tmppath, CONFIG_FILE, NULL);
   g_free(tmppath);
 
-  // initialize data
-  // TODO: load this from a preferences file
+  // initialize preferences
+  init_config_default();
+  load_config_from_file();
 
-  ui.default_page.height = 792.0;
-  ui.default_page.width = 612.0;
-  ui.default_page.bg = g_new(struct Background, 1);
-  ui.default_page.bg->type = BG_SOLID;
-  ui.default_page.bg->color_no = COLOR_WHITE;
-  ui.default_page.bg->color_rgba = predef_bgcolors_rgba[COLOR_WHITE];
-  ui.default_page.bg->ruling = RULING_LINED;
+  // we need an empty canvas prior to creating the journal structures
+  canvas = GNOME_CANVAS (gnome_canvas_new_aa ());
+
+  // initialize data
   ui.default_page.bg->canvas_item = NULL;
-  
-  ui.zoom = DEFAULT_ZOOM;
-  ui.view_continuous = TRUE;
-  ui.fullscreen = FALSE;
-  
-  ui.allow_xinput = TRUE;
   ui.layerbox_length = 0;
 
   if (argc > 2 || (argc == 2 && argv[1][0] == '-')) {
@@ -105,39 +99,41 @@ void init_stuff (int argc, char *argv[])
 
   ui.selection = NULL;
   ui.cursor = NULL;
-  ui.bg_apply_all_pages = FALSE;
 
-  ui.cur_brush = &(ui.brushes[0][TOOL_PEN]);
-  ui.toolno[0] = TOOL_PEN;
-  for (i=1; i<=NUM_BUTTONS; i++) ui.toolno[i] = TOOL_ERASER;
-  for (i=0; i<=NUM_BUTTONS; i++) {
-    ui.ruler[i] = FALSE;
-    ui.linked_brush[i] = BRUSH_LINKED;
-  }
-  ui.brushes[0][TOOL_PEN].color_no = COLOR_BLACK;
-  ui.brushes[0][TOOL_ERASER].color_no = COLOR_WHITE;
-  ui.brushes[0][TOOL_HIGHLIGHTER].color_no = COLOR_YELLOW;
-  for (i=0; i < NUM_STROKE_TOOLS; i++) {
-    b = &(ui.brushes[0][i]);
-    b->tool_type = i;
-    b->color_rgba = predef_colors_rgba[b->color_no];
-    if (i == TOOL_HIGHLIGHTER) {
-      b->color_rgba &= HILITER_ALPHA_MASK;
+  ui.cur_brush = &(ui.brushes[0][ui.toolno[0]]);
+  for (j=0; j<=NUM_BUTTONS; j++)
+    for (i=0; i < NUM_STROKE_TOOLS; i++) {
+      b = &(ui.brushes[j][i]);
+      b->tool_type = i;
+      b->color_rgba = predef_colors_rgba[b->color_no];
+      if (i == TOOL_HIGHLIGHTER) {
+        b->color_rgba &= HILITER_ALPHA_MASK;
+      }
+      b->thickness = predef_thickness[i][b->thickness_no];
     }
-    b->thickness_no = THICKNESS_MEDIUM;
-    b->thickness = predef_thickness[i][b->thickness_no];
-    b->tool_options = 0;
-    g_memmove(ui.default_brushes+i, b, sizeof(struct Brush));
-    for (j=1; j<=NUM_BUTTONS; j++) 
-      g_memmove(&(ui.brushes[j][i]), b, sizeof(struct Brush));
-  }
+  for (i=0; i<NUM_STROKE_TOOLS; i++)
+    g_memmove(ui.default_brushes+i, &(ui.brushes[0][i]), sizeof(struct Brush));
+
   ui.cur_mapping = 0;
-  ui.use_erasertip = FALSE;
 
   // initialize various interface elements
   
-  gtk_window_set_default_size(GTK_WINDOW (winMain), 720, 480);
+  gtk_window_set_default_size(GTK_WINDOW (winMain), ui.window_default_width, ui.window_default_height);
+  if (ui.maximize_at_start) gtk_window_maximize(GTK_WINDOW (winMain));
   update_toolbar_and_menu();
+
+  gtk_check_menu_item_set_active(
+    GTK_CHECK_MENU_ITEM(GET_COMPONENT("journalApplyAllPages")), ui.bg_apply_all_pages);
+  if (ui.fullscreen) {
+    gtk_check_menu_item_set_active(
+      GTK_CHECK_MENU_ITEM(GET_COMPONENT("viewFullscreen")), TRUE);
+    gtk_toggle_tool_button_set_active(
+      GTK_TOGGLE_TOOL_BUTTON(GET_COMPONENT("buttonFullscreen")), TRUE);
+    gtk_window_fullscreen(GTK_WINDOW(winMain));
+    gtk_widget_hide(GET_COMPONENT("menubar"));
+    gtk_widget_hide(GET_COMPONENT("hbox1"));
+  }
+
 
   // set up and initialize the canvas
 
@@ -149,8 +145,8 @@ void init_stuff (int argc, char *argv[])
   gtk_widget_set_extension_events(GTK_WIDGET (canvas), GDK_EXTENSION_EVENTS_ALL);
   gnome_canvas_set_pixels_per_unit (canvas, ui.zoom);
   gnome_canvas_set_center_scroll_region (canvas, TRUE);
-  gtk_layout_get_hadjustment(GTK_LAYOUT (canvas))->step_increment = 30;
-  gtk_layout_get_vadjustment(GTK_LAYOUT (canvas))->step_increment = 30;
+  gtk_layout_get_hadjustment(GTK_LAYOUT (canvas))->step_increment = ui.scrollbar_step_increment;
+  gtk_layout_get_vadjustment(GTK_LAYOUT (canvas))->step_increment = ui.scrollbar_step_increment;
 
   // set up the page size and canvas size
   update_page_stuff();
@@ -202,8 +198,6 @@ void init_stuff (int argc, char *argv[])
     gtk_widget_set_sensitive(GET_COMPONENT("optionsUseXInput"), FALSE);
 
   ui.use_xinput = ui.allow_xinput && can_xinput;
-  ui.antialias_bg = TRUE;
-  ui.progressive_bg = TRUE;
 
   gtk_check_menu_item_set_active(
     GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsUseXInput")), ui.use_xinput);
@@ -211,8 +205,15 @@ void init_stuff (int argc, char *argv[])
     GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsAntialiasBG")), ui.antialias_bg);
   gtk_check_menu_item_set_active(
     GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsProgressiveBG")), ui.progressive_bg);
+  gtk_check_menu_item_set_active(
+    GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsPrintRuling")), ui.print_ruling);
 
   hide_unimplemented();
+  
+  /* config file only works with glib 2.6 */
+  if (glib_minor_version<6) {
+    gtk_widget_hide(GET_COMPONENT("optionsSavePreferences"));
+  }
     
   update_undo_redo_enabled();
   update_copy_paste_enabled();
