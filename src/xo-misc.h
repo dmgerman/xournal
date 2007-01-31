@@ -48,6 +48,7 @@ void update_toolbar_and_menu(void);
 void update_file_name(char *filename);
 void update_undo_redo_enabled(void);
 void update_copy_paste_enabled(void);
+void update_vbox_order(int *order);
 
 void update_mapping_linkings(int toolno);
 void do_switch_page(int pg, gboolean rescroll, gboolean refresh_all);
@@ -70,6 +71,7 @@ void move_journal_items_by(GList *itemlist, double dx, double dy,
 
 void switch_mapping(int m);
 void process_mapping_activate(GtkMenuItem *menuitem, int m, int tool);
+
 
 // defines for paper rulings
 

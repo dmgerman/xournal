@@ -130,8 +130,6 @@ void init_stuff (int argc, char *argv[])
     gtk_toggle_tool_button_set_active(
       GTK_TOGGLE_TOOL_BUTTON(GET_COMPONENT("buttonFullscreen")), TRUE);
     gtk_window_fullscreen(GTK_WINDOW(winMain));
-    gtk_widget_hide(GET_COMPONENT("menubar"));
-    gtk_widget_hide(GET_COMPONENT("hbox1"));
   }
 
 
@@ -182,7 +180,7 @@ void init_stuff (int argc, char *argv[])
   dev_list = gdk_devices_list();
   while (dev_list != NULL) {
     device = (GdkDevice *)dev_list->data;
-    if (device->source != GDK_SOURCE_MOUSE) {
+    if (device != gdk_device_get_core_pointer()) {
       /* get around a GDK bug: map the valuator range CORRECTLY to [0,1] */
 #if ENABLE_XINPUT_BUGFIX
       gdk_device_set_axis_use(device, 0, GDK_AXIS_IGNORE);
@@ -191,7 +189,6 @@ void init_stuff (int argc, char *argv[])
       gdk_device_set_mode(device, GDK_MODE_SCREEN);
       can_xinput = TRUE;
     }
-    else gdk_device_set_mode(device, GDK_MODE_DISABLED);
     dev_list = dev_list->next;
   }
   if (!can_xinput)
@@ -217,6 +214,7 @@ void init_stuff (int argc, char *argv[])
     
   update_undo_redo_enabled();
   update_copy_paste_enabled();
+  update_vbox_order(ui.vertical_order[ui.fullscreen?1:0]);
 
   // show everything...
   
@@ -278,6 +276,7 @@ main (int argc, char *argv[])
   winMain = create_winMain ();
   
   init_stuff (argc, argv);
+  gtk_window_set_icon(GTK_WINDOW(winMain), create_pixbuf("xournal.png"));
   
   gtk_main ();
   

@@ -1,3 +1,11 @@
+Version 0.3.3 (Jan 31, 2007):
+  - bugfix: upon loading a new file, zoom is set to default startup zoom
+  - config option to allow input from a mouse or other core pointer device
+  - config file entry to specify a default location for open/save
+    (patch contributed by Andy Neitzke)
+  - config file entries to customize visibility and position of toolbars
+  - icon (thanks to Michele Codutti)
+
 Version 0.3.2 (Nov 25, 2006):
   - preferences file and Save Preferences command
   - extra customization (via preferences file)

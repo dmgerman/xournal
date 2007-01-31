@@ -25,7 +25,7 @@ on_fileNew_activate                    (GtkMenuItem     *menuitem,
 {
   if (close_journal()) {
     new_journal();
-    ui.zoom = DEFAULT_ZOOM;
+    ui.zoom = ui.startup_zoom;
     update_page_stuff();
     gtk_adjustment_set_value(gtk_layout_get_vadjustment(GTK_LAYOUT(canvas)), 0);
     gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
@@ -58,6 +58,8 @@ on_fileNewBackground_activate          (GtkMenuItem     *menuitem,
   gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (dialog), filt_pdf);
   gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (dialog), filt_all);
 
+  if (ui.default_path!=NULL) gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (dialog), ui.default_path);
+
   attach_opt = gtk_check_button_new_with_label("Attach file to the journal");
   gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(attach_opt), FALSE);
   gtk_file_chooser_set_extra_widget(GTK_FILE_CHOOSER (dialog), attach_opt);
@@ -81,7 +83,7 @@ on_fileNewBackground_activate          (GtkMenuItem     *menuitem,
     gtk_main_iteration(); 
   }
   new_journal();
-  ui.zoom = DEFAULT_ZOOM;
+  ui.zoom = ui.startup_zoom;
   gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
   update_page_stuff();
   success = init_bgpdf(filename, TRUE, file_domain);
@@ -123,7 +125,9 @@ on_fileOpen_activate                   (GtkMenuItem     *menuitem,
   gtk_file_filter_add_pattern(filt_xoj, "*.xoj");
   gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (dialog), filt_xoj);
   gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (dialog), filt_all);
-  
+
+  if (ui.default_path!=NULL) gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (dialog), ui.default_path);
+
   if (gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_OK) {
     gtk_widget_destroy(dialog);
     return;
@@ -202,6 +206,8 @@ on_fileSaveAs_activate                 (GtkMenuItem     *menuitem,
   else {
     curtime = time(NULL);
     strftime(stime, 30, "%F-Note-%H-%M.xoj", localtime(&curtime));
+    if (ui.default_path!=NULL)
+      gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (dialog), ui.default_path);
     gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (dialog), stime);
   }
      
@@ -379,6 +385,8 @@ on_filePrintPDF_activate               (GtkMenuItem     *menuitem,
   } else {
     curtime = time(NULL);
     strftime(stime, 30, "%F-Note-%H-%M.pdf", localtime(&curtime));
+    if (ui.default_path!=NULL)
+      gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (dialog), ui.default_path);
     gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (dialog), stime);
     in_fn = NULL;
   }
@@ -1340,7 +1348,7 @@ on_journalLoadBackground_activate      (GtkMenuItem     *menuitem,
   dialog = gtk_file_chooser_dialog_new("Open Background", GTK_WINDOW (winMain),
      GTK_FILE_CHOOSER_ACTION_OPEN, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
      GTK_STOCK_OPEN, GTK_RESPONSE_OK, NULL);
-     
+
   filt_all = gtk_file_filter_new();
   gtk_file_filter_set_name(filt_all, "All files");
   gtk_file_filter_add_pattern(filt_all, "*");
@@ -1366,6 +1374,8 @@ on_journalLoadBackground_activate      (GtkMenuItem     *menuitem,
   attach_opt = gtk_check_button_new_with_label("Attach file to the journal");
   gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(attach_opt), FALSE);
   gtk_file_chooser_set_extra_widget(GTK_FILE_CHOOSER (dialog), attach_opt);
+
+  if (ui.default_path!=NULL) gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (dialog), ui.default_path);
   
   if (gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_OK) {
     gtk_widget_destroy(dialog);
@@ -2090,17 +2100,20 @@ on_canvas_button_press_event           (GtkWidget       *widget,
   struct Page *tmppage;
   GtkWidget *dialog;
   int mapping;
-  
+  gboolean is_core;
+
   if (ui.cur_item_type != ITEM_NONE) return FALSE; // we're already doing something
   if (event->button > 3) return FALSE; // no painting with the mouse wheel!
 
-  if (ui.use_xinput) { 
-    if (event->device->source == GDK_SOURCE_MOUSE) return FALSE;
+  is_core = (event->device == gdk_device_get_core_pointer());
+  if (!ui.use_xinput && !is_core) return FALSE;
+  if (ui.use_xinput && is_core && ui.discard_corepointer) return FALSE;
+  if (!is_core) { 
     // re-get the axis values since Synaptics sends bogus ones
     gdk_device_get_state(event->device, event->window, event->axes, NULL);
     fix_xinput_coords((GdkEvent *)event);
   }
-  else if (event->device->source != GDK_SOURCE_MOUSE) return FALSE;
+  ui.is_corestroke = is_core;
 
   if (ui.use_erasertip && event->device->source == GDK_SOURCE_ERASER)
        mapping = NUM_BUTTONS;
@@ -2180,15 +2193,16 @@ on_canvas_button_release_event         (GtkWidget       *widget,
                                         GdkEventButton  *event,
                                         gpointer         user_data)
 {
+  gboolean is_core;
+  
   if (ui.cur_item_type == ITEM_NONE) return FALSE; // not doing anything
 
   if (event->button != ui.which_mouse_button) return FALSE; // ignore
 
-  if (ui.use_xinput) {
-    if (event->device->source == GDK_SOURCE_MOUSE) return FALSE;
-    fix_xinput_coords((GdkEvent *)event);
-  }
-  else if (event->device->source != GDK_SOURCE_MOUSE) return FALSE;
+  is_core = (event->device == gdk_device_get_core_pointer());
+  if (!ui.use_xinput && !is_core) return FALSE;
+  if (ui.use_xinput && is_core && !ui.is_corestroke) return FALSE;
+  if (!is_core) fix_xinput_coords((GdkEvent *)event);
 
   if (ui.cur_item_type == ITEM_STROKE) {
     finalize_stroke();
@@ -2246,16 +2260,15 @@ on_canvas_motion_notify_event          (GtkWidget       *widget,
                                         GdkEventMotion  *event,
                                         gpointer         user_data)
 {
-  gboolean looks_wrong;
+  gboolean looks_wrong, is_core;
   double pt[2];
   
   if (ui.cur_item_type == ITEM_NONE) return FALSE; // we don't care
 
-  if (ui.use_xinput) { 
-    if (event->device->source == GDK_SOURCE_MOUSE) return FALSE;
-    fix_xinput_coords((GdkEvent *)event);
-  }
-  else if (event->device->source != GDK_SOURCE_MOUSE) return FALSE;
+  is_core = (event->device == gdk_device_get_core_pointer());
+  if (!ui.use_xinput && !is_core) return FALSE;
+  if (ui.use_xinput && is_core && !ui.is_corestroke) return FALSE;
+  if (!is_core) fix_xinput_coords((GdkEvent *)event);
 
   looks_wrong = !(event->state & (1<<(7+ui.which_mouse_button)));
   
@@ -2347,6 +2360,7 @@ on_optionsUseXInput_activate           (GtkMenuItem     *menuitem,
 {
   ui.allow_xinput = ui.use_xinput =
     gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem));
+  update_mappings_menu();
 }
 
 void
@@ -2586,16 +2600,10 @@ on_viewFullscreen_activate             (GtkMenuItem     *menuitem,
   gtk_toggle_tool_button_set_active(
     GTK_TOGGLE_TOOL_BUTTON(GET_COMPONENT("buttonFullscreen")), ui.fullscreen);
 
-  if (ui.fullscreen) {
-    gtk_window_fullscreen(GTK_WINDOW(winMain));
-    gtk_widget_hide(GET_COMPONENT("menubar"));
-    gtk_widget_hide(GET_COMPONENT("hbox1"));
-  } 
-  else {
-    gtk_window_unfullscreen(GTK_WINDOW(winMain));
-    gtk_widget_show(GET_COMPONENT("menubar"));
-    gtk_widget_show(GET_COMPONENT("hbox1"));
-  }
+  if (ui.fullscreen) gtk_window_fullscreen(GTK_WINDOW(winMain));
+  else gtk_window_unfullscreen(GTK_WINDOW(winMain));
+  
+  update_vbox_order(ui.vertical_order[ui.fullscreen?1:0]);
 }
 
 
@@ -2989,3 +2997,11 @@ on_optionsPrintRuling_activate         (GtkMenuItem     *menuitem,
   ui.print_ruling = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem));
 }
 
+void
+on_optionsDiscardCore_activate         (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+  ui.discard_corepointer =
+    gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem));
+  update_mappings_menu();
+}

@@ -24,7 +24,7 @@
   Xournal User's Manual
 </h2>
 <p style="font-size: 0.95em; text-align: center; color: rgb(0,0,0)">
- Version 0.3.2
+ Version 0.3.3
 </p>
 <hr />
 <p>
@@ -38,6 +38,7 @@
 </p>
 <p>
 Xournal can be downloaded at
+<a href="http://xournal.sourceforge.net/">http://xournal.sourceforge.net/</a> or 
 <a href="http://math.mit.edu/~auroux/software/xournal/">http://math.mit.edu/~auroux/software/xournal/</a>
 </p>
 <p>
@@ -503,7 +504,8 @@ The configuration file also gives access to additional customization
 options which cannot be set from the user interface, such as: the
 display resolution in pixels per inch, the step increment in zoom factors,
 the tool selected at startup, the thickness of the various drawing tools,
-...
+the default directory for opening and saving files, the visibility and
+position of the menu and toolbars, ...
 </p>
 <hr />
 <a name="author"></a>
@@ -527,6 +529,17 @@ Bug reports and suggestions can also be submitted on Xournal's
 <hr />
 <a name="changelog"></a>
 <h2 class="subtitle">Version history</h2>
+<p>
+Version 0.3.3 (January 31, 2007):
+<ul>
+ <li>bugfix: upon loading a new file, zoom is set to default startup zoom</li>
+ <li>config option to allow input from a mouse or other core pointer device</li>
+ <li>config file entry to specify a default location for open/save
+     (patch contributed by Andy Neitzke)</li>
+ <li>config file entries to customize visibility and position of toolbars</li>
+ <li>icon (thanks to Michele Codutti)</li>
+</ul>
+</p>
 <p>
 Version 0.3.2 (November 25, 2006):
 <ul>
@@ -883,6 +896,20 @@ installation instructions specific to your model: for example, the
 use USB instead; the BottomX and BottomY values correspond to the physical
 resolution of the tablet and will vary from one model to another.
 </p>
+<p>
+For historical reasons, most X servers do not allow the input device
+designated as the "core pointer" in the X server's configuration file
+to be used as an XInput extension device. Thus, your tablet input devices
+should <b>not</b> be designated as the core pointer device. Instead, they
+should be configured with the "SendCoreEvents" option, which enables them
+to simultaneously generate XInput extension events and move the cursor on
+the screen. Since high-resolution coordinates cannot be obtained for the
+core pointer device, it is disabled in Xournal by default. 
+Starting with version 0.3.3,
+it is possible to have core events processed alongside with extension
+events (uncheck "Discard Core Events" in the Options menu); however, in
+some rare cases this may lead to a loss of resolution on all devices.
+</p>
 <h3 class="subsub">The cursor doesn't appear in the right place...</h3>
 <p>
 If the mouse pointer does not follow accurately the position of the stylus,
@@ -976,10 +1003,10 @@ Exit Xournal and restart it after the display has been rotated.
 This patch fixes rotation and calibration issues with the linuxwacom driver
 version 0.7.0.
 <ul>
-<li>The <a href="http://math.mit.edu/~auroux/software/xournal/linuxwacom-0.7.0-rotate-patch">patch
+<li>The <a href="http://xournal.sourceforge.net/linuxwacom-0.7.0-rotate-patch">patch
 file</a> for the linuxwacom source code (also included with the Xournal
 distribution).</li>
-<li>The <a href="http://math.mit.edu/~auroux/software/xournal/linuxwacom-rotate-patch.tar.gz">patched
+<li>The <a href="http://xournal.sourceforge.net/linuxwacom-rotate-patch.tar.gz">patched
 binaries</a> for the X.org X server.</li>
 </ul>
 This patch has been included in version 0.7.6 of the linuxwacom driver,

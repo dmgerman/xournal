@@ -17,6 +17,8 @@
 #define DISPLAY_DPI_DEFAULT 96.0
 #define MIN_ZOOM 0.2
 
+#define VBOX_MAIN_NITEMS 5 // number of interface items in vboxMain
+
 /* a string (+ aux data) that maintains a refcount */
 
 typedef struct Refstring {
@@ -203,9 +205,12 @@ typedef struct UIData {
   double zoom; // zoom factor, in pixels per pt
   gboolean use_xinput; // use input devices instead of core pointer
   gboolean allow_xinput; // allow use of xinput ?
+  gboolean discard_corepointer; // discard core pointer events in XInput mode
+  gboolean is_corestroke; // this stroke is painted with core pointer
   int screen_width, screen_height; // initial screen size, for XInput events
   double hand_refpt[2];
   char *filename;
+  gchar *default_path; // default path for new notes
   gboolean view_continuous, fullscreen, maximize_at_start;
   gboolean in_update_page_stuff; // semaphore to avoid scrollbar retroaction
   struct Selection *selection;
@@ -223,9 +228,11 @@ typedef struct UIData {
   gboolean startupruler;
   int zoom_step_increment; // the increment in the zoom dialog box
   double zoom_step_factor; // the multiplicative factor in zoom in/out
+  double startup_zoom;
 #if GLIB_CHECK_VERSION(2,6,0)
   GKeyFile *config_data;
 #endif
+  int vertical_order[2][VBOX_MAIN_NITEMS]; // the order of interface components
 } UIData;
 
 #define BRUSH_LINKED 0

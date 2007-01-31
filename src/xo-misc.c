@@ -532,7 +532,7 @@ void rescale_bg_pixmaps(void)
     // in progressive mode we scale only visible pages
     if (ui.progressive_bg && !is_visible(pg)) continue;
 
-    if (pg->bg->type == BG_PIXMAP) { // do the rescaling ourselves
+    if (pg->bg->type == BG_PIXMAP && pg->bg->canvas_item!=NULL) { // do the rescaling ourselves
       if (ui.antialias_bg) {
         if (pg->bg->pixbuf_scale == ui.zoom) continue;
         set_cursor_busy(TRUE);
@@ -927,8 +927,12 @@ void update_mappings_menu_linkings(void)
 
 void update_mappings_menu(void)
 {
+  gtk_widget_set_sensitive(GET_COMPONENT("optionsButtonMappings"), ui.use_xinput);
+  gtk_widget_set_sensitive(GET_COMPONENT("optionsDiscardCoreEvents"), ui.use_xinput);
   gtk_check_menu_item_set_active(
     GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsButtonMappings")), ui.use_erasertip);
+  gtk_check_menu_item_set_active(
+    GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsDiscardCoreEvents")), ui.discard_corepointer);
 
   switch(ui.toolno[1]) {
     case TOOL_PEN:
@@ -1531,3 +1535,29 @@ void process_mapping_activate(GtkMenuItem *menuitem, int m, int tool)
     update_mappings_menu_linkings();
   }
 }
+
+// update the ordering of components in the main vbox
+
+const char *vbox_component_names[VBOX_MAIN_NITEMS]=
+ {"scrolledwindowMain", "menubar", "toolbarMain", "toolbarPen", "hbox1"};
+
+void update_vbox_order(int *order)
+{
+  int i, j;
+  GtkWidget *child;
+  GtkBox *vboxMain = GTK_BOX(GET_COMPONENT("vboxMain"));
+  gboolean present[VBOX_MAIN_NITEMS];
+  
+  for (i=0; i<VBOX_MAIN_NITEMS; i++) present[i] = FALSE;
+  j=0;
+  for (i=0; i<VBOX_MAIN_NITEMS; i++) {
+    if (order[i]<0 || order[i]>=VBOX_MAIN_NITEMS) continue;
+    present[order[i]] = TRUE;
+    child = GET_COMPONENT(vbox_component_names[order[i]]);
+    gtk_box_reorder_child(vboxMain, child, j++);
+    gtk_widget_show(child);
+  }
+  for (i=1; i<VBOX_MAIN_NITEMS; i++) // hide others, but not the drawing area!
+    if (!present[i]) gtk_widget_hide(GET_COMPONENT(vbox_component_names[i]));
+}
+

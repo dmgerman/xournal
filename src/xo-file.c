@@ -619,7 +619,7 @@ gboolean open_journal(char *filename)
     close_journal();
     while (bgpdf.status != STATUS_NOT_INIT) gtk_main_iteration();
     new_journal();
-    ui.zoom = DEFAULT_ZOOM;
+    ui.zoom = ui.startup_zoom;
     gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
     update_page_stuff();
     return init_bgpdf(filename, TRUE, DOMAIN_ABSOLUTE);
@@ -664,7 +664,7 @@ gboolean open_journal(char *filename)
   ui.layerno = ui.cur_page->nlayers-1;
   ui.cur_layer = (struct Layer *)(g_list_last(ui.cur_page->layers)->data);
   ui.saved = TRUE;
-  ui.zoom = DEFAULT_ZOOM;
+  ui.zoom = ui.startup_zoom;
   update_file_name(g_strdup(filename));
   gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
   make_canvas_items();
@@ -1066,7 +1066,7 @@ gboolean init_bgpdf(char *pdfname, gboolean create_pages, int file_domain)
   bgpdf.requests = NULL;
   bgpdf.create_pages = create_pages;
   bgpdf.has_failed = FALSE;
-  add_bgpdf_request(-1, DEFAULT_ZOOM, FALSE); // request all pages
+  add_bgpdf_request(-1, ui.startup_zoom, FALSE); // request all pages
   return TRUE;
 }
 
@@ -1091,7 +1091,7 @@ void bgpdf_create_page_with_bg(int pageno, struct BgPdfPage *bgpg)
   bg->filename = refstring_ref(bgpdf.filename);
   bg->file_domain = bgpdf.file_domain;
   bg->file_page_seq = pageno;
-  bg->pixbuf_scale = DEFAULT_ZOOM;
+  bg->pixbuf_scale = ui.startup_zoom;
   bg->pixbuf_dpi = bgpg->dpi;
 
   if (journal.npages < pageno) {
@@ -1222,7 +1222,7 @@ void init_config_default(void)
   int i, j;
 
   DEFAULT_ZOOM = DISPLAY_DPI_DEFAULT/72.0;
-  ui.zoom = 1.0*DEFAULT_ZOOM;
+  ui.zoom = ui.startup_zoom = 1.0*DEFAULT_ZOOM;
   ui.default_page.height = 792.0;
   ui.default_page.width = 612.0;
   ui.default_page.bg->type = BG_SOLID;
@@ -1231,6 +1231,7 @@ void init_config_default(void)
   ui.default_page.bg->ruling = RULING_LINED;
   ui.view_continuous = TRUE;
   ui.allow_xinput = TRUE;
+  ui.discard_corepointer = TRUE;
   ui.bg_apply_all_pages = FALSE;
   ui.use_erasertip = FALSE;
   ui.window_default_width = 720;
@@ -1244,6 +1245,18 @@ void init_config_default(void)
   ui.progressive_bg = TRUE;
   ui.print_ruling = TRUE;
   ui.default_unit = UNIT_CM;
+  ui.default_path = NULL;
+  
+  // the default UI vertical order
+  ui.vertical_order[0][0] = 1; 
+  ui.vertical_order[0][1] = 2; 
+  ui.vertical_order[0][2] = 3; 
+  ui.vertical_order[0][3] = 0; 
+  ui.vertical_order[0][4] = 4;
+  ui.vertical_order[1][0] = 2;
+  ui.vertical_order[1][1] = 3;
+  ui.vertical_order[1][2] = 0;
+  ui.vertical_order[1][3] = ui.vertical_order[1][4] = -1;
 
   ui.toolno[0] = ui.startuptool = TOOL_PEN;
   ui.ruler[0] = ui.startupruler = FALSE;
@@ -1265,7 +1278,6 @@ void init_config_default(void)
       g_memmove(&(ui.brushes[j][i]), &(ui.brushes[0][i]), sizeof(struct Brush));
 
   // predef_thickness is already initialized as a global variable
-
   GS_BITMAP_DPI = 144;
   PDFTOPPM_PRINTING_DPI = 150;
 }
@@ -1283,6 +1295,23 @@ void update_keyval(const gchar *group_name, const gchar *key,
 }
 
 #endif
+
+const char *vorder_usernames[VBOX_MAIN_NITEMS+1] = 
+  {"drawarea", "menu", "main_toolbar", "pen_toolbar", "statusbar", NULL};
+  
+gchar *verbose_vertical_order(int *order)
+{
+  gchar buf[80], *p; // longer than needed
+  int i;
+
+  p = buf;  
+  for (i=0; i<VBOX_MAIN_NITEMS; i++) {
+    if (order[i]<0 || order[i]>=VBOX_MAIN_NITEMS) continue;
+    if (p!=buf) *(p++) = ' ';
+    p = g_stpcpy(p, vorder_usernames[order[i]]);
+  }
+  return g_strdup(buf);
+}
 
 void save_config_to_file(void)
 {
@@ -1332,9 +1361,21 @@ void save_config_to_file(void)
   update_keyval("general", "use_xinput",
     " use XInput extensions (true/false)",
     g_strdup(ui.allow_xinput?"true":"false"));
+  update_keyval("general", "discard_corepointer",
+    " discard Core Pointer events in XInput mode (true/false)",
+    g_strdup(ui.discard_corepointer?"true":"false"));
   update_keyval("general", "use_erasertip",
     " always map eraser tip to eraser (true/false)",
     g_strdup(ui.use_erasertip?"true":"false"));
+  update_keyval("general", "default_path",
+    " default path for open/save (leave blank for current directory)",
+    g_strdup((ui.default_path!=NULL)?ui.default_path:""));
+  update_keyval("general", "interface_order",
+    " interface components from top to bottom\n valid values: drawarea menu main_toolbar pen_toolbar statusbar",
+    verbose_vertical_order(ui.vertical_order[0]));
+  update_keyval("general", "interface_fullscreen",
+    " interface components in fullscreen mode, from top to bottom",
+    verbose_vertical_order(ui.vertical_order[1]));
 
   update_keyval("paper", "width",
     " the default page width, in points (1/72 in)",
@@ -1545,6 +1586,50 @@ gboolean parse_keyval_boolean(const gchar *group, const gchar *key, gboolean *va
   return FALSE;
 }
 
+gboolean parse_keyval_string(const gchar *group, const gchar *key, gchar **val)
+{
+  gchar *ret;
+  
+  ret = g_key_file_get_value(ui.config_data, group, key, NULL);
+  if (ret==NULL) return FALSE;
+  if (strlen(ret) == 0) {
+    *val = NULL;
+    g_free(ret);
+  } 
+  else *val = ret;
+  return TRUE;
+}
+
+gboolean parse_keyval_vorderlist(const gchar *group, const gchar *key, int *order)
+{
+  gchar *ret, *p;
+  int tmp[VBOX_MAIN_NITEMS];
+  int i, n, found, l;
+
+  ret = g_key_file_get_value(ui.config_data, group, key, NULL);
+  if (ret==NULL) return FALSE;
+  
+  for (i=0; i<VBOX_MAIN_NITEMS; i++) tmp[i] = -1;
+  n = 0; p = ret;
+  while (*p==' ') p++;
+  while (*p!=0) {
+    if (n>VBOX_MAIN_NITEMS) return FALSE; // too many items
+    for (i=0; i<VBOX_MAIN_NITEMS; i++) {
+      if (!g_str_has_prefix(p, vorder_usernames[i])) continue;
+      l = strlen(vorder_usernames[i]);
+      if (p[l]==' '||p[l]==0) { p+=l; break; }
+    }
+    if (i>=VBOX_MAIN_NITEMS) { g_free(ret); return FALSE; } // parse error
+    // we found item #i
+    tmp[n++] = i;
+    while (*p==' ') p++;
+  }
+  
+  for (n=0; n<VBOX_MAIN_NITEMS; n++) order[n] = tmp[n];
+  g_free(ret);
+  return TRUE;
+}
+
 #endif
 
 void load_config_from_file(void)
@@ -1573,7 +1658,7 @@ void load_config_from_file(void)
     DEFAULT_ZOOM = f/72.0;
   if (parse_keyval_float("general", "initial_zoom", &f, 
               MIN_ZOOM*100/DEFAULT_ZOOM, MAX_ZOOM*100/DEFAULT_ZOOM))
-    ui.zoom = DEFAULT_ZOOM*f/100.0;
+    ui.zoom = ui.startup_zoom = DEFAULT_ZOOM*f/100.0;
   parse_keyval_boolean("general", "window_maximize", &ui.maximize_at_start);
   parse_keyval_boolean("general", "window_fullscreen", &ui.fullscreen);
   parse_keyval_int("general", "window_width", &ui.window_default_width, 10, 5000);
@@ -1583,8 +1668,12 @@ void load_config_from_file(void)
   parse_keyval_float("general", "zoom_step_factor", &ui.zoom_step_factor, 1., 5.);
   parse_keyval_boolean("general", "view_continuous", &ui.view_continuous);
   parse_keyval_boolean("general", "use_xinput", &ui.allow_xinput);
+  parse_keyval_boolean("general", "discard_corepointer", &ui.discard_corepointer);
   parse_keyval_boolean("general", "use_erasertip", &ui.use_erasertip);
-
+  parse_keyval_string("general", "default_path", &ui.default_path);
+  parse_keyval_vorderlist("general", "interface_order", ui.vertical_order[0]);
+  parse_keyval_vorderlist("general", "interface_fullscreen", ui.vertical_order[1]);
+  
   parse_keyval_float("paper", "width", &ui.default_page.width, 1., 5000.);
   parse_keyval_float("paper", "height", &ui.default_page.height, 1., 5000.);
   parse_keyval_enum("paper", "color", &(ui.default_page.bg->color_no), bgcolor_names, COLOR_MAX);
