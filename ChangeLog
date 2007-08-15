@@ -1,3 +1,12 @@
+Version 0.4 (Aug 15, 2007):
+  - text tool (handles most TrueType and Type1 fonts)
+  - font selection dialog and button
+  - keyboard mappings (arrow keys)
+  - menu mnemonics and shortcuts (suggestions by Jean-Baptiste Rouquier)
+  - more responsive hand tool
+  - bugfix for GTK+ 2.11 XInput behavior (thanks to Robert Gerlach)
+  - various minor bugfixes and enhancements
+
 Version 0.3.3 (Jan 31, 2007):
   - bugfix: upon loading a new file, zoom is set to default startup zoom
   - config option to allow input from a mouse or other core pointer device

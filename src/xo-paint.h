@@ -22,3 +22,16 @@ void clipboard_paste(void);
 
 void recolor_selection(int color);
 void rethicken_selection(int val);
+
+/* text functions */
+
+#define DEFAULT_FONT "Sans"
+#define DEFAULT_FONT_SIZE 12
+
+void start_text(GdkEvent *event, struct Item *item);
+void end_text(void);
+void update_text_item_displayfont(struct Item *item);
+void rescale_text_items(void);
+struct Item *click_is_in_text(struct Layer *layer, double x, double y);
+void refont_text_item(struct Item *item, gchar *font_name, double font_size);
+void process_font_sel(gchar *str);

@@ -26,6 +26,25 @@ typedef struct PdfObj {
   char **names;
 } PdfObj;
 
+typedef struct PdfFont {
+  int n_obj;
+  gboolean used_in_this_page;
+  unsigned char *filename;
+  int font_id;
+  gboolean is_truetype;
+  int glyph_page;
+  int glyphmap[256];
+  int advance[256];
+  char *glyphpsnames[256];
+  int num_glyphs_used;
+  // fields from the FT_Face
+  gdouble ft2ps;
+  int nglyphs;
+  int ascender, descender, xmin, xmax, ymin, ymax; // in PDF font units
+  gchar *fontname;
+  int flags;
+} PdfFont;
+
 #define PDFTYPE_CST 0    // intval: true=1, false=0, null=-1
 #define PDFTYPE_INT 1    // intval
 #define PDFTYPE_REAL 2   // realval

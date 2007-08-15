@@ -1,6 +1,11 @@
 #include <gtk/gtk.h>
 #include <libgnomecanvas/libgnomecanvas.h>
 
+#define ENABLE_XINPUT_BUGFIX
+/* comment out this line if you are experiencing calibration problems with
+   XInput and want to try things differently. This will probably break
+   on-the-fly display rotation after application startup, though. */
+
 // PREF FILES INFO
 
 #define CONFIG_DIR ".xournal"
@@ -109,8 +114,6 @@ extern guint predef_bgcolors_rgba[COLOR_MAX];
 #define TOOLOPT_ERASER_WHITEOUT     1
 #define TOOLOPT_ERASER_STROKES      2
 
-#define HILITER_ALPHA_MASK 0xffffff80
-
 extern double predef_thickness[NUM_STROKE_TOOLS][THICKNESS_MAX];
 
 typedef struct BBox {
@@ -122,10 +125,16 @@ struct UndoErasureData;
 typedef struct Item {
   int type;
   struct Brush brush; // the brush to use, if ITEM_STROKE
+  // 'brush" also contains color info for text items
   GnomeCanvasPoints *path;
   GnomeCanvasItem *canvas_item; // the corresponding canvas item, or NULL
   struct BBox bbox;
   struct UndoErasureData *erasure; // for temporary use during erasures
+  // the following fields for ITEM_TEXT:
+  gchar *text;
+  gchar *font_name;
+  gdouble font_size;
+  GtkWidget *widget; // the widget while text is being edited (ITEM_TEMP_TEXT)
 } Item;
 
 // item type values for Item.type, UndoItem.type, ui.cur_item_type ...
@@ -148,6 +157,10 @@ typedef struct Item {
 #define ITEM_REPAINTSEL 15
 #define ITEM_MOVESEL_VERT 16
 #define ITEM_HAND 17
+#define ITEM_TEXT 18
+#define ITEM_TEMP_TEXT 19
+#define ITEM_TEXT_EDIT 20
+#define ITEM_TEXT_ATTRIB 21
 
 typedef struct Layer {
   GList *items; // the items on the layer, from bottom to top
@@ -209,6 +222,8 @@ typedef struct UIData {
   gboolean is_corestroke; // this stroke is painted with core pointer
   int screen_width, screen_height; // initial screen size, for XInput events
   double hand_refpt[2];
+  int hand_scrollto_cx, hand_scrollto_cy;
+  gboolean hand_scrollto_pending;
   char *filename;
   gchar *default_path; // default path for new notes
   gboolean view_continuous, fullscreen, maximize_at_start;
@@ -233,6 +248,11 @@ typedef struct UIData {
   GKeyFile *config_data;
 #endif
   int vertical_order[2][VBOX_MAIN_NITEMS]; // the order of interface components
+  gchar *default_font_name, *font_name;
+  gdouble default_font_size, font_size;
+  gulong resize_signal_handler;
+  gdouble hiliter_opacity;
+  guint hiliter_alpha_mask;
 } UIData;
 
 #define BRUSH_LINKED 0
@@ -248,8 +268,8 @@ typedef struct UndoErasureData {
 
 typedef struct UndoItem {
   int type;
-  struct Item *item; // for ITEM_STROKE
-  struct Layer *layer; // for ITEM_STROKE, ITEM_ERASURE, ITEM_PASTE, ITEM_NEW_LAYER, ITEM_DELETE_LAYER, ITEM_MOVESEL
+  struct Item *item; // for ITEM_STROKE, ITEM_TEXT, ITEM_TEXT_EDIT, ITEM_TEXT_ATTRIB
+  struct Layer *layer; // for ITEM_STROKE, ITEM_ERASURE, ITEM_PASTE, ITEM_NEW_LAYER, ITEM_DELETE_LAYER, ITEM_MOVESEL, ITEM_TEXT, ITEM_TEXT_EDIT
   struct Layer *layer2; // for ITEM_DELETE_LAYER with val=-1, ITEM_MOVESEL
   struct Page *page;  // for ITEM_NEW_BG_ONE/RESIZE, ITEM_NEW_PAGE, ITEM_NEW_LAYER, ITEM_DELETE_LAYER, ITEM_DELETE_PAGE
   GList *erasurelist; // for ITEM_ERASURE
@@ -257,7 +277,9 @@ typedef struct UndoItem {
   GList *auxlist;   // for ITEM_REPAINTSEL (brushes), ITEM_MOVESEL (depths)
   struct Background *bg;  // for ITEM_NEW_BG_ONE/RESIZE, ITEM_NEW_DEFAULT_BG
   int val; // for ITEM_NEW_PAGE, ITEM_NEW_LAYER, ITEM_DELETE_LAYER, ITEM_DELETE_PAGE
-  double val_x, val_y; // for ITEM_MOVESEL, ITEM_NEW_BG_RESIZE, ITEM_PAPER_RESIZE, ITEM_NEW_DEFAULT_BG
+  double val_x, val_y; // for ITEM_MOVESEL, ITEM_NEW_BG_RESIZE, ITEM_PAPER_RESIZE, ITEM_NEW_DEFAULT_BG, ITEM_TEXT_ATTRIB
+  gchar *str; // for ITEM_TEXT_EDIT, ITEM_TEXT_ATTRIB
+  struct Brush *brush; // for ITEM_TEXT_ATTRIB
   struct UndoItem *next;
   int multiop;
 } UndoItem;

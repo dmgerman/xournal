@@ -6,6 +6,7 @@
 #include <string.h>
 #include <gtk/gtk.h>
 #include <libgnomecanvas/libgnomecanvas.h>
+#include <gdk/gdkkeysyms.h>
 
 #include "xournal.h"
 #include "xo-interface.h"
@@ -126,6 +127,11 @@ void clear_redo_stack(void)
       g_free(redo->item);
       /* the strokes are unmapped, so there are no associated canvas items */
     }
+    else if (redo->type == ITEM_TEXT) {
+      g_free(redo->item->text);
+      g_free(redo->item->font_name);
+      g_free(redo->item);
+    }
     else if (redo->type == ITEM_ERASURE) {
       for (list = redo->erasurelist; list!=NULL; list=list->next) {
         erasure = (struct UndoErasureData *)list->data;
@@ -165,6 +171,10 @@ void clear_redo_stack(void)
     else if (redo->type == ITEM_NEW_LAYER) {
       g_free(redo->layer);
     }
+    else if (redo->type == ITEM_TEXT_EDIT || redo->type == ITEM_TEXT_ATTRIB) {
+      g_free(redo->str);
+      if (redo->type == ITEM_TEXT_ATTRIB) g_free(redo->brush);
+    }
 
     u = redo;
     redo = redo->next;
@@ -185,7 +195,10 @@ void clear_undo_stack(void)
     if (undo->type == ITEM_ERASURE) {
       for (list = undo->erasurelist; list!=NULL; list=list->next) {
         erasure = (struct UndoErasureData *)list->data;
-        gnome_canvas_points_free(erasure->item->path);
+        if (erasure->item->type == ITEM_STROKE)
+          gnome_canvas_points_free(erasure->item->path);
+        if (erasure->item->type == ITEM_TEXT)
+          { g_free(erasure->item->text); g_free(erasure->item->font_name); }
         g_free(erasure->item);
         g_list_free(erasure->replacement_items);
         g_free(erasure);
@@ -213,6 +226,10 @@ void clear_undo_stack(void)
     else if (undo->type == ITEM_DELETE_PAGE) {
       undo->page->group = NULL;
       delete_page(undo->page);
+    }
+    else if (undo->type == ITEM_TEXT_EDIT || undo->type == ITEM_TEXT_ATTRIB) {
+      g_free(undo->str);
+      if (undo->type == ITEM_TEXT_ATTRIB) g_free(undo->brush);
     }
 
     u = undo;
@@ -260,6 +277,9 @@ void delete_layer(struct Layer *l)
     item = (struct Item *)l->items->data;
     if (item->type == ITEM_STROKE && item->path != NULL) 
       gnome_canvas_points_free(item->path);
+    if (item->type == ITEM_TEXT) {
+      g_free(item->font_name); g_free(item->text);
+    }
     // don't need to delete the canvas_item, as it's part of the group destroyed below
     g_free(item);
     l->items = g_list_delete_link(l->items, l->items);
@@ -310,10 +330,11 @@ void get_pointer_coords(GdkEvent *event, gdouble *ret)
 
 void fix_xinput_coords(GdkEvent *event)
 {
+#ifdef ENABLE_XINPUT_BUGFIX
   double *axes, *px, *py, axis_width;
   GdkDevice *device;
   int wx, wy, sx, sy;
-  
+
   if (event->type == GDK_BUTTON_PRESS || event->type == GDK_BUTTON_RELEASE) {
     axes = event->button.axes;
     px = &(event->button.x);
@@ -329,7 +350,9 @@ void fix_xinput_coords(GdkEvent *event)
   else return; // nothing we know how to do
   
   gdk_window_get_origin(event->any.window, &wx, &wy);
-  gnome_canvas_get_scroll_offsets(canvas, &sx, &sy);
+  // somehow, behavior changed starting with GTK+ 2.11.0
+  if (!gtk_check_version(2, 11, 0)) sx = sy = 0;
+  else gnome_canvas_get_scroll_offsets(canvas, &sx, &sy);
   
   axis_width = device->axes[0].max - device->axes[0].min;
   if (axis_width>EPSILON)
@@ -338,12 +361,13 @@ void fix_xinput_coords(GdkEvent *event)
   axis_width = device->axes[1].max - device->axes[1].min;
   if (axis_width>EPSILON)
     *py = (axes[1]/axis_width)*ui.screen_height + sy - wy;
+#endif
 }
 
 void update_item_bbox(struct Item *item)
 {
   int i;
-  double *p;
+  gdouble *p, h, w;
   
   if (item->type == ITEM_STROKE) {
     item->bbox.left = item->bbox.right = item->path->coords[0];
@@ -355,6 +379,12 @@ void update_item_bbox(struct Item *item)
       if (p[1] < item->bbox.top) item->bbox.top = p[1];
       if (p[1] > item->bbox.bottom) item->bbox.bottom = p[1];
     }
+  }
+  if (item->type == ITEM_TEXT && item->canvas_item!=NULL) {
+    h=0.; w=0.;
+    g_object_get(item->canvas_item, "text_width", &w, "text_height", &h, NULL);
+    item->bbox.right = item->bbox.left + w;
+    item->bbox.bottom = item->bbox.top + h;
   }
 }
 
@@ -370,6 +400,30 @@ void make_page_clipbox(struct Page *pg)
   gnome_canvas_path_def_closepath(pg_clip);
   gnome_canvas_item_set(GNOME_CANVAS_ITEM(pg->group), "path", pg_clip, NULL);
   gnome_canvas_path_def_unref(pg_clip);
+}
+
+void make_canvas_item_one(GnomeCanvasGroup *group, struct Item *item)
+{
+  GnomeCanvasItem *i;
+  PangoFontDescription *font_desc;
+
+  if (item->type == ITEM_STROKE)
+    item->canvas_item = gnome_canvas_item_new(group,
+          gnome_canvas_line_get_type(), "points", item->path,   
+          "cap-style", GDK_CAP_ROUND, "join-style", GDK_JOIN_ROUND,
+          "fill-color-rgba", item->brush.color_rgba,  
+          "width-units", item->brush.thickness, NULL);
+  if (item->type == ITEM_TEXT) {
+    font_desc = pango_font_description_from_string(item->font_name);
+    pango_font_description_set_absolute_size(font_desc, 
+            item->font_size*ui.zoom*PANGO_SCALE);
+    item->canvas_item = gnome_canvas_item_new(group,
+          gnome_canvas_text_get_type(),
+          "x", item->bbox.left, "y", item->bbox.top, "anchor", GTK_ANCHOR_NW,
+          "font-desc", font_desc, "fill-color-rgba", item->brush.color_rgba,
+          "text", item->text, NULL);
+    update_item_bbox(item);
+  }
 }
 
 void make_canvas_items(void)
@@ -394,13 +448,8 @@ void make_canvas_items(void)
            pg->group, gnome_canvas_group_get_type(), NULL);
       for (itemlist = l->items; itemlist!=NULL; itemlist = itemlist->next) {
         item = (struct Item *)itemlist->data;
-        if (item->type == ITEM_STROKE && item->canvas_item == NULL) {
-          item->canvas_item = gnome_canvas_item_new(l->group,
-              gnome_canvas_line_get_type(), "points", item->path,
-              "cap-style", GDK_CAP_ROUND, "join-style", GDK_JOIN_ROUND,
-              "fill-color-rgba", item->brush.color_rgba,
-              "width-units", item->brush.thickness, NULL);
-        }
+        if (item->canvas_item == NULL)
+          make_canvas_item_one(l->group, item);
       }
     }
   }
@@ -586,6 +635,14 @@ void lower_canvas_item_to(GnomeCanvasGroup *g, GnomeCanvasItem *item, GnomeCanva
   g->item_list_end = g_list_last(g->item_list);
 }
 
+void rgb_to_gdkcolor(guint rgba, GdkColor *color)
+{
+  color->pixel = 0;
+  color->red = ((rgba>>24)&0xff)*0x101;
+  color->green = ((rgba>>16)&0xff)*0x101;
+  color->blue = ((rgba>>8)&0xff)*0x101;
+}
+
 // some interface functions
 
 void update_thickness_buttons(void)
@@ -616,7 +673,7 @@ void update_thickness_buttons(void)
 void update_color_buttons(void)
 {
   if (ui.selection!=NULL || (ui.toolno[ui.cur_mapping] != TOOL_PEN 
-                          && ui.toolno[ui.cur_mapping] != TOOL_HIGHLIGHTER)) {
+      && ui.toolno[ui.cur_mapping] != TOOL_HIGHLIGHTER && ui.toolno[ui.cur_mapping] != TOOL_TEXT)) {
     gtk_toggle_tool_button_set_active(
       GTK_TOGGLE_TOOL_BUTTON(GET_COMPONENT("buttonColorOther")), TRUE);
   } else
@@ -766,7 +823,7 @@ void update_ruler_indicator(void)
 void update_color_menu(void)
 {
   if (ui.selection!=NULL || (ui.toolno[ui.cur_mapping] != TOOL_PEN 
-                          && ui.toolno[ui.cur_mapping] != TOOL_HIGHLIGHTER)) {
+    && ui.toolno[ui.cur_mapping] != TOOL_HIGHLIGHTER && ui.toolno[ui.cur_mapping] != TOOL_TEXT)) {
     gtk_check_menu_item_set_active(
       GTK_CHECK_MENU_ITEM(GET_COMPONENT("colorNA")), TRUE);
   } else
@@ -928,7 +985,8 @@ void update_mappings_menu_linkings(void)
 void update_mappings_menu(void)
 {
   gtk_widget_set_sensitive(GET_COMPONENT("optionsButtonMappings"), ui.use_xinput);
-  gtk_widget_set_sensitive(GET_COMPONENT("optionsDiscardCoreEvents"), ui.use_xinput);
+  gtk_widget_set_sensitive(GET_COMPONENT("optionsDiscardCoreEvents"), 
+    ui.use_xinput && (gtk_check_version(2, 11, 0)!=NULL));
   gtk_check_menu_item_set_active(
     GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsButtonMappings")), ui.use_erasertip);
   gtk_check_menu_item_set_active(
@@ -999,7 +1057,7 @@ void update_mappings_menu(void)
 
 void do_switch_page(int pg, gboolean rescroll, gboolean refresh_all)
 {
-  int i;
+  int i, cx, cy;
   struct Layer *layer;
   GList *list;
   
@@ -1020,8 +1078,13 @@ void do_switch_page(int pg, gboolean rescroll, gboolean refresh_all)
   if (ui.progressive_bg) rescale_bg_pixmaps();
  
   if (rescroll) { // scroll and force a refresh
+/* -- this seems to cause some display bugs ??
     gtk_adjustment_set_value(gtk_layout_get_vadjustment(GTK_LAYOUT(canvas)),
-      ui.cur_page->voffset*ui.zoom);
+      ui.cur_page->voffset*ui.zoom);  */
+    gnome_canvas_get_scroll_offsets(canvas, &cx, &cy);
+    cy = ui.cur_page->voffset*ui.zoom;
+    gnome_canvas_scroll_to(canvas, cx, cy);
+    
     if (refresh_all) 
       gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
     else if (!ui.view_continuous)
@@ -1232,9 +1295,11 @@ void update_copy_paste_enabled(void)
 {
   gtk_widget_set_sensitive(GET_COMPONENT("editCut"), ui.selection!=NULL);
   gtk_widget_set_sensitive(GET_COMPONENT("editCopy"), ui.selection!=NULL);
+  gtk_widget_set_sensitive(GET_COMPONENT("editPaste"), ui.cur_item_type!=ITEM_TEXT);
   gtk_widget_set_sensitive(GET_COMPONENT("editDelete"), ui.selection!=NULL);
   gtk_widget_set_sensitive(GET_COMPONENT("buttonCut"), ui.selection!=NULL);
   gtk_widget_set_sensitive(GET_COMPONENT("buttonCopy"), ui.selection!=NULL);
+  gtk_widget_set_sensitive(GET_COMPONENT("buttonPaste"), ui.cur_item_type!=ITEM_TEXT);
 }
 
 void update_mapping_linkings(int toolno)
@@ -1260,10 +1325,30 @@ void set_cur_color(int color)
 {
   ui.cur_brush->color_no = color;
   if (ui.toolno[0] == TOOL_HIGHLIGHTER)
-    ui.cur_brush->color_rgba = predef_colors_rgba[color] & HILITER_ALPHA_MASK;
+    ui.cur_brush->color_rgba = predef_colors_rgba[color] & ui.hiliter_alpha_mask;
   else
     ui.cur_brush->color_rgba = predef_colors_rgba[color];
   update_mapping_linkings(ui.toolno[0]);
+}
+
+void recolor_temp_text(int color_no, guint color_rgba)
+{
+  GdkColor gdkcolor;
+  
+  if (ui.cur_item_type!=ITEM_TEXT) return;
+  if (ui.cur_item->text!=NULL && ui.cur_item->brush.color_rgba != color_rgba) {
+    prepare_new_undo();
+    undo->type = ITEM_TEXT_ATTRIB;
+    undo->item = ui.cur_item;
+    undo->str = g_strdup(ui.cur_item->font_name);
+    undo->val_x = ui.cur_item->font_size;
+    undo->brush = (struct Brush *)g_memdup(&(ui.cur_item->brush), sizeof(struct Brush));
+  }
+  ui.cur_item->brush.color_no = color_no;
+  ui.cur_item->brush.color_rgba = color_rgba;
+  rgb_to_gdkcolor(color_rgba, &gdkcolor);
+  gtk_widget_modify_text(ui.cur_item->widget, GTK_STATE_NORMAL, &gdkcolor);
+  gtk_widget_grab_focus(ui.cur_item->widget);
 }
 
 void process_color_activate(GtkMenuItem *menuitem, int color)
@@ -1277,6 +1362,10 @@ void process_color_activate(GtkMenuItem *menuitem, int color)
   }
 
   if (ui.cur_mapping != 0) return; // not user-generated
+  reset_focus();
+
+  if (ui.cur_item_type == ITEM_TEXT)
+    recolor_temp_text(color, predef_colors_rgba[color]);
 
   if (ui.selection != NULL) {
     recolor_selection(color);
@@ -1284,8 +1373,10 @@ void process_color_activate(GtkMenuItem *menuitem, int color)
     update_color_menu();
   }
   
-  if (ui.toolno[0] != TOOL_PEN && ui.toolno[0] != TOOL_HIGHLIGHTER) {
+  if (ui.toolno[0] != TOOL_PEN && ui.toolno[0] != TOOL_HIGHLIGHTER
+      && ui.toolno[0] != TOOL_TEXT) {
     if (ui.selection != NULL) return;
+    end_text();
     ui.toolno[0] = TOOL_PEN;
     ui.cur_brush = &(ui.brushes[0][TOOL_PEN]);
     update_tool_buttons();
@@ -1311,6 +1402,7 @@ void process_thickness_activate(GtkMenuItem *menuitem, int tool, int val)
   if (ui.cur_mapping != 0) return; // not user-generated
 
   if (ui.selection != NULL && GTK_OBJECT_TYPE(menuitem) != GTK_TYPE_RADIO_MENU_ITEM) {
+    reset_focus();
     rethicken_selection(val);
     update_thickness_buttons();
   }
@@ -1320,6 +1412,9 @@ void process_thickness_activate(GtkMenuItem *menuitem, int tool, int val)
     return;
   }
 
+  if (ui.brushes[0][tool].thickness_no == val) return;
+  reset_focus();
+  end_text();
   ui.brushes[0][tool].thickness_no = val;
   ui.brushes[0][tool].thickness = predef_thickness[tool][val];
   update_mapping_linkings(tool);
@@ -1440,6 +1535,15 @@ gboolean page_ops_forbidden(void)
   return (bgpdf.status != STATUS_NOT_INIT && bgpdf.create_pages);
 }
 
+// send the focus back to the appropriate widget
+void reset_focus(void)
+{
+  if (ui.cur_item_type == ITEM_TEXT)
+    gtk_widget_grab_focus(ui.cur_item->widget);
+  else
+    gtk_widget_grab_focus(GTK_WIDGET(canvas));
+}
+
 // selection / clipboard stuff
 
 void reset_selection(void)
@@ -1454,6 +1558,7 @@ void reset_selection(void)
   update_color_menu();
   update_thickness_buttons();
   update_color_buttons();
+  update_font_button();
 }
 
 void move_journal_items_by(GList *itemlist, double dx, double dy,
@@ -1467,9 +1572,10 @@ void move_journal_items_by(GList *itemlist, double dx, double dy,
   
   while (itemlist!=NULL) {
     item = (struct Item *)itemlist->data;
-    if (item->type == ITEM_STROKE) {
+    if (item->type == ITEM_STROKE)
       for (pt=item->path->coords, i=0; i<item->path->num_points; i++, pt+=2)
         { pt[0] += dx; pt[1] += dy; }
+    if (item->type == ITEM_STROKE || item->type == ITEM_TEXT || item->type == ITEM_TEMP_TEXT) {
       item->bbox.left += dx;
       item->bbox.right += dx;
       item->bbox.top += dy;
@@ -1515,6 +1621,8 @@ void switch_mapping(int m)
   ui.cur_mapping = m;
   if (ui.toolno[m] < NUM_STROKE_TOOLS) 
     ui.cur_brush = &(ui.brushes[m][ui.toolno[m]]);
+  if (ui.toolno[m] == TOOL_TEXT)
+    ui.cur_brush = &(ui.brushes[m][TOOL_PEN]);
   update_tool_buttons();
   update_color_menu();
   update_cursor();
@@ -1525,6 +1633,9 @@ void process_mapping_activate(GtkMenuItem *menuitem, int m, int tool)
   if (!gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem))) return;
   if (ui.cur_mapping!=0) return;
   if (ui.toolno[m] == tool) return;
+  end_text();
+  reset_focus();
+    
   ui.toolno[m] = tool;
   ui.ruler[m] = FALSE;
   if (ui.linked_brush[m] == BRUSH_LINKED 
@@ -1561,3 +1672,141 @@ void update_vbox_order(int *order)
     if (!present[i]) gtk_widget_hide(GET_COMPONENT(vbox_component_names[i]));
 }
 
+gchar *make_cur_font_name(void)
+{
+  gchar *str;
+  struct Item *it;
+
+  if (ui.cur_item_type == ITEM_TEXT)
+    str = g_strdup_printf("%s %.1f", ui.cur_item->font_name, ui.cur_item->font_size);
+  else if (ui.selection!=NULL && ui.selection->items!=NULL &&
+           ui.selection->items->next==NULL &&
+           (it=(struct Item*)ui.selection->items->data)->type == ITEM_TEXT)
+    str = g_strdup_printf("%s %.1f", it->font_name, it->font_size);
+  else
+    str = g_strdup_printf("%s %.1f", ui.font_name, ui.font_size);
+  return str;
+}
+
+void update_font_button(void)
+{
+  gchar *str;
+
+  str = make_cur_font_name();
+  gtk_font_button_set_font_name(GTK_FONT_BUTTON(GET_COMPONENT("fontButton")), str);
+  g_free(str);
+}
+
+gboolean can_accel(GtkWidget *widget, guint id, gpointer data)
+{
+  return GTK_WIDGET_SENSITIVE(widget);
+}
+
+void allow_all_accels(void)
+{
+  g_signal_connect((gpointer) GET_COMPONENT("fileNew"),
+      "can-activate-accel", G_CALLBACK(can_accel), NULL);
+  g_signal_connect((gpointer) GET_COMPONENT("fileOpen"),
+      "can-activate-accel", G_CALLBACK(can_accel), NULL);
+  g_signal_connect((gpointer) GET_COMPONENT("fileSave"),
+      "can-activate-accel", G_CALLBACK(can_accel), NULL);
+  g_signal_connect((gpointer) GET_COMPONENT("filePrint"),
+      "can-activate-accel", G_CALLBACK(can_accel), NULL);
+  g_signal_connect((gpointer) GET_COMPONENT("filePrintPDF"),
+      "can-activate-accel", G_CALLBACK(can_accel), NULL);
+  g_signal_connect((gpointer) GET_COMPONENT("fileQuit"),
+      "can-activate-accel", G_CALLBACK(can_accel), NULL);
+  g_signal_connect((gpointer) GET_COMPONENT("editUndo"),
+      "can-activate-accel", G_CALLBACK(can_accel), NULL);
+  g_signal_connect((gpointer) GET_COMPONENT("editRedo"),
+      "can-activate-accel", G_CALLBACK(can_accel), NULL);
+  g_signal_connect((gpointer) GET_COMPONENT("editCut"),
+      "can-activate-accel", G_CALLBACK(can_accel), NULL);
+  g_signal_connect((gpointer) GET_COMPONENT("editCopy"),
+      "can-activate-accel", G_CALLBACK(can_accel), NULL);
+  g_signal_connect((gpointer) GET_COMPONENT("editPaste"),
+      "can-activate-accel", G_CALLBACK(can_accel), NULL);
+  g_signal_connect((gpointer) GET_COMPONENT("editDelete"),
+      "can-activate-accel", G_CALLBACK(can_accel), NULL);
+  g_signal_connect((gpointer) GET_COMPONENT("viewFullscreen"),
+      "can-activate-accel", G_CALLBACK(can_accel), NULL);
+  g_signal_connect((gpointer) GET_COMPONENT("viewZoomIn"),
+      "can-activate-accel", G_CALLBACK(can_accel), NULL);
+  g_signal_connect((gpointer) GET_COMPONENT("viewZoomOut"),
+      "can-activate-accel", G_CALLBACK(can_accel), NULL);
+  g_signal_connect((gpointer) GET_COMPONENT("viewNormalSize"),
+      "can-activate-accel", G_CALLBACK(can_accel), NULL);
+  g_signal_connect((gpointer) GET_COMPONENT("viewPageWidth"),
+      "can-activate-accel", G_CALLBACK(can_accel), NULL);
+  g_signal_connect((gpointer) GET_COMPONENT("viewFirstPage"),
+      "can-activate-accel", G_CALLBACK(can_accel), NULL);
+  g_signal_connect((gpointer) GET_COMPONENT("viewPreviousPage"),
+      "can-activate-accel", G_CALLBACK(can_accel), NULL);
+  g_signal_connect((gpointer) GET_COMPONENT("viewNextPage"),
+      "can-activate-accel", G_CALLBACK(can_accel), NULL);
+  g_signal_connect((gpointer) GET_COMPONENT("viewLastPage"),
+      "can-activate-accel", G_CALLBACK(can_accel), NULL);
+  g_signal_connect((gpointer) GET_COMPONENT("toolsPen"),
+      "can-activate-accel", G_CALLBACK(can_accel), NULL);
+  g_signal_connect((gpointer) GET_COMPONENT("toolsEraser"),
+      "can-activate-accel", G_CALLBACK(can_accel), NULL);
+  g_signal_connect((gpointer) GET_COMPONENT("toolsHighlighter"),
+      "can-activate-accel", G_CALLBACK(can_accel), NULL);
+  g_signal_connect((gpointer) GET_COMPONENT("toolsText"),
+      "can-activate-accel", G_CALLBACK(can_accel), NULL);
+/*  g_signal_connect((gpointer) GET_COMPONENT("toolsSelectRegion"),
+      "can-activate-accel", G_CALLBACK(can_accel), NULL);  */
+  g_signal_connect((gpointer) GET_COMPONENT("toolsSelectRectangle"),
+      "can-activate-accel", G_CALLBACK(can_accel), NULL);
+  g_signal_connect((gpointer) GET_COMPONENT("toolsVerticalSpace"),
+      "can-activate-accel", G_CALLBACK(can_accel), NULL);
+  g_signal_connect((gpointer) GET_COMPONENT("toolsHand"),
+      "can-activate-accel", G_CALLBACK(can_accel), NULL);
+  g_signal_connect((gpointer) GET_COMPONENT("toolsTextFont"),
+      "can-activate-accel", G_CALLBACK(can_accel), NULL);
+  g_signal_connect((gpointer) GET_COMPONENT("toolsRuler"),
+      "can-activate-accel", G_CALLBACK(can_accel), NULL);
+}
+
+void add_scroll_bindings(void)
+{
+  GtkBindingSet *binding_set;
+  
+  binding_set = gtk_binding_set_by_class(
+     G_OBJECT_GET_CLASS(GET_COMPONENT("scrolledwindowMain")));
+  gtk_binding_entry_add_signal(binding_set, GDK_Up, 0,
+    "scroll_child", 2, GTK_TYPE_SCROLL_TYPE, GTK_SCROLL_STEP_BACKWARD, 
+    G_TYPE_BOOLEAN, FALSE);  
+  gtk_binding_entry_add_signal(binding_set, GDK_KP_Up, 0,
+    "scroll_child", 2, GTK_TYPE_SCROLL_TYPE, GTK_SCROLL_STEP_BACKWARD, 
+    G_TYPE_BOOLEAN, FALSE);  
+  gtk_binding_entry_add_signal(binding_set, GDK_Down, 0,
+    "scroll_child", 2, GTK_TYPE_SCROLL_TYPE, GTK_SCROLL_STEP_FORWARD, 
+    G_TYPE_BOOLEAN, FALSE);  
+  gtk_binding_entry_add_signal(binding_set, GDK_KP_Down, 0,
+    "scroll_child", 2, GTK_TYPE_SCROLL_TYPE, GTK_SCROLL_STEP_FORWARD, 
+    G_TYPE_BOOLEAN, FALSE);  
+  gtk_binding_entry_add_signal(binding_set, GDK_Left, 0,
+    "scroll_child", 2, GTK_TYPE_SCROLL_TYPE, GTK_SCROLL_STEP_BACKWARD, 
+    G_TYPE_BOOLEAN, TRUE);  
+  gtk_binding_entry_add_signal(binding_set, GDK_KP_Left, 0,
+    "scroll_child", 2, GTK_TYPE_SCROLL_TYPE, GTK_SCROLL_STEP_BACKWARD, 
+    G_TYPE_BOOLEAN, TRUE);  
+  gtk_binding_entry_add_signal(binding_set, GDK_Right, 0,
+    "scroll_child", 2, GTK_TYPE_SCROLL_TYPE, GTK_SCROLL_STEP_FORWARD, 
+    G_TYPE_BOOLEAN, TRUE);  
+  gtk_binding_entry_add_signal(binding_set, GDK_KP_Right, 0,
+    "scroll_child", 2, GTK_TYPE_SCROLL_TYPE, GTK_SCROLL_STEP_FORWARD, 
+    G_TYPE_BOOLEAN, TRUE);  
+}
+
+gboolean is_event_within_textview(GdkEventButton *event)
+{
+  double pt[2];
+  
+  if (ui.cur_item_type!=ITEM_TEXT) return FALSE;
+  get_pointer_coords((GdkEvent *)event, pt);
+  if (pt[0]<ui.cur_item->bbox.left || pt[0]>ui.cur_item->bbox.right) return FALSE;
+  if (pt[1]<ui.cur_item->bbox.top || pt[1]>ui.cur_item->bbox.bottom) return FALSE;
+  return TRUE;
+}

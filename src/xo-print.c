@@ -2,12 +2,21 @@
 #  include <config.h>
 #endif
 
+#define PANGO_ENABLE_BACKEND /* to access PangoFcFont.font_pattern */
+
 #include <gtk/gtk.h>
 #include <libgnomecanvas/libgnomecanvas.h>
 #include <libgnomeprint/gnome-print-job.h>
+#include <libgnomeprint/gnome-print-pango.h>
 #include <zlib.h>
 #include <string.h>
 #include <locale.h>
+#include <pango/pango.h>
+#include <pango/pangofc-font.h>
+#include <fontconfig/fontconfig.h>
+#include <ft2build.h>
+#include FT_FREETYPE_H
+#include "sft.h" /* Sun Font Tools, embedded in libgnomeprint */
 
 #include "xournal.h"
 #include "xo-misc.h"
@@ -531,8 +540,9 @@ GString *make_pdfprefix(struct PdfPageDesc *pgdesc, double width, double height)
   GString *str;
   double v[4], t, xscl, yscl;
   int i;
-  
-  str = g_string_new("q ");
+
+  // push 3 times in case code to be annotated has unbalanced q/Q (B of A., ...)
+  str = g_string_new("q q q "); 
   if (pgdesc->rotate == 90) {
     g_string_append_printf(str, "0 -1 1 0 0 %.2f cm ", height);
     t = height; height = width; width = t;
@@ -752,20 +762,278 @@ int pdf_draw_bitmap_background(struct Page *pg, GString *str,
   return xref->last;
 }
 
+// manipulate Pdf fonts
+
+struct PdfFont *new_pdffont(struct XrefTable *xref, GList **fonts,
+   unsigned char *filename, int font_id, FT_Face face, int glyph_page)
+{
+  GList *list;
+  struct PdfFont *font;
+  int i;
+  const char *s;
+  
+  for (list = *fonts; list!=NULL; list = list->next) {
+    font = (struct PdfFont *)list->data;
+    if (!strcmp(font->filename, filename) && font->font_id == font_id 
+        && font->glyph_page == glyph_page)
+          { font->used_in_this_page = TRUE; return font; }
+  }
+  font = g_malloc(sizeof(struct PdfFont));
+  *fonts = g_list_append(*fonts, font);
+  font->n_obj = xref->last+1;
+  make_xref(xref, xref->last+1, 0); // will give it a value later
+  font->filename = g_strdup(filename);
+  font->font_id = font_id;
+  font->glyph_page = glyph_page;
+  font->used_in_this_page = TRUE;
+  font->num_glyphs_used = 0;
+  for (i=0; i<256; i++) {
+    font->glyphmap[i] = -1;
+    font->advance[i] = 0;
+    font->glyphpsnames[i] = NULL;
+  }
+  font->glyphmap[0] = 0;
+  // fill in info from the FT_Face
+  font->is_truetype = FT_IS_SFNT(face);
+  font->nglyphs = face->num_glyphs;
+  font->ft2ps = 1000.0 / face->units_per_EM;
+  font->ascender = (int)(font->ft2ps*face->ascender);
+  font->descender = (int)(font->ft2ps*face->descender);
+  if (face->bbox.xMin < -100000 || face->bbox.xMin > 100000) font->xmin = 0;
+  else font->xmin = (int)(font->ft2ps*face->bbox.xMin);
+  if (face->bbox.xMax < -100000 || face->bbox.xMax > 100000) font->xmax = 0;
+  else font->xmax = (int)(font->ft2ps*face->bbox.xMax);
+  if (face->bbox.yMin < -100000 || face->bbox.yMin > 100000) font->ymin = 0;
+  else font->ymin = (int)(font->ft2ps*face->bbox.yMin);
+  if (face->bbox.yMax < -100000 || face->bbox.yMax > 100000) font->ymax = 0;
+  else font->ymax = (int)(font->ft2ps*face->bbox.yMax);
+  if (font->is_truetype) font->flags = 4; // symbolic
+  else {
+    font->flags = 4; // symbolic
+    if (FT_IS_FIXED_WIDTH(face)) font->flags |= 1;
+    if (face->style_flags & FT_STYLE_FLAG_ITALIC) font->flags |= 64;
+  }
+  s = FT_Get_Postscript_Name(face);
+  if (s==NULL) s = "Noname";
+  if (glyph_page) font->fontname = g_strdup_printf("%s_%03d", s, glyph_page);
+  else font->fontname = g_strdup(s);
+  return font;
+}
+
+#define pfb_get_length(x) (((x)[3]<<24) + ((x)[2]<<16) + ((x)[1]<<8) + (x)[0])
+#define T1_SEGMENT_1_END "currentfile eexec"
+#define T1_SEGMENT_3_END "cleartomark"
+
+void embed_pdffont(GString *pdfbuf, struct XrefTable *xref, struct PdfFont *font)
+{
+  // this code inspired by libgnomeprint
+  gboolean fallback, is_binary;
+  guchar encoding[256];
+  gushort glyphs[256];
+  int i, j, num, len, len1, len2;
+  TrueTypeFont *ttfnt;
+  char *tmpfile, *seg1, *seg2;
+  unsigned char *fontdata, *p;
+  char prefix[8];
+  int nobj_fontprog, nobj_descr, lastchar;
+  
+  fallback = FALSE;
+  // embed the font file: TrueType case
+  if (font->is_truetype) {
+    glyphs[0] = encoding[0] = 0;
+    num = 1;
+    for (i=1; i<=255; i++) 
+      if (font->glyphmap[i]>=0) {
+        font->glyphmap[i] = num;
+        glyphs[num] = 255*font->glyph_page+i-1;
+        encoding[num] = i;
+        num++;
+      }
+    font->num_glyphs_used = num-1;
+    if (OpenTTFont(font->filename, 0, &ttfnt) == SF_OK) {
+      tmpfile = mktemp(g_strdup(TMPDIR_TEMPLATE));
+      CreateTTFromTTGlyphs(ttfnt, tmpfile, glyphs, encoding, num, 
+                           0, NULL, TTCF_AutoName | TTCF_IncludeOS2);
+      CloseTTFont(ttfnt);
+      if (g_file_get_contents(tmpfile, (char **)&fontdata, &len, NULL) && len>=8) {
+        make_xref(xref, xref->last+1, pdfbuf->len);
+        nobj_fontprog = xref->last;
+        g_string_append_printf(pdfbuf, 
+          "%d 0 obj\n<< /Length %d /Length1 %d >> stream\n",
+          nobj_fontprog, len, len);
+        g_string_append_len(pdfbuf, fontdata, len);
+        g_string_append(pdfbuf, "endstream\nendobj\n");
+        g_free(fontdata);
+      } 
+      else fallback = TRUE;
+      unlink(tmpfile);
+      g_free(tmpfile);
+    }
+    else fallback = TRUE;  
+  } else {
+  // embed the font file: Type1 case
+    if (g_file_get_contents(font->filename, (char **)&fontdata, &len, NULL) && len>=8) {
+      if (fontdata[0]==0x80 && fontdata[1]==0x01) {
+        is_binary = TRUE;
+        len1 = pfb_get_length(fontdata+2);
+        if (fontdata[len1+6]!=0x80 || fontdata[len1+7]!=0x02) fallback = TRUE;
+        else {
+          len2 = pfb_get_length(fontdata+len1+8);
+          if (fontdata[len1+len2+12]!=0x80 || fontdata[len1+len2+13]!=0x01)
+            fallback = TRUE;
+        }
+      }
+      else if (!strncmp(fontdata, "%!PS", 4)) {
+        is_binary = FALSE;
+        p = strstr(fontdata, T1_SEGMENT_1_END) + strlen(T1_SEGMENT_1_END);
+        if (p==NULL) fallback = TRUE;
+        else {
+          if (*p=='\n' || *p=='\r') p++;
+          if (*p=='\n' || *p=='\r') p++;
+          len1 = p-fontdata;
+          p = g_strrstr_len(fontdata, len, T1_SEGMENT_3_END);
+          if (p==NULL) fallback = TRUE;
+          else {
+            // rewind 512 zeros
+            i = 512; p--;
+            while (i>0 && p!=fontdata && (*p=='0' || *p=='\r' || *p=='\n')) {
+              if (*p=='0') i--;
+              p--;
+            }
+            while (p!=fontdata && (*p=='\r' || *p=='\n')) p--;
+            p++;
+            if (i>0) fallback = TRUE;
+            else len2 = p-fontdata-len1;
+          }
+        }
+      }
+      else fallback = TRUE;
+      if (!fallback) {
+        if (is_binary) {
+          seg1 = fontdata+6;
+          seg2 = fontdata + len1 + 12;
+        } else {
+          seg1 = fontdata;
+          seg2 = g_malloc(len2/2);
+          j=0;
+          p = fontdata+len1;
+          while (p+1 < fontdata+len1+len2) {
+            if (*p==' '||*p=='\t'||*p=='\n'||*p=='\r') { p++; continue; }
+            if (p[0]>'9') { p[0]|=0x20; p[0]-=39; }
+            if (p[1]>'9') { p[1]|=0x20; p[1]-=39; }
+            seg2[j++] = ((p[0]-'0')<<4) + (p[1]-'0');
+            p+=2;
+          }
+          len2 = j;
+        }
+        make_xref(xref, xref->last+1, pdfbuf->len);
+        nobj_fontprog = xref->last;
+        g_string_append_printf(pdfbuf, 
+          "%d 0 obj\n<< /Length %d /Length1 %d /Length2 %d /Length3 0 >> stream\n",
+          nobj_fontprog, len1+len2, len1, len2);
+        g_string_append_len(pdfbuf, seg1, len1);
+        g_string_append_len(pdfbuf, seg2, len2);
+        g_string_append(pdfbuf, "endstream\nendobj\n");
+        if (!is_binary) g_free(seg2);
+      }
+      g_free(fontdata);
+    }
+    else fallback = TRUE;
+  }
+  
+  // next, the font descriptor
+  if (!fallback) {
+    make_xref(xref, xref->last+1, pdfbuf->len);
+    nobj_descr = xref->last;
+    g_string_append_printf(pdfbuf,
+      "%d 0 obj\n<< /Type /FontDescriptor /FontName /%s /Flags %d "
+      "/FontBBox [%d %d %d %d] /ItalicAngle 0 /Ascent %d "
+      "/Descent %d /CapHeight %d /StemV 100 /%s %d 0 R >> endobj\n",
+      nobj_descr, font->fontname, font->flags, 
+      font->xmin, font->ymin, font->xmax, font->ymax, 
+      font->ascender, -font->descender, font->ascender, 
+      font->is_truetype ? "FontFile2":"FontFile",
+      nobj_fontprog);
+  }
+  
+  // finally, the font itself
+  /* Note: in Type1 case, font->glyphmap maps charcodes to glyph no's
+     in TrueType case, encoding lists the used charcodes by index,
+                       glyphs   list the used glyph no's by index
+                       font->glyphmap maps charcodes to indices        */
+  xref->data[font->n_obj] = pdfbuf->len;
+  if (font->is_truetype) lastchar = encoding[font->num_glyphs_used];
+  else lastchar = font->num_glyphs_used;
+  if (fallback) {
+    font->is_truetype = FALSE;
+    g_free(font->fontname);
+    font->fontname = g_strdup("Helvetica");
+  }
+  prefix[0]=0;
+  if (font->is_truetype) {
+    num = font->glyph_page;
+    for (i=0; i<6; i++) { prefix[i] = 'A'+(num%26); num/=26; }
+    prefix[6]='+'; prefix[7]=0;
+  }
+  g_string_append_printf(pdfbuf,
+    "%d 0 obj\n<< /Type /Font /Subtype /%s /BaseFont /%s%s /Name /F%d ",
+    font->n_obj, font->is_truetype?"TrueType":"Type1",
+    prefix, font->fontname, font->n_obj);
+  if (!fallback) {
+    g_string_append_printf(pdfbuf,
+      "/FontDescriptor %d 0 R /FirstChar 0 /LastChar %d /Widths [",
+      nobj_descr, lastchar);
+    for (i=0; i<=lastchar; i++)
+      g_string_append_printf(pdfbuf, "%d ", font->advance[i]);
+    g_string_append(pdfbuf, "] ");
+  }
+  if (!font->is_truetype) { /* encoding */
+    g_string_append(pdfbuf, "/Encoding << /Type /Encoding "
+      "/BaseEncoding /MacRomanEncoding /Differences [1 ");
+    for (i=1; i<=lastchar; i++) {
+      g_string_append_printf(pdfbuf, "/%s ", font->glyphpsnames[i]);
+      g_free(font->glyphpsnames[i]);
+    }
+    g_string_append(pdfbuf, "] >> ");
+  }
+  g_string_append(pdfbuf, ">> endobj\n");
+}
+
 // draw a page's graphics
 
-void pdf_draw_page(struct Page *pg, GString *str, gboolean *use_hiliter)
+void pdf_draw_page(struct Page *pg, GString *str, gboolean *use_hiliter, 
+                  struct XrefTable *xref, GList **pdffonts)
 {
-  GList *layerlist, *itemlist;
+  GList *layerlist, *itemlist, *tmplist;
   struct Layer *l;
   struct Item *item;
-  guint old_rgba;
+  guint old_rgba, old_text_rgba;
   double old_thickness;
   double *pt;
-  int i;
+  int i, j;
+  PangoFontDescription *font_desc;
+  PangoContext *context;
+  PangoLayout *layout;
+  PangoLayoutIter *iter;
+  PangoRectangle logical_rect;
+  PangoLayoutRun *run;
+  PangoFcFont *fcfont;
+  FcPattern *pattern;
+  int baseline, advance;
+  int glyph_no, glyph_page, current_page;
+  unsigned char *filename;
+  char tmpstr[200];
+  int font_id;
+  FT_Face ftface;
+  struct PdfFont *cur_font;
+  gboolean in_string;
   
-  old_rgba = 0x12345678;    // not any values we use, so we'll reset them
+  old_rgba = old_text_rgba = 0x12345678;    // not any values we use, so we'll reset them
   old_thickness = 0.0;
+  for (tmplist = *pdffonts; tmplist!=NULL; tmplist = tmplist->next) {
+    cur_font = (struct PdfFont *)tmplist->data;
+    cur_font->used_in_this_page = FALSE;
+  }
 
   for (layerlist = pg->layers; layerlist!=NULL; layerlist = layerlist->next) {
     l = (struct Layer *)layerlist->data;
@@ -790,6 +1058,88 @@ void pdf_draw_page(struct Page *pg, GString *str, gboolean *use_hiliter)
         g_string_append_printf(str,"S\n");
         if ((item->brush.color_rgba & 0xf0) != 0xf0) // undo transparent
           g_string_append(str, "Q ");
+      }
+      else if (item->type == ITEM_TEXT) {
+        if ((item->brush.color_rgba & ~0xff) != old_text_rgba)
+          g_string_append_printf(str, "%.2f %.2f %.2f rg ",
+            RGBA_RGB(item->brush.color_rgba));
+        old_text_rgba = item->brush.color_rgba & ~0xff;
+        context = gnome_print_pango_create_context(gnome_print_pango_get_default_font_map());
+        layout = pango_layout_new(context);
+        g_object_unref(context);
+        font_desc = pango_font_description_from_string(item->font_name);
+        pango_font_description_set_absolute_size(font_desc,
+          item->font_size*PANGO_SCALE);
+        pango_layout_set_font_description(layout, font_desc);
+        pango_font_description_free(font_desc);
+        pango_layout_set_text(layout, item->text, -1);
+        // this code inspired by the code in libgnomeprint
+        iter = pango_layout_get_iter(layout);
+        do {
+          run = pango_layout_iter_get_run(iter);
+          if (run==NULL) continue;
+          pango_layout_iter_get_run_extents (iter, NULL, &logical_rect);
+          baseline = pango_layout_iter_get_baseline (iter);
+          if (!PANGO_IS_FC_FONT(run->item->analysis.font)) continue;
+          fcfont = PANGO_FC_FONT(run->item->analysis.font);
+          pattern = fcfont->font_pattern;
+          if (FcPatternGetString(pattern, FC_FILE, 0, &filename) != FcResultMatch ||
+              FcPatternGetInteger(pattern, FC_INDEX, 0, &font_id) != FcResultMatch)
+                continue;
+          ftface = pango_fc_font_lock_face(fcfont);
+          current_page = -1;
+          cur_font = NULL;
+          g_string_append_printf(str, "BT %.2f 0 0 %.2f %.2f %.2f Tm ",
+            item->font_size, -item->font_size,
+            item->bbox.left + (gdouble) logical_rect.x/PANGO_SCALE,
+            item->bbox.top + (gdouble) baseline/PANGO_SCALE);
+          in_string = FALSE;
+          for (i=0; i<run->glyphs->num_glyphs; i++) {
+            glyph_no = run->glyphs->glyphs[i].glyph;
+            if (FT_IS_SFNT(ftface)) glyph_page = glyph_no/255;
+            else glyph_page = 0;
+            if (glyph_page != current_page) {
+              cur_font = new_pdffont(xref, pdffonts, filename, font_id,
+                 ftface, glyph_page);
+              if (in_string) g_string_append(str, ") Tj ");
+              in_string = FALSE;
+              g_string_append_printf(str, "/F%d 1 Tf ", cur_font->n_obj);
+            }
+            current_page = glyph_page;
+            FT_Load_Glyph(ftface, glyph_no, FT_LOAD_NO_SCALE | FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP | FT_LOAD_IGNORE_TRANSFORM);
+            advance = (int)(ftface->glyph->metrics.horiAdvance * cur_font->ft2ps + 0.5);
+            if (!in_string) g_string_append_c(str, '(');
+            in_string = TRUE;
+            if (cur_font->is_truetype) {
+              if (glyph_no) glyph_no = (glyph_no%255)+1;
+              cur_font->glyphmap[glyph_no] = glyph_no;
+            }
+            else {
+              for (j=1; j<=cur_font->num_glyphs_used; j++)
+                if (cur_font->glyphmap[j] == glyph_no) break;
+              if (j==256) j=0; // font is full, what do we do?
+              if (j>cur_font->num_glyphs_used) {
+                cur_font->glyphmap[j] = glyph_no; 
+                cur_font->num_glyphs_used++;
+                if (FT_Get_Glyph_Name(ftface, glyph_no, tmpstr, 200) == FT_Err_Ok)
+                  cur_font->glyphpsnames[j] = g_strdup(tmpstr);
+                else cur_font->glyphpsnames[j] = g_strdup(".notdef");
+              }
+              glyph_no = j;
+            }
+            cur_font->advance[glyph_no] = advance;
+            if (glyph_no=='\\' || glyph_no == '(' || glyph_no == ')' || glyph_no == 10 || glyph_no == 13) 
+              g_string_append_c(str, '\\');
+            if (glyph_no==10) g_string_append_c(str,'n');
+            else if (glyph_no==13) g_string_append_c(str,'r');
+            else g_string_append_c(str, glyph_no);
+          }
+          if (in_string) g_string_append(str, ") Tj ");
+          g_string_append(str, "ET ");
+          pango_fc_font_unlock_face(fcfont);
+        } while (pango_layout_iter_next_run(iter));
+        pango_layout_iter_free(iter);
+        g_object_unref(layout);
       }
     }
   }
@@ -819,6 +1169,9 @@ gboolean print_to_pdf(char *filename)
   gboolean use_hiliter;
   struct PdfInfo pdfinfo;
   struct PdfObj *obj;
+  GList *pdffonts, *list;
+  struct PdfFont *font;
+  char *tmpbuf;
   
   f = fopen(filename, "w");
   if (f == NULL) return FALSE;
@@ -826,6 +1179,7 @@ gboolean print_to_pdf(char *filename)
   annot = FALSE;
   xref.data = NULL;
   uses_pdf = FALSE;
+  pdffonts = NULL;
   for (pglist = journal.pages; pglist!=NULL; pglist = pglist->next) {
     pg = (struct Page *)pglist->data;
     if (pg->bg->type == BG_PDF) uses_pdf = TRUE;
@@ -866,8 +1220,8 @@ gboolean print_to_pdf(char *filename)
   g_string_append_printf(pdfbuf, "] /Count %d >> endobj\n", journal.npages);
   make_xref(&xref, n_obj_catalog+2, pdfbuf->len);
   g_string_append_printf(pdfbuf, 
-    "%d 0 obj\n<< /Type /ExtGState /CA 0.5 >> endobj\n",
-     n_obj_catalog+2);
+    "%d 0 obj\n<< /Type /ExtGState /CA %.2f >> endobj\n",
+     n_obj_catalog+2, ui.hiliter_opacity);
   xref.last = n_obj_pages_offs + journal.npages-1;
   
   for (pglist = journal.pages, n_page = 0; pglist!=NULL;
@@ -891,13 +1245,13 @@ gboolean print_to_pdf(char *filename)
         "%d 0 obj\n<< /Length %d >> stream\n%s\nendstream\nendobj\n",
         n_obj_prefix, tmpstr->len, tmpstr->str);
       g_string_free(tmpstr, TRUE);
-      g_string_prepend(pgstrm, "Q ");
+      g_string_prepend(pgstrm, "Q Q Q ");
     }
     else if (pg->bg->type == BG_PIXMAP || pg->bg->type == BG_PDF)
       n_obj_bgpix = pdf_draw_bitmap_background(pg, pgstrm, &xref, pdfbuf);
     // draw the page contents
     use_hiliter = FALSE;
-    pdf_draw_page(pg, pgstrm, &use_hiliter);
+    pdf_draw_page(pg, pgstrm, &use_hiliter, &xref, &pdffonts);
     g_string_append_printf(pgstrm, "Q\n");
     
     // deflate pgstrm and write it
@@ -962,10 +1316,31 @@ gboolean print_to_pdf(char *filename)
     if (n_obj_bgpix>0)
       add_dict_subentry(pdfbuf, &xref,
         obj, "/XObject", PDFTYPE_DICT, "/ImBg", mk_pdfref(n_obj_bgpix));
+    for (list=pdffonts; list!=NULL; list = list->next) {
+      font = (struct PdfFont *)list->data;
+      if (font->used_in_this_page) {
+        add_dict_subentry(pdfbuf, &xref,
+          obj, "/ProcSet", PDFTYPE_ARRAY, NULL, mk_pdfname("/Text"));
+        tmpbuf = g_strdup_printf("/F%d", font->n_obj);
+        add_dict_subentry(pdfbuf, &xref,
+          obj, "/Font", PDFTYPE_DICT, tmpbuf, mk_pdfref(font->n_obj));
+        g_free(tmpbuf);
+      }
+    }
     show_pdfobj(obj, pdfbuf);
     free_pdfobj(obj);
     g_string_append(pdfbuf, " >> endobj\n");
   }
+  
+  // after the pages, we insert fonts
+  for (list = pdffonts; list!=NULL; list = list->next) {
+    font = (struct PdfFont *)list->data;
+    embed_pdffont(pdfbuf, &xref, font);
+    g_free(font->filename);
+    g_free(font->fontname);
+    g_free(font);
+  }
+  g_list_free(pdffonts);
   
   // PDF trailer
   startxref = pdfbuf->len;
@@ -1027,7 +1402,7 @@ void print_background(GnomePrintContext *gpc, struct Page *pg, gboolean *abort)
   if (pg->bg->type == BG_SOLID) {
     gnome_print_setopacity(gpc, 1.0);
     gnome_print_setrgbcolor(gpc, RGBA_RGB(pg->bg->color_rgba));
-    gnome_print_rect_filled(gpc, 0, 0, pg->width, pg->height);
+    gnome_print_rect_filled(gpc, 0, 0, pg->width, -pg->height);
 
     if (!ui.print_ruling) return;
     if (pg->bg->ruling == RULING_NONE) return;
@@ -1036,17 +1411,17 @@ void print_background(GnomePrintContext *gpc, struct Page *pg, gboolean *abort)
     
     if (pg->bg->ruling == RULING_GRAPH) {
       for (x=RULING_GRAPHSPACING; x<pg->width-1; x+=RULING_GRAPHSPACING)
-        gnome_print_line_stroked(gpc, x, 0, x, pg->height);
+        gnome_print_line_stroked(gpc, x, 0, x, -pg->height);
       for (y=RULING_GRAPHSPACING; y<pg->height-1; y+=RULING_GRAPHSPACING)
-        gnome_print_line_stroked(gpc, 0, y, pg->width, y);
+        gnome_print_line_stroked(gpc, 0, -y, pg->width, -y);
       return;
     }
     
     for (y=RULING_TOPMARGIN; y<pg->height-1; y+=RULING_SPACING)
-      gnome_print_line_stroked(gpc, 0, y, pg->width, y);
+      gnome_print_line_stroked(gpc, 0, -y, pg->width, -y);
     if (pg->bg->ruling == RULING_LINED) {
       gnome_print_setrgbcolor(gpc, RGBA_RGB(RULING_MARGIN_COLOR));
-      gnome_print_line_stroked(gpc, RULING_LEFTMARGIN, 0, RULING_LEFTMARGIN, pg->height);
+      gnome_print_line_stroked(gpc, RULING_LEFTMARGIN, 0, RULING_LEFTMARGIN, -pg->height);
     }
     return;
   }
@@ -1067,7 +1442,7 @@ void print_background(GnomePrintContext *gpc, struct Page *pg, gboolean *abort)
     if (gdk_pixbuf_get_bits_per_sample(pix) != 8) return;
     if (gdk_pixbuf_get_colorspace(pix) != GDK_COLORSPACE_RGB) return;
     gnome_print_gsave(gpc);
-    gnome_print_scale(gpc, pg->width, -pg->height);
+    gnome_print_scale(gpc, pg->width, pg->height);
     gnome_print_translate(gpc, 0., -1.);
     if (gdk_pixbuf_get_n_channels(pix) == 3)
        gnome_print_rgbimage(gpc, gdk_pixbuf_get_pixels(pix),
@@ -1092,6 +1467,8 @@ void print_page(GnomePrintContext *gpc, struct Page *pg, int pageno,
   struct Item *item;
   int i;
   double *pt;
+  PangoFontDescription *font_desc;
+  PangoLayout *layout;
   
   if (pg==NULL) return;
   
@@ -1102,7 +1479,7 @@ void print_page(GnomePrintContext *gpc, struct Page *pg, int pageno,
   scale = MIN(pgwidth/pg->width, pgheight/pg->height)*0.95;
   gnome_print_translate(gpc,
      (pgwidth - scale*pg->width)/2, (pgheight + scale*pg->height)/2);
-  gnome_print_scale(gpc, scale, -scale);
+  gnome_print_scale(gpc, scale, scale);
   gnome_print_setlinejoin(gpc, 1); // round
   gnome_print_setlinecap(gpc, 1); // round
 
@@ -1117,21 +1494,35 @@ void print_page(GnomePrintContext *gpc, struct Page *pg, int pageno,
     for (itemlist = l->items; itemlist!=NULL; itemlist = itemlist->next) {
       if (*abort) break;
       item = (struct Item *)itemlist->data;
-      if (item->type == ITEM_STROKE) {
+      if (item->type == ITEM_STROKE || item->type == ITEM_TEXT) {
         if ((item->brush.color_rgba & ~0xff) != (old_rgba & ~0xff))
           gnome_print_setrgbcolor(gpc, RGBA_RGB(item->brush.color_rgba));
         if ((item->brush.color_rgba & 0xff) != (old_rgba & 0xff))
           gnome_print_setopacity(gpc, RGBA_ALPHA(item->brush.color_rgba));
+        old_rgba = item->brush.color_rgba;
+      }
+      if (item->type == ITEM_STROKE) {    
         if (item->brush.thickness != old_thickness)
           gnome_print_setlinewidth(gpc, item->brush.thickness);
-        old_rgba = item->brush.color_rgba;
         old_thickness = item->brush.thickness;
         gnome_print_newpath(gpc);
         pt = item->path->coords;
-        gnome_print_moveto(gpc, pt[0], pt[1]);
+        gnome_print_moveto(gpc, pt[0], -pt[1]);
         for (i=1, pt+=2; i<item->path->num_points; i++, pt+=2)
-          gnome_print_lineto(gpc, pt[0], pt[1]);
+          gnome_print_lineto(gpc, pt[0], -pt[1]);
         gnome_print_stroke(gpc);
+      }
+      if (item->type == ITEM_TEXT) {
+        layout = gnome_print_pango_create_layout(gpc);
+        font_desc = pango_font_description_from_string(item->font_name);
+        pango_font_description_set_absolute_size(font_desc,
+          item->font_size*PANGO_SCALE);
+        pango_layout_set_font_description(layout, font_desc);
+        pango_font_description_free(font_desc);
+        pango_layout_set_text(layout, item->text, -1);
+        gnome_print_moveto(gpc, item->bbox.left, -item->bbox.top);
+        gnome_print_pango_layout(gpc, layout);
+        g_object_unref(layout);
       }
     }
   }

@@ -21,8 +21,9 @@
 #include "xo-callbacks.h"
 #include "xo-misc.h"
 #include "xo-file.h"
+#include "xo-paint.h"
 
-const char *tool_names[NUM_TOOLS] = {"pen", "eraser", "highlighter", "", "", "selectrect", "vertspace", "hand"};
+const char *tool_names[NUM_TOOLS] = {"pen", "eraser", "highlighter", "text", "", "selectrect", "vertspace", "hand"};
 const char *color_names[COLOR_MAX] = {"black", "blue", "red", "green",
    "gray", "lightblue", "lightgreen", "magenta", "orange", "yellow", "white"};
 const char *bgtype_names[3] = {"solid", "pixmap", "pdf"};
@@ -73,7 +74,7 @@ gboolean save_journal(const char *filename)
   struct Layer *layer;
   struct Item *item;
   int i, is_clone;
-  char *tmpfn;
+  char *tmpfn, *tmpstr;
   gchar *pdfbuf;
   gsize pdflen;
   gboolean success;
@@ -88,8 +89,8 @@ gboolean save_journal(const char *filename)
   setlocale(LC_NUMERIC, "C");
   
   gzprintf(f, "<?xml version=\"1.0\" standalone=\"no\"?>\n"
-     "<title>Xournal document - see http://math.mit.edu/~auroux/software/xournal/</title>\n"
-     "<xournal version=\"" VERSION "\"/>\n");
+     "<xournal version=\"" VERSION "\">\n"
+     "<title>Xournal document - see http://math.mit.edu/~auroux/software/xournal/</title>\n");
   for (pagelist = journal.pages; pagelist!=NULL; pagelist = pagelist->next) {
     pg = (struct Page *)pagelist->data;
     gzprintf(f, "<page width=\"%.2f\" height=\"%.2f\">\n", pg->width, pg->height);
@@ -178,11 +179,24 @@ gboolean save_journal(const char *filename)
             gzprintf(f, "%.2f ", item->path->coords[i]);
           gzprintf(f, "\n</stroke>\n");
         }
+        if (item->type == ITEM_TEXT) {
+          gzprintf(f, "<text font=\"%s\" size=\"%.2f\" x=\"%.2f\" y=\"%.2f\" color=\"",
+            item->font_name, item->font_size, item->bbox.left, item->bbox.top);
+          if (item->brush.color_no >= 0)
+            gzputs(f, color_names[item->brush.color_no]);
+          else
+            gzprintf(f, "#%08x", item->brush.color_rgba);
+          tmpstr = g_markup_escape_text(item->text, -1);
+          gzprintf(f, "\">%s</text>\n", tmpstr);
+          g_free(tmpstr);
+          
+        }
       }
       gzprintf(f, "</layer>\n");
     }
     gzprintf(f, "</page>\n");
   }
+  gzprintf(f, "</xournal>\n");
   gzclose(f);
   setlocale(LC_NUMERIC, "");
 
@@ -471,8 +485,68 @@ void xoj_parser_start_element(GMarkupParseContext *context,
     tmpItem->brush.tool_options = 0;  // who cares ?
     if (tmpItem->brush.tool_type == TOOL_HIGHLIGHTER) {
       if (tmpItem->brush.color_no >= 0)
-        tmpItem->brush.color_rgba &= HILITER_ALPHA_MASK;
+        tmpItem->brush.color_rgba &= ui.hiliter_alpha_mask;
     }
+  }
+  else if (!strcmp(element_name, "text")) { // start of a text item
+    if (tmpLayer == NULL || tmpItem != NULL) {
+      *error = xoj_invalid();
+      return;
+    }
+    tmpItem = (struct Item *)g_malloc0(sizeof(struct Item));
+    tmpItem->type = ITEM_TEXT;
+    tmpItem->canvas_item = NULL;
+    tmpLayer->items = g_list_append(tmpLayer->items, tmpItem);
+    tmpLayer->nitems++;
+    // scan for font, size, x, y, and color attributes
+    has_attr = 0;
+    while (*attribute_names!=NULL) {
+      if (!strcmp(*attribute_names, "font")) {
+        if (has_attr & 1) *error = xoj_invalid();
+        tmpItem->font_name = g_strdup(*attribute_values);
+        has_attr |= 1;
+      }
+      else if (!strcmp(*attribute_names, "size")) {
+        if (has_attr & 2) *error = xoj_invalid();
+        cleanup_numeric((gchar *)*attribute_values);
+        tmpItem->font_size = g_ascii_strtod(*attribute_values, &ptr);
+        if (ptr == *attribute_values) *error = xoj_invalid();
+        has_attr |= 2;
+      }
+      else if (!strcmp(*attribute_names, "x")) {
+        if (has_attr & 4) *error = xoj_invalid();
+        cleanup_numeric((gchar *)*attribute_values);
+        tmpItem->bbox.left = g_ascii_strtod(*attribute_values, &ptr);
+        if (ptr == *attribute_values) *error = xoj_invalid();
+        has_attr |= 4;
+      }
+      else if (!strcmp(*attribute_names, "y")) {
+        if (has_attr & 8) *error = xoj_invalid();
+        cleanup_numeric((gchar *)*attribute_values);
+        tmpItem->bbox.top = g_ascii_strtod(*attribute_values, &ptr);
+        if (ptr == *attribute_values) *error = xoj_invalid();
+        has_attr |= 8;
+      }
+      else if (!strcmp(*attribute_names, "color")) {
+        if (has_attr & 16) *error = xoj_invalid();
+        tmpItem->brush.color_no = COLOR_OTHER;
+        for (i=0; i<COLOR_MAX; i++)
+          if (!strcmp(*attribute_values, color_names[i])) {
+            tmpItem->brush.color_no = i;
+            tmpItem->brush.color_rgba = predef_colors_rgba[i];
+          }
+        // there's also the case of hex (#rrggbbaa) colors
+        if (tmpItem->brush.color_no == COLOR_OTHER && **attribute_values == '#') {
+          tmpItem->brush.color_rgba = strtol(*attribute_values + 1, &ptr, 16);
+          if (*ptr!=0) *error = xoj_invalid();
+        }
+        has_attr |= 16;
+      }
+      else *error = xoj_invalid();
+      attribute_names++;
+      attribute_values++;
+    }
+    if (has_attr!=31) *error = xoj_invalid();
   }
 }
 
@@ -502,6 +576,13 @@ void xoj_parser_end_element(GMarkupParseContext *context,
     update_item_bbox(tmpItem);
     tmpItem = NULL;
   }
+  if (!strcmp(element_name, "text")) {
+    if (tmpItem == NULL) {
+      *error = xoj_invalid();
+      return;
+    }
+    tmpItem = NULL;
+  }
 }
 
 void xoj_parser_text(GMarkupParseContext *context,
@@ -527,6 +608,11 @@ void xoj_parser_text(GMarkupParseContext *context,
     if (n<4 || n&1) { *error = xoj_invalid(); return; }
     tmpItem->path = gnome_canvas_points_new(n/2);
     g_memmove(tmpItem->path->coords, ui.cur_path.coords, n*sizeof(double));
+  }
+  if (!strcmp(element_name, "text")) {
+    tmpItem->text = g_malloc(text_len+1);
+    g_memmove(tmpItem->text, text, text_len);
+    tmpItem->text[text_len]=0;
   }
 }
 
@@ -711,8 +797,9 @@ GList *attempt_load_gv_bg(char *filename)
   char *pipename;
   int buflen, remnlen, file_pageno;
   
-  buf = g_malloc(BUFSIZE); // a reasonable buffer size
   f = fopen(filename, "r");
+  if (f == NULL) return NULL;
+  buf = g_malloc(BUFSIZE); // a reasonable buffer size
   if (fread(buf, 1, 4, f) !=4 ||
         (strncmp((char *)buf, "%!PS", 4) && strncmp((char *)buf, "%PDF", 4))) {
     fclose(f);
@@ -1165,11 +1252,14 @@ void update_mru_menu(void)
 {
   int i;
   gboolean anyone = FALSE;
+  gchar *tmp;
   
   for (i=0; i<MRU_SIZE; i++) {
     if (ui.mru[i]!=NULL) {
-      gtk_label_set_text(GTK_LABEL(gtk_bin_get_child(GTK_BIN(ui.mrumenu[i]))),
-          g_basename(ui.mru[i]));
+      tmp = g_strdup_printf("_%d %s", i+1, g_basename(ui.mru[i]));
+      gtk_label_set_text_with_mnemonic(GTK_LABEL(gtk_bin_get_child(GTK_BIN(ui.mrumenu[i]))),
+          tmp);
+      g_free(tmp);
       gtk_widget_show(ui.mrumenu[i]);
       anyone = TRUE;
     }
@@ -1231,7 +1321,7 @@ void init_config_default(void)
   ui.default_page.bg->ruling = RULING_LINED;
   ui.view_continuous = TRUE;
   ui.allow_xinput = TRUE;
-  ui.discard_corepointer = TRUE;
+  ui.discard_corepointer = FALSE;
   ui.bg_apply_all_pages = FALSE;
   ui.use_erasertip = FALSE;
   ui.window_default_width = 720;
@@ -1246,6 +1336,8 @@ void init_config_default(void)
   ui.print_ruling = TRUE;
   ui.default_unit = UNIT_CM;
   ui.default_path = NULL;
+  ui.default_font_name = g_strdup(DEFAULT_FONT);
+  ui.default_font_size = DEFAULT_FONT_SIZE;
   
   // the default UI vertical order
   ui.vertical_order[0][0] = 1; 
@@ -1280,6 +1372,8 @@ void init_config_default(void)
   // predef_thickness is already initialized as a global variable
   GS_BITMAP_DPI = 144;
   PDFTOPPM_PRINTING_DPI = 150;
+  
+  ui.hiliter_opacity = 0.5;
 }
 
 #if GLIB_CHECK_VERSION(2,6,0)
@@ -1376,6 +1470,9 @@ void save_config_to_file(void)
   update_keyval("general", "interface_fullscreen",
     " interface components in fullscreen mode, from top to bottom",
     verbose_vertical_order(ui.vertical_order[1]));
+  update_keyval("general", "highlighter_opacity",
+    " highlighter opacity (0 to 1, default 0.5)\n warning: opacity level is not saved in xoj files!",
+    g_strdup_printf("%.2f", ui.hiliter_opacity));
 
   update_keyval("paper", "width",
     " the default page width, in points (1/72 in)",
@@ -1436,7 +1533,7 @@ void save_config_to_file(void)
     " default highlighter thickness (fine = 1, medium = 2, thick = 3)",
     g_strdup_printf("%d", ui.default_brushes[TOOL_HIGHLIGHTER].thickness_no));
   update_keyval("tools", "btn2_tool",
-    " button 2 tool (pen, eraser, highlighter, selectrect, vertspace, hand)",
+    " button 2 tool (pen, eraser, highlighter, text, selectrect, vertspace, hand)",
     g_strdup(tool_names[ui.toolno[1]]));
   update_keyval("tools", "btn2_linked",
     " button 2 brush linked to primary brush (true/false) (overrides all other settings)",
@@ -1456,7 +1553,7 @@ void save_config_to_file(void)
     " button 2 eraser mode (eraser only)",
     g_strdup_printf("%d", ui.brushes[1][TOOL_ERASER].tool_options));
   update_keyval("tools", "btn3_tool",
-    " button 3 tool (pen, eraser, highlighter, selectrect, vertspace, hand)",
+    " button 3 tool (pen, eraser, highlighter, text, selectrect, vertspace, hand)",
     g_strdup(tool_names[ui.toolno[2]]));
   update_keyval("tools", "btn3_linked",
     " button 3 brush linked to primary brush (true/false) (overrides all other settings)",
@@ -1492,8 +1589,12 @@ void save_config_to_file(void)
     g_strdup_printf("%.2f;%.2f;%.2f", 
       predef_thickness[TOOL_HIGHLIGHTER][1], predef_thickness[TOOL_HIGHLIGHTER][2],
       predef_thickness[TOOL_HIGHLIGHTER][3]));
-  // set comments for keys / groups that don't exist
-  // set keyvals to current options
+  update_keyval("tools", "default_font",
+    " name of the default font",
+    g_strdup(ui.default_font_name));
+  update_keyval("tools", "default_font_size",
+    " default font size",
+    g_strdup_printf("%.1f", ui.default_font_size));
 
   buf = g_key_file_to_data(ui.config_data, NULL, NULL);
   if (buf == NULL) return;
@@ -1637,6 +1738,7 @@ void load_config_from_file(void)
   double f;
   gboolean b;
   int i, j;
+  gchar *str;
   
 #if GLIB_CHECK_VERSION(2,6,0)
   // no support for keyval files before Glib 2.6.0
@@ -1673,6 +1775,7 @@ void load_config_from_file(void)
   parse_keyval_string("general", "default_path", &ui.default_path);
   parse_keyval_vorderlist("general", "interface_order", ui.vertical_order[0]);
   parse_keyval_vorderlist("general", "interface_fullscreen", ui.vertical_order[1]);
+  parse_keyval_float("general", "highlighter_opacity", &ui.hiliter_opacity, 0., 1.);
   
   parse_keyval_float("paper", "width", &ui.default_page.width, 1., 5000.);
   parse_keyval_float("paper", "height", &ui.default_page.height, 1., 5000.);
@@ -1735,5 +1838,8 @@ void load_config_from_file(void)
   parse_keyval_floatlist("tools", "pen_thicknesses", predef_thickness[TOOL_PEN], 5, 0.01, 1000.0);
   parse_keyval_floatlist("tools", "eraser_thicknesses", predef_thickness[TOOL_ERASER]+1, 3, 0.01, 1000.0);
   parse_keyval_floatlist("tools", "highlighter_thicknesses", predef_thickness[TOOL_HIGHLIGHTER]+1, 3, 0.01, 1000.0);
+  if (parse_keyval_string("tools", "default_font", &str))
+    if (str!=NULL) { g_free(ui.default_font_name); ui.default_font_name = str; }
+  parse_keyval_float("tools", "default_font_size", &ui.default_font_size, 1., 200.);
 #endif
 }

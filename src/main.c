@@ -1,8 +1,3 @@
-#define ENABLE_XINPUT_BUGFIX  1
-/* change the above to 0 if you are experiencing calibration problems with
-   XInput and want to try things differently 
-*/
-
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
@@ -33,17 +28,11 @@ void hide_unimplemented(void)
   gtk_widget_hide(GET_COMPONENT("filePrintOptions"));
   gtk_widget_hide(GET_COMPONENT("journalFlatten"));
   gtk_widget_hide(GET_COMPONENT("papercolorOther"));
-  gtk_widget_hide(GET_COMPONENT("toolsText"));
-  gtk_widget_hide(GET_COMPONENT("buttonText"));
-  gtk_widget_hide(GET_COMPONENT("button2Text"));
-  gtk_widget_hide(GET_COMPONENT("button3Text"));
   gtk_widget_hide(GET_COMPONENT("toolsSelectRegion"));
   gtk_widget_hide(GET_COMPONENT("buttonSelectRegion"));
   gtk_widget_hide(GET_COMPONENT("button2SelectRegion"));
   gtk_widget_hide(GET_COMPONENT("button3SelectRegion"));
   gtk_widget_hide(GET_COMPONENT("colorOther"));
-  gtk_widget_hide(GET_COMPONENT("toolsTextFont"));
-  gtk_widget_hide(GET_COMPONENT("toolsDefaultText"));
   gtk_widget_hide(GET_COMPONENT("helpIndex"));
 }
 
@@ -71,6 +60,9 @@ void init_stuff (int argc, char *argv[])
   // initialize preferences
   init_config_default();
   load_config_from_file();
+  ui.font_name = g_strdup(ui.default_font_name);
+  ui.font_size = ui.default_font_size;
+  ui.hiliter_alpha_mask = 0xffffff00 + (guint)(255*ui.hiliter_opacity);
 
   // we need an empty canvas prior to creating the journal structures
   canvas = GNOME_CANVAS (gnome_canvas_new_aa ());
@@ -107,7 +99,7 @@ void init_stuff (int argc, char *argv[])
       b->tool_type = i;
       b->color_rgba = predef_colors_rgba[b->color_no];
       if (i == TOOL_HIGHLIGHTER) {
-        b->color_rgba &= HILITER_ALPHA_MASK;
+        b->color_rgba &= ui.hiliter_alpha_mask;
       }
       b->thickness = predef_thickness[i][b->thickness_no];
     }
@@ -121,6 +113,7 @@ void init_stuff (int argc, char *argv[])
   gtk_window_set_default_size(GTK_WINDOW (winMain), ui.window_default_width, ui.window_default_height);
   if (ui.maximize_at_start) gtk_window_maximize(GTK_WINDOW (winMain));
   update_toolbar_and_menu();
+  update_font_button();
 
   gtk_check_menu_item_set_active(
     GTK_CHECK_MENU_ITEM(GET_COMPONENT("journalApplyAllPages")), ui.bg_apply_all_pages);
@@ -132,6 +125,8 @@ void init_stuff (int argc, char *argv[])
     gtk_window_fullscreen(GTK_WINDOW(winMain));
   }
 
+  allow_all_accels();
+  add_scroll_bindings();
 
   // set up and initialize the canvas
 
@@ -140,7 +135,6 @@ void init_stuff (int argc, char *argv[])
   gtk_container_add (GTK_CONTAINER (w), GTK_WIDGET (canvas));
   gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW (w), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
   gtk_widget_set_events (GTK_WIDGET (canvas), GDK_EXPOSURE_MASK | GDK_POINTER_MOTION_MASK | GDK_BUTTON_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_KEY_PRESS_MASK | GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK);
-  gtk_widget_set_extension_events(GTK_WIDGET (canvas), GDK_EXTENSION_EVENTS_ALL);
   gnome_canvas_set_pixels_per_unit (canvas, ui.zoom);
   gnome_canvas_set_center_scroll_region (canvas, TRUE);
   gtk_layout_get_hadjustment(GTK_LAYOUT (canvas))->step_increment = ui.scrollbar_step_increment;
@@ -182,7 +176,7 @@ void init_stuff (int argc, char *argv[])
     device = (GdkDevice *)dev_list->data;
     if (device != gdk_device_get_core_pointer()) {
       /* get around a GDK bug: map the valuator range CORRECTLY to [0,1] */
-#if ENABLE_XINPUT_BUGFIX
+#ifdef ENABLE_XINPUT_BUGFIX
       gdk_device_set_axis_use(device, 0, GDK_AXIS_IGNORE);
       gdk_device_set_axis_use(device, 1, GDK_AXIS_IGNORE);
 #endif
@@ -195,6 +189,8 @@ void init_stuff (int argc, char *argv[])
     gtk_widget_set_sensitive(GET_COMPONENT("optionsUseXInput"), FALSE);
 
   ui.use_xinput = ui.allow_xinput && can_xinput;
+  gtk_widget_set_extension_events(GTK_WIDGET (canvas), 
+    ui.use_xinput?GDK_EXTENSION_EVENTS_ALL:GDK_EXTENSION_EVENTS_NONE);
 
   gtk_check_menu_item_set_active(
     GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsUseXInput")), ui.use_xinput);
@@ -215,6 +211,7 @@ void init_stuff (int argc, char *argv[])
   update_undo_redo_enabled();
   update_copy_paste_enabled();
   update_vbox_order(ui.vertical_order[ui.fullscreen?1:0]);
+  gtk_widget_grab_focus(GTK_WIDGET(canvas));
 
   // show everything...
   

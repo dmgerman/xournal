@@ -600,3 +600,11 @@ on_optionsPrintRuling_activate         (GtkMenuItem     *menuitem,
 void
 on_optionsDiscardCore_activate         (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
+
+void
+on_fontButton_font_set                 (GtkFontButton   *fontbutton,
+                                        gpointer         user_data);
+
+void
+on_toggletoolClicked                   (GtkToolButton   *toolbutton,
+                                        gpointer         user_data);

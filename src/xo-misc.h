@@ -23,12 +23,15 @@ void fix_xinput_coords(GdkEvent *event);
 void update_item_bbox(struct Item *item);
 void make_page_clipbox(struct Page *pg);
 void make_canvas_items(void);
+void make_canvas_item_one(GnomeCanvasGroup *group, struct Item *item);
 void update_canvas_bg(struct Page *pg);
 gboolean is_visible(struct Page *pg);
 void rescale_bg_pixmaps(void);
 
 gboolean have_intersect(struct BBox *a, struct BBox *b);
 void lower_canvas_item_to(GnomeCanvasGroup *g, GnomeCanvasItem *item, GnomeCanvasItem *after);
+
+void rgb_to_gdkcolor(guint rgba, GdkColor *color);
 
 // interface misc functions
 
@@ -50,9 +53,13 @@ void update_undo_redo_enabled(void);
 void update_copy_paste_enabled(void);
 void update_vbox_order(int *order);
 
+gchar *make_cur_font_name(void);
+void update_font_button(void);
+
 void update_mapping_linkings(int toolno);
 void do_switch_page(int pg, gboolean rescroll, gboolean refresh_all);
 void set_cur_color(int color);
+void recolor_temp_text(int color_no, guint color_rgba);
 void process_color_activate(GtkMenuItem *menuitem, int color);
 void process_thickness_activate(GtkMenuItem *menuitem, int tool, int val);
 void process_papercolor_activate(GtkMenuItem *menuitem, int color);
@@ -60,6 +67,8 @@ void process_paperstyle_activate(GtkMenuItem *menuitem, int style);
 
 gboolean ok_to_close(void);
 gboolean page_ops_forbidden(void);
+
+void reset_focus(void);
 
 // selection / clipboard stuff
 
@@ -72,6 +81,12 @@ void move_journal_items_by(GList *itemlist, double dx, double dy,
 void switch_mapping(int m);
 void process_mapping_activate(GtkMenuItem *menuitem, int m, int tool);
 
+// always allow accels
+void allow_all_accels(void);
+gboolean can_accel(GtkWidget *widget, guint id, gpointer data);
+void add_scroll_bindings(void);
+
+gboolean is_event_within_textview(GdkEventButton *event);
 
 // defines for paper rulings
 

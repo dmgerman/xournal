@@ -17,6 +17,7 @@
   <property name="type_hint">GDK_WINDOW_TYPE_HINT_NORMAL</property>
   <property name="gravity">GDK_GRAVITY_NORTH_WEST</property>
   <property name="focus_on_map">True</property>
+  <property name="urgency_hint">False</property>
   <signal name="delete_event" handler="on_winMain_delete_event" last_modification_time="Mon, 05 Dec 2005 03:21:33 GMT"/>
 
   <child>
@@ -28,6 +29,8 @@
       <child>
 	<widget class="GtkMenuBar" id="menubar">
 	  <property name="visible">True</property>
+	  <property name="pack_direction">GTK_PACK_DIRECTION_LTR</property>
+	  <property name="child_pack_direction">GTK_PACK_DIRECTION_LTR</property>
 
 	  <child>
 	    <widget class="GtkMenuItem" id="menuFile">
@@ -50,7 +53,7 @@
 		  <child>
 		    <widget class="GtkImageMenuItem" id="fileNewBackground">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Annotate PDF</property>
+		      <property name="label" translatable="yes">Annotate PD_F</property>
 		      <property name="use_underline">True</property>
 		      <signal name="activate" handler="on_fileNewBackground_activate" last_modification_time="Wed, 30 Nov 2005 18:39:59 GMT"/>
 
@@ -104,7 +107,7 @@
 		  <child>
 		    <widget class="GtkMenuItem" id="fileRecentFiles">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Recent Files</property>
+		      <property name="label" translatable="yes">Recent Doc_uments</property>
 		      <property name="use_underline">True</property>
 
 		      <child>
@@ -219,15 +222,17 @@
 		      <property name="label">gtk-print</property>
 		      <property name="use_stock">True</property>
 		      <signal name="activate" handler="on_filePrint_activate" last_modification_time="Wed, 30 Nov 2005 18:44:18 GMT"/>
+		      <accelerator key="P" modifiers="GDK_CONTROL_MASK" signal="activate"/>
 		    </widget>
 		  </child>
 
 		  <child>
 		    <widget class="GtkMenuItem" id="filePrintPDF">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Export to PDF</property>
+		      <property name="label" translatable="yes">_Export to PDF</property>
 		      <property name="use_underline">True</property>
 		      <signal name="activate" handler="on_filePrintPDF_activate" last_modification_time="Wed, 30 Nov 2005 18:44:18 GMT"/>
+		      <accelerator key="E" modifiers="GDK_CONTROL_MASK" signal="activate"/>
 		    </widget>
 		  </child>
 
@@ -265,6 +270,7 @@
 		      <property name="label">gtk-undo</property>
 		      <property name="use_stock">True</property>
 		      <signal name="activate" handler="on_editUndo_activate" last_modification_time="Wed, 30 Nov 2005 18:45:33 GMT"/>
+		      <accelerator key="Z" modifiers="GDK_CONTROL_MASK" signal="activate"/>
 		    </widget>
 		  </child>
 
@@ -274,6 +280,7 @@
 		      <property name="label">gtk-redo</property>
 		      <property name="use_stock">True</property>
 		      <signal name="activate" handler="on_editRedo_activate" last_modification_time="Wed, 30 Nov 2005 18:45:33 GMT"/>
+		      <accelerator key="Y" modifiers="GDK_CONTROL_MASK" signal="activate"/>
 		    </widget>
 		  </child>
 
@@ -316,6 +323,7 @@
 		      <property name="label">gtk-delete</property>
 		      <property name="use_stock">True</property>
 		      <signal name="activate" handler="on_editDelete_activate" last_modification_time="Wed, 30 Nov 2005 18:40:00 GMT"/>
+		      <accelerator key="Delete" modifiers="0" signal="activate"/>
 		    </widget>
 		  </child>
 		</widget>
@@ -335,7 +343,7 @@
 		  <child>
 		    <widget class="GtkRadioMenuItem" id="viewContinuous">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Continuous</property>
+		      <property name="label" translatable="yes">_Continuous</property>
 		      <property name="use_underline">True</property>
 		      <property name="active">True</property>
 		      <signal name="toggled" handler="on_viewContinuous_activate" last_modification_time="Wed, 30 Nov 2005 19:31:48 GMT"/>
@@ -345,7 +353,7 @@
 		  <child>
 		    <widget class="GtkRadioMenuItem" id="viewOnePage">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">One Page</property>
+		      <property name="label" translatable="yes">_One Page</property>
 		      <property name="use_underline">True</property>
 		      <property name="active">True</property>
 		      <property name="group">viewContinuous</property>
@@ -366,6 +374,7 @@
 		      <property name="use_underline">True</property>
 		      <property name="active">False</property>
 		      <signal name="activate" handler="on_viewFullscreen_activate" last_modification_time="Thu, 19 Jan 2006 19:58:13 GMT"/>
+		      <accelerator key="F11" modifiers="0" signal="activate"/>
 		    </widget>
 		  </child>
 
@@ -390,6 +399,7 @@
 			      <property name="label">gtk-zoom-in</property>
 			      <property name="use_stock">True</property>
 			      <signal name="activate" handler="on_viewZoomIn_activate" last_modification_time="Wed, 30 Nov 2005 19:31:48 GMT"/>
+			      <accelerator key="plus" modifiers="GDK_CONTROL_MASK" signal="activate"/>
 			    </widget>
 			  </child>
 
@@ -399,6 +409,7 @@
 			      <property name="label">gtk-zoom-out</property>
 			      <property name="use_stock">True</property>
 			      <signal name="activate" handler="on_viewZoomOut_activate" last_modification_time="Wed, 30 Nov 2005 19:31:48 GMT"/>
+			      <accelerator key="minus" modifiers="GDK_CONTROL_MASK" signal="activate"/>
 			    </widget>
 			  </child>
 
@@ -408,15 +419,17 @@
 			      <property name="label">gtk-zoom-100</property>
 			      <property name="use_stock">True</property>
 			      <signal name="activate" handler="on_viewNormalSize_activate" last_modification_time="Wed, 30 Nov 2005 19:31:48 GMT"/>
+			      <accelerator key="0" modifiers="GDK_CONTROL_MASK" signal="activate"/>
 			    </widget>
 			  </child>
 
 			  <child>
 			    <widget class="GtkImageMenuItem" id="viewPageWidth">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">Page Width</property>
+			      <property name="label" translatable="yes">Page _Width</property>
 			      <property name="use_underline">True</property>
 			      <signal name="activate" handler="on_viewPageWidth_activate" last_modification_time="Wed, 30 Nov 2005 19:31:48 GMT"/>
+			      <accelerator key="equal" modifiers="GDK_CONTROL_MASK" signal="activate"/>
 
 			      <child internal-child="image">
 				<widget class="GtkImage" id="image625">
@@ -435,7 +448,7 @@
 			  <child>
 			    <widget class="GtkMenuItem" id="viewSetZoom">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">Set Zoom</property>
+			      <property name="label" translatable="yes">_Set Zoom</property>
 			      <property name="use_underline">True</property>
 			      <signal name="activate" handler="on_viewSetZoom_activate" last_modification_time="Sat, 22 Jul 2006 21:30:29 GMT"/>
 			    </widget>
@@ -454,9 +467,10 @@
 		  <child>
 		    <widget class="GtkImageMenuItem" id="viewFirstPage">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">First Page</property>
+		      <property name="label" translatable="yes">_First Page</property>
 		      <property name="use_underline">True</property>
 		      <signal name="activate" handler="on_viewFirstPage_activate" last_modification_time="Wed, 30 Nov 2005 19:33:03 GMT"/>
+		      <accelerator key="Home" modifiers="GDK_CONTROL_MASK" signal="activate"/>
 
 		      <child internal-child="image">
 			<widget class="GtkImage" id="image626">
@@ -475,9 +489,10 @@
 		  <child>
 		    <widget class="GtkImageMenuItem" id="viewPreviousPage">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Previous Page</property>
+		      <property name="label" translatable="yes">_Previous Page</property>
 		      <property name="use_underline">True</property>
 		      <signal name="activate" handler="on_viewPreviousPage_activate" last_modification_time="Wed, 30 Nov 2005 19:35:41 GMT"/>
+		      <accelerator key="Left" modifiers="GDK_CONTROL_MASK" signal="activate"/>
 
 		      <child internal-child="image">
 			<widget class="GtkImage" id="image627">
@@ -496,9 +511,10 @@
 		  <child>
 		    <widget class="GtkImageMenuItem" id="viewNextPage">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Next Page</property>
+		      <property name="label" translatable="yes">_Next Page</property>
 		      <property name="use_underline">True</property>
 		      <signal name="activate" handler="on_viewNextPage_activate" last_modification_time="Wed, 30 Nov 2005 19:35:41 GMT"/>
+		      <accelerator key="Right" modifiers="GDK_CONTROL_MASK" signal="activate"/>
 
 		      <child internal-child="image">
 			<widget class="GtkImage" id="image628">
@@ -517,9 +533,10 @@
 		  <child>
 		    <widget class="GtkImageMenuItem" id="viewLastPage">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Last Page</property>
+		      <property name="label" translatable="yes">_Last Page</property>
 		      <property name="use_underline">True</property>
 		      <signal name="activate" handler="on_viewLastPage_activate" last_modification_time="Wed, 30 Nov 2005 19:35:41 GMT"/>
+		      <accelerator key="End" modifiers="GDK_CONTROL_MASK" signal="activate"/>
 
 		      <child internal-child="image">
 			<widget class="GtkImage" id="image629">
@@ -544,7 +561,7 @@
 		  <child>
 		    <widget class="GtkImageMenuItem" id="viewShowLayer">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Show Layer</property>
+		      <property name="label" translatable="yes">_Show Layer</property>
 		      <property name="use_underline">True</property>
 		      <signal name="activate" handler="on_viewShowLayer_activate" last_modification_time="Wed, 30 Nov 2005 19:40:23 GMT"/>
 
@@ -565,7 +582,7 @@
 		  <child>
 		    <widget class="GtkImageMenuItem" id="viewHideLayer">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Hide Layer</property>
+		      <property name="label" translatable="yes">_Hide Layer</property>
 		      <property name="use_underline">True</property>
 		      <signal name="activate" handler="on_viewHideLayer_activate" last_modification_time="Wed, 30 Nov 2005 19:40:23 GMT"/>
 
@@ -599,7 +616,7 @@
 		  <child>
 		    <widget class="GtkMenuItem" id="journalNewPageBefore">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">New Page Before</property>
+		      <property name="label" translatable="yes">New Page _Before</property>
 		      <property name="use_underline">True</property>
 		      <signal name="activate" handler="on_journalNewPageBefore_activate" last_modification_time="Wed, 30 Nov 2005 19:50:07 GMT"/>
 		    </widget>
@@ -608,7 +625,7 @@
 		  <child>
 		    <widget class="GtkMenuItem" id="journalNewPageAfter">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">New Page After</property>
+		      <property name="label" translatable="yes">New Page _After</property>
 		      <property name="use_underline">True</property>
 		      <signal name="activate" handler="on_journalNewPageAfter_activate" last_modification_time="Wed, 30 Nov 2005 19:50:07 GMT"/>
 		    </widget>
@@ -617,7 +634,7 @@
 		  <child>
 		    <widget class="GtkMenuItem" id="journalNewPageEnd">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">New Page At End</property>
+		      <property name="label" translatable="yes">New Page At _End</property>
 		      <property name="use_underline">True</property>
 		      <signal name="activate" handler="on_journalNewPageEnd_activate" last_modification_time="Wed, 30 Nov 2005 19:50:07 GMT"/>
 		    </widget>
@@ -626,7 +643,7 @@
 		  <child>
 		    <widget class="GtkMenuItem" id="journalDeletePage">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Delete Page</property>
+		      <property name="label" translatable="yes">_Delete Page</property>
 		      <property name="use_underline">True</property>
 		      <signal name="activate" handler="on_journalDeletePage_activate" last_modification_time="Wed, 30 Nov 2005 19:50:07 GMT"/>
 		    </widget>
@@ -641,7 +658,7 @@
 		  <child>
 		    <widget class="GtkMenuItem" id="journalNewLayer">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">New Layer</property>
+		      <property name="label" translatable="yes">_New Layer</property>
 		      <property name="use_underline">True</property>
 		      <signal name="activate" handler="on_journalNewLayer_activate" last_modification_time="Wed, 30 Nov 2005 19:50:07 GMT"/>
 		    </widget>
@@ -650,7 +667,7 @@
 		  <child>
 		    <widget class="GtkMenuItem" id="journalDeleteLayer">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Delete Layer</property>
+		      <property name="label" translatable="yes">Delete La_yer</property>
 		      <property name="use_underline">True</property>
 		      <signal name="activate" handler="on_journalDeleteLayer_activate" last_modification_time="Wed, 30 Nov 2005 19:58:26 GMT"/>
 		    </widget>
@@ -659,7 +676,7 @@
 		  <child>
 		    <widget class="GtkMenuItem" id="journalFlatten">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Flatten</property>
+		      <property name="label" translatable="yes">_Flatten</property>
 		      <property name="use_underline">True</property>
 		      <signal name="activate" handler="on_journalFlatten_activate" last_modification_time="Thu, 01 Dec 2005 21:19:12 GMT"/>
 		    </widget>
@@ -674,7 +691,7 @@
 		  <child>
 		    <widget class="GtkMenuItem" id="journalPaperSize">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Paper Size</property>
+		      <property name="label" translatable="yes">Paper Si_ze</property>
 		      <property name="use_underline">True</property>
 		      <signal name="activate" handler="on_journalPaperSize_activate" last_modification_time="Wed, 30 Nov 2005 19:58:26 GMT"/>
 		    </widget>
@@ -683,7 +700,7 @@
 		  <child>
 		    <widget class="GtkMenuItem" id="journalPaperColor">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Paper Color</property>
+		      <property name="label" translatable="yes">Paper _Color</property>
 		      <property name="use_underline">True</property>
 
 		      <child>
@@ -692,7 +709,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="papercolorWhite">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">white paper</property>
+			      <property name="label" translatable="yes">_white paper</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <signal name="toggled" handler="on_papercolorWhite_activate" last_modification_time="Wed, 30 Nov 2005 19:58:26 GMT"/>
@@ -702,7 +719,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="papercolorYellow">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">yellow paper</property>
+			      <property name="label" translatable="yes">_yellow paper</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <property name="group">papercolorWhite</property>
@@ -713,7 +730,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="papercolorPink">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">pink paper</property>
+			      <property name="label" translatable="yes">_pink paper</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <property name="group">papercolorWhite</property>
@@ -724,7 +741,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="papercolorOrange">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">orange paper</property>
+			      <property name="label" translatable="yes">_orange paper</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <property name="group">papercolorWhite</property>
@@ -735,7 +752,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="papercolorBlue">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">blue paper</property>
+			      <property name="label" translatable="yes">_blue paper</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <property name="group">papercolorWhite</property>
@@ -746,7 +763,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="papercolorGreen">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">green paper</property>
+			      <property name="label" translatable="yes">_green paper</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <property name="group">papercolorWhite</property>
@@ -781,7 +798,7 @@
 		  <child>
 		    <widget class="GtkMenuItem" id="journalPaperStyle">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Paper Style</property>
+		      <property name="label" translatable="yes">Paper _Style</property>
 		      <property name="use_underline">True</property>
 
 		      <child>
@@ -790,7 +807,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="paperstylePlain">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">plain</property>
+			      <property name="label" translatable="yes">_plain</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <signal name="toggled" handler="on_paperstylePlain_activate" last_modification_time="Wed, 30 Nov 2005 20:06:31 GMT"/>
@@ -800,7 +817,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="paperstyleLined">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">lined</property>
+			      <property name="label" translatable="yes">_lined</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <property name="group">paperstylePlain</property>
@@ -811,7 +828,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="paperstyleRuled">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">ruled</property>
+			      <property name="label" translatable="yes">_ruled</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <property name="group">paperstylePlain</property>
@@ -822,7 +839,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="paperstyleGraph">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">graph</property>
+			      <property name="label" translatable="yes">_graph</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <property name="group">paperstylePlain</property>
@@ -846,7 +863,7 @@
 		  <child>
 		    <widget class="GtkCheckMenuItem" id="journalApplyAllPages">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Apply To All Pages</property>
+		      <property name="label" translatable="yes">Apply _To All Pages</property>
 		      <property name="use_underline">True</property>
 		      <property name="active">False</property>
 		      <signal name="activate" handler="on_journalApplyAllPages_activate" last_modification_time="Wed, 30 Nov 2005 19:58:26 GMT"/>
@@ -862,7 +879,7 @@
 		  <child>
 		    <widget class="GtkImageMenuItem" id="journalLoadBackground">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Load Background</property>
+		      <property name="label" translatable="yes">_Load Background</property>
 		      <property name="use_underline">True</property>
 		      <signal name="activate" handler="on_journalLoadBackground_activate" last_modification_time="Wed, 30 Nov 2005 20:06:31 GMT"/>
 
@@ -883,7 +900,7 @@
 		  <child>
 		    <widget class="GtkMenuItem" id="journalScreenshot">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Background Screenshot</property>
+		      <property name="label" translatable="yes">Background Screens_hot</property>
 		      <property name="use_underline">True</property>
 		      <signal name="activate" handler="on_journalScreenshot_activate" last_modification_time="Wed, 30 Nov 2005 20:06:31 GMT"/>
 		    </widget>
@@ -898,7 +915,7 @@
 		  <child>
 		    <widget class="GtkMenuItem" id="journalDefaultBackground">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Default Paper</property>
+		      <property name="label" translatable="yes">Default _Paper</property>
 		      <property name="use_underline">True</property>
 		      <signal name="activate" handler="on_journalDefaultBackground_activate" last_modification_time="Tue, 13 Dec 2005 22:35:03 GMT"/>
 		    </widget>
@@ -907,7 +924,7 @@
 		  <child>
 		    <widget class="GtkMenuItem" id="journalSetAsDefault">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Set As Default</property>
+		      <property name="label" translatable="yes">Set As De_fault</property>
 		      <property name="use_underline">True</property>
 		      <signal name="activate" handler="on_journalSetAsDefault_activate" last_modification_time="Tue, 13 Dec 2005 22:35:03 GMT"/>
 		    </widget>
@@ -933,6 +950,7 @@
 		      <property name="use_underline">True</property>
 		      <property name="active">True</property>
 		      <signal name="toggled" handler="on_toolsPen_activate" last_modification_time="Thu, 01 Dec 2005 05:36:05 GMT"/>
+		      <accelerator key="P" modifiers="GDK_CONTROL_MASK | GDK_SHIFT_MASK" signal="activate"/>
 		    </widget>
 		  </child>
 
@@ -944,6 +962,7 @@
 		      <property name="active">True</property>
 		      <property name="group">toolsPen</property>
 		      <signal name="toggled" handler="on_toolsEraser_activate" last_modification_time="Thu, 01 Dec 2005 05:36:05 GMT"/>
+		      <accelerator key="E" modifiers="GDK_CONTROL_MASK | GDK_SHIFT_MASK" signal="activate"/>
 		    </widget>
 		  </child>
 
@@ -955,6 +974,7 @@
 		      <property name="active">True</property>
 		      <property name="group">toolsPen</property>
 		      <signal name="toggled" handler="on_toolsHighlighter_activate" last_modification_time="Thu, 01 Dec 2005 05:36:05 GMT"/>
+		      <accelerator key="H" modifiers="GDK_CONTROL_MASK | GDK_SHIFT_MASK" signal="activate"/>
 		    </widget>
 		  </child>
 
@@ -966,6 +986,7 @@
 		      <property name="active">True</property>
 		      <property name="group">toolsPen</property>
 		      <signal name="toggled" handler="on_toolsText_activate" last_modification_time="Thu, 01 Dec 2005 20:54:08 GMT"/>
+		      <accelerator key="T" modifiers="GDK_CONTROL_MASK | GDK_SHIFT_MASK" signal="activate"/>
 		    </widget>
 		  </child>
 
@@ -978,44 +999,48 @@
 		  <child>
 		    <widget class="GtkRadioMenuItem" id="toolsSelectRegion">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">_Select Region</property>
+		      <property name="label" translatable="yes">Select Re_gion</property>
 		      <property name="use_underline">True</property>
 		      <property name="active">True</property>
 		      <property name="group">toolsPen</property>
 		      <signal name="toggled" handler="on_toolsSelectRegion_activate" last_modification_time="Thu, 01 Dec 2005 20:54:08 GMT"/>
+		      <accelerator key="G" modifiers="GDK_CONTROL_MASK | GDK_SHIFT_MASK" signal="activate"/>
 		    </widget>
 		  </child>
 
 		  <child>
 		    <widget class="GtkRadioMenuItem" id="toolsSelectRectangle">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Select Rectangle</property>
+		      <property name="label" translatable="yes">Select _Rectangle</property>
 		      <property name="use_underline">True</property>
 		      <property name="active">True</property>
 		      <property name="group">toolsPen</property>
 		      <signal name="toggled" handler="on_toolsSelectRectangle_activate" last_modification_time="Thu, 01 Dec 2005 20:54:08 GMT"/>
+		      <accelerator key="R" modifiers="GDK_CONTROL_MASK | GDK_SHIFT_MASK" signal="activate"/>
 		    </widget>
 		  </child>
 
 		  <child>
 		    <widget class="GtkRadioMenuItem" id="toolsVerticalSpace">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Vertical Space</property>
+		      <property name="label" translatable="yes">_Vertical Space</property>
 		      <property name="use_underline">True</property>
 		      <property name="active">True</property>
 		      <property name="group">toolsPen</property>
 		      <signal name="toggled" handler="on_toolsVerticalSpace_activate" last_modification_time="Thu, 01 Dec 2005 20:54:08 GMT"/>
+		      <accelerator key="V" modifiers="GDK_CONTROL_MASK | GDK_SHIFT_MASK" signal="activate"/>
 		    </widget>
 		  </child>
 
 		  <child>
 		    <widget class="GtkRadioMenuItem" id="toolsHand">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Hand Tool</property>
+		      <property name="label" translatable="yes">H_and Tool</property>
 		      <property name="use_underline">True</property>
 		      <property name="active">False</property>
 		      <property name="group">toolsPen</property>
 		      <signal name="activate" handler="on_toolsHand_activate" last_modification_time="Wed, 20 Sep 2006 02:20:48 GMT"/>
+		      <accelerator key="A" modifiers="GDK_CONTROL_MASK | GDK_SHIFT_MASK" signal="activate"/>
 		    </widget>
 		  </child>
 
@@ -1049,7 +1074,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="colorBlack">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">black</property>
+			      <property name="label" translatable="yes">blac_k</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <signal name="toggled" handler="on_colorBlack_activate" last_modification_time="Thu, 01 Dec 2005 21:56:57 GMT"/>
@@ -1059,7 +1084,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="colorBlue">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">blue</property>
+			      <property name="label" translatable="yes">_blue</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <property name="group">colorBlack</property>
@@ -1070,7 +1095,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="colorRed">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">red</property>
+			      <property name="label" translatable="yes">_red</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <property name="group">colorBlack</property>
@@ -1081,7 +1106,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="colorGreen">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">green</property>
+			      <property name="label" translatable="yes">_green</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <property name="group">colorBlack</property>
@@ -1092,7 +1117,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="colorGray">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">gray</property>
+			      <property name="label" translatable="yes">gr_ay</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <property name="group">colorBlack</property>
@@ -1109,7 +1134,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="colorLightBlue">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">light blue</property>
+			      <property name="label" translatable="yes">light bl_ue</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <property name="group">colorBlack</property>
@@ -1120,7 +1145,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="colorLightGreen">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">light green</property>
+			      <property name="label" translatable="yes">light gr_een</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <property name="group">colorBlack</property>
@@ -1131,7 +1156,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="colorMagenta">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">magenta</property>
+			      <property name="label" translatable="yes">_magenta</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <property name="group">colorBlack</property>
@@ -1142,7 +1167,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="colorOrange">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">orange</property>
+			      <property name="label" translatable="yes">_orange</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <property name="group">colorBlack</property>
@@ -1153,7 +1178,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="colorYellow">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">yellow</property>
+			      <property name="label" translatable="yes">_yellow</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <property name="group">colorBlack</property>
@@ -1164,7 +1189,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="colorWhite">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">white</property>
+			      <property name="label" translatable="yes">_white</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <property name="group">colorBlack</property>
@@ -1208,7 +1233,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="penthicknessVeryFine">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">very fine</property>
+			      <property name="label" translatable="yes">_very fine</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <signal name="toggled" handler="on_penthicknessVeryFine_activate" last_modification_time="Thu, 01 Dec 2005 19:29:18 GMT"/>
@@ -1218,7 +1243,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="penthicknessFine">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">fine</property>
+			      <property name="label" translatable="yes">_fine</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <property name="group">penthicknessVeryFine</property>
@@ -1229,7 +1254,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="penthicknessMedium">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">medium</property>
+			      <property name="label" translatable="yes">_medium</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <property name="group">penthicknessVeryFine</property>
@@ -1240,7 +1265,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="penthicknessThick">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">thick</property>
+			      <property name="label" translatable="yes">_thick</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <property name="group">penthicknessVeryFine</property>
@@ -1251,7 +1276,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="penthicknessVeryThick">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">very thick</property>
+			      <property name="label" translatable="yes">ver_y thick</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <property name="group">penthicknessVeryFine</property>
@@ -1266,7 +1291,7 @@
 		  <child>
 		    <widget class="GtkMenuItem" id="toolsEraserOptions">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Eraser Options</property>
+		      <property name="label" translatable="yes">Eraser Optio_ns</property>
 		      <property name="use_underline">True</property>
 
 		      <child>
@@ -1275,7 +1300,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="eraserFine">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">fine</property>
+			      <property name="label" translatable="yes">_fine</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <signal name="toggled" handler="on_eraserFine_activate" last_modification_time="Thu, 01 Dec 2005 19:29:18 GMT"/>
@@ -1285,7 +1310,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="eraserMedium">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">medium</property>
+			      <property name="label" translatable="yes">_medium</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <property name="group">eraserFine</property>
@@ -1296,7 +1321,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="eraserThick">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">thick</property>
+			      <property name="label" translatable="yes">_thick</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <property name="group">eraserFine</property>
@@ -1313,7 +1338,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="eraserStandard">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">standard</property>
+			      <property name="label" translatable="yes">_standard</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <signal name="toggled" handler="on_eraserStandard_activate" last_modification_time="Thu, 01 Dec 2005 19:29:18 GMT"/>
@@ -1323,7 +1348,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="eraserWhiteout">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">whiteout</property>
+			      <property name="label" translatable="yes">_whiteout</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <property name="group">eraserStandard</property>
@@ -1334,7 +1359,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="eraserDeleteStrokes">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">delete strokes</property>
+			      <property name="label" translatable="yes">_delete strokes</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <property name="group">eraserStandard</property>
@@ -1349,7 +1374,7 @@
 		  <child>
 		    <widget class="GtkMenuItem" id="toolsHighlighterOptions">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Highlighter Options</property>
+		      <property name="label" translatable="yes">Highlighter Opt_ions</property>
 		      <property name="use_underline">True</property>
 
 		      <child>
@@ -1358,7 +1383,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="highlighterFine">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">fine</property>
+			      <property name="label" translatable="yes">_fine</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <signal name="toggled" handler="on_highlighterFine_activate" last_modification_time="Thu, 01 Dec 2005 05:36:05 GMT"/>
@@ -1368,7 +1393,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="highlighterMedium">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">medium</property>
+			      <property name="label" translatable="yes">_medium</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <property name="group">highlighterFine</property>
@@ -1379,7 +1404,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="highlighterThick">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">thick</property>
+			      <property name="label" translatable="yes">_thick</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <property name="group">highlighterFine</property>
@@ -1394,9 +1419,10 @@
 		  <child>
 		    <widget class="GtkImageMenuItem" id="toolsTextFont">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Text Font</property>
+		      <property name="label" translatable="yes">Text _Font...</property>
 		      <property name="use_underline">True</property>
 		      <signal name="activate" handler="on_toolsTextFont_activate" last_modification_time="Thu, 01 Dec 2005 20:54:08 GMT"/>
+		      <accelerator key="F" modifiers="GDK_CONTROL_MASK | GDK_SHIFT_MASK" signal="activate"/>
 
 		      <child internal-child="image">
 			<widget class="GtkImage" id="image634">
@@ -1421,7 +1447,7 @@
 		  <child>
 		    <widget class="GtkMenuItem" id="toolsDefaultPen">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Default Pen</property>
+		      <property name="label" translatable="yes">_Default Pen</property>
 		      <property name="use_underline">True</property>
 		      <signal name="activate" handler="on_toolsDefaultPen_activate" last_modification_time="Thu, 01 Dec 2005 05:36:05 GMT"/>
 		    </widget>
@@ -1448,7 +1474,7 @@
 		  <child>
 		    <widget class="GtkMenuItem" id="toolsDefaultText">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Default Text</property>
+		      <property name="label" translatable="yes">Default Te_xt</property>
 		      <property name="use_underline">True</property>
 		      <signal name="activate" handler="on_toolsDefaultText_activate" last_modification_time="Thu, 01 Dec 2005 20:54:08 GMT"/>
 		    </widget>
@@ -1457,7 +1483,7 @@
 		  <child>
 		    <widget class="GtkMenuItem" id="toolsSetAsDefault">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Set As Default</property>
+		      <property name="label" translatable="yes">_Set As Default</property>
 		      <property name="use_underline">True</property>
 		      <signal name="activate" handler="on_toolsSetAsDefault_activate" last_modification_time="Thu, 01 Dec 2005 05:36:05 GMT"/>
 		    </widget>
@@ -1472,10 +1498,11 @@
 		  <child>
 		    <widget class="GtkCheckMenuItem" id="toolsRuler">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Ruler</property>
+		      <property name="label" translatable="yes">Ru_ler</property>
 		      <property name="use_underline">True</property>
 		      <property name="active">False</property>
 		      <signal name="toggled" handler="on_toolsRuler_activate" last_modification_time="Thu, 01 Dec 2005 20:54:08 GMT"/>
+		      <accelerator key="L" modifiers="GDK_CONTROL_MASK | GDK_SHIFT_MASK" signal="activate"/>
 		    </widget>
 		  </child>
 		</widget>
@@ -1495,7 +1522,7 @@
 		  <child>
 		    <widget class="GtkCheckMenuItem" id="optionsUseXInput">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Use XInput</property>
+		      <property name="label" translatable="yes">Use _XInput</property>
 		      <property name="use_underline">True</property>
 		      <property name="active">False</property>
 		      <signal name="toggled" handler="on_optionsUseXInput_activate" last_modification_time="Wed, 07 Dec 2005 22:54:39 GMT"/>
@@ -1505,7 +1532,7 @@
 		  <child>
 		    <widget class="GtkCheckMenuItem" id="optionsDiscardCoreEvents">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Discard Core Events</property>
+		      <property name="label" translatable="yes">Discard _Core Events</property>
 		      <property name="use_underline">True</property>
 		      <property name="active">False</property>
 		      <signal name="toggled" handler="on_optionsDiscardCore_activate" last_modification_time="Wed, 07 Dec 2005 22:54:39 GMT"/>
@@ -1515,7 +1542,7 @@
 		  <child>
 		    <widget class="GtkCheckMenuItem" id="optionsButtonMappings">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Eraser Tip</property>
+		      <property name="label" translatable="yes">_Eraser Tip</property>
 		      <property name="use_underline">True</property>
 		      <property name="active">False</property>
 		      <signal name="activate" handler="on_optionsButtonMappings_activate" last_modification_time="Thu, 26 Jan 2006 03:45:32 GMT"/>
@@ -1525,7 +1552,7 @@
 		  <child>
 		    <widget class="GtkMenuItem" id="button2_mapping">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Button 2 Mapping</property>
+		      <property name="label" translatable="yes">Button _2 Mapping</property>
 		      <property name="use_underline">True</property>
 
 		      <child>
@@ -1534,7 +1561,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="button2Pen">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">Pen</property>
+			      <property name="label" translatable="yes">_Pen</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <signal name="activate" handler="on_button2Pen_activate" last_modification_time="Sun, 04 Jun 2006 14:18:50 GMT"/>
@@ -1544,7 +1571,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="button2Eraser">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">Eraser</property>
+			      <property name="label" translatable="yes">_Eraser</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <property name="group">button2Pen</property>
@@ -1555,7 +1582,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="button2Highlighter">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">Highlighter</property>
+			      <property name="label" translatable="yes">_Highlighter</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <property name="group">button2Pen</property>
@@ -1566,7 +1593,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="button2Text">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">Text</property>
+			      <property name="label" translatable="yes">_Text</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <property name="group">button2Pen</property>
@@ -1577,7 +1604,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="button2SelectRegion">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">Select Region</property>
+			      <property name="label" translatable="yes">Select Re_gion</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <property name="group">button2Pen</property>
@@ -1588,7 +1615,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="button2SelectRectangle">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">Select Rectangle</property>
+			      <property name="label" translatable="yes">Select _Rectangle</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <property name="group">button2Pen</property>
@@ -1599,7 +1626,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="button2VerticalSpace">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">Vertical Space</property>
+			      <property name="label" translatable="yes">_Vertical Space</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <property name="group">button2Pen</property>
@@ -1610,7 +1637,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="button2Hand">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">Hand Tool</property>
+			      <property name="label" translatable="yes">H_and Tool</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">False</property>
 			      <property name="group">button2Pen</property>
@@ -1627,7 +1654,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="button2LinkBrush">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">Link to Primary Brush</property>
+			      <property name="label" translatable="yes">_Link to Primary Brush</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <signal name="activate" handler="on_button2LinkBrush_activate" last_modification_time="Sun, 04 Jun 2006 14:33:10 GMT"/>
@@ -1637,7 +1664,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="button2CopyBrush">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">Copy of Current Brush</property>
+			      <property name="label" translatable="yes">_Copy of Current Brush</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <property name="group">button2LinkBrush</property>
@@ -1661,7 +1688,7 @@
 		  <child>
 		    <widget class="GtkMenuItem" id="button3_mapping">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Button 3 Mapping</property>
+		      <property name="label" translatable="yes">Button _3 Mapping</property>
 		      <property name="use_underline">True</property>
 
 		      <child>
@@ -1670,7 +1697,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="button3Pen">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">Pen</property>
+			      <property name="label" translatable="yes">_Pen</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <signal name="activate" handler="on_button3Pen_activate" last_modification_time="Sun, 04 Jun 2006 14:18:50 GMT"/>
@@ -1680,7 +1707,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="button3Eraser">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">Eraser</property>
+			      <property name="label" translatable="yes">_Eraser</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <property name="group">button3Pen</property>
@@ -1691,7 +1718,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="button3Highlighter">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">Highlighter</property>
+			      <property name="label" translatable="yes">_Highlighter</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <property name="group">button3Pen</property>
@@ -1702,7 +1729,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="button3Text">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">Text</property>
+			      <property name="label" translatable="yes">_Text</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <property name="group">button3Pen</property>
@@ -1713,7 +1740,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="button3SelectRegion">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">Select Region</property>
+			      <property name="label" translatable="yes">Select Re_gion</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <property name="group">button3Pen</property>
@@ -1724,7 +1751,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="button3SelectRectangle">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">Select Rectangle</property>
+			      <property name="label" translatable="yes">Select _Rectangle</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <property name="group">button3Pen</property>
@@ -1735,7 +1762,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="button3VerticalSpace">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">Vertical Space</property>
+			      <property name="label" translatable="yes">_Vertical Space</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <property name="group">button3Pen</property>
@@ -1746,7 +1773,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="button3Hand">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">Hand Tool</property>
+			      <property name="label" translatable="yes">H_and Tool</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">False</property>
 			      <property name="group">button3Pen</property>
@@ -1763,7 +1790,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="button3LinkBrush">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">Link to Primary Brush</property>
+			      <property name="label" translatable="yes">_Link to Primary Brush</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <signal name="activate" handler="on_button3LinkBrush_activate" last_modification_time="Sun, 04 Jun 2006 14:33:10 GMT"/>
@@ -1773,7 +1800,7 @@
 			  <child>
 			    <widget class="GtkRadioMenuItem" id="button3CopyBrush">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">Copy of Current Brush</property>
+			      <property name="label" translatable="yes">_Copy of Current Brush</property>
 			      <property name="use_underline">True</property>
 			      <property name="active">True</property>
 			      <property name="group">button3LinkBrush</property>
@@ -1803,7 +1830,7 @@
 		  <child>
 		    <widget class="GtkCheckMenuItem" id="optionsAntialiasBG">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Antialiased Bitmaps</property>
+		      <property name="label" translatable="yes">_Antialiased Bitmaps</property>
 		      <property name="use_underline">True</property>
 		      <property name="active">False</property>
 		      <signal name="activate" handler="on_optionsAntialiasBG_activate" last_modification_time="Thu, 26 Jan 2006 03:42:27 GMT"/>
@@ -1813,7 +1840,7 @@
 		  <child>
 		    <widget class="GtkCheckMenuItem" id="optionsProgressiveBG">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Progressive Backgrounds</property>
+		      <property name="label" translatable="yes">_Progressive Backgrounds</property>
 		      <property name="use_underline">True</property>
 		      <property name="active">False</property>
 		      <signal name="activate" handler="on_optionsProgressiveBG_activate" last_modification_time="Thu, 26 Jan 2006 20:15:09 GMT"/>
@@ -1823,7 +1850,7 @@
 		  <child>
 		    <widget class="GtkCheckMenuItem" id="optionsPrintRuling">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Print Paper Ruling</property>
+		      <property name="label" translatable="yes">Print Paper _Ruling</property>
 		      <property name="use_underline">True</property>
 		      <property name="active">False</property>
 		      <signal name="activate" handler="on_optionsPrintRuling_activate" last_modification_time="Sat, 25 Nov 2006 03:42:27 GMT"/>
@@ -1839,7 +1866,7 @@
 		  <child>
 		    <widget class="GtkMenuItem" id="optionsSavePreferences">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Save Preferences</property>
+		      <property name="label" translatable="yes">_Save Preferences</property>
 		      <property name="use_underline">True</property>
 		      <signal name="activate" handler="on_optionsSavePreferences_activate" last_modification_time="Wed, 30 Nov 2005 20:09:25 GMT"/>
 		    </widget>
@@ -2878,6 +2905,51 @@
 	      <property name="homogeneous">True</property>
 	    </packing>
 	  </child>
+
+	  <child>
+	    <widget class="GtkToolItem" id="toolitem21">
+	      <property name="visible">True</property>
+	      <property name="visible_horizontal">True</property>
+	      <property name="visible_vertical">True</property>
+	      <property name="is_important">False</property>
+
+	      <child>
+		<widget class="GtkVSeparator" id="vseparator10">
+		  <property name="visible">True</property>
+		</widget>
+	      </child>
+	    </widget>
+	    <packing>
+	      <property name="expand">False</property>
+	      <property name="homogeneous">False</property>
+	    </packing>
+	  </child>
+
+	  <child>
+	    <widget class="GtkToolItem" id="toolitem20">
+	      <property name="visible">True</property>
+	      <property name="visible_horizontal">True</property>
+	      <property name="visible_vertical">True</property>
+	      <property name="is_important">False</property>
+
+	      <child>
+		<widget class="GtkFontButton" id="fontButton">
+		  <property name="visible">True</property>
+		  <property name="can_focus">True</property>
+		  <property name="show_style">True</property>
+		  <property name="show_size">True</property>
+		  <property name="use_font">True</property>
+		  <property name="use_size">False</property>
+		  <property name="focus_on_click">False</property>
+		  <signal name="font_set" handler="on_fontButton_font_set" last_modification_time="Sun, 12 Aug 2007 22:11:59 GMT"/>
+		</widget>
+	      </child>
+	    </widget>
+	    <packing>
+	      <property name="expand">False</property>
+	      <property name="homogeneous">False</property>
+	    </packing>
+	  </child>
 	</widget>
 	<packing>
 	  <property name="padding">0</property>
@@ -3056,120 +3128,6 @@
   </child>
 </widget>
 
-<widget class="GtkFontSelectionDialog" id="fontDialog">
-  <property name="border_width">4</property>
-  <property name="visible">True</property>
-  <property name="title" translatable="yes">Select Font</property>
-  <property name="type">GTK_WINDOW_TOPLEVEL</property>
-  <property name="window_position">GTK_WIN_POS_NONE</property>
-  <property name="modal">False</property>
-  <property name="resizable">True</property>
-  <property name="destroy_with_parent">False</property>
-  <property name="decorated">True</property>
-  <property name="skip_taskbar_hint">False</property>
-  <property name="skip_pager_hint">False</property>
-  <property name="type_hint">GDK_WINDOW_TYPE_HINT_DIALOG</property>
-  <property name="gravity">GDK_GRAVITY_NORTH_WEST</property>
-  <property name="focus_on_map">True</property>
-
-  <child internal-child="cancel_button">
-    <widget class="GtkButton" id="cancel_button1">
-      <property name="visible">True</property>
-      <property name="can_default">True</property>
-      <property name="can_focus">True</property>
-      <property name="relief">GTK_RELIEF_NORMAL</property>
-      <property name="focus_on_click">True</property>
-    </widget>
-  </child>
-
-  <child internal-child="apply_button">
-    <widget class="GtkButton" id="apply_button1">
-      <property name="visible">True</property>
-      <property name="can_default">True</property>
-      <property name="can_focus">True</property>
-      <property name="relief">GTK_RELIEF_NORMAL</property>
-      <property name="focus_on_click">True</property>
-    </widget>
-  </child>
-
-  <child internal-child="ok_button">
-    <widget class="GtkButton" id="ok_button1">
-      <property name="visible">True</property>
-      <property name="can_default">True</property>
-      <property name="can_focus">True</property>
-      <property name="relief">GTK_RELIEF_NORMAL</property>
-      <property name="focus_on_click">True</property>
-    </widget>
-  </child>
-
-  <child internal-child="font_selection">
-    <widget class="GtkFontSelection" id="font_selection1">
-      <property name="border_width">4</property>
-      <property name="visible">True</property>
-      <property name="preview_text" translatable="yes">abcdefghijk ABCDEFGHIJK</property>
-    </widget>
-    <packing>
-      <property name="padding">0</property>
-      <property name="expand">True</property>
-      <property name="fill">True</property>
-    </packing>
-  </child>
-</widget>
-
-<widget class="GtkColorSelectionDialog" id="colorChooserDialog">
-  <property name="visible">True</property>
-  <property name="title" translatable="yes">Select Color</property>
-  <property name="type">GTK_WINDOW_TOPLEVEL</property>
-  <property name="window_position">GTK_WIN_POS_NONE</property>
-  <property name="modal">False</property>
-  <property name="resizable">False</property>
-  <property name="destroy_with_parent">False</property>
-  <property name="decorated">True</property>
-  <property name="skip_taskbar_hint">False</property>
-  <property name="skip_pager_hint">False</property>
-  <property name="type_hint">GDK_WINDOW_TYPE_HINT_DIALOG</property>
-  <property name="gravity">GDK_GRAVITY_NORTH_WEST</property>
-  <property name="focus_on_map">True</property>
-
-  <child internal-child="cancel_button">
-    <widget class="GtkButton" id="cancel_button2">
-      <property name="visible">True</property>
-      <property name="can_default">True</property>
-      <property name="can_focus">True</property>
-      <property name="relief">GTK_RELIEF_NORMAL</property>
-      <property name="focus_on_click">True</property>
-    </widget>
-  </child>
-
-  <child internal-child="ok_button">
-    <widget class="GtkButton" id="ok_button2">
-      <property name="visible">True</property>
-      <property name="can_default">True</property>
-      <property name="can_focus">True</property>
-      <property name="relief">GTK_RELIEF_NORMAL</property>
-      <property name="focus_on_click">True</property>
-    </widget>
-  </child>
-
-  <child internal-child="help_button">
-    <widget class="GtkButton" id="help_button1">
-      <property name="visible">True</property>
-      <property name="can_default">True</property>
-      <property name="can_focus">True</property>
-      <property name="relief">GTK_RELIEF_NORMAL</property>
-      <property name="focus_on_click">True</property>
-    </widget>
-  </child>
-
-  <child internal-child="color_selection">
-    <widget class="GtkColorSelection" id="color_selection1">
-      <property name="visible">True</property>
-      <property name="has_opacity_control">False</property>
-      <property name="has_palette">False</property>
-    </widget>
-  </child>
-</widget>
-
 <widget class="GtkDialog" id="papersizeDialog">
   <property name="visible">True</property>
   <property name="title" translatable="yes">Set Paper Size</property>
@@ -3184,6 +3142,7 @@
   <property name="type_hint">GDK_WINDOW_TYPE_HINT_DIALOG</property>
   <property name="gravity">GDK_GRAVITY_NORTH_WEST</property>
   <property name="focus_on_map">True</property>
+  <property name="urgency_hint">False</property>
   <property name="has_separator">True</property>
 
   <child internal-child="vbox">
@@ -3428,6 +3387,7 @@ points</property>
   <property name="type_hint">GDK_WINDOW_TYPE_HINT_DIALOG</property>
   <property name="gravity">GDK_GRAVITY_NORTH_WEST</property>
   <property name="focus_on_map">True</property>
+  <property name="urgency_hint">False</property>
   <property name="has_separator">True</property>
 
   <child internal-child="vbox">
@@ -3546,6 +3506,7 @@ points</property>
   <property name="type_hint">GDK_WINDOW_TYPE_HINT_DIALOG</property>
   <property name="gravity">GDK_GRAVITY_NORTH_WEST</property>
   <property name="focus_on_map">True</property>
+  <property name="urgency_hint">False</property>
   <property name="has_separator">True</property>
 
   <child internal-child="vbox">

@@ -96,6 +96,9 @@ void update_cursor(void)
   else if (ui.toolno[ui.cur_mapping] == TOOL_HAND) {
     ui.cursor = gdk_cursor_new(GDK_HAND1);
   }
+  else if (ui.toolno[ui.cur_mapping] == TOOL_TEXT) {
+    ui.cursor = gdk_cursor_new(GDK_XTERM);
+  }
   
   gdk_window_set_cursor(GTK_WIDGET(canvas)->window, ui.cursor);
 }
@@ -212,11 +215,7 @@ void finalize_stroke(void)
   // destroy the entire group of temporary line segments
   gtk_object_destroy(GTK_OBJECT(ui.cur_item->canvas_item));
   // make a new line item to replace it
-  ui.cur_item->canvas_item = gnome_canvas_item_new(ui.cur_layer->group, 
-     gnome_canvas_line_get_type(), "points", ui.cur_item->path,
-     "cap-style", GDK_CAP_ROUND, "join-style", GDK_JOIN_ROUND,
-     "fill-color-rgba", ui.cur_item->brush.color_rgba,
-     "width-units", ui.cur_item->brush.thickness, NULL);
+  make_canvas_item_one(ui.cur_layer->group, ui.cur_item);
 
   // add undo information
   prepare_new_undo();
@@ -292,11 +291,7 @@ void erase_stroke_portions(struct Item *item, double x, double y, double radius,
       // add the new head
       if (newhead != NULL) {
         update_item_bbox(newhead);
-        newhead->canvas_item = gnome_canvas_item_new(ui.cur_layer->group,
-            gnome_canvas_line_get_type(), "points", newhead->path,
-            "cap-style", GDK_CAP_ROUND, "join-style", GDK_JOIN_ROUND,
-            "fill-color-rgba", newhead->brush.color_rgba,
-            "width-units", newhead->brush.thickness, NULL);
+        make_canvas_item_one(ui.cur_layer->group, newhead);
         lower_canvas_item_to(ui.cur_layer->group,
                   newhead->canvas_item, erasure->item->canvas_item);
         erasure->replacement_items = g_list_prepend(erasure->replacement_items, newhead);
@@ -315,11 +310,7 @@ void erase_stroke_portions(struct Item *item, double x, double y, double radius,
   // add the tail if needed
   if (!need_recalc) return;
   update_item_bbox(item);
-  item->canvas_item = gnome_canvas_item_new(ui.cur_layer->group,
-       gnome_canvas_line_get_type(), "points", item->path,
-       "cap-style", GDK_CAP_ROUND, "join-style", GDK_JOIN_ROUND,
-       "fill-color-rgba", item->brush.color_rgba,
-       "width-units", item->brush.thickness, NULL);
+  make_canvas_item_one(ui.cur_layer->group, item);
   lower_canvas_item_to(ui.cur_layer->group, item->canvas_item, 
                                       erasure->item->canvas_item);
 }
@@ -463,10 +454,23 @@ void finalize_selectrect(void)
     }
   }
   
+  if (ui.selection->items == NULL) {
+    // if we clicked inside a text zone ?  
+    item = click_is_in_text(ui.selection->layer, x1, y1);
+    if (item!=NULL && item==click_is_in_text(ui.selection->layer, x2, y2)) {
+      ui.selection->items = g_list_append(ui.selection->items, item);
+      g_memmove(&(ui.selection->bbox), &(item->bbox), sizeof(struct BBox));
+      gnome_canvas_item_set(ui.selection->canvas_item,
+        "x1", item->bbox.left, "x2", item->bbox.right, 
+        "y1", item->bbox.top, "y2", item->bbox.bottom, NULL);
+    }
+  }
+  
   if (ui.selection->items == NULL) reset_selection();
   else make_dashed(ui.selection->canvas_item);
   update_cursor();
   update_copy_paste_enabled();
+  update_font_button();
 }
 
 gboolean start_movesel(GdkEvent *event)
@@ -702,7 +706,7 @@ void callback_clipboard_clear(GtkClipboard *clipboard, gpointer user_data)
 
 void selection_to_clip(void)
 {
-  int bufsz, nitems;
+  int bufsz, nitems, val;
   char *buf, *p;
   GList *list;
   struct Item *item;
@@ -721,6 +725,16 @@ void selection_to_clip(void)
             + sizeof(int) // num_points
             + 2*item->path->num_points*sizeof(double); // the points
     }
+    else if (item->type == ITEM_TEXT) {
+      bufsz+= sizeof(int) // type
+            + sizeof(struct Brush) // brush
+            + 2*sizeof(double) // bbox upper-left
+            + sizeof(int) // text len
+            + strlen(item->text)+1 // text
+            + sizeof(int) // font_name len
+            + strlen(item->font_name)+1 // font_name
+            + sizeof(double); // font_size
+    }
     else bufsz+= sizeof(int); // type
   }
   p = buf = g_malloc(bufsz);
@@ -735,6 +749,18 @@ void selection_to_clip(void)
       g_memmove(p, &item->path->num_points, sizeof(int)); p+= sizeof(int);
       g_memmove(p, item->path->coords, 2*item->path->num_points*sizeof(double));
       p+= 2*item->path->num_points*sizeof(double);
+    }
+    if (item->type == ITEM_TEXT) {
+      g_memmove(p, &item->brush, sizeof(struct Brush)); p+= sizeof(struct Brush);
+      g_memmove(p, &item->bbox.left, sizeof(double)); p+= sizeof(double);
+      g_memmove(p, &item->bbox.top, sizeof(double)); p+= sizeof(double);
+      val = strlen(item->text);
+      g_memmove(p, &val, sizeof(int)); p+= sizeof(int);
+      g_memmove(p, item->text, val+1); p+= val+1;
+      val = strlen(item->font_name);
+      g_memmove(p, &val, sizeof(int)); p+= sizeof(int);
+      g_memmove(p, item->font_name, val+1); p+= val+1;
+      g_memmove(p, &item->font_size, sizeof(double)); p+= sizeof(double);
     }
   }
   
@@ -752,7 +778,7 @@ void clipboard_paste(void)
 {
   GtkSelectionData *sel_data;
   unsigned char *p;
-  int nitems, npts, i;
+  int nitems, npts, i, len;
   GList *list;
   struct Item *item;
   double hoffset, voffset, cx, cy;
@@ -824,11 +850,22 @@ void clipboard_paste(void)
       }
       p+= 2*item->path->num_points*sizeof(double);
       update_item_bbox(item);
-      item->canvas_item = gnome_canvas_item_new(ui.cur_layer->group,
-             gnome_canvas_line_get_type(), "points", item->path,
-             "cap-style", GDK_CAP_ROUND, "join-style", GDK_JOIN_ROUND,
-             "fill-color-rgba", item->brush.color_rgba,
-             "width-units", item->brush.thickness, NULL);
+      make_canvas_item_one(ui.cur_layer->group, item);
+    }
+    if (item->type == ITEM_TEXT) {
+      g_memmove(&item->brush, p, sizeof(struct Brush)); p+= sizeof(struct Brush);
+      g_memmove(&item->bbox.left, p, sizeof(double)); p+= sizeof(double);
+      g_memmove(&item->bbox.top, p, sizeof(double)); p+= sizeof(double);
+      item->bbox.left += hoffset;
+      item->bbox.top += voffset;
+      g_memmove(&len, p, sizeof(int)); p+= sizeof(int);
+      item->text = g_malloc(len+1);
+      g_memmove(item->text, p, len+1); p+= len+1;
+      g_memmove(&len, p, sizeof(int)); p+= sizeof(int);
+      item->font_name = g_malloc(len+1);
+      g_memmove(item->font_name, p, len+1); p+= len+1;
+      g_memmove(&item->font_size, p, sizeof(double)); p+= sizeof(double);
+      make_canvas_item_one(ui.cur_layer->group, item);
     }
   }
 
@@ -856,7 +893,8 @@ void recolor_selection(int color)
   undo->auxlist = NULL;
   for (itemlist = ui.selection->items; itemlist!=NULL; itemlist = itemlist->next) {
     item = (struct Item *)itemlist->data;
-    if (item->type != ITEM_STROKE || item->brush.tool_type!=TOOL_PEN) continue;
+    if (item->type != ITEM_STROKE && item->type != ITEM_TEXT) continue;
+    if (item->type == ITEM_STROKE && item->brush.tool_type!=TOOL_PEN) continue;
     // store info for undo
     undo->itemlist = g_list_append(undo->itemlist, item);
     brush = (struct Brush *)g_malloc(sizeof(struct Brush));
@@ -899,14 +937,276 @@ void rethicken_selection(int val)
   }
 }
 
+gboolean do_hand_scrollto(gpointer data)
+{
+  ui.hand_scrollto_pending = FALSE;
+  gnome_canvas_scroll_to(canvas, ui.hand_scrollto_cx, ui.hand_scrollto_cy);
+  return FALSE;
+}
+
 void do_hand(GdkEvent *event)
 {
-  double pt[2], val;
+  double pt[2];
   int cx, cy;
   
   get_pointer_coords(event, pt);
   gnome_canvas_get_scroll_offsets(canvas, &cx, &cy);
-  cx -= (pt[0]-ui.hand_refpt[0])*ui.zoom;
-  cy -= (pt[1]-ui.hand_refpt[1])*ui.zoom;
-  gnome_canvas_scroll_to(canvas, cx, cy);
+  ui.hand_scrollto_cx = cx - (pt[0]-ui.hand_refpt[0])*ui.zoom;
+  ui.hand_scrollto_cy = cy - (pt[1]-ui.hand_refpt[1])*ui.zoom;
+  if (!ui.hand_scrollto_pending) g_idle_add(do_hand_scrollto, NULL);
+  ui.hand_scrollto_pending = TRUE;
+}
+
+/************ TEXT FUNCTIONS **************/
+
+// to make it easier to copy/paste at end of text box
+#define WIDGET_RIGHT_MARGIN 10
+
+void resize_textview(gpointer *toplevel, gpointer *data)
+{
+  GtkTextView *w;
+  int width, height;
+  
+  /* when the text changes, resize the GtkTextView accordingly */
+  if (ui.cur_item_type!=ITEM_TEXT) return;
+  w = GTK_TEXT_VIEW(ui.cur_item->widget);
+  width = w->width + WIDGET_RIGHT_MARGIN;
+  height = w->height;
+  gnome_canvas_item_set(ui.cur_item->canvas_item, 
+    "size-pixels", TRUE, 
+    "width", (gdouble)width, "height", (gdouble)height, NULL);
+  ui.cur_item->bbox.right = ui.cur_item->bbox.left + width/ui.zoom;
+  ui.cur_item->bbox.bottom = ui.cur_item->bbox.top + height/ui.zoom;
+}
+
+void start_text(GdkEvent *event, struct Item *item)
+{
+  double pt[2];
+  gchar *text;
+  GtkTextBuffer *buffer;
+  GnomeCanvasItem *canvas_item;
+  PangoFontDescription *font_desc;
+  GdkColor color;
+  
+  get_pointer_coords(event, pt);
+  ui.cur_item_type = ITEM_TEXT;
+
+  if (item==NULL) {
+    item = g_new(struct Item, 1);
+    item->text = NULL;
+    item->canvas_item = NULL;
+    item->bbox.left = pt[0];
+    item->bbox.top = pt[1];
+    item->bbox.right = ui.cur_page->width;
+    item->bbox.bottom = pt[1]+100.;
+    item->font_name = g_strdup(ui.font_name);
+    item->font_size = ui.font_size;
+    g_memmove(&(item->brush), ui.cur_brush, sizeof(struct Brush));
+    ui.cur_layer->items = g_list_append(ui.cur_layer->items, item);
+    ui.cur_layer->nitems++;
+  }
+  
+  item->type = ITEM_TEMP_TEXT;
+  ui.cur_item = item;
+  
+  font_desc = pango_font_description_from_string(item->font_name);
+  pango_font_description_set_absolute_size(font_desc, 
+      item->font_size*ui.zoom*PANGO_SCALE);
+  item->widget = gtk_text_view_new();
+  buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(item->widget));
+  if (item->text!=NULL)
+    gtk_text_buffer_set_text(buffer, item->text, -1);
+  gtk_widget_modify_font(item->widget, font_desc);
+  rgb_to_gdkcolor(item->brush.color_rgba, &color);
+  gtk_widget_modify_text(item->widget, GTK_STATE_NORMAL, &color);
+  pango_font_description_free(font_desc);
+
+  canvas_item = gnome_canvas_item_new(ui.cur_layer->group,
+    gnome_canvas_widget_get_type(),
+    "x", item->bbox.left, "y", item->bbox.top, 
+    "width", item->bbox.right-item->bbox.left, 
+    "height", item->bbox.bottom-item->bbox.top,
+    "widget", item->widget, NULL);
+  // TODO: width/height?
+  if (item->canvas_item!=NULL) {
+    lower_canvas_item_to(ui.cur_layer->group, canvas_item, item->canvas_item);
+    gtk_object_destroy(GTK_OBJECT(item->canvas_item));
+  }
+  item->canvas_item = canvas_item;
+
+  gtk_widget_show(item->widget);
+  gtk_widget_grab_focus(item->widget);
+  ui.resize_signal_handler = 
+    g_signal_connect((gpointer) winMain, "check_resize",
+       G_CALLBACK(resize_textview), NULL);
+  update_font_button();
+  gtk_widget_set_sensitive(GET_COMPONENT("editPaste"), FALSE);
+  gtk_widget_set_sensitive(GET_COMPONENT("buttonPaste"), FALSE);
+}
+
+void end_text(void)
+{
+  GtkTextBuffer *buffer;
+  GtkTextIter start, end;
+  gchar *new_text;
+  struct UndoErasureData *erasure;
+  GnomeCanvasItem *tmpitem;
+
+  if (ui.cur_item_type!=ITEM_TEXT) return; // nothing for us to do!
+  
+  // finalize the text that's been edited... 
+  buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(ui.cur_item->widget));
+  gtk_text_buffer_get_bounds(buffer, &start, &end);
+  ui.cur_item->type = ITEM_TEXT;
+  new_text = gtk_text_buffer_get_text(buffer, &start, &end, TRUE);
+  ui.cur_item_type = ITEM_NONE;
+  gtk_widget_set_sensitive(GET_COMPONENT("editPaste"), TRUE);
+  gtk_widget_set_sensitive(GET_COMPONENT("buttonPaste"), TRUE);
+  
+  if (strlen(new_text)==0) { // erase object and cancel
+    g_free(new_text);
+    g_signal_handler_disconnect(winMain, ui.resize_signal_handler);
+    gtk_object_destroy(GTK_OBJECT(ui.cur_item->canvas_item));
+    ui.cur_item->canvas_item = NULL;
+    if (ui.cur_item->text == NULL) // nothing happened
+      g_free(ui.cur_item->font_name);
+    else { // treat this as an erasure
+      prepare_new_undo();
+      undo->type = ITEM_ERASURE;
+      undo->layer = ui.cur_layer;
+      erasure = (struct UndoErasureData *)g_malloc(sizeof(struct UndoErasureData));
+      erasure->item = ui.cur_item;
+      erasure->npos = g_list_index(ui.cur_layer->items, ui.cur_item);
+      erasure->nrepl = 0;
+      erasure->replacement_items = NULL;
+      undo->erasurelist = g_list_append(NULL, erasure);
+    }
+    ui.cur_layer->items = g_list_remove(ui.cur_layer->items, ui.cur_item);
+    ui.cur_layer->nitems--;
+    ui.cur_item = NULL;
+    return;
+  }
+
+  // store undo data
+  if (ui.cur_item->text==NULL || strcmp(ui.cur_item->text, new_text)) {
+    prepare_new_undo();
+    if (ui.cur_item->text == NULL) undo->type = ITEM_TEXT; 
+    else undo->type = ITEM_TEXT_EDIT;
+    undo->layer = ui.cur_layer;
+    undo->item = ui.cur_item;
+    undo->str = ui.cur_item->text;
+  }
+  else g_free(ui.cur_item->text);
+
+  ui.cur_item->text = new_text;
+  ui.cur_item->widget = NULL;
+  // replace the canvas item
+  tmpitem = ui.cur_item->canvas_item;
+  make_canvas_item_one(ui.cur_layer->group, ui.cur_item);
+  update_item_bbox(ui.cur_item);
+  lower_canvas_item_to(ui.cur_layer->group, ui.cur_item->canvas_item, tmpitem);
+  gtk_object_destroy(GTK_OBJECT(tmpitem));
+}
+
+/* update the items in the canvas so they're of the right font size */
+
+void update_text_item_displayfont(struct Item *item)
+{
+  PangoFontDescription *font_desc;
+
+  if (item->type != ITEM_TEXT && item->type != ITEM_TEMP_TEXT) return;
+  if (item->canvas_item==NULL) return;
+  font_desc = pango_font_description_from_string(item->font_name);
+  pango_font_description_set_absolute_size(font_desc, 
+        item->font_size*ui.zoom*PANGO_SCALE);
+  if (item->type == ITEM_TEMP_TEXT)
+    gtk_widget_modify_font(item->widget, font_desc);
+  else {
+    gnome_canvas_item_set(item->canvas_item, "font-desc", font_desc, NULL);
+    update_item_bbox(item);
+  }
+  pango_font_description_free(font_desc);
+}
+
+void rescale_text_items(void)
+{
+  GList *pagelist, *layerlist, *itemlist;
+  struct Layer *l;
+  
+  for (pagelist = journal.pages; pagelist!=NULL; pagelist = pagelist->next)
+    for (layerlist = ((struct Page *)pagelist->data)->layers; layerlist!=NULL; layerlist = layerlist->next)
+      for (itemlist = ((struct Layer *)layerlist->data)->items; itemlist!=NULL; itemlist = itemlist->next)
+        update_text_item_displayfont((struct Item *)itemlist->data);
+}
+
+struct Item *click_is_in_text(struct Layer *layer, double x, double y)
+{
+  GList *itemlist;
+  struct Item *item, *val;
+  
+  val = NULL;
+  for (itemlist = layer->items; itemlist!=NULL; itemlist = itemlist->next) {
+    item = (struct Item *)itemlist->data;
+    if (item->type != ITEM_TEXT) continue;
+    if (x<item->bbox.left || x>item->bbox.right) continue;
+    if (y<item->bbox.top || y>item->bbox.bottom) continue;
+    val = item;
+  }
+  return val;
+}
+
+void refont_text_item(struct Item *item, gchar *font_name, double font_size)
+{
+  if (!strcmp(font_name, item->font_name) && font_size==item->font_size) return;
+  if (item->text!=NULL) {
+    prepare_new_undo();
+    undo->type = ITEM_TEXT_ATTRIB;
+    undo->item = item;
+    undo->str = item->font_name;
+    undo->val_x = item->font_size;
+    undo->brush = (struct Brush *)g_memdup(&(item->brush), sizeof(struct Brush));
+  }
+  else g_free(item->font_name);
+  item->font_name = g_strdup(font_name);
+  if (font_size>0.) item->font_size = font_size;
+  update_text_item_displayfont(item);
+}
+
+void process_font_sel(gchar *str)
+{
+  gchar *p, *q;
+  struct Item *it;
+  gdouble size;
+  GList *list;
+  gboolean undo_cont;
+
+  p = strrchr(str, ' ');
+  if (p!=NULL) { 
+    size = g_strtod(p+1, &q);
+    if (*q!=0 || size<1.) size=0.;
+    else *p=0;
+  }
+  else size=0.;
+  reset_focus();
+  g_free(ui.font_name);
+  ui.font_name = str;  
+  if (size>0.) ui.font_size = size;
+  undo_cont = FALSE;   
+  // if there's a current text item, re-font it
+  if (ui.cur_item_type == ITEM_TEXT) {
+    refont_text_item(ui.cur_item, str, size);
+    undo_cont = (ui.cur_item->text!=NULL);   
+  }
+  // if there's a current selection, re-font it
+  if (ui.selection!=NULL) 
+    for (list=ui.selection->items; list!=NULL; list=list->next) {
+      it = (struct Item *)list->data;
+      if (it->type == ITEM_TEXT) {   
+        if (undo_cont) undo->multiop |= MULTIOP_CONT_REDO;
+        refont_text_item(it, str, size);
+        if (undo_cont) undo->multiop |= MULTIOP_CONT_UNDO;
+        undo_cont = TRUE;
+      }
+    }  
+  update_font_button();
 }

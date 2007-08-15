@@ -24,7 +24,7 @@
   Xournal User's Manual
 </h2>
 <p style="font-size: 0.95em; text-align: center; color: rgb(0,0,0)">
- Version 0.3.3
+ Version 0.4
 </p>
 <hr />
 <p>
@@ -127,6 +127,28 @@ the Tools menu):
   is yellow) and thicknesses. Use the color and thickness toolbar buttons
   to change these settings.
 </p>
+<h3 class="subsub"><img src="pixmaps/text-tool.png"> The text tool</h3>
+<p>
+  To insert a new text item, click at the location where the text is to be
+  inserted on the page, then type it in or paste it using the contextual
+  menu (note: no wrapping is performed). To modify a text item, click inside
+  it. The font and point size can be modified using the "Text Font" command
+  in the Tools menu (or the toolbar button). The color is the same as that
+  currently selected for the pen (and can be modified using the toolbar
+  buttons).
+</p>
+<p>
+  Text items can contain arbitrary Unicode characters, provided that a
+  suitable font is installed on your system. However, languages written
+  in a direction other than left-to-right might not be handled properly.
+  If a journal contains some items in a font that is unavailable on your
+  system, another one will be substituted. (Also, text items will be
+  lost if the document is opened in a version of Xournal prior to 0.4).
+  Finally, note that the printing and PDF export features only accept
+  TrueType and Type 1 scalable fonts (do not use any bitmap fonts), and
+  that the typesetting of the text may be slightly different in the
+  printout.
+</p>
 <h3 class="subsub"><img src="pixmaps/ruler.png"> The ruler</h3>
 <p>
   The ruler is not a tool by itself, but rather a special operating mode
@@ -136,15 +158,17 @@ the Tools menu):
 </p>
 <h3 class="subsub"><img src="pixmaps/recycled.png"> Default tools</h3>
 <p>
-  Each drawing tool (pen, eraser, highlighter) has a default setting
-  (color, thickness, ...) associated to it.
-  The "Default Pen", "Default Eraser", and "Default Highlighter" entries of
+  Each tool (pen, eraser, highlighter, text) has a default setting
+  (color, thickness, ... for the drawing tools, font and size for the
+  text tool) associated to it.
+  The "Default Pen", "Default Eraser", "Default Highlighter", and
+  "Default Text" entries of
   the Tools menu select the appropriate tool and reset its settings to
   the defaults. The toolbar also includes a "Default" button which
-  resets the currently selected drawing tool to its default settings,
+  resets the currently selected tool to its default settings,
   and a "Default Pen" button. <br />
   The "Set As Default" entry of the Tools menu takes the current settings
-  of the currently selected drawing tool and makes them the new default.
+  of the currently selected tool and makes them the new default.
 </p>
 <a name="thicknesses"></a>
 <h3 class="subsub"><img src="pixmaps/thin.png"> <img src="pixmaps/medium.png">
@@ -471,7 +495,8 @@ file is much more compact than those produced via gnome-print, and
 its pages have the same size as in Xournal. Highlighter strokes
 are rendered in a partially transparent manner (note however that
 applications such as xpdf and ghostview do not always handle
-PDF transparency properly).
+PDF transparency properly). Text items are rendered by embedding
+TrueType subsets or Type 1 fonts into the PDF document as appropriate.
 </p>
 <p>
 Xournal also includes a PDF file parser compatible with PDF format
@@ -495,7 +520,7 @@ configuration file include in particular:
 <li>general display preferences: zoom level, window size, ...</li>
 <li>default paper settings (as set by the "Set As Default" command in
 the Journal menu)</li>
-<li>default tool settings for the pen, eraser, and highlighter
+<li>default settings for the pen, eraser, highlighter, and text tools
 (as set by the "Set As Default" command in the Tools menu)</li>
 <li>mappings for buttons 2 and 3</li>
 <li>the various preferences set in the Options menu</li>
@@ -529,6 +554,18 @@ Bug reports and suggestions can also be submitted on Xournal's
 <hr />
 <a name="changelog"></a>
 <h2 class="subtitle">Version history</h2>
+<p>
+Version 0.4 (August 15, 2007):
+<ul>
+ <li>text tool (handles most TrueType and Type1 fonts)</li>
+ <li>font selection dialog and button</li>
+ <li>keyboard mappings (arrow keys)</li>
+ <li>menu mnemonics and shortcuts (suggestions by Jean-Baptiste Rouquier)</li>
+ <li>more responsive hand tool</li>
+ <li>bugfix for GTK+ 2.11 XInput behavior (thanks to Robert Gerlach)</li>
+ <li>various minor bugfixes and enhancements</li>
+</ul>
+</p>
 <p>
 Version 0.3.3 (January 31, 2007):
 <ul>
@@ -627,17 +664,21 @@ Version 0.1 (January 2, 2006): initial release.
 <p>
 Xournal stores its data in gzipped XML-like files. The gzipped data consists
 of a succession of XML tags describing the document. By convention, the
-first few lines contain a header in the following format:
+file header and trailer look like this:
 <pre>
 &lt;?xml version="1.0" standalone="no"?&gt;
+&lt;xournal version="..."&gt;
 &lt;title&gt;Xournal document - see http://math.mit.edu/~auroux/software/xournal/&lt;/title&gt;
-&lt;xournal version="..."/&gt;
+... sequence of pages ...
+&lt;/xournal&gt;
 </pre>
 The &lt;title&gt; and &lt;xournal&gt; tags may only appear within the file
 header (not within the pages of the document). The <i>version</i> attribute of
 the &lt;xournal&gt; tag indicates which version of Xournal was used to
 create the document; it is currently ignored, but may be used in a later
 release if the file format changes in an incompatible manner.
+(Following a suggestion of Matteo Abrate, starting with version 0.4 the
+&lt;xournal&gt; tag is the document's root tag, and encloses all other tags).
 </p>
 <p>
 The rest of the file is a sequence of pages, specified by a
@@ -711,15 +752,15 @@ page of the PDF file.
 After the line specifying the background, the remainder of a &lt;page&gt;
 section is occupied by one or more layer sections
 <pre>&lt;layer&gt; ... &lt;/layer&gt;</pre>
-describing the various strokes within a layer. Every page must
+describing the various items within a layer. Every page must
 contain at least one layer; a layer may be empty. The successive layers
 are listed in their stacking order, from bottom to top.
 </p>
 <p>
-A layer consist of a collection of items, listed in the order in which
+A layer consists of a collection of items, listed in the order in which
 they should be drawn
 (from bottom-most to top-most).
-As of the current version, the only legal contents within a layer are 
+Up to version 0.3.3, the only legal contents within a layer are 
 strokes. The format of a stroke is:
 <pre>&lt;stroke tool="..." color="..." width="..."&gt;
 ... list of coordinates ...
@@ -752,6 +793,25 @@ than 5 units apart or so; longer line segments should be subdivided as
 appropriate (otherwise the eraser tool will not interact properly with the
 stroke). The default precision used by Xournal for the x,y coordinates is
 0.01 unit (1/7200 in).
+</p>
+<p>Starting with version 0.4, layers also contain text items.
+The format of a text item is:
+<pre>&lt;text font="..." size="..." x="..." y="..." color="..."&gt;... text ...&lt;/text&gt;
+</pre>
+The <i>font</i> attribute contains the font name, for example "Serif Bold
+Italic"; if the font is not available, another font will be substituted.
+The <i>size</i> attribute specifies the font size in points. The <i>x</i>
+and <i>y</i> attributes specify the coordinates of the top-left corner
+of the text box in page coordinates (measured in points from the top-left
+corner of the page). Finally, the <i>color</i> attribute contains either
+the name of a standard color or a hexadecimal RGBA value (see above).
+</p>
+<p>
+The contents of the text are encoded in UTF-8, with the characters
+<tt>'&amp;', '&lt;', '&gt;'</tt> replaced by <tt>&amp;amp;, &amp;lt;,
+&amp;gt;</tt>. Whitespace and linefeeds are preserved (in particular,
+no extraneous whitespace should be inserted between the enclosing tags
+and the text itself).
 </p>
 <hr />
 <a name="installation"></a>
