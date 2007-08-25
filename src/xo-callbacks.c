@@ -2341,6 +2341,8 @@ on_canvas_button_press_event           (GtkWidget       *widget,
   if (!ui.use_xinput && !is_core) return FALSE;
   if (ui.use_xinput && is_core && ui.discard_corepointer) return FALSE;
   if (event->button > 3) return FALSE; // no painting with the mouse wheel!
+  if (event->type != GDK_BUTTON_PRESS) return FALSE; 
+    // double-clicks may have broken axes member (free'd) due to a bug in GDK
   if (!is_core) { 
     // re-get the axis values since Synaptics sends bogus ones
     gdk_device_get_state(event->device, event->window, event->axes, NULL);
