@@ -349,10 +349,9 @@ void fix_xinput_coords(GdkEvent *event)
   }
   else return; // nothing we know how to do
   
-  gdk_window_get_origin(event->any.window, &wx, &wy);
-  // somehow, behavior changed starting with GTK+ 2.11.0
-  if (!gtk_check_version(2, 11, 0)) sx = sy = 0;
-  else gnome_canvas_get_scroll_offsets(canvas, &sx, &sy);
+  // use canvas window, not event window (else get GTK+ 2.11 bugs!)            
+  gdk_window_get_origin(GTK_WIDGET(canvas)->window, &wx, &wy);  
+  gnome_canvas_get_scroll_offsets(canvas, &sx, &sy);
   
   axis_width = device->axes[0].max - device->axes[0].min;
   if (axis_width>EPSILON)

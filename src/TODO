@@ -1,8 +1,10 @@
 List of features to be implemented (not in any particular order)
 ----------------------------------------------------------------
+- hand tool bug: upon page change, keeps scrolling till end of document
 - paste text directly into xournal, from xournal?
-    (instead of starting a text item and pasting into it)
+    (instead of starting a text item and pasting into/from it)
 - internationalization / translation of interface
+- fix: & in bgpdf file name must be quoted to &amp; in save_journal()
 - integration into desktop environment (document icons/previews? 
        mime type? click on xoj opens it? list app in start menu?)
 - rewrite printing using GtkPrint + Cairo as GnomePrint replacement
@@ -15,6 +17,7 @@ List of features to be implemented (not in any particular order)
 - load PDF pages only on demand (create empty pixmaps at first if can
    parse PDF geometry ourselves, else try pdfinfo ??)
    (and config option to limit total memory usage for PDF bitmaps)
+   --- switch to poppler lib instead of pdftoppm
 - lasso selection tool (see shoffsta patch)
      (http://shoffsta.afraid.org/Projects/Xournal/)
 - flatten (incl undo/redo...) - enabled only if nlayers>1
@@ -62,3 +65,14 @@ List of features to be implemented (not in any particular order)
 - EPOS: Cut and Paste into OpenOffice applications and the GIMP (as bitmap??)
 - EPOS: Export pages to pictures in the Jpg and Png formats.
 - EPOS: Rotate Ink in custom angle.
+- option: export to PDF with incremental pages for successive layers
+    (for presentations) (Daniel Brugarth 8/18/07)
+- render page to bitmap: for export, preview, and copy-paste
+- cut-and-paste of selection into other apps (as bitmap)
+- Lukasz Kaiser 8/15/07 shapes patch (approximate stroke by geometric shapes)
+  (make it an optional mode of the pen, like the ruler)
+  (rewrite without gsl dependency?)
+  (config file should be in share/...)
+  (disconnected shapes: add timestamps to strokes?)
+- Samuel Hoffstaetter: lasso, gettext localization, sidebar thumbnails, ...
+- left-hand patch: Uwe Winter 8/27/07 (xournal-lefthand.patch)
