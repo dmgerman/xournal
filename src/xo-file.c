@@ -944,20 +944,21 @@ void bgpdf_child_handler(GPid pid, gint status, gpointer data)
   struct BgPdfPage *bgpg;
   gchar *ppm_name;
   GdkPixbuf *pixbuf;
+  int npad, ret;
   
   if (bgpdf.requests == NULL) return;
   req = (struct BgPdfRequest *)bgpdf.requests->data;
   
-  ppm_name = g_strdup_printf("%s/p-%06d.ppm", bgpdf.tmpdir, req->pageno);
-//  printf("Child %d finished, should look for %s... \n", pid, ppm_name);
-  
-  if (bgpdf.status == STATUS_ABORTED || bgpdf.status == STATUS_SHUTDOWN)
-     pixbuf = NULL;
-  else
-     pixbuf = gdk_pixbuf_new_from_file(ppm_name, NULL);
-
-  unlink(ppm_name);
-  g_free(ppm_name);
+  pixbuf = NULL;
+  // pdftoppm used to generate p-nnnnnn.ppm (6 digits); new versions produce variable width
+  for (npad = 6; npad>0; npad--) {
+     ppm_name = g_strdup_printf("%s/p-%0*d.ppm", bgpdf.tmpdir, npad, req->pageno);
+     if (bgpdf.status != STATUS_ABORTED && bgpdf.status != STATUS_SHUTDOWN)
+       pixbuf = gdk_pixbuf_new_from_file(ppm_name, NULL);
+     ret = unlink(ppm_name);
+     g_free(ppm_name);
+     if (pixbuf != NULL || ret == 0) break;
+  }
 
   if (pixbuf != NULL) { // success
 //    printf("success\n");
