@@ -253,6 +253,10 @@ typedef struct UIData {
   gulong resize_signal_handler;
   gdouble hiliter_opacity;
   guint hiliter_alpha_mask;
+  gboolean left_handed; // left-handed mode?
+  gboolean auto_save_prefs; // auto-save preferences ?
+  gboolean shorten_menus; // shorten menus ?
+  gchar *shorten_menu_items; // which items to hide
 } UIData;
 
 #define BRUSH_LINKED 0

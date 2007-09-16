@@ -1,3 +1,11 @@
+Version 0.4.1 (Sep 15, 2007):
+  - bugfix: compatibility with new versions of pdftoppm (thanks to V. Ciancia)
+  - GTK+ 2.11 event processing bugfix
+  - minor bugfixes: hand tool, handling of filenames containing '&'
+  - desktop and MIME files (thanks to Mathieu Bouchard) + updated installer
+  - config options: left-handed scrollbar (contributed by Uwe Winter),
+    hide some menu items (customizable in config file), auto-save preferences
+
 Version 0.4.0.1 (Sep 3, 2007):
   - bugfixes for GTK+ 2.11 behavior (thanks to everyone who reported bugs)
 

@@ -23,19 +23,6 @@ struct UndoItem *undo, *redo; // the undo and redo stacks
 
 double DEFAULT_ZOOM;
 
-void hide_unimplemented(void)
-{
-  gtk_widget_hide(GET_COMPONENT("filePrintOptions"));
-  gtk_widget_hide(GET_COMPONENT("journalFlatten"));
-  gtk_widget_hide(GET_COMPONENT("papercolorOther"));
-  gtk_widget_hide(GET_COMPONENT("toolsSelectRegion"));
-  gtk_widget_hide(GET_COMPONENT("buttonSelectRegion"));
-  gtk_widget_hide(GET_COMPONENT("button2SelectRegion"));
-  gtk_widget_hide(GET_COMPONENT("button3SelectRegion"));
-  gtk_widget_hide(GET_COMPONENT("colorOther"));
-  gtk_widget_hide(GET_COMPONENT("helpIndex"));
-}
-
 void init_stuff (int argc, char *argv[])
 {
   GtkWidget *w;
@@ -189,25 +176,22 @@ void init_stuff (int argc, char *argv[])
     gtk_widget_set_sensitive(GET_COMPONENT("optionsUseXInput"), FALSE);
 
   ui.use_xinput = ui.allow_xinput && can_xinput;
-  gtk_widget_set_extension_events(GTK_WIDGET (canvas), 
-    ui.use_xinput?GDK_EXTENSION_EVENTS_ALL:GDK_EXTENSION_EVENTS_NONE);
 
-  gtk_check_menu_item_set_active(
-    GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsUseXInput")), ui.use_xinput);
   gtk_check_menu_item_set_active(
     GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsAntialiasBG")), ui.antialias_bg);
   gtk_check_menu_item_set_active(
     GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsProgressiveBG")), ui.progressive_bg);
   gtk_check_menu_item_set_active(
     GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsPrintRuling")), ui.print_ruling);
-
-  hide_unimplemented();
+  gtk_check_menu_item_set_active(
+    GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsLeftHanded")), ui.left_handed);
+  gtk_check_menu_item_set_active(
+    GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsShortenMenus")), ui.shorten_menus);
+  gtk_check_menu_item_set_active(
+    GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsAutoSavePrefs")), ui.auto_save_prefs);
   
-  /* config file only works with glib 2.6 */
-  if (glib_minor_version<6) {
-    gtk_widget_hide(GET_COMPONENT("optionsSavePreferences"));
-  }
-    
+  hide_unimplemented();
+
   update_undo_redo_enabled();
   update_copy_paste_enabled();
   update_vbox_order(ui.vertical_order[ui.fullscreen?1:0]);
@@ -217,6 +201,11 @@ void init_stuff (int argc, char *argv[])
   
   gtk_widget_show (winMain);
   update_cursor();
+  
+  /* this will cause extension events to get enabled/disabled, but
+     we need the windows to be mapped first */
+  gtk_check_menu_item_set_active(
+    GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsUseXInput")), ui.use_xinput);
 
   // load the MRU
   
@@ -281,6 +270,7 @@ main (int argc, char *argv[])
   if (bgpdf.status != STATUS_NOT_INIT) end_bgpdf_shutdown();
 
   save_mru_list();
+  if (ui.auto_save_prefs) save_config_to_file();
   
   return 0;
 }

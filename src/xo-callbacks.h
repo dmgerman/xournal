@@ -606,5 +606,14 @@ on_fontButton_font_set                 (GtkFontButton   *fontbutton,
                                         gpointer         user_data);
 
 void
-on_toggletoolClicked                   (GtkToolButton   *toolbutton,
+on_optionsLeftHanded_activate          (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
+
+void
+on_optionsShortenMenus_activate        (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_optionsAutoSavePrefs_activate       (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+

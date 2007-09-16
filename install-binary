@@ -6,14 +6,17 @@ if test `id -u` = 0; then
   echo "Press Control-C to abort, or Enter to proceed."
   read
 
+  echo "Installing xournal in /usr/local/bin..."
   test -z /usr/local/bin || mkdir -p /usr/local/bin
   install -c src/xournal /usr/local/bin/xournal
 
+  echo "Installing pixmaps in /usr/local/share/xournal/pixmaps..."
   install -d /usr/local/share/xournal/pixmaps
   for pixmap in pixmaps/*; do
     install -c -m 644 $pixmap /usr/local/share/xournal/pixmaps
   done
 
+  echo "Installing html-doc in /usr/local/share/xournal/html-doc..."
   install -d /usr/local/share/xournal/html-doc
   for docfile in html-doc/*; do
     if test -f $docfile; then
@@ -23,6 +26,24 @@ if test `id -u` = 0; then
   if test ! -e /usr/local/share/xournal/html-doc/pixmaps; then
     ln -s ../pixmaps /usr/local/share/xournal/html-doc/pixmaps
   fi
+
+  echo "Installing desktop files and MIME info in /usr/local/share and /usr/share/mimelnk..."
+  install -d /usr/local/share/icons/hicolor/scalable/apps
+  install -d /usr/local/share/icons/hicolor/scalable/mimetypes
+  install -d /usr/share/mimelnk/application
+  install -d /usr/local/share/mime/packages
+  install -d /usr/local/share/applications
+  install -c -m 644 pixmaps/xournal.svg /usr/local/share/icons/hicolor/scalable/apps
+  install -c -m 644 pixmaps/xoj.svg /usr/local/share/icons/hicolor/scalable/mimetypes
+  if test ! -e /usr/local/share/icons/hicolor/scalable/mimetypes/gnome-mime-application-x-xoj.svg; then
+    ln -s xoj.svg /usr/local/share/icons/hicolor/scalable/mimetypes/gnome-mime-application-x-xoj.svg
+  fi
+  install -c -m 644 x-xoj.desktop /usr/share/mimelnk/application
+  install -c -m 644 xournal.xml /usr/local/share/mime/packages
+  install -c -m 644 xournal.desktop /usr/local/share/applications
+  update-desktop-database
+  update-mime-database /usr/local/share/mime
+  gtk-update-icon-cache -f -t /usr/local/share/icons/hicolor
 else
   echo "To install xournal in /usr/local, you must run this installer as root."
   echo "This installer will now attempt to install xournal in your home directory."
@@ -36,14 +57,17 @@ else
     location=$HOME/bin
   fi
 
+  echo "Installing xournal in $location..."
   test -z $location || mkdir -p $location
   install -c src/xournal $location/xournal
 
+  echo "Installing pixmaps in $location/pixmaps..."
   install -d $location/pixmaps
   for pixmap in pixmaps/*; do
     install -c -m 644 $pixmap $location/pixmaps
   done
 
+  echo "Installing html-doc in $location/html-doc..."
   install -d $location/html-doc
   for docfile in html-doc/*; do
     if test -f $docfile; then
@@ -53,4 +77,22 @@ else
   if test ! -e $location/html-doc/pixmaps; then
     ln -s ../pixmaps $location/html-doc/pixmaps
   fi
+
+  echo "Installing desktop files and MIME info in $HOME/.local..."
+  install -d $HOME/.local/share/icons/hicolor/scalable/apps
+  install -d $HOME/.local/share/icons/hicolor/scalable/mimetypes
+  install -d $HOME/.kde/share/mimelnk/application
+  install -d $HOME/.local/share/mime/packages
+  install -d $HOME/.local/share/applications
+  install -c -m 644 pixmaps/xournal.svg $HOME/.local/share/icons/hicolor/scalable/apps
+  install -c -m 644 pixmaps/xoj.svg $HOME/.local/share/icons/hicolor/scalable/mimetypes
+  if test ! -e $HOME/.local/share/icons/hicolor/scalable/mimetypes/gnome-mime-application-x-xoj.svg; then
+    ln -s xoj.svg $HOME/.local/share/icons/hicolor/scalable/mimetypes/gnome-mime-application-x-xoj.svg
+  fi
+  install -c -m 644 x-xoj.desktop $HOME/.kde/share/mimelnk/application
+  install -c -m 644 xournal.xml $HOME/.local/share/mime/packages
+  install -c -m 644 xournal.desktop $HOME/.local/share/applications
+  XDG_DATA_DIRS=$HOME/.local/share update-desktop-database
+  update-mime-database $HOME/.local/share/mime
+  gtk-update-icon-cache -f -t $HOME/.local/share/icons/hicolor
 fi

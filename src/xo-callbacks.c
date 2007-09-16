@@ -770,7 +770,7 @@ on_editRedo_activate                   (GtkMenuItem     *menuitem,
     }
     journal.pages = g_list_remove(journal.pages, redo->page);
     journal.npages--;
-    if (ui.pageno > undo->val || ui.pageno == journal.npages) ui.pageno--;
+    if (ui.pageno > redo->val || ui.pageno == journal.npages) ui.pageno--;
     ui.cur_page = NULL;
       // so do_switch_page() won't try to remap the layers of the defunct page
     do_switch_page(ui.pageno, TRUE, TRUE);
@@ -2418,6 +2418,8 @@ on_canvas_button_press_event           (GtkWidget       *widget,
   if (ui.toolno[mapping] == TOOL_HAND) {
     ui.cur_item_type = ITEM_HAND;
     get_pointer_coords((GdkEvent *)event, ui.hand_refpt);
+    ui.hand_refpt[0] += ui.cur_page->hoffset;
+    ui.hand_refpt[1] += ui.cur_page->voffset;
   } 
   else if (ui.toolno[mapping] == TOOL_PEN || ui.toolno[mapping] == TOOL_HIGHLIGHTER ||
         (ui.toolno[mapping] == TOOL_ERASER && ui.cur_brush->tool_options == TOOLOPT_ERASER_WHITEOUT)) {
@@ -2617,8 +2619,29 @@ on_optionsUseXInput_activate           (GtkMenuItem     *menuitem,
   reset_focus();
   ui.allow_xinput = ui.use_xinput =
     gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem));
-  gtk_widget_set_extension_events(GTK_WIDGET (canvas), 
+
+/* Important note: we'd like ONLY the canvas window itself to receive
+   XInput events, while its child window in the GDK hierarchy (also
+   associated to the canvas widget) receives the core events.
+   This way on_canvas_... will get both types of events -- otherwise,
+   the proximity detection code in GDK is broken and we'll lose core
+   events.
+   
+   Up to GTK+ 2.10, gtk_widget_set_extension_events() only sets
+   extension events for the widget's main window itself; in GTK+ 2.11
+   also traverses GDK child windows that belong to the widget
+   and sets their extension events too. We want to avoid that.
+   So we use gdk_input_set_extension_events() directly on the canvas.
+*/
+   
+/*  // this causes GTK+ 2.11 bugs
+    gtk_widget_set_extension_events(GTK_WIDGET (canvas), 
       ui.use_xinput?GDK_EXTENSION_EVENTS_ALL:GDK_EXTENSION_EVENTS_NONE);
+*/
+  gdk_input_set_extension_events(GTK_WIDGET(canvas)->window, 
+    GDK_POINTER_MOTION_MASK | GDK_BUTTON_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK,
+    ui.use_xinput?GDK_EXTENSION_EVENTS_ALL:GDK_EXTENSION_EVENTS_NONE);
+
   update_mappings_menu();
 }
 
@@ -3309,5 +3332,60 @@ on_fontButton_font_set                 (GtkFontButton   *fontbutton,
   
   str = g_strdup(gtk_font_button_get_font_name(fontbutton));
   process_font_sel(str);
+}
+
+void
+on_optionsLeftHanded_activate          (GtkMenuItem     *menuitem,   
+                                        gpointer         user_data)
+{
+  end_text();
+  reset_focus();
+  ui.left_handed = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem));
+  gtk_scrolled_window_set_placement(GTK_SCROLLED_WINDOW(GET_COMPONENT("scrolledwindowMain")),
+    ui.left_handed?GTK_CORNER_TOP_RIGHT:GTK_CORNER_TOP_LEFT);
+}
+
+void
+on_optionsShortenMenus_activate        (GtkMenuItem     *menuitem,  
+                                        gpointer         user_data)
+{
+  gchar *item, *nextptr;
+  GtkWidget *w;
+  
+  end_text();
+  reset_focus();
+  ui.shorten_menus = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem));
+  
+  /* go over the item list */
+  item = ui.shorten_menu_items;
+  while (*item==' ') item++;
+  while (*item) {
+    nextptr = strchr(item, ' ');
+    if (nextptr!=NULL) *nextptr = 0;
+    // hide or show the item
+    w = GET_COMPONENT(item);
+    if (w != NULL) {
+      if (ui.shorten_menus) gtk_widget_hide(w);
+      else gtk_widget_show(w);
+    }
+    // next item
+    if (nextptr==NULL) break;
+    *nextptr = ' ';
+    item = nextptr;
+    while (*item==' ') item++;
+  }
+  
+  // just in case someone tried to unhide stuff they shouldn't be seeing
+  hide_unimplemented();
+  // maybe we should also make sure the drawing area stays visible ?
+}
+
+void
+on_optionsAutoSavePrefs_activate       (GtkMenuItem     *menuitem,  
+                                        gpointer         user_data)
+{
+  end_text();
+  reset_focus();
+  ui.auto_save_prefs = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem));
 }
 

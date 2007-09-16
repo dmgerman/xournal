@@ -88,6 +88,8 @@ void add_scroll_bindings(void);
 
 gboolean is_event_within_textview(GdkEventButton *event);
 
+void hide_unimplemented(void);
+
 // defines for paper rulings
 
 #define RULING_MARGIN_COLOR 0xff0080ff

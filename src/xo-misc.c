@@ -984,8 +984,7 @@ void update_mappings_menu_linkings(void)
 void update_mappings_menu(void)
 {
   gtk_widget_set_sensitive(GET_COMPONENT("optionsButtonMappings"), ui.use_xinput);
-  gtk_widget_set_sensitive(GET_COMPONENT("optionsDiscardCoreEvents"), 
-    ui.use_xinput && (gtk_check_version(2, 11, 0)!=NULL));
+  gtk_widget_set_sensitive(GET_COMPONENT("optionsDiscardCoreEvents"), ui.use_xinput);
   gtk_check_menu_item_set_active(
     GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsButtonMappings")), ui.use_erasertip);
   gtk_check_menu_item_set_active(
@@ -1809,3 +1808,22 @@ gboolean is_event_within_textview(GdkEventButton *event)
   if (pt[1]<ui.cur_item->bbox.top || pt[1]>ui.cur_item->bbox.bottom) return FALSE;
   return TRUE;
 }
+
+void hide_unimplemented(void)
+{
+  gtk_widget_hide(GET_COMPONENT("filePrintOptions"));
+  gtk_widget_hide(GET_COMPONENT("journalFlatten"));  
+  gtk_widget_hide(GET_COMPONENT("papercolorOther")); 
+  gtk_widget_hide(GET_COMPONENT("toolsSelectRegion"));
+  gtk_widget_hide(GET_COMPONENT("buttonSelectRegion"));
+  gtk_widget_hide(GET_COMPONENT("button2SelectRegion"));
+  gtk_widget_hide(GET_COMPONENT("button3SelectRegion"));
+  gtk_widget_hide(GET_COMPONENT("colorOther"));
+  gtk_widget_hide(GET_COMPONENT("helpIndex")); 
+
+  /* config file only works with glib 2.6 */
+  if (glib_minor_version<6) {
+    gtk_widget_hide(GET_COMPONENT("optionsAutoSavePrefs"));
+    gtk_widget_hide(GET_COMPONENT("optionsSavePreferences"));
+  }
+}  

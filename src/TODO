@@ -1,12 +1,10 @@
 List of features to be implemented (not in any particular order)
 ----------------------------------------------------------------
-- hand tool bug: upon page change, keeps scrolling till end of document
 - paste text directly into xournal, from xournal?
     (instead of starting a text item and pasting into/from it)
 - internationalization / translation of interface
-- fix: & in bgpdf file name must be quoted to &amp; in save_journal()
-- integration into desktop environment (document icons/previews? 
-       mime type? click on xoj opens it? list app in start menu?)
+- a command + keyboard shortcut to switch between mappings (1<->2, 1<->3)
+     (A. Rechnitzer Sept 11, 2007)
 - rewrite printing using GtkPrint + Cairo as GnomePrint replacement
    (keep GnomePrint option for compatibility with GTK+ <2.10)
 - xournal_page-shadow.diff (Martin Kiefel Feb 5 2007)
@@ -59,20 +57,23 @@ List of features to be implemented (not in any particular order)
   pages by parsing pdf info rather than generating bitmaps for all of them.
 - win32 port (Matteo Abrate)
 - snap-to-grid tool? (Matteo Abrate)
-- option to auto-save preferences on exit (Michele Codutti)
 - EPOS 7/24/07: Thumbnails pane
 - EPOS: Connect to EPOS api which sends A4 mapped points
 - EPOS: Cut and Paste into OpenOffice applications and the GIMP (as bitmap??)
 - EPOS: Export pages to pictures in the Jpg and Png formats.
 - EPOS: Rotate Ink in custom angle.
+- handwriting recognition???? (cellwriter?) unlikely. we don't have grids
+- handwritten stroke search in document (see cellwriter?)
 - option: export to PDF with incremental pages for successive layers
     (for presentations) (Daniel Brugarth 8/18/07)
 - render page to bitmap: for export, preview, and copy-paste
-- cut-and-paste of selection into other apps (as bitmap)
+    (render using libart, see how gnomecanvas does it?)
+    (copy-paste: config option to render only current layer or all below?)
+- cut-and-paste of selection into other apps (as bitmap; as SVG?)
+- ability to select entire page for copy-paste (as bitmap / reorder xournal)
 - Lukasz Kaiser 8/15/07 shapes patch (approximate stroke by geometric shapes)
   (make it an optional mode of the pen, like the ruler)
   (rewrite without gsl dependency?)
-  (config file should be in share/...)
+  (config file should be loaded from share/... and .xournal/...)
   (disconnected shapes: add timestamps to strokes?)
 - Samuel Hoffstaetter: lasso, gettext localization, sidebar thumbnails, ...
-- left-hand patch: Uwe Winter 8/27/07 (xournal-lefthand.patch)

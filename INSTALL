@@ -56,7 +56,7 @@ Installation in /usr/local:
 ./autogen.sh
 make
 (as root) make install
-
+(as root) make desktop-install
 
 Installation in $HOME:
 
@@ -64,3 +64,4 @@ Installation in $HOME:
 ./configure --prefix=$HOME
 make
 make install
+make home-desktop-install

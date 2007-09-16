@@ -24,7 +24,7 @@
   Xournal User's Manual
 </h2>
 <p style="font-size: 0.95em; text-align: center; color: rgb(0,0,0)">
- Version 0.4.0.1
+ Version 0.4.1
 </p>
 <hr />
 <p>
@@ -555,6 +555,19 @@ Bug reports and suggestions can also be submitted on Xournal's
 <a name="changelog"></a>
 <h2 class="subtitle">Version history</h2>
 <p>
+Version 0.4.1 (Sep 15, 2007):
+<ul>
+ <li> bugfix: compatibility with new versions of pdftoppm (thanks to
+      Vincenzo Ciancia)</li>
+ <li>GTK+ 2.11 event processing bugfix</li>
+ <li>minor bugfixes: hand tool, handling of filenames containing '&amp;'</li>
+ <li>desktop and MIME files (thanks to Mathieu Bouchard) + updated installer</li>
+ <li>config options: left-handed scrollbar (contributed by Uwe Winter),
+     hide some menu items (customizable in config file), auto-save
+     preferences</li>
+</ul>
+</p>
+<p>
 Version 0.4.0.1 (September 3, 2007):
 <ul>
  <li>bugfixes for GTK+ 2.11 behavior (thanks to everyone who reported bugs)</li>
@@ -871,6 +884,7 @@ installed on your system).
 ./autogen.sh
 make
 (as root) make install
+(as root) make desktop-install
 </pre>
 </p>
 <p>
@@ -880,6 +894,7 @@ make
 ./configure --prefix=$HOME
 make
 make install
+make home-desktop-install
 </pre>
 </p>
 <p><b>Configure error message:</b> <br />

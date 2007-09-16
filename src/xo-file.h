@@ -1,3 +1,6 @@
+#define DEFAULT_SHORTEN_MENUS \
+  "optionsAntialiasBG optionsProgressiveBG optionsLeftHanded"
+
 #define GS_CMDLINE \
   "gs -sDEVICE=bmp16m -r%f -q -sOutputFile=- " \
   "-dNOPAUSE -dBATCH -dEPSCrop -dTextAlphaBits=4 -dGraphicsAlphaBits=4 %s"

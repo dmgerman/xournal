@@ -243,7 +243,10 @@ create_winMain (void)
   GtkWidget *optionsAntialiasBG;
   GtkWidget *optionsProgressiveBG;
   GtkWidget *optionsPrintRuling;
+  GtkWidget *optionsLeftHanded;
+  GtkWidget *optionsShortenMenus;
   GtkWidget *separator21;
+  GtkWidget *optionsAutoSavePrefs;
   GtkWidget *optionsSavePreferences;
   GtkWidget *menuHelp;
   GtkWidget *menuHelp_menu;
@@ -1354,10 +1357,22 @@ create_winMain (void)
   gtk_widget_show (optionsPrintRuling);
   gtk_container_add (GTK_CONTAINER (menuOptions_menu), optionsPrintRuling);
 
+  optionsLeftHanded = gtk_check_menu_item_new_with_mnemonic ("Left-Handed Scrollbar");
+  gtk_widget_show (optionsLeftHanded);
+  gtk_container_add (GTK_CONTAINER (menuOptions_menu), optionsLeftHanded);
+
+  optionsShortenMenus = gtk_check_menu_item_new_with_mnemonic ("Shorten _Menus");
+  gtk_widget_show (optionsShortenMenus);
+  gtk_container_add (GTK_CONTAINER (menuOptions_menu), optionsShortenMenus);
+
   separator21 = gtk_separator_menu_item_new ();
   gtk_widget_show (separator21);
   gtk_container_add (GTK_CONTAINER (menuOptions_menu), separator21);
   gtk_widget_set_sensitive (separator21, FALSE);
+
+  optionsAutoSavePrefs = gtk_check_menu_item_new_with_mnemonic ("A_uto-Save Preferences");
+  gtk_widget_show (optionsAutoSavePrefs);
+  gtk_container_add (GTK_CONTAINER (menuOptions_menu), optionsAutoSavePrefs);
 
   optionsSavePreferences = gtk_menu_item_new_with_mnemonic ("_Save Preferences");
   gtk_widget_show (optionsSavePreferences);
@@ -2289,6 +2304,15 @@ create_winMain (void)
   g_signal_connect ((gpointer) optionsPrintRuling, "activate",
                     G_CALLBACK (on_optionsPrintRuling_activate),
                     NULL);
+  g_signal_connect ((gpointer) optionsLeftHanded, "toggled",
+                    G_CALLBACK (on_optionsLeftHanded_activate),
+                    NULL);
+  g_signal_connect ((gpointer) optionsShortenMenus, "toggled",
+                    G_CALLBACK (on_optionsShortenMenus_activate),
+                    NULL);
+  g_signal_connect ((gpointer) optionsAutoSavePrefs, "toggled",
+                    G_CALLBACK (on_optionsAutoSavePrefs_activate),
+                    NULL);
   g_signal_connect ((gpointer) optionsSavePreferences, "activate",
                     G_CALLBACK (on_optionsSavePreferences_activate),
                     NULL);
@@ -2639,7 +2663,10 @@ create_winMain (void)
   GLADE_HOOKUP_OBJECT (winMain, optionsAntialiasBG, "optionsAntialiasBG");
   GLADE_HOOKUP_OBJECT (winMain, optionsProgressiveBG, "optionsProgressiveBG");
   GLADE_HOOKUP_OBJECT (winMain, optionsPrintRuling, "optionsPrintRuling");
+  GLADE_HOOKUP_OBJECT (winMain, optionsLeftHanded, "optionsLeftHanded");
+  GLADE_HOOKUP_OBJECT (winMain, optionsShortenMenus, "optionsShortenMenus");
   GLADE_HOOKUP_OBJECT (winMain, separator21, "separator21");
+  GLADE_HOOKUP_OBJECT (winMain, optionsAutoSavePrefs, "optionsAutoSavePrefs");
   GLADE_HOOKUP_OBJECT (winMain, optionsSavePreferences, "optionsSavePreferences");
   GLADE_HOOKUP_OBJECT (winMain, menuHelp, "menuHelp");
   GLADE_HOOKUP_OBJECT (winMain, menuHelp_menu, "menuHelp_menu");

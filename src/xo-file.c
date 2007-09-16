@@ -124,8 +124,10 @@ gboolean save_journal(const char *filename)
           }
           g_free(tmpfn);
         }
+        tmpstr = g_markup_escape_text(pg->bg->filename->s, -1);
         gzprintf(f, "domain=\"%s\" filename=\"%s\" ", 
-          file_domain_names[pg->bg->file_domain], pg->bg->filename->s);
+          file_domain_names[pg->bg->file_domain], tmpstr);
+        g_free(tmpstr);
       }
     }
     else if (pg->bg->type == BG_PDF) {
@@ -156,8 +158,10 @@ gboolean save_journal(const char *filename)
           }
           g_free(tmpfn);
         }
+        tmpstr = g_markup_escape_text(pg->bg->filename->s, -1);
         gzprintf(f, "domain=\"%s\" filename=\"%s\" ", 
-          file_domain_names[pg->bg->file_domain], pg->bg->filename->s);
+          file_domain_names[pg->bg->file_domain], tmpstr);
+        g_free(tmpstr);
       }
       gzprintf(f, "pageno=\"%d\" ", pg->bg->file_page_seq);
     }
@@ -180,8 +184,10 @@ gboolean save_journal(const char *filename)
           gzprintf(f, "\n</stroke>\n");
         }
         if (item->type == ITEM_TEXT) {
+          tmpstr = g_markup_escape_text(item->font_name, -1);
           gzprintf(f, "<text font=\"%s\" size=\"%.2f\" x=\"%.2f\" y=\"%.2f\" color=\"",
-            item->font_name, item->font_size, item->bbox.left, item->bbox.top);
+            tmpstr, item->font_size, item->bbox.left, item->bbox.top);
+          g_free(tmpstr);
           if (item->brush.color_no >= 0)
             gzputs(f, color_names[item->brush.color_no]);
           else
@@ -189,7 +195,6 @@ gboolean save_journal(const char *filename)
           tmpstr = g_markup_escape_text(item->text, -1);
           gzprintf(f, "\">%s</text>\n", tmpstr);
           g_free(tmpstr);
-          
         }
       }
       gzprintf(f, "</layer>\n");
@@ -1323,6 +1328,10 @@ void init_config_default(void)
   ui.view_continuous = TRUE;
   ui.allow_xinput = TRUE;
   ui.discard_corepointer = FALSE;
+  ui.left_handed = FALSE;
+  ui.shorten_menus = FALSE;
+  ui.shorten_menu_items = g_strdup(DEFAULT_SHORTEN_MENUS);
+  ui.auto_save_prefs = FALSE;
   ui.bg_apply_all_pages = FALSE;
   ui.use_erasertip = FALSE;
   ui.window_default_width = 720;
@@ -1471,9 +1480,21 @@ void save_config_to_file(void)
   update_keyval("general", "interface_fullscreen",
     " interface components in fullscreen mode, from top to bottom",
     verbose_vertical_order(ui.vertical_order[1]));
+  update_keyval("general", "interface_lefthanded",
+    " interface has left-handed scrollbar (true/false)",
+    g_strdup(ui.left_handed?"true":"false"));
+  update_keyval("general", "shorten_menus",
+    " hide some unwanted menu or toolbar items (true/false)",
+    g_strdup(ui.shorten_menus?"true":"false"));
+  update_keyval("general", "shorten_menu_items",
+    " interface items to hide (customize at your own risk!)\n see source file xo-interface.c for a list of item names",
+    g_strdup(ui.shorten_menu_items));
   update_keyval("general", "highlighter_opacity",
     " highlighter opacity (0 to 1, default 0.5)\n warning: opacity level is not saved in xoj files!",
     g_strdup_printf("%.2f", ui.hiliter_opacity));
+  update_keyval("general", "autosave_prefs",
+    " auto-save preferences on exit (true/false)",
+    g_strdup(ui.auto_save_prefs?"true":"false"));
 
   update_keyval("paper", "width",
     " the default page width, in points (1/72 in)",
@@ -1776,7 +1797,12 @@ void load_config_from_file(void)
   parse_keyval_string("general", "default_path", &ui.default_path);
   parse_keyval_vorderlist("general", "interface_order", ui.vertical_order[0]);
   parse_keyval_vorderlist("general", "interface_fullscreen", ui.vertical_order[1]);
+  parse_keyval_boolean("general", "interface_lefthanded", &ui.left_handed);
+  parse_keyval_boolean("general", "shorten_menus", &ui.shorten_menus);
+  if (parse_keyval_string("general", "shorten_menu_items", &str))
+    if (str!=NULL) { g_free(ui.shorten_menu_items); ui.shorten_menu_items = str; }
   parse_keyval_float("general", "highlighter_opacity", &ui.hiliter_opacity, 0., 1.);
+  parse_keyval_boolean("general", "autosave_prefs", &ui.auto_save_prefs);
   
   parse_keyval_float("paper", "width", &ui.default_page.width, 1., 5000.);
   parse_keyval_float("paper", "height", &ui.default_page.height, 1., 5000.);
