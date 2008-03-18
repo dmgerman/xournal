@@ -2348,9 +2348,16 @@ on_canvas_button_press_event           (GtkWidget       *widget,
     gdk_device_get_state(event->device, event->window, event->axes, NULL);
     fix_xinput_coords((GdkEvent *)event);
   }
+  if (!finite(event->x) || !finite(event->y)) return FALSE; // Xorg 7.3 bug
 
   if (ui.cur_item_type == ITEM_TEXT && !is_event_within_textview(event))
     end_text();
+  if (ui.cur_item_type == ITEM_STROKE && ui.is_corestroke && !is_core &&
+      ui.cur_path.num_points == 1) { 
+      // Xorg 7.3+ sent core event before XInput event: fix initial point 
+    ui.is_corestroke = FALSE;
+    get_pointer_coords((GdkEvent *)event, ui.cur_path.coords);
+  }
   if (ui.cur_item_type != ITEM_NONE) return FALSE; // we're already doing something
 
   ui.is_corestroke = is_core;
@@ -2523,6 +2530,8 @@ on_canvas_motion_notify_event          (GtkWidget       *widget,
   if (!ui.use_xinput && !is_core) return FALSE;
   if (ui.use_xinput && is_core && !ui.is_corestroke) return FALSE;
   if (!is_core) fix_xinput_coords((GdkEvent *)event);
+  if (!finite(event->x) || !finite(event->y)) return FALSE; // Xorg 7.3 bug
+  if (!is_core) ui.is_corestroke = FALSE;
 
   looks_wrong = !(event->state & (1<<(7+ui.which_mouse_button)));
   
