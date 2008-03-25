@@ -29,7 +29,7 @@ typedef struct PdfObj {
 typedef struct PdfFont {
   int n_obj;
   gboolean used_in_this_page;
-  unsigned char *filename;
+  char *filename;
   int font_id;
   gboolean is_truetype;
   int glyph_page;

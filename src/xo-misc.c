@@ -15,6 +15,7 @@
 #include "xo-misc.h"
 #include "xo-file.h"
 #include "xo-paint.h"
+#include "xo-shapes.h"
 
 // some global constants
 
@@ -95,6 +96,13 @@ void realloc_cur_path(int n)
   ui.cur_path.coords = g_realloc(ui.cur_path.coords, 2*(n+10)*sizeof(double));
 }
 
+void realloc_cur_widths(int n)
+{
+  if (n <= ui.cur_widths_storage_alloc) return;
+  ui.cur_widths_storage_alloc = n+10;
+  ui.cur_widths = g_realloc(ui.cur_widths, (n+10)*sizeof(double));
+}
+
 // undo utility functions
 
 void prepare_new_undo(void)
@@ -124,6 +132,7 @@ void clear_redo_stack(void)
   while (redo!=NULL) {
     if (redo->type == ITEM_STROKE) {
       gnome_canvas_points_free(redo->item->path);
+      if (redo->item->brush.variable_width) g_free(redo->item->widths);
       g_free(redo->item);
       /* the strokes are unmapped, so there are no associated canvas items */
     }
@@ -132,12 +141,13 @@ void clear_redo_stack(void)
       g_free(redo->item->font_name);
       g_free(redo->item);
     }
-    else if (redo->type == ITEM_ERASURE) {
+    else if (redo->type == ITEM_ERASURE || redo->type == ITEM_RECOGNIZER) {
       for (list = redo->erasurelist; list!=NULL; list=list->next) {
         erasure = (struct UndoErasureData *)list->data;
         for (repl = erasure->replacement_items; repl!=NULL; repl=repl->next) {
           it = (struct Item *)repl->data;
           gnome_canvas_points_free(it->path);
+          if (it->brush.variable_width) g_free(it->widths);
           g_free(it);
         }
         g_list_free(erasure->replacement_items);
@@ -160,10 +170,16 @@ void clear_redo_stack(void)
     else if (redo->type == ITEM_MOVESEL || redo->type == ITEM_REPAINTSEL) {
       g_list_free(redo->itemlist); g_list_free(redo->auxlist);
     }
+    else if (redo->type == ITEM_RESIZESEL) {
+      g_list_free(redo->itemlist);
+    }
     else if (redo->type == ITEM_PASTE) {
       for (list = redo->itemlist; list!=NULL; list=list->next) {
         it = (struct Item *)list->data;
-        if (it->type == ITEM_STROKE) gnome_canvas_points_free(it->path);
+        if (it->type == ITEM_STROKE) {
+          gnome_canvas_points_free(it->path);
+          if (it->brush.variable_width) g_free(it->widths);
+        }
         g_free(it);
       }
       g_list_free(redo->itemlist);
@@ -192,11 +208,13 @@ void clear_undo_stack(void)
   while (undo!=NULL) {
     // for strokes, items are already in the journal, so we don't free them
     // for erasures, we need to free the dead items
-    if (undo->type == ITEM_ERASURE) {
+    if (undo->type == ITEM_ERASURE || undo->type == ITEM_RECOGNIZER) {
       for (list = undo->erasurelist; list!=NULL; list=list->next) {
         erasure = (struct UndoErasureData *)list->data;
-        if (erasure->item->type == ITEM_STROKE)
+        if (erasure->item->type == ITEM_STROKE) {
           gnome_canvas_points_free(erasure->item->path);
+          if (erasure->item->brush.variable_width) g_free(erasure->item->widths);
+        }
         if (erasure->item->type == ITEM_TEXT)
           { g_free(erasure->item->text); g_free(erasure->item->font_name); }
         g_free(erasure->item);
@@ -215,6 +233,9 @@ void clear_undo_stack(void)
     }
     else if (undo->type == ITEM_MOVESEL || undo->type == ITEM_REPAINTSEL) {
       g_list_free(undo->itemlist); g_list_free(undo->auxlist);
+    }
+    else if (undo->type == ITEM_RESIZESEL) {
+      g_list_free(undo->itemlist);
     }
     else if (undo->type == ITEM_PASTE) {
       g_list_free(undo->itemlist);
@@ -363,6 +384,18 @@ void fix_xinput_coords(GdkEvent *event)
 #endif
 }
 
+double get_pressure_multiplier(GdkEvent *event)
+{
+  double rawpressure;
+  
+  if (event->button.device == gdk_device_get_core_pointer()
+      || event->button.device->num_axes <= 2) return 1.0;
+
+  rawpressure = event->button.axes[2]/(event->button.device->axes[2].max - event->button.device->axes[2].min);
+
+  return ((1-rawpressure)*ui.width_minimum_multiplier + rawpressure*ui.width_maximum_multiplier);
+}
+
 void update_item_bbox(struct Item *item)
 {
   int i;
@@ -403,15 +436,32 @@ void make_page_clipbox(struct Page *pg)
 
 void make_canvas_item_one(GnomeCanvasGroup *group, struct Item *item)
 {
-  GnomeCanvasItem *i;
   PangoFontDescription *font_desc;
+  GnomeCanvasPoints points;
+  int j;
 
-  if (item->type == ITEM_STROKE)
-    item->canvas_item = gnome_canvas_item_new(group,
-          gnome_canvas_line_get_type(), "points", item->path,   
-          "cap-style", GDK_CAP_ROUND, "join-style", GDK_JOIN_ROUND,
-          "fill-color-rgba", item->brush.color_rgba,  
-          "width-units", item->brush.thickness, NULL);
+  if (item->type == ITEM_STROKE) {
+    if (!item->brush.variable_width)
+      item->canvas_item = gnome_canvas_item_new(group,
+            gnome_canvas_line_get_type(), "points", item->path,   
+            "cap-style", GDK_CAP_ROUND, "join-style", GDK_JOIN_ROUND,
+            "fill-color-rgba", item->brush.color_rgba,  
+            "width-units", item->brush.thickness, NULL);
+    else {
+      item->canvas_item = gnome_canvas_item_new(group,
+            gnome_canvas_group_get_type(), NULL);
+      points.num_points = 2;
+      points.ref_count = 1;
+      for (j = 0; j < item->path->num_points-1; j++) {
+        points.coords = item->path->coords+2*j;
+        gnome_canvas_item_new((GnomeCanvasGroup *) item->canvas_item,
+              gnome_canvas_line_get_type(), "points", &points, 
+              "cap-style", GDK_CAP_ROUND, "join-style", GDK_JOIN_ROUND, 
+              "fill-color-rgba", item->brush.color_rgba,
+              "width-units", item->widths[j], NULL);
+      }
+    }
+  }
   if (item->type == ITEM_TEXT) {
     font_desc = pango_font_description_from_string(item->font_name);
     pango_font_description_set_absolute_size(font_desc, 
@@ -765,7 +815,12 @@ void update_tool_buttons(void)
   }
     
   gtk_toggle_tool_button_set_active(
-    GTK_TOGGLE_TOOL_BUTTON(GET_COMPONENT("buttonRuler")), ui.ruler[ui.cur_mapping]);
+      GTK_TOGGLE_TOOL_BUTTON(GET_COMPONENT("buttonRuler")), 
+      ui.toolno[ui.cur_mapping]<NUM_STROKE_TOOLS && ui.cur_brush->ruler);
+  gtk_toggle_tool_button_set_active(
+      GTK_TOGGLE_TOOL_BUTTON(GET_COMPONENT("buttonReco")), 
+      ui.toolno[ui.cur_mapping]<NUM_STROKE_TOOLS && ui.cur_brush->recognizer);
+
   update_thickness_buttons();
   update_color_buttons();
 }
@@ -808,15 +863,27 @@ void update_tool_menu(void)
   }
 
   gtk_check_menu_item_set_active(
-    GTK_CHECK_MENU_ITEM(GET_COMPONENT("toolsRuler")), ui.ruler[0]);
+      GTK_CHECK_MENU_ITEM(GET_COMPONENT("toolsRuler")), 
+      ui.toolno[0]<NUM_STROKE_TOOLS && ui.brushes[0][ui.toolno[0]].ruler);
+  gtk_check_menu_item_set_active(
+      GTK_CHECK_MENU_ITEM(GET_COMPONENT("toolsReco")), 
+      ui.toolno[0]<NUM_STROKE_TOOLS && ui.brushes[0][ui.toolno[0]].recognizer);
 }
 
 void update_ruler_indicator(void)
 {
   gtk_toggle_tool_button_set_active(
-    GTK_TOGGLE_TOOL_BUTTON(GET_COMPONENT("buttonRuler")), ui.ruler[ui.cur_mapping]);
+      GTK_TOGGLE_TOOL_BUTTON(GET_COMPONENT("buttonRuler")), 
+      ui.toolno[ui.cur_mapping]<NUM_STROKE_TOOLS && ui.cur_brush->ruler);
+  gtk_toggle_tool_button_set_active(
+      GTK_TOGGLE_TOOL_BUTTON(GET_COMPONENT("buttonReco")), 
+      ui.toolno[ui.cur_mapping]<NUM_STROKE_TOOLS && ui.cur_brush->recognizer);
   gtk_check_menu_item_set_active(
-    GTK_CHECK_MENU_ITEM(GET_COMPONENT("toolsRuler")), ui.ruler[0]);
+      GTK_CHECK_MENU_ITEM(GET_COMPONENT("toolsRuler")), 
+      ui.toolno[0]<NUM_STROKE_TOOLS && ui.brushes[0][ui.toolno[0]].ruler);
+  gtk_check_menu_item_set_active(
+      GTK_CHECK_MENU_ITEM(GET_COMPONENT("toolsReco")), 
+      ui.toolno[0]<NUM_STROKE_TOOLS && ui.brushes[0][ui.toolno[0]].recognizer);
 }
 
 void update_color_menu(void)
@@ -985,10 +1052,13 @@ void update_mappings_menu(void)
 {
   gtk_widget_set_sensitive(GET_COMPONENT("optionsButtonMappings"), ui.use_xinput);
   gtk_widget_set_sensitive(GET_COMPONENT("optionsDiscardCoreEvents"), ui.use_xinput);
+  gtk_widget_set_sensitive(GET_COMPONENT("optionsPressureSensitive"), ui.use_xinput);
   gtk_check_menu_item_set_active(
     GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsButtonMappings")), ui.use_erasertip);
   gtk_check_menu_item_set_active(
     GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsDiscardCoreEvents")), ui.discard_corepointer);
+  gtk_check_menu_item_set_active(
+    GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsPressureSensitive")), ui.pressure_sensitivity);
 
   switch(ui.toolno[1]) {
     case TOOL_PEN:
@@ -1099,8 +1169,6 @@ void update_page_stuff(void)
   GtkSpinButton *spin;
   struct Page *pg;
   double vertpos, maxwidth;
-  struct Layer *layer;
-  int relscroll;
 
   // move the page groups to their rightful locations or hide them
   if (ui.view_continuous) {
@@ -1308,9 +1376,6 @@ void update_mapping_linkings(int toolno)
     if (ui.linked_brush[i] == BRUSH_LINKED) {
       if (toolno >= 0 && toolno < NUM_STROKE_TOOLS)
         g_memmove(&(ui.brushes[i][toolno]), &(ui.brushes[0][toolno]), sizeof(struct Brush));
-      ui.ruler[i] = ui.ruler[0];
-      if (ui.toolno[i]!=TOOL_PEN && ui.toolno[i]!=TOOL_HIGHLIGHTER)
-        ui.ruler[i] = FALSE;
     }
     if (ui.linked_brush[i] == BRUSH_COPIED && toolno == ui.toolno[i]) {
       ui.linked_brush[i] = BRUSH_STATIC;
@@ -1509,7 +1574,6 @@ gboolean ok_to_close(void)
 {
   GtkWidget *dialog;
   GtkResponseType response;
-  GList *pagelist;
 
   if (ui.saved) return TRUE;
   dialog = gtk_message_dialog_new(GTK_WINDOW (winMain), GTK_DIALOG_DESTROY_WITH_PARENT,
@@ -1540,6 +1604,7 @@ void reset_focus(void)
     gtk_widget_grab_focus(ui.cur_item->widget);
   else
     gtk_widget_grab_focus(GTK_WIDGET(canvas));
+  reset_recognizer();
 }
 
 // selection / clipboard stuff
@@ -1607,6 +1672,64 @@ void move_journal_items_by(GList *itemlist, double dx, double dy,
   }
 }
 
+void resize_journal_items_by(GList *itemlist, double scaling_x, double scaling_y,
+                             double offset_x, double offset_y)
+{
+  struct Item *item;
+  GList *list;
+  double mean_scaling, temp;
+  double *pt, *wid;
+  GnomeCanvasGroup *group;
+  int i; 
+  
+  /* geometric mean of x and y scalings = rescaling for stroke widths
+     and for text font sizes */
+  mean_scaling = sqrt(fabs(scaling_x * scaling_y));
+
+  for (list = itemlist; list != NULL; list = list->next) {
+    item = (struct Item *)list->data;
+    if (item->type == ITEM_STROKE) {
+      item->brush.thickness = item->brush.thickness * mean_scaling;
+      for (i=0, pt=item->path->coords; i<item->path->num_points; i++, pt+=2) {
+        pt[0] = pt[0]*scaling_x + offset_x;
+        pt[1] = pt[1]*scaling_y + offset_y;
+      }
+      if (item->brush.variable_width)
+        for (i=0, wid=item->widths; i<item->path->num_points-1; i++, wid++)
+          *wid = *wid * mean_scaling;
+
+      item->bbox.left = item->bbox.left*scaling_x + offset_x;
+      item->bbox.right = item->bbox.right*scaling_x + offset_x;
+      item->bbox.top = item->bbox.top*scaling_y + offset_y;
+      item->bbox.bottom = item->bbox.bottom*scaling_y + offset_y;
+      if (item->bbox.left > item->bbox.right) {
+        temp = item->bbox.left;
+        item->bbox.left = item->bbox.right;
+        item->bbox.right = temp;
+      }
+      if (item->bbox.top > item->bbox.bottom) {
+        temp = item->bbox.top;
+        item->bbox.top = item->bbox.bottom;
+        item->bbox.bottom = temp;
+      }
+    }
+    if (item->type == ITEM_TEXT) {
+      /* must scale about NW corner -- all other points of the text box
+         are font- and zoom-dependent, so scaling about center of text box
+         couldn't be undone properly. FIXME? */
+      item->font_size *= mean_scaling;
+      item->bbox.left = item->bbox.left*scaling_x + offset_x;
+      item->bbox.top = item->bbox.top*scaling_y + offset_y;
+    }
+    // redraw the item
+    if (item->canvas_item!=NULL) {
+      group = (GnomeCanvasGroup *) item->canvas_item->parent;
+      gtk_object_destroy(GTK_OBJECT(item->canvas_item));
+      make_canvas_item_one(group, item);
+    }
+  }
+}
+
 // Switch between button mappings
 
 /* NOTE ABOUT BUTTON MAPPINGS: ui.cur_mapping is 0 except while a canvas
@@ -1635,10 +1758,6 @@ void process_mapping_activate(GtkMenuItem *menuitem, int m, int tool)
   reset_focus();
     
   ui.toolno[m] = tool;
-  ui.ruler[m] = FALSE;
-  if (ui.linked_brush[m] == BRUSH_LINKED 
-       && (tool==TOOL_PEN || tool==TOOL_HIGHLIGHTER))
-    ui.ruler[m] = ui.ruler[0];
   if (ui.linked_brush[m] == BRUSH_COPIED) {
     ui.linked_brush[m] = BRUSH_STATIC;
     update_mappings_menu_linkings();

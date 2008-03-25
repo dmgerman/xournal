@@ -24,7 +24,7 @@
   Xournal User's Manual
 </h2>
 <p style="font-size: 0.95em; text-align: center; color: rgb(0,0,0)">
- Version 0.4.1
+ Version 0.4.2
 </p>
 <hr />
 <p>
@@ -155,6 +155,31 @@ the Tools menu):
   of the pen and highlighter tools. When it is enabled, these tools paint
   line segments instead of curvy strokes. For simplicity, selecting the
   ruler when not in pen or highlighter mode automatically selects the pen.
+</p>
+<a name="recognizer"></a>
+<h3 class="subsub"><img src="pixmaps/shapes.png"> The shape recognizer</h3>
+<p>
+  The shape recognizer is also a special 
+  operating mode of the pen and highlighter tools. When it is enabled,
+  Xournal attempts to recognize geometric shapes as they are drawn, and
+  if successful will replace the drawn strokes accordingly. The shapes
+  that can be recognized are: line segments, circles, rectangles, arrows,
+  triangles and quadrilaterals. Polygonal shapes can be drawn in a single
+  stroke or in a sequence of consecutive strokes.
+</p>
+<p>
+  The recognizer is set to be as unobtrusive as possible, and should not
+  interfere too much with handwriting. (It differs in this and other ways
+  from another shape recognizer written for Xournal by Lukasz Kaiser).
+  As a result, it may only recognize shapes if you draw them carefully and
+  deliberately. Specific tips for better recognition: (1) for circles,
+  a closed curve that isn't quite round works better
+  than a rounder curve that doesn't close; (2) for arrows, it is better
+  to lift the pen before drawing the tip of the arrow, and make sure
+  the tip consists of two straight line segments;
+  (3) for very elongated rectangles,
+  recognition tends to be better if you lift the pen between consecutive
+  sides.
 </p>
 <h3 class="subsub"><img src="pixmaps/recycled.png"> Default tools</h3>
 <p>
@@ -555,6 +580,17 @@ Bug reports and suggestions can also be submitted on Xournal's
 <a name="changelog"></a>
 <h2 class="subtitle">Version history</h2>
 <p>
+Version 0.4.2 (Mar 25, 2008):
+<ul>
+ <li>bugfixes for X.org 7.3; allow XInput and core events in reverse order</li>
+ <li>resize selection (patch contributed by Andy Neitzke)</li>
+ <li>pressure sensitive pen (variable stroke width) (patch by Andy Neitzke)</li>
+ <li>geometric shape recognizer (after an idea by Lukasz Kaiser) 
+     (see <a href="manual.html#recognizer">here</a>)</li>
+ <li>clean up compiler warnings (patch contributed by Danny Kukawka)</li>
+</ul>
+</p>
+<p>
 Version 0.4.1 (Sep 15, 2007):
 <ul>
  <li> bugfix: compatibility with new versions of pdftoppm (thanks to
@@ -790,11 +826,21 @@ The <i>tool</i> attribute can take the values "pen", "highlighter", or
 or whiteout eraser); a value of "highlighter" indicates that the stroke
 should be painted in a partially transparent manner (Xournal uses an alpha
 coefficient of 0.5).
+</p>
+<p>
 The <i>color</i> attribute can take one of the standard values "black",
 "blue", "red", "green", "gray", "lightblue", "lightgreen", "magenta",
 "orange", "yellow", "white", or can specify a hexadecimal RGBA value in
-the format "#rrggbbaa". The <i>width</i> attribute is a floating-point
-number and specifies the width of the stroke in points (1/72 in).
+the format "#rrggbbaa". 
+</p>
+<p>
+The <i>width</i> attribute is a floating-point
+number (or a sequence of floating-point numbers starting with version 0.4.2),
+and specifies the width of the stroke in points (1/72 in). (For a
+variable-width stroke, the <i>width</i> attribute contains a
+whitespace-separated succession of floating-point values: first the
+nominal brush width, and then the width of each successive segment forming
+the stroke.)
 </p>
 <p>
 The list of coordinates is simply a succession of floating-point values,
@@ -842,7 +888,7 @@ modern Linux distributions such as Fedora Core 3 or later, or RHEL 4 or
 later):
 <ul>
  <li> the <b>gtk+</b> libraries, version <b>2.4</b> or later 
-       (2.6 recommended) &nbsp; (package gtk2 and dependencies)</li>
+       (<b>2.6</b> strongly recommended) &nbsp; (package gtk2 and dependencies)</li>
  <li> <b>libgnomecanvas</b> version <b>2.4</b> or later &nbsp;
        (package libgnomecanvas and dependencies)</li>
  <li> <b>libgnomeprint</b> and <b>libgnomeprintui</b> version <b>2.2</b> or later &nbsp;
@@ -1016,9 +1062,9 @@ linuxwacom driver, the tablet calibration information is often not updated
 properly when using xsetwacom).
 </p>
 <p>
-<b>Important:</b> due to issues with the linuxwacom driver, it is important
-to either upgrade your driver to a <a href="manual.html#wacompatch">patched
-version</a>, or restrict your choice of settings as follows:
+<b>Important:</b> due to issues with old versions of the linuxwacom
+driver (&lt; 0.7.6), it is important to upgrade your driver,
+or restrict your choice of settings as follows:
 <ul>
 <li> your calibration settings should not be changed at runtime (i.e.,
 insert your settings directly into your X server configuration file.
@@ -1030,8 +1076,8 @@ Do not add a list of xsetwacom commands to your startup files).
 </p>
 <h3 class="subsub">Strokes aren't drawn under the cursor...</h3>
 <p>
-This is due to misfeatures in the linuxwacom driver in versions prior
-to 0.7.6. Typically, this will happen in all of the following cases:
+This is typically due to misfeatures in the linuxwacom driver in versions
+prior to 0.7.6, and will happen in all of the following cases:
 <ul>
 <li> the calibration settings have been changed after the X server was
 started (using xsetwacom) </li>
@@ -1042,24 +1088,24 @@ Most of these issues should have been fixed in version 0.7.6 of the
 wacom driver. Otherwise, you can
 either disable XInput support in Xournal (in the Options menu), at a
 price of a severe loss of resolution (and the eraser tip won't be detected
-anymore), or apply this <a href="manual.html#wacompatch">patch</a>
-to version 0.7.0 of the wacom driver.
+anymore), or inspect carefully your X server configuration and make
+sure the tablet devices are calibrated and configured properly.
 </p>
 <p>
 I have also had a report that one of the workarounds used by Xournal to
 bypass a calibration bug in GTK+ can actually entirely prevent strokes
 from being drawn. If you are being unsuccessful at drawing in Xournal
-with XInput enabled, try recompiling after changing the first line of
-<tt>src/main.c</tt> to
-<pre>#define ENABLE_XINPUT_BUGFIX 0</pre>
+with XInput enabled, try recompiling after commenting out the line
+<pre>#define ENABLE_XINPUT_BUGFIX</pre>
+near the beginning of <tt>src/xournal.h</tt>.
 If this modification does improve things for you, and if you have a bit
 of spare time to help investigate the causes of this problem, please
 contact me.
 </p>
 <h3 class="subsub">On-the-fly display rotation</h3>
 <p> 
-You need an X server that supports the RANDR extension, and a
-recent (0.7.6 or later) or <a href="manual.html#wacompatch">patched</a> 
+You need an X server that supports the RANDR extension, and a sufficiently
+recent (0.7.6 or later) 
 version of the linuxwacom driver to support on-the-fly rotation.
 </p>
 <p>
@@ -1077,21 +1123,6 @@ To return to landscape mode:
 otherwise the tablet calibration in Xournal may (and most likely will)
 become incorrect.
 Exit Xournal and restart it after the display has been rotated.
-</p>
-<a name="wacompatch"></a>
-<h3 class="subsub">Linuxwacom patch for calibration and rotation</h3>
-<p>
-This patch fixes rotation and calibration issues with the linuxwacom driver
-version 0.7.0.
-<ul>
-<li>The <a href="http://xournal.sourceforge.net/linuxwacom-0.7.0-rotate-patch">patch
-file</a> for the linuxwacom source code (also included with the Xournal
-distribution).</li>
-<li>The <a href="http://xournal.sourceforge.net/linuxwacom-rotate-patch.tar.gz">patched
-binaries</a> for the X.org X server.</li>
-</ul>
-This patch has been included in version 0.7.6 of the linuxwacom driver,
-and should now be obsolete.
 </p>
 </body>
 </html>

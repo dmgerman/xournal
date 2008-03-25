@@ -1,6 +1,11 @@
 #include <gtk/gtk.h>
 #include <libgnomecanvas/libgnomecanvas.h>
 
+/* #define INPUT_DEBUG */
+/* uncomment this line if you experience event-processing problems
+   and want to list the input events received by xournal. Caution, lots
+   of output (redirect to a file). */
+
 #define ENABLE_XINPUT_BUGFIX
 /* comment out this line if you are experiencing calibration problems with
    XInput and want to try things differently. This will probably break
@@ -21,6 +26,7 @@
 #define MAX_ZOOM 20.0
 #define DISPLAY_DPI_DEFAULT 96.0
 #define MIN_ZOOM 0.2
+#define RESIZE_MARGIN 6.0
 
 #define VBOX_MAIN_NITEMS 5 // number of interface items in vboxMain
 
@@ -72,6 +78,7 @@ typedef struct Brush {
   int thickness_no;
   double thickness;
   int tool_options;
+  gboolean ruler, recognizer, variable_width;
 } Brush;
 
 #define COLOR_BLACK      0
@@ -127,6 +134,7 @@ typedef struct Item {
   struct Brush brush; // the brush to use, if ITEM_STROKE
   // 'brush" also contains color info for text items
   GnomeCanvasPoints *path;
+  gdouble *widths;
   GnomeCanvasItem *canvas_item; // the corresponding canvas item, or NULL
   struct BBox bbox;
   struct UndoErasureData *erasure; // for temporary use during erasures
@@ -161,6 +169,8 @@ typedef struct Item {
 #define ITEM_TEMP_TEXT 19
 #define ITEM_TEXT_EDIT 20
 #define ITEM_TEXT_ATTRIB 21
+#define ITEM_RESIZESEL 22
+#define ITEM_RECOGNIZER 23
 
 typedef struct Layer {
   GList *items; // the items on the layer, from bottom to top
@@ -188,6 +198,8 @@ typedef struct Selection {
   BBox bbox; // the rectangle bbox of the selection
   struct Layer *layer; // the layer on which the selection lives
   double anchor_x, anchor_y, last_x, last_y; // for selection motion
+  gboolean resizing_top, resizing_bottom, resizing_left, resizing_right; // for selection resizing
+  double new_x1, new_x2, new_y1, new_y2; // for selection resizing
   GnomeCanvasItem *canvas_item; // if the selection box is on screen 
   GList *items; // the selected items (a list of struct Item)
   int move_pageno, orig_pageno; // if selection moves to a different page
@@ -204,7 +216,6 @@ typedef struct UIData {
   int toolno[NUM_BUTTONS+1];  // the number of the currently selected tool
   struct Brush brushes[NUM_BUTTONS+1][NUM_STROKE_TOOLS]; // the current pen, eraser, hiliter
   struct Brush default_brushes[NUM_STROKE_TOOLS]; // the default ones
-  gboolean ruler[NUM_BUTTONS+1]; // whether each button is in ruler mode
   int linked_brush[NUM_BUTTONS+1]; // whether brushes are linked across buttons
   int cur_mapping; // the current button number for mappings
   gboolean use_erasertip;
@@ -214,11 +225,15 @@ typedef struct UIData {
   struct Item *cur_item; // the item being drawn, or NULL
   int cur_item_type;
   GnomeCanvasPoints cur_path; // the path being drawn
+  gdouble *cur_widths; // width array for the path being drawn
   int cur_path_storage_alloc;
+  int cur_widths_storage_alloc;
   double zoom; // zoom factor, in pixels per pt
   gboolean use_xinput; // use input devices instead of core pointer
   gboolean allow_xinput; // allow use of xinput ?
   gboolean discard_corepointer; // discard core pointer events in XInput mode
+  gboolean pressure_sensitivity; // use pen pressure to control stroke width?
+  double width_minimum_multiplier, width_maximum_multiplier; // calibration for pressure sensitivity
   gboolean is_corestroke; // this stroke is painted with core pointer
   int screen_width, screen_height; // initial screen size, for XInput events
   double hand_refpt[2];
@@ -240,7 +255,6 @@ typedef struct UIData {
   gboolean print_ruling; // print the paper ruling ?
   int default_unit; // the default unit for paper sizes
   int startuptool; // the default tool at startup
-  gboolean startupruler;
   int zoom_step_increment; // the increment in the zoom dialog box
   double zoom_step_factor; // the multiplicative factor in zoom in/out
   double startup_zoom;
@@ -257,6 +271,7 @@ typedef struct UIData {
   gboolean auto_save_prefs; // auto-save preferences ?
   gboolean shorten_menus; // shorten menus ?
   gchar *shorten_menu_items; // which items to hide
+  gboolean is_sel_cursor; // displaying a selection-related cursor
 } UIData;
 
 #define BRUSH_LINKED 0
@@ -273,15 +288,16 @@ typedef struct UndoErasureData {
 typedef struct UndoItem {
   int type;
   struct Item *item; // for ITEM_STROKE, ITEM_TEXT, ITEM_TEXT_EDIT, ITEM_TEXT_ATTRIB
-  struct Layer *layer; // for ITEM_STROKE, ITEM_ERASURE, ITEM_PASTE, ITEM_NEW_LAYER, ITEM_DELETE_LAYER, ITEM_MOVESEL, ITEM_TEXT, ITEM_TEXT_EDIT
+  struct Layer *layer; // for ITEM_STROKE, ITEM_ERASURE, ITEM_PASTE, ITEM_NEW_LAYER, ITEM_DELETE_LAYER, ITEM_MOVESEL, ITEM_TEXT, ITEM_TEXT_EDIT, ITEM_RECOGNIZER
   struct Layer *layer2; // for ITEM_DELETE_LAYER with val=-1, ITEM_MOVESEL
   struct Page *page;  // for ITEM_NEW_BG_ONE/RESIZE, ITEM_NEW_PAGE, ITEM_NEW_LAYER, ITEM_DELETE_LAYER, ITEM_DELETE_PAGE
-  GList *erasurelist; // for ITEM_ERASURE
-  GList *itemlist;  // for ITEM_MOVESEL, ITEM_PASTE, ITEM_REPAINTSEL
+  GList *erasurelist; // for ITEM_ERASURE, ITEM_RECOGNIZER
+  GList *itemlist;  // for ITEM_MOVESEL, ITEM_PASTE, ITEM_REPAINTSEL, ITEM_RESIZESEL
   GList *auxlist;   // for ITEM_REPAINTSEL (brushes), ITEM_MOVESEL (depths)
   struct Background *bg;  // for ITEM_NEW_BG_ONE/RESIZE, ITEM_NEW_DEFAULT_BG
   int val; // for ITEM_NEW_PAGE, ITEM_NEW_LAYER, ITEM_DELETE_LAYER, ITEM_DELETE_PAGE
-  double val_x, val_y; // for ITEM_MOVESEL, ITEM_NEW_BG_RESIZE, ITEM_PAPER_RESIZE, ITEM_NEW_DEFAULT_BG, ITEM_TEXT_ATTRIB
+  double val_x, val_y; // for ITEM_MOVESEL, ITEM_NEW_BG_RESIZE, ITEM_PAPER_RESIZE, ITEM_NEW_DEFAULT_BG, ITEM_TEXT_ATTRIB, ITEM_RESIZESEL
+  double scaling_x, scaling_y; // for ITEM_RESIZESEL
   gchar *str; // for ITEM_TEXT_EDIT, ITEM_TEXT_ATTRIB
   struct Brush *brush; // for ITEM_TEXT_ATTRIB
   struct UndoItem *next;

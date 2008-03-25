@@ -2,6 +2,7 @@
 #  include <config.h>
 #endif
 
+#include <sys/stat.h>
 #include <string.h>
 #include <gtk/gtk.h>
 #include <libgnomecanvas/libgnomecanvas.h>
@@ -12,6 +13,8 @@
 #include "xo-callbacks.h"
 #include "xo-misc.h"
 #include "xo-file.h"
+#include "xo-paint.h"
+#include "xo-shapes.h"
 
 GtkWidget *winMain;
 GnomeCanvas *canvas;
@@ -75,6 +78,8 @@ void init_stuff (int argc, char *argv[])
   ui.cur_path.coords = NULL;
   ui.cur_path_storage_alloc = 0;
   ui.cur_path.ref_count = 1;
+  ui.cur_widths = NULL;
+  ui.cur_widths_storage_alloc = 0;
 
   ui.selection = NULL;
   ui.cursor = NULL;
@@ -94,6 +99,8 @@ void init_stuff (int argc, char *argv[])
     g_memmove(ui.default_brushes+i, &(ui.brushes[0][i]), sizeof(struct Brush));
 
   ui.cur_mapping = 0;
+  
+  reset_recognizer();
 
   // initialize various interface elements
   

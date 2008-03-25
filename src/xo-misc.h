@@ -3,6 +3,7 @@
 struct Page *new_page(struct Page *template);
 struct Page *new_page_with_bg(struct Background *bg, double width, double height);
 void realloc_cur_path(int n);
+void realloc_cur_widths(int n);
 void clear_redo_stack(void);
 void clear_undo_stack(void);
 void prepare_new_undo(void);
@@ -19,6 +20,7 @@ void refstring_unref(struct Refstring *rs);
 // helper functions
 
 void get_pointer_coords(GdkEvent *event, double *ret);
+double get_pressure_multiplier(GdkEvent *event);
 void fix_xinput_coords(GdkEvent *event);
 void update_item_bbox(struct Item *item);
 void make_page_clipbox(struct Page *pg);
@@ -75,6 +77,9 @@ void reset_focus(void);
 void reset_selection(void);
 void move_journal_items_by(GList *itemlist, double dx, double dy,
                            struct Layer *l1, struct Layer *l2, GList *depths);
+void resize_journal_items_by(GList *itemlist, double scaling_x, double scaling_y,
+                             double offset_x, double offset_y);
+
 
 // switch between mappings
 

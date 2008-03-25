@@ -991,6 +991,34 @@
 		  </child>
 
 		  <child>
+		    <widget class="GtkSeparatorMenuItem" id="separator15">
+		      <property name="visible">True</property>
+		    </widget>
+		  </child>
+
+		  <child>
+		    <widget class="GtkCheckMenuItem" id="toolsReco">
+		      <property name="visible">True</property>
+		      <property name="label" translatable="yes">_Shape Recognizer</property>
+		      <property name="use_underline">True</property>
+		      <property name="active">False</property>
+		      <signal name="toggled" handler="on_toolsReco_activate" last_modification_time="Fri, 21 Mar 2008 16:36:05 GMT"/>
+		      <accelerator key="S" modifiers="GDK_CONTROL_MASK | GDK_SHIFT_MASK" signal="activate"/>
+		    </widget>
+		  </child>
+
+		  <child>
+		    <widget class="GtkCheckMenuItem" id="toolsRuler">
+		      <property name="visible">True</property>
+		      <property name="label" translatable="yes">Ru_ler</property>
+		      <property name="use_underline">True</property>
+		      <property name="active">False</property>
+		      <signal name="toggled" handler="on_toolsRuler_activate" last_modification_time="Thu, 01 Dec 2005 20:54:08 GMT"/>
+		      <accelerator key="L" modifiers="GDK_CONTROL_MASK | GDK_SHIFT_MASK" signal="activate"/>
+		    </widget>
+		  </child>
+
+		  <child>
 		    <widget class="GtkSeparatorMenuItem" id="separator9">
 		      <property name="visible">True</property>
 		    </widget>
@@ -1483,26 +1511,9 @@
 		  <child>
 		    <widget class="GtkMenuItem" id="toolsSetAsDefault">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">_Set As Default</property>
+		      <property name="label" translatable="yes">Set As Default</property>
 		      <property name="use_underline">True</property>
 		      <signal name="activate" handler="on_toolsSetAsDefault_activate" last_modification_time="Thu, 01 Dec 2005 05:36:05 GMT"/>
-		    </widget>
-		  </child>
-
-		  <child>
-		    <widget class="GtkSeparatorMenuItem" id="separator15">
-		      <property name="visible">True</property>
-		    </widget>
-		  </child>
-
-		  <child>
-		    <widget class="GtkCheckMenuItem" id="toolsRuler">
-		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Ru_ler</property>
-		      <property name="use_underline">True</property>
-		      <property name="active">False</property>
-		      <signal name="toggled" handler="on_toolsRuler_activate" last_modification_time="Thu, 01 Dec 2005 20:54:08 GMT"/>
-		      <accelerator key="L" modifiers="GDK_CONTROL_MASK | GDK_SHIFT_MASK" signal="activate"/>
 		    </widget>
 		  </child>
 		</widget>
@@ -1546,6 +1557,16 @@
 		      <property name="use_underline">True</property>
 		      <property name="active">False</property>
 		      <signal name="activate" handler="on_optionsButtonMappings_activate" last_modification_time="Thu, 26 Jan 2006 03:45:32 GMT"/>
+		    </widget>
+		  </child>
+
+		  <child>
+		    <widget class="GtkCheckMenuItem" id="optionsPressureSensitive">
+		      <property name="visible">True</property>
+		      <property name="label" translatable="yes">_Pressure sensitivity</property>
+		      <property name="use_underline">True</property>
+		      <property name="active">False</property>
+		      <signal name="activate" handler="on_optionsPressureSensitive_activate" last_modification_time="Fri, 21 Mar 2008 19:00:32 GMT"/>
 		    </widget>
 		  </child>
 
@@ -2406,6 +2427,25 @@
 	      <property name="active">False</property>
 	      <property name="group">buttonPen</property>
 	      <signal name="toggled" handler="on_toolsText_activate" last_modification_time="Thu, 08 Dec 2005 20:49:10 GMT"/>
+	    </widget>
+	    <packing>
+	      <property name="expand">False</property>
+	      <property name="homogeneous">True</property>
+	    </packing>
+	  </child>
+
+	  <child>
+	    <widget class="GtkToggleToolButton" id="buttonReco">
+	      <property name="visible">True</property>
+	      <property name="tooltip" translatable="yes">Shape Recognizer</property>
+	      <property name="label" translatable="yes">Shape Recognizer</property>
+	      <property name="use_underline">True</property>
+	      <property name="icon">shapes.png</property>
+	      <property name="visible_horizontal">True</property>
+	      <property name="visible_vertical">True</property>
+	      <property name="is_important">False</property>
+	      <property name="active">False</property>
+	      <signal name="toggled" handler="on_toolsReco_activate" last_modification_time="Thu, 08 Dec 2005 20:49:10 GMT"/>
 	    </widget>
 	    <packing>
 	      <property name="expand">False</property>

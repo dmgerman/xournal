@@ -1,3 +1,10 @@
+Version 0.4.2 (Mar 25, 2008):
+  - bugfixes for X.org 7.3; allow XInput and core events in reverse order
+  - resize selection (patch contributed by Andy Neitzke)
+  - pressure sensitive pen (variable stroke width) (patch by Andy Neitzke)
+  - geometric shape recognizer (after an idea by Lukasz Kaiser) (see manual)
+  - clean up compiler warnings (patch contributed by Danny Kukawka)
+
 Version 0.4.1 (Sep 15, 2007):
   - bugfix: compatibility with new versions of pdftoppm (thanks to V. Ciancia)
   - GTK+ 2.11 event processing bugfix

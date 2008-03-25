@@ -1,11 +1,13 @@
 void set_cursor_busy(gboolean busy);
 void update_cursor(void);
+void update_cursor_for_resize(double *pt);
 
 void create_new_stroke(GdkEvent *event);
 void continue_stroke(GdkEvent *event);
 void finalize_stroke(void);
 
 void do_eraser(GdkEvent *event, double radius, gboolean whole_strokes);
+void finalize_erasure(void);
 
 void do_hand(GdkEvent *event);
 
@@ -15,6 +17,9 @@ gboolean start_movesel(GdkEvent *event);
 void start_vertspace(GdkEvent *event);
 void continue_movesel(GdkEvent *event);
 void finalize_movesel(void);
+gboolean start_resizesel(GdkEvent *event);
+void continue_resizesel(GdkEvent *event);
+void finalize_resizesel(void);
 
 void selection_delete(void);
 void selection_to_clip(void);

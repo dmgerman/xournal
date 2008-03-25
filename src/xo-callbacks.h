@@ -617,3 +617,10 @@ void
 on_optionsAutoSavePrefs_activate       (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
 
+void
+on_toolsReco_activate                  (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_optionsPressureSensitive_activate   (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);

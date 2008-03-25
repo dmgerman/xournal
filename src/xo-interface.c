@@ -143,6 +143,9 @@ create_winMain (void)
   GtkWidget *toolsEraser;
   GtkWidget *toolsHighlighter;
   GtkWidget *toolsText;
+  GtkWidget *separator15;
+  GtkWidget *toolsReco;
+  GtkWidget *toolsRuler;
   GtkWidget *separator9;
   GtkWidget *toolsSelectRegion;
   GtkWidget *toolsSelectRectangle;
@@ -200,13 +203,12 @@ create_winMain (void)
   GtkWidget *toolsDefaultHighlighter;
   GtkWidget *toolsDefaultText;
   GtkWidget *toolsSetAsDefault;
-  GtkWidget *separator15;
-  GtkWidget *toolsRuler;
   GtkWidget *menuOptions;
   GtkWidget *menuOptions_menu;
   GtkWidget *optionsUseXInput;
   GtkWidget *optionsDiscardCoreEvents;
   GtkWidget *optionsButtonMappings;
+  GtkWidget *optionsPressureSensitive;
   GtkWidget *button2_mapping;
   GtkWidget *button2_mapping_menu;
   GSList *button2Pen_group = NULL;
@@ -287,6 +289,7 @@ create_winMain (void)
   GtkWidget *buttonEraser;
   GtkWidget *buttonHighlighter;
   GtkWidget *buttonText;
+  GtkWidget *buttonReco;
   GtkWidget *buttonRuler;
   GtkWidget *toolitem15;
   GtkWidget *vseparator5;
@@ -873,6 +876,25 @@ create_winMain (void)
                               GTK_ACCEL_VISIBLE);
   gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (toolsText), TRUE);
 
+  separator15 = gtk_separator_menu_item_new ();
+  gtk_widget_show (separator15);
+  gtk_container_add (GTK_CONTAINER (menuTools_menu), separator15);
+  gtk_widget_set_sensitive (separator15, FALSE);
+
+  toolsReco = gtk_check_menu_item_new_with_mnemonic ("_Shape Recognizer");
+  gtk_widget_show (toolsReco);
+  gtk_container_add (GTK_CONTAINER (menuTools_menu), toolsReco);
+  gtk_widget_add_accelerator (toolsReco, "activate", accel_group,
+                              GDK_S, (GdkModifierType) GDK_CONTROL_MASK | GDK_SHIFT_MASK,
+                              GTK_ACCEL_VISIBLE);
+
+  toolsRuler = gtk_check_menu_item_new_with_mnemonic ("Ru_ler");
+  gtk_widget_show (toolsRuler);
+  gtk_container_add (GTK_CONTAINER (menuTools_menu), toolsRuler);
+  gtk_widget_add_accelerator (toolsRuler, "activate", accel_group,
+                              GDK_L, (GdkModifierType) GDK_CONTROL_MASK | GDK_SHIFT_MASK,
+                              GTK_ACCEL_VISIBLE);
+
   separator9 = gtk_separator_menu_item_new ();
   gtk_widget_show (separator9);
   gtk_container_add (GTK_CONTAINER (menuTools_menu), separator9);
@@ -1153,21 +1175,9 @@ create_winMain (void)
   gtk_widget_show (toolsDefaultText);
   gtk_container_add (GTK_CONTAINER (menuTools_menu), toolsDefaultText);
 
-  toolsSetAsDefault = gtk_menu_item_new_with_mnemonic ("_Set As Default");
+  toolsSetAsDefault = gtk_menu_item_new_with_mnemonic ("Set As Default");
   gtk_widget_show (toolsSetAsDefault);
   gtk_container_add (GTK_CONTAINER (menuTools_menu), toolsSetAsDefault);
-
-  separator15 = gtk_separator_menu_item_new ();
-  gtk_widget_show (separator15);
-  gtk_container_add (GTK_CONTAINER (menuTools_menu), separator15);
-  gtk_widget_set_sensitive (separator15, FALSE);
-
-  toolsRuler = gtk_check_menu_item_new_with_mnemonic ("Ru_ler");
-  gtk_widget_show (toolsRuler);
-  gtk_container_add (GTK_CONTAINER (menuTools_menu), toolsRuler);
-  gtk_widget_add_accelerator (toolsRuler, "activate", accel_group,
-                              GDK_L, (GdkModifierType) GDK_CONTROL_MASK | GDK_SHIFT_MASK,
-                              GTK_ACCEL_VISIBLE);
 
   menuOptions = gtk_menu_item_new_with_mnemonic ("_Options");
   gtk_widget_show (menuOptions);
@@ -1187,6 +1197,10 @@ create_winMain (void)
   optionsButtonMappings = gtk_check_menu_item_new_with_mnemonic ("_Eraser Tip");
   gtk_widget_show (optionsButtonMappings);
   gtk_container_add (GTK_CONTAINER (menuOptions_menu), optionsButtonMappings);
+
+  optionsPressureSensitive = gtk_check_menu_item_new_with_mnemonic ("_Pressure sensitivity");
+  gtk_widget_show (optionsPressureSensitive);
+  gtk_container_add (GTK_CONTAINER (menuOptions_menu), optionsPressureSensitive);
 
   button2_mapping = gtk_menu_item_new_with_mnemonic ("Button _2 Mapping");
   gtk_widget_show (button2_mapping);
@@ -1575,6 +1589,15 @@ create_winMain (void)
   gtk_tool_item_set_tooltip (GTK_TOOL_ITEM (buttonText), tooltips, "Text", NULL);
   gtk_radio_tool_button_set_group (GTK_RADIO_TOOL_BUTTON (buttonText), buttonPen_group);
   buttonPen_group = gtk_radio_tool_button_get_group (GTK_RADIO_TOOL_BUTTON (buttonText));
+
+  buttonReco = (GtkWidget*) gtk_toggle_tool_button_new ();
+  gtk_tool_button_set_label (GTK_TOOL_BUTTON (buttonReco), "Shape Recognizer");
+  tmp_image = create_pixmap (winMain, "shapes.png");
+  gtk_widget_show (tmp_image);
+  gtk_tool_button_set_icon_widget (GTK_TOOL_BUTTON (buttonReco), tmp_image);
+  gtk_widget_show (buttonReco);
+  gtk_container_add (GTK_CONTAINER (toolbarPen), buttonReco);
+  gtk_tool_item_set_tooltip (GTK_TOOL_ITEM (buttonReco), tooltips, "Shape Recognizer", NULL);
 
   buttonRuler = (GtkWidget*) gtk_toggle_tool_button_new ();
   gtk_tool_button_set_label (GTK_TOOL_BUTTON (buttonRuler), "Ruler");
@@ -2115,6 +2138,12 @@ create_winMain (void)
   g_signal_connect ((gpointer) toolsText, "toggled",
                     G_CALLBACK (on_toolsText_activate),
                     NULL);
+  g_signal_connect ((gpointer) toolsReco, "toggled",
+                    G_CALLBACK (on_toolsReco_activate),
+                    NULL);
+  g_signal_connect ((gpointer) toolsRuler, "toggled",
+                    G_CALLBACK (on_toolsRuler_activate),
+                    NULL);
   g_signal_connect ((gpointer) toolsSelectRegion, "toggled",
                     G_CALLBACK (on_toolsSelectRegion_activate),
                     NULL);
@@ -2223,9 +2252,6 @@ create_winMain (void)
   g_signal_connect ((gpointer) toolsSetAsDefault, "activate",
                     G_CALLBACK (on_toolsSetAsDefault_activate),
                     NULL);
-  g_signal_connect ((gpointer) toolsRuler, "toggled",
-                    G_CALLBACK (on_toolsRuler_activate),
-                    NULL);
   g_signal_connect ((gpointer) optionsUseXInput, "toggled",
                     G_CALLBACK (on_optionsUseXInput_activate),
                     NULL);
@@ -2234,6 +2260,9 @@ create_winMain (void)
                     NULL);
   g_signal_connect ((gpointer) optionsButtonMappings, "activate",
                     G_CALLBACK (on_optionsButtonMappings_activate),
+                    NULL);
+  g_signal_connect ((gpointer) optionsPressureSensitive, "activate",
+                    G_CALLBACK (on_optionsPressureSensitive_activate),
                     NULL);
   g_signal_connect ((gpointer) button2Pen, "activate",
                     G_CALLBACK (on_button2Pen_activate),
@@ -2387,6 +2416,9 @@ create_winMain (void)
                     NULL);
   g_signal_connect ((gpointer) buttonText, "toggled",
                     G_CALLBACK (on_toolsText_activate),
+                    NULL);
+  g_signal_connect ((gpointer) buttonReco, "toggled",
+                    G_CALLBACK (on_toolsReco_activate),
                     NULL);
   g_signal_connect ((gpointer) buttonRuler, "toggled",
                     G_CALLBACK (on_toolsRuler_activate),
@@ -2572,6 +2604,9 @@ create_winMain (void)
   GLADE_HOOKUP_OBJECT (winMain, toolsEraser, "toolsEraser");
   GLADE_HOOKUP_OBJECT (winMain, toolsHighlighter, "toolsHighlighter");
   GLADE_HOOKUP_OBJECT (winMain, toolsText, "toolsText");
+  GLADE_HOOKUP_OBJECT (winMain, separator15, "separator15");
+  GLADE_HOOKUP_OBJECT (winMain, toolsReco, "toolsReco");
+  GLADE_HOOKUP_OBJECT (winMain, toolsRuler, "toolsRuler");
   GLADE_HOOKUP_OBJECT (winMain, separator9, "separator9");
   GLADE_HOOKUP_OBJECT (winMain, toolsSelectRegion, "toolsSelectRegion");
   GLADE_HOOKUP_OBJECT (winMain, toolsSelectRectangle, "toolsSelectRectangle");
@@ -2624,13 +2659,12 @@ create_winMain (void)
   GLADE_HOOKUP_OBJECT (winMain, toolsDefaultHighlighter, "toolsDefaultHighlighter");
   GLADE_HOOKUP_OBJECT (winMain, toolsDefaultText, "toolsDefaultText");
   GLADE_HOOKUP_OBJECT (winMain, toolsSetAsDefault, "toolsSetAsDefault");
-  GLADE_HOOKUP_OBJECT (winMain, separator15, "separator15");
-  GLADE_HOOKUP_OBJECT (winMain, toolsRuler, "toolsRuler");
   GLADE_HOOKUP_OBJECT (winMain, menuOptions, "menuOptions");
   GLADE_HOOKUP_OBJECT (winMain, menuOptions_menu, "menuOptions_menu");
   GLADE_HOOKUP_OBJECT (winMain, optionsUseXInput, "optionsUseXInput");
   GLADE_HOOKUP_OBJECT (winMain, optionsDiscardCoreEvents, "optionsDiscardCoreEvents");
   GLADE_HOOKUP_OBJECT (winMain, optionsButtonMappings, "optionsButtonMappings");
+  GLADE_HOOKUP_OBJECT (winMain, optionsPressureSensitive, "optionsPressureSensitive");
   GLADE_HOOKUP_OBJECT (winMain, button2_mapping, "button2_mapping");
   GLADE_HOOKUP_OBJECT (winMain, button2_mapping_menu, "button2_mapping_menu");
   GLADE_HOOKUP_OBJECT (winMain, button2Pen, "button2Pen");
@@ -2704,6 +2738,7 @@ create_winMain (void)
   GLADE_HOOKUP_OBJECT (winMain, buttonEraser, "buttonEraser");
   GLADE_HOOKUP_OBJECT (winMain, buttonHighlighter, "buttonHighlighter");
   GLADE_HOOKUP_OBJECT (winMain, buttonText, "buttonText");
+  GLADE_HOOKUP_OBJECT (winMain, buttonReco, "buttonReco");
   GLADE_HOOKUP_OBJECT (winMain, buttonRuler, "buttonRuler");
   GLADE_HOOKUP_OBJECT (winMain, toolitem15, "toolitem15");
   GLADE_HOOKUP_OBJECT (winMain, vseparator5, "vseparator5");

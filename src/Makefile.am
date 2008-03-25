@@ -15,7 +15,8 @@ xournal_SOURCES = \
 	xo-print.c xo-print.h \
 	xo-support.c xo-support.h \
 	xo-interface.c xo-interface.h \
-	xo-callbacks.c xo-callbacks.h 
+	xo-callbacks.c xo-callbacks.h \
+	xo-shapes.c xo-shapes.h
 
 xournal_LDADD = @PACKAGE_LIBS@
 

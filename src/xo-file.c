@@ -14,6 +14,8 @@
 #include <gdk/gdkx.h>
 #include <X11/Xlib.h>
 #include <locale.h>
+#include <glib.h>
+#include <glib/gstdio.h>
 
 #include "xournal.h"
 #include "xo-interface.h"
@@ -178,7 +180,11 @@ gboolean save_journal(const char *filename)
             gzputs(f, color_names[item->brush.color_no]);
           else
             gzprintf(f, "#%08x", item->brush.color_rgba);
-          gzprintf(f, "\" width=\"%.2f\">\n", item->brush.thickness);
+          gzprintf(f, "\" width=\"%.2f", item->brush.thickness);
+          if (item->brush.variable_width)
+            for (i=0;i<item->path->num_points-1;i++)
+              gzprintf(f, " %.2f", item->widths[i]);
+          gzprintf(f, "\">\n");
           for (i=0;i<2*item->path->num_points;i++)
             gzprintf(f, "%.2f ", item->path->coords[i]);
           gzprintf(f, "\n</stroke>\n");
@@ -253,9 +259,10 @@ void xoj_parser_start_element(GMarkupParseContext *context,
    const gchar **attribute_values, gpointer user_data, GError **error)
 {
   int has_attr, i;
-  char *ptr;
+  char *ptr, *tmpptr;
   struct Background *tmpbg;
   char *tmpbg_filename;
+  gdouble val;
   GtkWidget *dialog;
   
   if (!strcmp(element_name, "title") || !strcmp(element_name, "xournal")) {
@@ -443,6 +450,7 @@ void xoj_parser_start_element(GMarkupParseContext *context,
     tmpItem->type = ITEM_STROKE;
     tmpItem->path = NULL;
     tmpItem->canvas_item = NULL;
+    tmpItem->widths = NULL;
     tmpLayer->items = g_list_append(tmpLayer->items, tmpItem);
     tmpLayer->nitems++;
     // scan for tool, color, and width attributes
@@ -453,6 +461,20 @@ void xoj_parser_start_element(GMarkupParseContext *context,
         cleanup_numeric((gchar *)*attribute_values);
         tmpItem->brush.thickness = g_ascii_strtod(*attribute_values, &ptr);
         if (ptr == *attribute_values) *error = xoj_invalid();
+        i = 0;
+        while (*ptr!=0) {
+          realloc_cur_widths(i+1);
+          ui.cur_widths[i] = g_ascii_strtod(ptr, &tmpptr);
+          if (tmpptr == ptr) break;
+          ptr = tmpptr;
+          i++;
+        }
+        tmpItem->brush.variable_width = (i>0);
+        if (i>0) {
+          tmpItem->brush.variable_width = TRUE;
+          tmpItem->widths = (gdouble *) g_memdup(ui.cur_widths, i*sizeof(gdouble));
+          ui.cur_path.num_points =  i+1;
+        }
         has_attr |= 1;
       }
       else if (!strcmp(*attribute_names, "color")) {
@@ -488,6 +510,8 @@ void xoj_parser_start_element(GMarkupParseContext *context,
     // finish filling the brush info
     tmpItem->brush.thickness_no = 0;  // who cares ?
     tmpItem->brush.tool_options = 0;  // who cares ?
+    tmpItem->brush.ruler = FALSE;
+    tmpItem->brush.recognizer = FALSE;
     if (tmpItem->brush.tool_type == TOOL_HIGHLIGHTER) {
       if (tmpItem->brush.color_no >= 0)
         tmpItem->brush.color_rgba &= ui.hiliter_alpha_mask;
@@ -608,9 +632,15 @@ void xoj_parser_text(GMarkupParseContext *context,
       if (ptr == text) break;
       text_len -= (ptr - text);
       text = ptr;
+      if (!finite(ui.cur_path.coords[n])) {
+        if (n>=2) ui.cur_path.coords[n] = ui.cur_path.coords[n-2];
+        else ui.cur_path.coords[n] = 0;
+      }
       n++;
     }
-    if (n<4 || n&1) { *error = xoj_invalid(); return; }
+    if (n<4 || n&1 || 
+        (tmpItem->brush.variable_width && (n!=2*ui.cur_path.num_points))) 
+      { *error = xoj_invalid(); return; } // wrong number of points
     tmpItem->path = gnome_canvas_points_new(n/2);
     g_memmove(tmpItem->path->coords, ui.cur_path.coords, n*sizeof(double));
   }
@@ -863,10 +893,8 @@ struct Background *attempt_screenshot_bg(void)
   struct Background *bg;
   GdkPixbuf *pix;
   XEvent x_event;
-  GError *error = NULL;
   GdkWindow *window;
-  int x,y,w,h, status;
-  unsigned int tmp;
+  int x,y,w,h;
   Window x_root, x_win;
 
   x_root = gdk_x11_get_default_root_xwindow();
@@ -1166,7 +1194,7 @@ gboolean init_bgpdf(char *pdfname, gboolean create_pages, int file_domain)
 // create page n, resize it, set its bg
 void bgpdf_create_page_with_bg(int pageno, struct BgPdfPage *bgpg)
 {
-  struct Page *pg;
+  struct Page *pg = NULL;
   struct Background *bg;
 
   if (journal.npages < pageno) {
@@ -1348,6 +1376,9 @@ void init_config_default(void)
   ui.default_path = NULL;
   ui.default_font_name = g_strdup(DEFAULT_FONT);
   ui.default_font_size = DEFAULT_FONT_SIZE;
+  ui.pressure_sensitivity = FALSE;
+  ui.width_minimum_multiplier = 0.0;
+  ui.width_maximum_multiplier = 1.25;
   
   // the default UI vertical order
   ui.vertical_order[0][0] = 1; 
@@ -1361,10 +1392,8 @@ void init_config_default(void)
   ui.vertical_order[1][3] = ui.vertical_order[1][4] = -1;
 
   ui.toolno[0] = ui.startuptool = TOOL_PEN;
-  ui.ruler[0] = ui.startupruler = FALSE;
   for (i=1; i<=NUM_BUTTONS; i++) {
     ui.toolno[i] = TOOL_ERASER;
-    ui.ruler[i] = FALSE;
   }
   for (i=0; i<=NUM_BUTTONS; i++)
     ui.linked_brush[i] = BRUSH_LINKED;
@@ -1374,6 +1403,9 @@ void init_config_default(void)
   for (i=0; i < NUM_STROKE_TOOLS; i++) {
     ui.brushes[0][i].thickness_no = THICKNESS_MEDIUM;
     ui.brushes[0][i].tool_options = 0;
+    ui.brushes[0][i].ruler = FALSE;
+    ui.brushes[0][i].recognizer = FALSE;
+    ui.brushes[0][i].variable_width = FALSE;
   }
   for (i=0; i< NUM_STROKE_TOOLS; i++)
     for (j=1; j<=NUM_BUTTONS; j++)
@@ -1474,6 +1506,15 @@ void save_config_to_file(void)
   update_keyval("general", "default_path",
     " default path for open/save (leave blank for current directory)",
     g_strdup((ui.default_path!=NULL)?ui.default_path:""));
+  update_keyval("general", "pressure_sensitivity",
+     " use pressure sensitivity to control pen stroke width (true/false)",
+     g_strdup(ui.pressure_sensitivity?"true":"false"));
+  update_keyval("general", "width_minimum_multiplier",
+     " minimum width multiplier",
+     g_strdup_printf("%.2f", ui.width_minimum_multiplier));
+  update_keyval("general", "width_maximum_multiplier",
+     " maximum width multiplier",
+     g_strdup_printf("%.2f", ui.width_maximum_multiplier));
   update_keyval("general", "interface_order",
     " interface components from top to bottom\n valid values: drawarea menu main_toolbar pen_toolbar statusbar",
     verbose_vertical_order(ui.vertical_order[0]));
@@ -1533,15 +1574,18 @@ void save_config_to_file(void)
   update_keyval("tools", "startup_tool",
     " selected tool at startup (pen, eraser, highlighter, selectrect, vertspace, hand)",
     g_strdup(tool_names[ui.startuptool]));
-  update_keyval("tools", "startup_ruler",
-    " ruler mode at startup (true/false) (for pen or highlighter only)",
-    g_strdup(ui.startupruler?"true":"false"));
   update_keyval("tools", "pen_color",
     " default pen color",
     g_strdup(color_names[ui.default_brushes[TOOL_PEN].color_no]));
   update_keyval("tools", "pen_thickness",
     " default pen thickness (fine = 1, medium = 2, thick = 3)",
     g_strdup_printf("%d", ui.default_brushes[TOOL_PEN].thickness_no));
+  update_keyval("tools", "pen_ruler",
+    " default pen is in ruler mode (true/false)",
+    g_strdup(ui.default_brushes[TOOL_PEN].ruler?"true":"false"));
+  update_keyval("tools", "pen_recognizer",
+    " default pen is in shape recognizer mode (true/false)",
+    g_strdup(ui.default_brushes[TOOL_PEN].recognizer?"true":"false"));
   update_keyval("tools", "eraser_thickness",
     " default eraser thickness (fine = 1, medium = 2, thick = 3)",
     g_strdup_printf("%d", ui.default_brushes[TOOL_ERASER].thickness_no));
@@ -1554,15 +1598,18 @@ void save_config_to_file(void)
   update_keyval("tools", "highlighter_thickness",
     " default highlighter thickness (fine = 1, medium = 2, thick = 3)",
     g_strdup_printf("%d", ui.default_brushes[TOOL_HIGHLIGHTER].thickness_no));
+  update_keyval("tools", "highlighter_ruler",
+    " default highlighter is in ruler mode (true/false)",
+    g_strdup(ui.default_brushes[TOOL_HIGHLIGHTER].ruler?"true":"false"));
+  update_keyval("tools", "highlighter_recognizer",
+    " default highlighter is in shape recognizer mode (true/false)",
+    g_strdup(ui.default_brushes[TOOL_HIGHLIGHTER].recognizer?"true":"false"));
   update_keyval("tools", "btn2_tool",
     " button 2 tool (pen, eraser, highlighter, text, selectrect, vertspace, hand)",
     g_strdup(tool_names[ui.toolno[1]]));
   update_keyval("tools", "btn2_linked",
     " button 2 brush linked to primary brush (true/false) (overrides all other settings)",
     g_strdup((ui.linked_brush[1]==BRUSH_LINKED)?"true":"false"));
-  update_keyval("tools", "btn2_ruler",
-    " button 2 ruler mode (true/false) (for pen or highlighter only)",
-    g_strdup(ui.ruler[1]?"true":"false"));
   update_keyval("tools", "btn2_color",
     " button 2 brush color (for pen or highlighter only)",
     g_strdup((ui.toolno[1]<NUM_STROKE_TOOLS)?
@@ -1571,6 +1618,14 @@ void save_config_to_file(void)
     " button 2 brush thickness (pen, eraser, or highlighter only)",
     g_strdup_printf("%d", (ui.toolno[1]<NUM_STROKE_TOOLS)?
                             ui.brushes[1][ui.toolno[1]].thickness_no:0));
+  update_keyval("tools", "btn2_ruler",
+    " button 2 ruler mode (true/false) (for pen or highlighter only)",
+    g_strdup(((ui.toolno[1]<NUM_STROKE_TOOLS)?
+              ui.brushes[1][ui.toolno[1]].ruler:FALSE)?"true":"false"));
+  update_keyval("tools", "btn2_recognizer",
+    " button 2 shape recognizer mode (true/false) (pen or highlighter only)",
+    g_strdup(((ui.toolno[1]<NUM_STROKE_TOOLS)?
+              ui.brushes[1][ui.toolno[1]].recognizer:FALSE)?"true":"false"));
   update_keyval("tools", "btn2_erasermode",
     " button 2 eraser mode (eraser only)",
     g_strdup_printf("%d", ui.brushes[1][TOOL_ERASER].tool_options));
@@ -1580,9 +1635,6 @@ void save_config_to_file(void)
   update_keyval("tools", "btn3_linked",
     " button 3 brush linked to primary brush (true/false) (overrides all other settings)",
     g_strdup((ui.linked_brush[2]==BRUSH_LINKED)?"true":"false"));
-  update_keyval("tools", "btn3_ruler",
-    " button 3 ruler mode (true/false) (for pen or highlighter only)",
-    g_strdup(ui.ruler[2]?"true":"false"));
   update_keyval("tools", "btn3_color",
     " button 3 brush color (for pen or highlighter only)",
     g_strdup((ui.toolno[2]<NUM_STROKE_TOOLS)?
@@ -1591,6 +1643,14 @@ void save_config_to_file(void)
     " button 3 brush thickness (pen, eraser, or highlighter only)",
     g_strdup_printf("%d", (ui.toolno[2]<NUM_STROKE_TOOLS)?
                             ui.brushes[2][ui.toolno[2]].thickness_no:0));
+  update_keyval("tools", "btn3_ruler",
+    " button 3 ruler mode (true/false) (for pen or highlighter only)",
+    g_strdup(((ui.toolno[2]<NUM_STROKE_TOOLS)?
+              ui.brushes[2][ui.toolno[2]].ruler:FALSE)?"true":"false"));
+  update_keyval("tools", "btn3_recognizer",
+    " button 3 shape recognizer mode (true/false) (pen or highlighter only)",
+    g_strdup(((ui.toolno[2]<NUM_STROKE_TOOLS)?
+              ui.brushes[2][ui.toolno[2]].recognizer:FALSE)?"true":"false"));
   update_keyval("tools", "btn3_erasermode",
     " button 3 eraser mode (eraser only)",
     g_strdup_printf("%d", ui.brushes[2][TOOL_ERASER].tool_options));
@@ -1727,7 +1787,7 @@ gboolean parse_keyval_vorderlist(const gchar *group, const gchar *key, int *orde
 {
   gchar *ret, *p;
   int tmp[VBOX_MAIN_NITEMS];
-  int i, n, found, l;
+  int i, n, l;
 
   ret = g_key_file_get_value(ui.config_data, group, key, NULL);
   if (ret==NULL) return FALSE;
@@ -1795,6 +1855,10 @@ void load_config_from_file(void)
   parse_keyval_boolean("general", "discard_corepointer", &ui.discard_corepointer);
   parse_keyval_boolean("general", "use_erasertip", &ui.use_erasertip);
   parse_keyval_string("general", "default_path", &ui.default_path);
+  parse_keyval_boolean("general", "pressure_sensitivity", &ui.pressure_sensitivity);
+  parse_keyval_float("general", "width_minimum_multiplier", &ui.width_minimum_multiplier, 0., 10.);
+  parse_keyval_float("general", "width_maximum_multiplier", &ui.width_maximum_multiplier, 0., 10.);
+
   parse_keyval_vorderlist("general", "interface_order", ui.vertical_order[0]);
   parse_keyval_vorderlist("general", "interface_fullscreen", ui.vertical_order[1]);
   parse_keyval_boolean("general", "interface_lefthanded", &ui.left_handed);
@@ -1819,16 +1883,17 @@ void load_config_from_file(void)
 
   parse_keyval_enum("tools", "startup_tool", &ui.startuptool, tool_names, NUM_TOOLS);
   ui.toolno[0] = ui.startuptool;
-  if (ui.startuptool == TOOL_PEN || ui.startuptool == TOOL_HIGHLIGHTER) {
-    parse_keyval_boolean("tools", "startup_ruler", &ui.startupruler);
-    ui.ruler[0] = ui.startupruler;
-  }
   parse_keyval_enum("tools", "pen_color", &(ui.brushes[0][TOOL_PEN].color_no), color_names, COLOR_MAX);
   parse_keyval_int("tools", "pen_thickness", &(ui.brushes[0][TOOL_PEN].thickness_no), 0, 4);
+  parse_keyval_boolean("tools", "pen_ruler", &(ui.brushes[0][TOOL_PEN].ruler));
+  parse_keyval_boolean("tools", "pen_recognizer", &(ui.brushes[0][TOOL_PEN].recognizer));
   parse_keyval_int("tools", "eraser_thickness", &(ui.brushes[0][TOOL_ERASER].thickness_no), 1, 3);
   parse_keyval_int("tools", "eraser_mode", &(ui.brushes[0][TOOL_ERASER].tool_options), 0, 2);
   parse_keyval_enum("tools", "highlighter_color", &(ui.brushes[0][TOOL_HIGHLIGHTER].color_no), color_names, COLOR_MAX);
   parse_keyval_int("tools", "highlighter_thickness", &(ui.brushes[0][TOOL_HIGHLIGHTER].thickness_no), 0, 4);
+  parse_keyval_boolean("tools", "highlighter_ruler", &(ui.brushes[0][TOOL_HIGHLIGHTER].ruler));
+  parse_keyval_boolean("tools", "highlighter_recognizer", &(ui.brushes[0][TOOL_HIGHLIGHTER].recognizer));
+  ui.brushes[0][TOOL_PEN].variable_width = ui.pressure_sensitivity;
   for (i=0; i< NUM_STROKE_TOOLS; i++)
     for (j=1; j<=NUM_BUTTONS; j++)
       g_memmove(&(ui.brushes[j][i]), &(ui.brushes[0][i]), sizeof(struct Brush));
@@ -1839,12 +1904,10 @@ void load_config_from_file(void)
   parse_keyval_enum("tools", "btn3_tool", &(ui.toolno[2]), tool_names, NUM_TOOLS);
   if (parse_keyval_boolean("tools", "btn3_linked", &b))
     ui.linked_brush[2] = b?BRUSH_LINKED:BRUSH_STATIC;
-  for (i=1; i<=NUM_BUTTONS; i++)
-    if (ui.toolno[i]==TOOL_PEN || ui.toolno[i]==TOOL_HIGHLIGHTER)
-      ui.ruler[i] = ui.ruler[0];
   if (ui.linked_brush[1]!=BRUSH_LINKED) {
     if (ui.toolno[1]==TOOL_PEN || ui.toolno[1]==TOOL_HIGHLIGHTER) {
-      parse_keyval_boolean("tools", "btn2_ruler", &(ui.ruler[1]));
+      parse_keyval_boolean("tools", "btn2_ruler", &(ui.brushes[1][ui.toolno[1]].ruler));
+      parse_keyval_boolean("tools", "btn2_recognizer", &(ui.brushes[1][ui.toolno[1]].recognizer));
       parse_keyval_enum("tools", "btn2_color", &(ui.brushes[1][ui.toolno[1]].color_no), color_names, COLOR_MAX);
     }
     if (ui.toolno[1]<NUM_STROKE_TOOLS)
@@ -1854,7 +1917,8 @@ void load_config_from_file(void)
   }
   if (ui.linked_brush[2]!=BRUSH_LINKED) {
     if (ui.toolno[2]==TOOL_PEN || ui.toolno[2]==TOOL_HIGHLIGHTER) {
-      parse_keyval_boolean("tools", "btn3_ruler", &(ui.ruler[2]));
+      parse_keyval_boolean("tools", "btn3_ruler", &(ui.brushes[2][ui.toolno[2]].ruler));
+      parse_keyval_boolean("tools", "btn3_recognizer", &(ui.brushes[2][ui.toolno[2]].recognizer));
       parse_keyval_enum("tools", "btn3_color", &(ui.brushes[2][ui.toolno[2]].color_no), color_names, COLOR_MAX);
     }
     if (ui.toolno[2]<NUM_STROKE_TOOLS)
