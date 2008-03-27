@@ -1,3 +1,7 @@
+Version 0.4.2.1 (Mar 27, 2008):
+  - bugfix for #1926757 (crash upon pasting variable-width stroke)
+  - bugfix: set ruler/recognizer setting to default upon switching tools
+
 Version 0.4.2 (Mar 25, 2008):
   - bugfixes for X.org 7.3; allow XInput and core events in reverse order
   - resize selection (patch contributed by Andy Neitzke)

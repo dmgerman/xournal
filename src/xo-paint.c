@@ -608,6 +608,7 @@ gboolean start_resizesel(GdkEvent *event)
     ui.selection->new_x1 = ui.selection->bbox.left;
     ui.selection->new_x2 = ui.selection->bbox.right;
     gnome_canvas_item_set(ui.selection->canvas_item, "dash", NULL, NULL);
+    update_cursor_for_resize(pt);
     return TRUE;
   }
   return FALSE;
@@ -1045,7 +1046,7 @@ void clipboard_paste(void)
       }
       p+= 2*item->path->num_points*sizeof(double);
       if (item->brush.variable_width) {
-        g_memmove(p, item->widths, (item->path->num_points-1)*sizeof(double));
+        item->widths = g_memdup(p, (item->path->num_points-1)*sizeof(double));
         p+= (item->path->num_points-1)*sizeof(double);
       }
       else item->widths = NULL;

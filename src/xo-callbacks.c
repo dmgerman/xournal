@@ -1698,8 +1698,8 @@ on_toolsPen_activate                   (GtkMenuItem     *menuitem,
   reset_selection();
   ui.toolno[0] = TOOL_PEN;
   ui.cur_brush = &(ui.brushes[0][TOOL_PEN]);
-  ui.cur_brush->ruler = FALSE;
-  ui.cur_brush->recognizer = FALSE;
+  ui.cur_brush->ruler = ui.default_brushes[TOOL_PEN].ruler;
+  ui.cur_brush->recognizer = ui.default_brushes[TOOL_PEN].recognizer;
   update_mapping_linkings(TOOL_PEN);
   update_tool_buttons();
   update_tool_menu();
@@ -1756,8 +1756,8 @@ on_toolsHighlighter_activate           (GtkMenuItem     *menuitem,
   reset_selection();
   ui.toolno[0] = TOOL_HIGHLIGHTER;
   ui.cur_brush = &(ui.brushes[0][TOOL_HIGHLIGHTER]);
-  ui.cur_brush->ruler = FALSE;
-  ui.cur_brush->recognizer = FALSE;
+  ui.cur_brush->ruler = ui.default_brushes[TOOL_HIGHLIGHTER].ruler;
+  ui.cur_brush->recognizer = ui.default_brushes[TOOL_HIGHLIGHTER].recognizer;
   update_mapping_linkings(TOOL_HIGHLIGHTER);
   update_tool_buttons();
   update_tool_menu();

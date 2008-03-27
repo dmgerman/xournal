@@ -5,6 +5,15 @@ List of features to be implemented (not in any particular order)
 - porting to Win32 and MacOS
 - multiple-scenario undo history
 
+- improve recognizer: two passes for polygons (low tolerance, then higher)
+  to better detect elongated rectangles? (if low tolerance recognizer
+  doesn't get a rectangle, then use higher tolerance for everything else,
+  since otherwise there's too much risk of splitting a segment into 2)
+- snap-to-grid (also for ruler & recognizer vertices)
+  and maybe also snap-to-vertices (option for ruler and recognizer)?
+- allow broken PDF with some 19-byte xref entries (LF instead of CRLF).??
+  (Phil Rhoades 3/25/08)
+
 - render page to bitmap: for export, preview, and copy-paste
     (render using libart, see how gnomecanvas does it?)
     (copy-paste: config option to render only current layer or all below?)
