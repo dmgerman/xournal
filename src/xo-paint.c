@@ -1077,6 +1077,11 @@ void clipboard_paste(void)
   
   gtk_selection_data_free(sel_data);
   update_copy_paste_enabled();
+  update_color_menu();
+  update_thickness_buttons();
+  update_color_buttons();
+  update_font_button();  
+  update_cursor(); // FIXME: can't know if pointer is within selection!
 }
 
 // modify the color or thickness of pen strokes in a selection

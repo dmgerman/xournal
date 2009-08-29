@@ -23,11 +23,10 @@ GList *attempt_load_gv_bg(char *filename);
 struct Background *attempt_screenshot_bg(void);
 
 void cancel_bgpdf_request(struct BgPdfRequest *req);
-void add_bgpdf_request(int pageno, double zoom, gboolean printing);
-void bgpdf_spawn_child(void);
+void add_bgpdf_request(int pageno, double zoom);
+gboolean bgpdf_scheduler_callback(gpointer data);
 void shutdown_bgpdf(void);
 gboolean init_bgpdf(char *pdfname, gboolean create_pages, int file_domain);
-void end_bgpdf_shutdown(void);
 
 void bgpdf_create_page_with_bg(int pageno, struct BgPdfPage *bgpg);
 void bgpdf_update_bg(int pageno, struct BgPdfPage *bgpg);

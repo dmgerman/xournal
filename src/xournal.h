@@ -1,7 +1,8 @@
 #include <gtk/gtk.h>
 #include <libgnomecanvas/libgnomecanvas.h>
+#include <poppler/glib/poppler.h>
 
-/* #define INPUT_DEBUG */
+// #define INPUT_DEBUG
 /* uncomment this line if you experience event-processing problems
    and want to list the input events received by xournal. Caution, lots
    of output (redirect to a file). */
@@ -27,6 +28,7 @@
 #define DISPLAY_DPI_DEFAULT 96.0
 #define MIN_ZOOM 0.2
 #define RESIZE_MARGIN 6.0
+#define MAX_SAFE_RENDER_DPI 720 // max dpi at which PDF bg's get rendered
 
 #define VBOX_MAIN_NITEMS 5 // number of interface items in vboxMain
 
@@ -53,9 +55,9 @@ typedef struct Background {
   Refstring *filename;
   int file_domain;
   int file_page_seq;
-  int pixbuf_dpi;      // for PDF only - the *current* dpi value
   double pixbuf_scale; // for PIXMAP, this is the *current* zoom value
                        // for PDF, this is the *requested* zoom value
+  int pixel_height, pixel_width; // PDF only: pixel size of current pixbuf
 } Background;
 
 #define BG_SOLID 0
@@ -310,35 +312,32 @@ typedef struct UndoItem {
 
 typedef struct BgPdfRequest {
   int pageno;
-  int dpi;
-  gboolean initial_request; // if so, loop over page numbers
-  gboolean is_printing;     // this is for printing, not for display
+  double dpi;
 } BgPdfRequest;
 
 typedef struct BgPdfPage {
-  int dpi;
+  double dpi;
   GdkPixbuf *pixbuf;
+  int pixel_height, pixel_width; // pixel size of pixbuf
 } BgPdfPage;
 
 typedef struct BgPdf {
   int status; // the rest only makes sense if this is not STATUS_NOT_INIT
-  int pid; // PID of the converter process
+  guint pid; // the identifier of the idle callback
   Refstring *filename;
   int file_domain;
-  gchar *tmpfile_copy; // the temporary work copy of the file (in tmpdir)
+  gchar *file_contents; // buffer containing a copy of file data
+  gsize file_length;  // size of above buffer
   int npages;
   GList *pages; // a list of BgPdfPage structures
   GList *requests; // a list of BgPdfRequest structures
-  gchar *tmpdir; // where to look for pages coming from pdf converter
-  gboolean create_pages; // create journal pages as we find stuff in PDF
   gboolean has_failed; // has failed in the past...
+  PopplerDocument *document; // the poppler document
 } BgPdf;
 
 #define STATUS_NOT_INIT 0
-#define STATUS_IDLE     1
-#define STATUS_RUNNING  2  // currently running child process on head(requests)
-#define STATUS_ABORTED  3  // child process running, but head(requests) aborted
-#define STATUS_SHUTDOWN 4  // waiting for child process to shut down
+#define STATUS_READY    1  // things are initialized and can work
+// there used to be more possible values, things got streamlined...
 
 // UTILITY MACROS
 

@@ -16,6 +16,7 @@
 #include <locale.h>
 #include <glib.h>
 #include <glib/gstdio.h>
+#include <poppler/glib/poppler.h>
 
 #include "xournal.h"
 #include "xo-interface.h"
@@ -77,8 +78,6 @@ gboolean save_journal(const char *filename)
   struct Item *item;
   int i, is_clone;
   char *tmpfn, *tmpstr;
-  gchar *pdfbuf;
-  gsize pdflen;
   gboolean success;
   FILE *tmpf;
   GList *pagelist, *layerlist, *itemlist, *list;
@@ -142,13 +141,11 @@ gboolean save_journal(const char *filename)
         if (pg->bg->file_domain == DOMAIN_ATTACH) {
           tmpfn = g_strdup_printf("%s.%s", filename, pg->bg->filename->s);
           success = FALSE;
-          if (bgpdf.status != STATUS_NOT_INIT &&
-              g_file_get_contents(bgpdf.tmpfile_copy, &pdfbuf, &pdflen, NULL))
+          if (bgpdf.status != STATUS_NOT_INIT && bgpdf.file_contents != NULL)
           {
             tmpf = fopen(tmpfn, "w");
-            if (tmpf != NULL && fwrite(pdfbuf, 1, pdflen, tmpf) == pdflen)
+            if (tmpf != NULL && fwrite(bgpdf.file_contents, 1, bgpdf.file_length, tmpf) == bgpdf.file_length)
               success = TRUE;
-            g_free(pdfbuf);
             fclose(tmpf);
           }
           if (!success) {
@@ -790,6 +787,7 @@ gboolean open_journal(char *filename)
   gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
   make_canvas_items();
   update_page_stuff();
+  rescale_bg_pixmaps(); // this requests the PDF pages if need be
   gtk_adjustment_set_value(gtk_layout_get_vadjustment(GTK_LAYOUT(canvas)), 0);
   return TRUE;
 }
@@ -930,23 +928,6 @@ struct Background *attempt_screenshot_bg(void)
 
 /************** pdf annotation ***************/
 
-/* free tmp directory */
-
-void end_bgpdf_shutdown(void)
-{
-  if (bgpdf.tmpdir!=NULL) {
-    if (bgpdf.tmpfile_copy!=NULL) {
-      g_unlink(bgpdf.tmpfile_copy);
-      g_free(bgpdf.tmpfile_copy);
-      bgpdf.tmpfile_copy = NULL;
-    }
-    g_rmdir(bgpdf.tmpdir);  
-    g_free(bgpdf.tmpdir);
-    bgpdf.tmpdir = NULL;
-  }
-  bgpdf.status = STATUS_NOT_INIT;
-}
-
 /* cancel a request */
 
 void cancel_bgpdf_request(struct BgPdfRequest *req)
@@ -955,46 +936,50 @@ void cancel_bgpdf_request(struct BgPdfRequest *req)
   
   list_link = g_list_find(bgpdf.requests, req);
   if (list_link == NULL) return;
-  if (list_link->prev == NULL && bgpdf.pid > 0) {
-    // this is being processed: kill the child but don't remove the request yet
-    if (bgpdf.status == STATUS_RUNNING) bgpdf.status = STATUS_ABORTED;
-    kill(bgpdf.pid, SIGHUP);
-//    printf("Cancelling a request - killing %d\n", bgpdf.pid);
-  }
-  else {
-    // remove the request
-    bgpdf.requests = g_list_delete_link(bgpdf.requests, list_link);
-    g_free(req);
-//    printf("Cancelling a request - no kill needed\n");
-  }
+  // remove the request
+  bgpdf.requests = g_list_delete_link(bgpdf.requests, list_link);
+  g_free(req);
 }
 
-/* sigchld callback */
+/* process a bg PDF request from the queue, and recurse */
 
-void bgpdf_child_handler(GPid pid, gint status, gpointer data)
+gboolean bgpdf_scheduler_callback(gpointer data)
 {
   struct BgPdfRequest *req;
   struct BgPdfPage *bgpg;
-  gchar *ppm_name;
   GdkPixbuf *pixbuf;
-  int npad, ret;
-  
-  if (bgpdf.requests == NULL) return;
+  GtkWidget *dialog;
+  PopplerPage *pdfpage;
+  gdouble height, width;
+  int scaled_height, scaled_width;
+
+  // if all requests have been cancelled, remove ourselves from main loop
+  if (bgpdf.requests == NULL) { bgpdf.pid = 0; return FALSE; }
+  if (bgpdf.status == STATUS_NOT_INIT)
+    { printf("BGPDF not initialized??\n"); bgpdf.pid = 0; return FALSE; }
+
   req = (struct BgPdfRequest *)bgpdf.requests->data;
-  
+
+  // use poppler to generate the page
   pixbuf = NULL;
-  // pdftoppm used to generate p-nnnnnn.ppm (6 digits); new versions produce variable width
-  for (npad = 6; npad>0; npad--) {
-     ppm_name = g_strdup_printf("%s/p-%0*d.ppm", bgpdf.tmpdir, npad, req->pageno);
-     if (bgpdf.status != STATUS_ABORTED && bgpdf.status != STATUS_SHUTDOWN)
-       pixbuf = gdk_pixbuf_new_from_file(ppm_name, NULL);
-     ret = unlink(ppm_name);
-     g_free(ppm_name);
-     if (pixbuf != NULL || ret == 0) break;
+  pdfpage = poppler_document_get_page(bgpdf.document, req->pageno-1);
+  if (pdfpage) {
+//    printf("Processing request for page %d at %f dpi\n", req->pageno, req->dpi);
+    set_cursor_busy(TRUE);
+    poppler_page_get_size(pdfpage, &width, &height);
+    scaled_width = (int) (req->dpi * width/72);
+    scaled_height = (int) (req->dpi * height/72);
+    pixbuf = gdk_pixbuf_new(GDK_COLORSPACE_RGB,
+                FALSE, 8, scaled_width, scaled_height);
+    poppler_page_render_to_pixbuf(
+                pdfpage, 0, 0, scaled_width, scaled_height,
+                req->dpi/72, 0, pixbuf);
+    g_object_unref(pdfpage);
+    set_cursor_busy(FALSE);
   }
 
+  // process the generated pixbuf...
   if (pixbuf != NULL) { // success
-//    printf("success\n");
     while (req->pageno > bgpdf.npages) {
       bgpg = g_new(struct BgPdfPage, 1);
       bgpg->pixbuf = NULL;
@@ -1005,125 +990,49 @@ void bgpdf_child_handler(GPid pid, gint status, gpointer data)
     if (bgpg->pixbuf!=NULL) gdk_pixbuf_unref(bgpg->pixbuf);
     bgpg->pixbuf = pixbuf;
     bgpg->dpi = req->dpi;
-    if (req->initial_request && bgpdf.create_pages) {
-      bgpdf_create_page_with_bg(req->pageno, bgpg);
-      // create page n, resize it, set its bg - all without any undo effect
-    } else {
-      if (!req->is_printing) bgpdf_update_bg(req->pageno, bgpg);
-      // look for all pages with this bg, and update their bg pixmaps
-    }
-  }
-  else {
-//    printf("failed or aborted\n");
-    bgpdf.create_pages = FALSE;
-    req->initial_request = FALSE;
-  }
-
-  bgpdf.pid = 0;
-  g_spawn_close_pid(pid);
-  
-  if (req->initial_request)
-    req->pageno++; // try for next page
-  else
-    bgpdf.requests = g_list_delete_link(bgpdf.requests, bgpdf.requests);
-  
-  if (bgpdf.status == STATUS_SHUTDOWN) {
-    end_bgpdf_shutdown();
-    return;
-  }
-  
-  bgpdf.status = STATUS_IDLE;
-  if (bgpdf.requests != NULL) bgpdf_spawn_child();
-}
-
-/* spawn a child to process the head request */
-
-void bgpdf_spawn_child(void)
-{
-  struct BgPdfRequest *req;
-  GPid pid;
-  gchar pageno_str[10], dpi_str[10];
-  gchar *pdf_filename = bgpdf.tmpfile_copy;
-  gchar *ppm_root = g_strdup_printf("%s/p", bgpdf.tmpdir);
-  gchar *argv[]= PDFTOPPM_ARGV;
-  GtkWidget *dialog;
-
-  if (bgpdf.requests == NULL) return;
-  req = (struct BgPdfRequest *)bgpdf.requests->data;
-  if (req->pageno > bgpdf.npages+1 || 
-      (!req->initial_request && req->pageno <= bgpdf.npages && 
-       req->dpi == ((struct BgPdfPage *)g_list_nth_data(bgpdf.pages, req->pageno-1))->dpi))
-  { // ignore this request - it's redundant, or in outer space
-    bgpdf.pid = 0;
-    bgpdf.status = STATUS_IDLE;
-    bgpdf.requests = g_list_delete_link(bgpdf.requests, bgpdf.requests);
-    g_free(ppm_root);
-    if (bgpdf.requests != NULL) bgpdf_spawn_child();
-    return;
-  }
-  g_snprintf(pageno_str, 10, "%d", req->pageno);
-  g_snprintf(dpi_str, 10, "%d", req->dpi);
-/*  printf("Processing request for page %d at %d dpi -- in %s\n", 
-    req->pageno, req->dpi, ppm_root); */
-  if (!g_spawn_async(NULL, argv, NULL,
-                     G_SPAWN_DO_NOT_REAP_CHILD | G_SPAWN_SEARCH_PATH, 
-                     NULL, NULL, &pid, NULL))
-  {
-    // couldn't spawn... abort this request, try next one maybe ?
-//    printf("Couldn't spawn\n");
-    bgpdf.pid = 0;
-    bgpdf.status = STATUS_IDLE;
-    bgpdf.requests = g_list_delete_link(bgpdf.requests, bgpdf.requests);
-    g_free(ppm_root);
+    bgpg->pixel_height = scaled_height;
+    bgpg->pixel_width = scaled_width;
+    bgpdf_update_bg(req->pageno, bgpg); // update all pages that have this bg
+  } else { // failure
     if (!bgpdf.has_failed) {
       dialog = gtk_message_dialog_new(GTK_WINDOW(winMain), GTK_DIALOG_MODAL,
-        GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, "Unable to start PDF loader %s.", argv[0]);
+        GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, "Unable to render one or more PDF pages.");
       gtk_dialog_run(GTK_DIALOG(dialog));
       gtk_widget_destroy(dialog);
     }
     bgpdf.has_failed = TRUE;
-    if (bgpdf.requests != NULL) bgpdf_spawn_child();
-    return;
-  }  
+  }
 
-//  printf("Spawned process %d\n", pid);
-  bgpdf.pid = pid;
-  bgpdf.status = STATUS_RUNNING;
-  g_child_watch_add(pid, bgpdf_child_handler, NULL);
-  g_free(ppm_root);
+  bgpdf.requests = g_list_delete_link(bgpdf.requests, bgpdf.requests);
+  if (bgpdf.requests != NULL) return TRUE; // remain in the idle loop
+  bgpdf.pid = 0;
+  return FALSE; // we're done
 }
 
 /* make a request */
 
-void add_bgpdf_request(int pageno, double zoom, gboolean printing)
+void add_bgpdf_request(int pageno, double zoom)
 {
   struct BgPdfRequest *req, *cmp_req;
   GList *list;
   
-  if (bgpdf.status == STATUS_NOT_INIT || bgpdf.status == STATUS_SHUTDOWN)
-    return; // don't accept requests in those modes...
+  if (bgpdf.status == STATUS_NOT_INIT)
+    return; // don't accept requests
   req = g_new(struct BgPdfRequest, 1);
-  req->is_printing = printing;
-  if (printing) req->dpi = PDFTOPPM_PRINTING_DPI;
-  else req->dpi = (int)floor(72*zoom+0.5);
-//  printf("Enqueuing request for page %d at %d dpi\n", pageno, req->dpi);
-  if (pageno >= 1) {
-    // cancel any request this may supersede
-    for (list = bgpdf.requests; list != NULL; ) {
-      cmp_req = (struct BgPdfRequest *)list->data;
-      list = list->next;
-      if (!cmp_req->initial_request && cmp_req->pageno == pageno &&
-             cmp_req->is_printing == printing)
-        cancel_bgpdf_request(cmp_req);
-    }
-    req->pageno = pageno;
-    req->initial_request = FALSE;
-  } else {
-    req->pageno = 1;
-    req->initial_request = TRUE;
+  req->pageno = pageno;
+  req->dpi = 72*zoom;
+//  printf("Enqueuing request for page %d at %f dpi\n", pageno, req->dpi);
+
+  // cancel any request this may supersede
+  for (list = bgpdf.requests; list != NULL; ) {
+    cmp_req = (struct BgPdfRequest *)list->data;
+    list = list->next;
+    if (cmp_req->pageno == pageno) cancel_bgpdf_request(cmp_req);
   }
+
+  // make the request
   bgpdf.requests = g_list_append(bgpdf.requests, req);
-  if (!bgpdf.pid) bgpdf_spawn_child();
+  if (!bgpdf.pid) bgpdf.pid = g_idle_add(bgpdf_scheduler_callback, NULL);
 }
 
 /* shutdown the PDF reader */
@@ -1133,102 +1042,106 @@ void shutdown_bgpdf(void)
   GList *list;
   struct BgPdfPage *pdfpg;
   struct BgPdfRequest *req;
+
+  if (bgpdf.status == STATUS_NOT_INIT) return;
   
-  if (bgpdf.status == STATUS_NOT_INIT || bgpdf.status == STATUS_SHUTDOWN) return;
+  // cancel all requests and free data structures
   refstring_unref(bgpdf.filename);
   for (list = bgpdf.pages; list != NULL; list = list->next) {
     pdfpg = (struct BgPdfPage *)list->data;
     if (pdfpg->pixbuf!=NULL) gdk_pixbuf_unref(pdfpg->pixbuf);
+    g_free(pdfpg);
   }
   g_list_free(bgpdf.pages);
-  bgpdf.status = STATUS_SHUTDOWN;
-  for (list = g_list_last(bgpdf.requests); list != NULL; ) {
+  for (list = bgpdf.requests; list != NULL; list = list->next) {
     req = (struct BgPdfRequest *)list->data;
-    list = list->prev;
-    cancel_bgpdf_request(req);
+    g_free(req);
   }
-  if (!bgpdf.pid) end_bgpdf_shutdown();
-  /* The above will ultimately remove all requests and kill the child if needed.
-     The child will set status to STATUS_NOT_INIT, clear the requests list,
-     empty tmpdir, ... except if there's no child! */
-  /* note: it could look like there's a race condition here - if a child
-     terminates and a new request is enqueued while we are destroying the
-     queue - but actually the child handler callback is NOT a signal
-     callback, so execution of this function is atomic */
+  g_list_free(bgpdf.requests);
+
+  if (bgpdf.file_contents!=NULL) {
+    g_free(bgpdf.file_contents); 
+    bgpdf.file_contents = NULL;
+  }
+  if (bgpdf.document!=NULL) {
+    g_object_unref(bgpdf.document);
+    bgpdf.document = NULL;
+  }
+
+  bgpdf.status = STATUS_NOT_INIT;
 }
+
+
+// initialize PDF background rendering 
 
 gboolean init_bgpdf(char *pdfname, gboolean create_pages, int file_domain)
 {
-  FILE *f;
-  gchar *filebuf;
-  gsize filelen;
+  int i, n_pages;
+  struct Background *bg;
+  struct Page *pg;
+  PopplerPage *pdfpage;
+  gdouble width, height;
   
   if (bgpdf.status != STATUS_NOT_INIT) return FALSE;
-  bgpdf.tmpfile_copy = NULL;
-  bgpdf.tmpdir = mkdtemp(g_strdup(TMPDIR_TEMPLATE));
-  if (!bgpdf.tmpdir) return FALSE;
-  // make a local copy and check if it's a PDF
-  if (!g_file_get_contents(pdfname, &filebuf, &filelen, NULL))
-    { end_bgpdf_shutdown(); return FALSE; }
-  if (filelen < 4 || strncmp(filebuf, "%PDF", 4))
-    { g_free(filebuf); end_bgpdf_shutdown(); return FALSE; }
-  bgpdf.tmpfile_copy = g_strdup_printf("%s/bg.pdf", bgpdf.tmpdir);
-  f = fopen(bgpdf.tmpfile_copy, "w");
-  if (f == NULL || fwrite(filebuf, 1, filelen, f) != filelen) 
-    { g_free(filebuf); end_bgpdf_shutdown(); return FALSE; }
-  fclose(f);
-  g_free(filebuf);
-  bgpdf.status = STATUS_IDLE;
-  bgpdf.pid = 0;
+  
+  // make a copy of the file in memory and check it's a PDF
+  if (!g_file_get_contents(pdfname, &(bgpdf.file_contents), &(bgpdf.file_length), NULL))
+    return FALSE;
+  if (bgpdf.file_length < 4 || strncmp(bgpdf.file_contents, "%PDF", 4))
+    { g_free(bgpdf.file_contents); bgpdf.file_contents = NULL; return FALSE; }
+
+  // init bgpdf data structures and open poppler document
+  bgpdf.status = STATUS_READY;
   bgpdf.filename = new_refstring((file_domain == DOMAIN_ATTACH) ? "bg.pdf" : pdfname);
   bgpdf.file_domain = file_domain;
   bgpdf.npages = 0;
   bgpdf.pages = NULL;
   bgpdf.requests = NULL;
-  bgpdf.create_pages = create_pages;
+  bgpdf.pid = 0;
   bgpdf.has_failed = FALSE;
-  add_bgpdf_request(-1, ui.startup_zoom, FALSE); // request all pages
+
+  bgpdf.document = poppler_document_new_from_data(bgpdf.file_contents, bgpdf.file_length, NULL, NULL);
+  if (bgpdf.document == NULL) shutdown_bgpdf();
+
+  if (!create_pages) return TRUE; // we're done
+  
+  // create pages with correct sizes if requested
+  n_pages = poppler_document_get_n_pages(bgpdf.document);
+  for (i=1; i<=n_pages; i++) {
+    pdfpage = poppler_document_get_page(bgpdf.document, i-1);
+    if (!pdfpage) continue;
+    if (journal.npages < i) {
+      bg = g_new(struct Background, 1);
+      bg->canvas_item = NULL;
+      pg = NULL;
+    } else {
+      pg = (struct Page *)g_list_nth_data(journal.pages, i-1);
+      bg = pg->bg;
+    }
+    bg->type = BG_PDF;
+    bg->filename = refstring_ref(bgpdf.filename);
+    bg->file_domain = bgpdf.file_domain;
+    bg->file_page_seq = i;
+    bg->pixbuf = NULL;
+    bg->pixbuf_scale = 0;
+    poppler_page_get_size(pdfpage, &width, &height);
+    g_object_unref(pdfpage);
+    if (pg == NULL) {
+      pg = new_page_with_bg(bg, width, height);
+      journal.pages = g_list_append(journal.pages, pg);
+      journal.npages++;
+    } else {
+      pg->width = width; 
+      pg->height = height;
+      make_page_clipbox(pg);
+      update_canvas_bg(pg);
+    }
+  }
+  update_page_stuff();
+  rescale_bg_pixmaps(); // this actually requests the pages !!
   return TRUE;
 }
 
-// create page n, resize it, set its bg
-void bgpdf_create_page_with_bg(int pageno, struct BgPdfPage *bgpg)
-{
-  struct Page *pg = NULL;
-  struct Background *bg;
-
-  if (journal.npages < pageno) {
-    bg = g_new(struct Background, 1);
-    bg->canvas_item = NULL;
-  } else {
-    pg = (struct Page *)g_list_nth_data(journal.pages, pageno-1);
-    bg = pg->bg;
-    if (bg->type != BG_SOLID) return;
-      // don't mess with a page the user has modified significantly...
-  }
-  
-  bg->type = BG_PDF;
-  bg->pixbuf = gdk_pixbuf_ref(bgpg->pixbuf);
-  bg->filename = refstring_ref(bgpdf.filename);
-  bg->file_domain = bgpdf.file_domain;
-  bg->file_page_seq = pageno;
-  bg->pixbuf_scale = ui.startup_zoom;
-  bg->pixbuf_dpi = bgpg->dpi;
-
-  if (journal.npages < pageno) {
-    pg = new_page_with_bg(bg, 
-            gdk_pixbuf_get_width(bg->pixbuf)*72.0/bg->pixbuf_dpi,
-            gdk_pixbuf_get_height(bg->pixbuf)*72.0/bg->pixbuf_dpi);
-    journal.pages = g_list_append(journal.pages, pg);
-    journal.npages++;
-  } else {
-    pg->width = gdk_pixbuf_get_width(bgpg->pixbuf)*72.0/bg->pixbuf_dpi;
-    pg->height = gdk_pixbuf_get_height(bgpg->pixbuf)*72.0/bg->pixbuf_dpi;
-    make_page_clipbox(pg);
-    update_canvas_bg(pg);
-  }
-  update_page_stuff();
-}
 
 // look for all journal pages with given pdf bg, and update their bg pixmaps
 void bgpdf_update_bg(int pageno, struct BgPdfPage *bgpg)
@@ -1241,7 +1154,8 @@ void bgpdf_update_bg(int pageno, struct BgPdfPage *bgpg)
     if (pg->bg->type == BG_PDF && pg->bg->file_page_seq == pageno) {
       if (pg->bg->pixbuf!=NULL) gdk_pixbuf_unref(pg->bg->pixbuf);
       pg->bg->pixbuf = gdk_pixbuf_ref(bgpg->pixbuf);
-      pg->bg->pixbuf_dpi = bgpg->dpi;
+      pg->bg->pixel_width = bgpg->pixel_width;
+      pg->bg->pixel_height = bgpg->pixel_height;
       update_canvas_bg(pg);
     }
   }
@@ -1562,7 +1476,7 @@ void save_config_to_file(void)
     " antialiased bitmap backgrounds (true/false)",
     g_strdup(ui.antialias_bg?"true":"false"));
   update_keyval("paper", "progressive_bg",
-    " progressive scaling of bitmap backgrounds (true/false)",
+    " just-in-time update of page backgrounds (true/false)",
     g_strdup(ui.progressive_bg?"true":"false"));
   update_keyval("paper", "gs_bitmap_dpi",
     " bitmap resolution of PS/PDF backgrounds rendered using ghostscript (dpi)",

@@ -1911,11 +1911,10 @@ create_winMain (void)
   gtk_widget_show (labelPage);
   gtk_box_pack_start (GTK_BOX (hbox1), labelPage, FALSE, FALSE, 0);
 
-  spinPageNo_adj = gtk_adjustment_new (1, 1, 1, 1, 1, 1);
+  spinPageNo_adj = gtk_adjustment_new (1, 1, 1, 1, 0, 0);
   spinPageNo = gtk_spin_button_new (GTK_ADJUSTMENT (spinPageNo_adj), 1, 0);
   gtk_widget_show (spinPageNo);
   gtk_box_pack_start (GTK_BOX (hbox1), spinPageNo, FALSE, TRUE, 0);
-  gtk_widget_set_size_request (spinPageNo, 39, -1);
   gtk_tooltips_set_tip (tooltips, spinPageNo, "Set page number", NULL);
   gtk_spin_button_set_numeric (GTK_SPIN_BUTTON (spinPageNo), TRUE);
   gtk_spin_button_set_snap_to_ticks (GTK_SPIN_BUTTON (spinPageNo), TRUE);
@@ -1939,6 +1938,7 @@ create_winMain (void)
   statusbar = gtk_statusbar_new ();
   gtk_widget_show (statusbar);
   gtk_box_pack_start (GTK_BOX (hbox1), statusbar, TRUE, TRUE, 0);
+  gtk_statusbar_set_has_resize_grip (GTK_STATUSBAR (statusbar), FALSE);
 
   g_signal_connect ((gpointer) winMain, "delete_event",
                     G_CALLBACK (on_winMain_delete_event),
@@ -3010,7 +3010,7 @@ create_zoomDialog (void)
   gtk_radio_button_set_group (GTK_RADIO_BUTTON (radioZoom), radioZoom_group);
   radioZoom_group = gtk_radio_button_get_group (GTK_RADIO_BUTTON (radioZoom));
 
-  spinZoom_adj = gtk_adjustment_new (100, 10, 1500, 5, 20, 20);
+  spinZoom_adj = gtk_adjustment_new (100, 10, 1500, 5, 0, 0);
   spinZoom = gtk_spin_button_new (GTK_ADJUSTMENT (spinZoom_adj), 1, 0);
   gtk_widget_show (spinZoom);
   gtk_box_pack_start (GTK_BOX (hbox4), spinZoom, FALSE, TRUE, 5);

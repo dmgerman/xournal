@@ -68,7 +68,6 @@ void process_papercolor_activate(GtkMenuItem *menuitem, int color);
 void process_paperstyle_activate(GtkMenuItem *menuitem, int style);
 
 gboolean ok_to_close(void);
-gboolean page_ops_forbidden(void);
 
 void reset_focus(void);
 

@@ -1048,7 +1048,6 @@ on_viewNextPage_activate               (GtkMenuItem     *menuitem,
   end_text();
   reset_focus();
   if (ui.pageno == journal.npages-1) { // create a page at end
-    if (page_ops_forbidden()) return;
     on_journalNewPageEnd_activate(menuitem, user_data);
     return;
   }
@@ -1105,7 +1104,6 @@ on_journalNewPageBefore_activate       (GtkMenuItem     *menuitem,
 
   end_text();
   reset_focus();
-  if (page_ops_forbidden()) return;
   reset_selection();
   pg = new_page(ui.cur_page);
   journal.pages = g_list_insert(journal.pages, pg, ui.pageno);
@@ -1127,7 +1125,6 @@ on_journalNewPageAfter_activate        (GtkMenuItem     *menuitem,
 
   end_text();
   reset_focus();
-  if (page_ops_forbidden()) return;
   reset_selection();
   pg = new_page(ui.cur_page);
   journal.pages = g_list_insert(journal.pages, pg, ui.pageno+1);
@@ -1149,7 +1146,6 @@ on_journalNewPageEnd_activate          (GtkMenuItem     *menuitem,
 
   end_text();
   reset_focus();
-  if (page_ops_forbidden()) return;
   reset_selection();
   pg = new_page((struct Page *)g_list_last(journal.pages)->data);
   journal.pages = g_list_append(journal.pages, pg);
@@ -1172,7 +1168,6 @@ on_journalDeletePage_activate          (GtkMenuItem     *menuitem,
 
   end_text();
   reset_focus();
-  if (page_ops_forbidden()) return;
   if (journal.npages == 1) return;
   reset_selection();  
   prepare_new_undo();
@@ -2391,11 +2386,9 @@ on_canvas_button_press_event           (GtkWidget       *widget,
   if (event->button > 3) return FALSE; // no painting with the mouse wheel!
   if (event->type != GDK_BUTTON_PRESS) return FALSE; 
     // double-clicks may have broken axes member (free'd) due to a bug in GDK
-  if (!is_core) { 
-    // re-get the axis values since Synaptics sends bogus ones
-    gdk_device_get_state(event->device, event->window, event->axes, NULL);
+  if (!is_core)
     fix_xinput_coords((GdkEvent *)event);
-  }
+
 #ifdef INPUT_DEBUG
   printf("DEBUG: ButtonDown (%s) (x,y)=(%.2f,%.2f)\n", 
     is_core?"core":"xinput", event->x, event->y);
@@ -2800,7 +2793,6 @@ on_spinPageNo_value_changed            (GtkSpinButton   *spinbutton,
   val = gtk_spin_button_get_value_as_int(spinbutton) - 1;
 
   if (val == journal.npages) { // create a page at end
-    if (page_ops_forbidden()) return;
     on_journalNewPageEnd_activate(NULL, NULL);
     return;
   }

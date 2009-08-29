@@ -711,29 +711,34 @@ int pdf_draw_bitmap_background(struct Page *pg, GString *str,
   BgPdfPage *pgpdf;
   GdkPixbuf *pix;
   GString *zpix;
+  PopplerPage *pdfpage;
   char *buf, *p1, *p2;
   int height, width, stride, x, y, chan;
+  double pgheight, pgwidth;
   
   if (pg->bg->type == BG_PDF) {
-    pgpdf = (struct BgPdfPage *)g_list_nth_data(bgpdf.pages, pg->bg->file_page_seq-1);
-    if (pgpdf == NULL) return -1;
-    if (pgpdf->dpi != PDFTOPPM_PRINTING_DPI) {
-      add_bgpdf_request(pg->bg->file_page_seq, 0, TRUE);
-      while (pgpdf->dpi != PDFTOPPM_PRINTING_DPI && bgpdf.status == STATUS_RUNNING)
-        gtk_main_iteration();
-    }
-    pix = pgpdf->pixbuf;
+    if (!bgpdf.document) return -1;
+    pdfpage = poppler_document_get_page(bgpdf.document, pg->bg->file_page_seq-1);
+    if (!pdfpage) return -1;
+    poppler_page_get_size(pdfpage, &pgwidth, &pgheight);
+    width = (int) (PDFTOPPM_PRINTING_DPI * pgwidth/72.0);
+    height = (int) (PDFTOPPM_PRINTING_DPI * pgheight/72.0);
+    pix = gdk_pixbuf_new(GDK_COLORSPACE_RGB, FALSE, 8, width, height);
+    poppler_page_render_to_pixbuf(
+       pdfpage, 0, 0, width, height, PDFTOPPM_PRINTING_DPI/72.0, 0, pix);
+    g_object_unref(pdfpage);
   }
-  else pix = pg->bg->pixbuf;
+  else pix = g_object_ref(pg->bg->pixbuf);
   
-  if (gdk_pixbuf_get_bits_per_sample(pix) != 8) return -1;
-  if (gdk_pixbuf_get_colorspace(pix) != GDK_COLORSPACE_RGB) return -1;
-  
+  if (gdk_pixbuf_get_bits_per_sample(pix) != 8 ||
+      gdk_pixbuf_get_colorspace(pix) != GDK_COLORSPACE_RGB)
+    { g_object_unref(pix); return -1; }
+                    
   width = gdk_pixbuf_get_width(pix);
   height = gdk_pixbuf_get_height(pix);
   stride = gdk_pixbuf_get_rowstride(pix);
   chan = gdk_pixbuf_get_n_channels(pix);
-  if (chan!=3 && chan!=4) return -1;
+  if (chan!=3 && chan!=4) { g_object_unref(pix); return -1; }
 
   g_string_append_printf(str, "q %.2f 0 0 %.2f 0 %.2f cm /ImBg Do Q ",
     pg->width, -pg->height, pg->height);
@@ -748,6 +753,7 @@ int pdf_draw_bitmap_background(struct Page *pg, GString *str,
   }
   zpix = do_deflate(buf, 3*width*height);
   g_free(buf);
+  g_object_unref(pix);
 
   make_xref(xref, xref->last+1, pdfbuf->len);
   g_string_append_printf(pdfbuf, 
@@ -1172,8 +1178,6 @@ gboolean print_to_pdf(char *filename)
   struct XrefTable xref;
   GList *pglist;
   struct Page *pg;
-  char *buf;
-  gsize len;
   gboolean annot, uses_pdf;
   gboolean use_hiliter;
   struct PdfInfo pdfinfo;
@@ -1195,11 +1199,9 @@ gboolean print_to_pdf(char *filename)
   }
   
   if (uses_pdf && bgpdf.status != STATUS_NOT_INIT && 
-      g_file_get_contents(bgpdf.tmpfile_copy, &buf, &len, NULL) &&
-      !strncmp(buf, "%PDF-1.", 7)) {
+      bgpdf.file_contents!=NULL && !strncmp(bgpdf.file_contents, "%PDF-1.", 7)) {
     // parse the existing PDF file
-    pdfbuf = g_string_new_len(buf, len);
-    g_free(buf);
+    pdfbuf = g_string_new_len(bgpdf.file_contents, bgpdf.file_length);
     if (pdfbuf->str[7]<'4') pdfbuf->str[7] = '4'; // upgrade to 1.4
     annot = pdf_parse_info(pdfbuf, &pdfinfo, &xref);
     if (!annot) {
@@ -1407,6 +1409,9 @@ void print_background(GnomePrintContext *gpc, struct Page *pg, gboolean *abort)
   double x, y;
   GdkPixbuf *pix;
   BgPdfPage *pgpdf;
+  PopplerPage *pdfpage;
+  int width, height;
+  double pgwidth, pgheight;
 
   if (pg->bg->type == BG_SOLID) {
     gnome_print_setopacity(gpc, 1.0);
@@ -1434,22 +1439,25 @@ void print_background(GnomePrintContext *gpc, struct Page *pg, gboolean *abort)
     }
     return;
   }
-  else if (pg->bg->type == BG_PIXMAP || pg->bg->type == BG_PDF) {
+  else 
+  if (pg->bg->type == BG_PIXMAP || pg->bg->type == BG_PDF) {
     if (pg->bg->type == BG_PDF) {
-      pgpdf = (struct BgPdfPage *)g_list_nth_data(bgpdf.pages, pg->bg->file_page_seq-1);
-      if (pgpdf == NULL) return;
-      if (pgpdf->dpi != PDFTOPPM_PRINTING_DPI) {
-        add_bgpdf_request(pg->bg->file_page_seq, 0, TRUE);
-        while (pgpdf->dpi != PDFTOPPM_PRINTING_DPI && bgpdf.status == STATUS_RUNNING) {
-          gtk_main_iteration();
-          if (*abort) return;
-        }
-      }
-      pix = pgpdf->pixbuf;
+      if (!bgpdf.document) return;
+      pdfpage = poppler_document_get_page(bgpdf.document, pg->bg->file_page_seq-1);
+      if (!pdfpage) return;
+      poppler_page_get_size(pdfpage, &pgwidth, &pgheight);
+      width = (int) (PDFTOPPM_PRINTING_DPI * pgwidth/72.0);
+      height = (int) (PDFTOPPM_PRINTING_DPI * pgheight/72.0);
+      pix = gdk_pixbuf_new(GDK_COLORSPACE_RGB, FALSE, 8, width, height);
+      poppler_page_render_to_pixbuf(
+         pdfpage, 0, 0, width, height, PDFTOPPM_PRINTING_DPI/72.0, 0, pix);
+      g_object_unref(pdfpage);
     }
-    else pix = pg->bg->pixbuf;
-    if (gdk_pixbuf_get_bits_per_sample(pix) != 8) return;
-    if (gdk_pixbuf_get_colorspace(pix) != GDK_COLORSPACE_RGB) return;
+    else pix = g_object_ref(pg->bg->pixbuf);
+
+    if (gdk_pixbuf_get_bits_per_sample(pix) != 8 ||
+        gdk_pixbuf_get_colorspace(pix) != GDK_COLORSPACE_RGB)
+      { g_object_unref(pix); return; }
     gnome_print_gsave(gpc);
     gnome_print_scale(gpc, pg->width, pg->height);
     gnome_print_translate(gpc, 0., -1.);
@@ -1459,6 +1467,7 @@ void print_background(GnomePrintContext *gpc, struct Page *pg, gboolean *abort)
     else if (gdk_pixbuf_get_n_channels(pix) == 4)
        gnome_print_rgbaimage(gpc, gdk_pixbuf_get_pixels(pix),
          gdk_pixbuf_get_width(pix), gdk_pixbuf_get_height(pix), gdk_pixbuf_get_rowstride(pix));
+    g_object_unref(pix);
     gnome_print_grestore(gpc);
     return;
   }

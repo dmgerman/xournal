@@ -2,8 +2,81 @@ List of features to be implemented (not in any particular order)
 ----------------------------------------------------------------
 
 - collaborative editing (see discussion with Erik Demaine)
-- porting to Win32 and MacOS
+- porting to Win32 and MacOS; merge Nokia port
 - multiple-scenario undo history
+
+- collaborative: allow non-x86 endianness (for ints, for floats?)
+- collaborative: have an initial undo item = contents of the initial
+  xoj file + attachments for bitmap, pdf, and ps backgrounds
+
+- cleanup of undo history (keep track of refcounts, delete old undo)
+  save-and-clear-undo ?
+
+- RandR / recalibration awareness?
+  (e.g. if xinput events are far away from core events, re-query geometry?)
+   or see if removing the GTK bugfix would help? -- e.g. by recalling an
+   internal gtk init function?
+
+DONE: fix GTK+ 2.16 XInput issues with scrollbars and menus
+DONE: fix bug 2826845 (shape recognizer accel doesn't work in fullscreen mode)
+DONE: bug affecting resize zone in statusbar
+DONE: page spinbutton wide enough for 3 digits; avoid "deprecated" warning
+DONE: edit->paste command should refresh toolbar to unselect color/thickness
+      (so can repaint sel)
+DONE: cursor doesn't reset properly after selection operation if primary
+      tool is select mode (stays with arrow cursor instead of pointer)
+DONE: device with "eraser" at the end of its name is of type ERASER
+      (Edward Yang)
+DONE: fix_xinput_coords() replaces buggy xinput events by core pointer 
+      coordinates
+DONE: use poppler to render PDF bakgrounds (after patches contributed
+      by Mike Ter Louw and Bob McElrath)
+
+
+
+****** gnu-gettext patch?
+
+****** URGENT: gtkprint; new release by November end for Debian!
+  nb: libgnomeprint produces many warnings (spinbutton; gpa assertions)
+
+
+- remove "antialias bg" flag, useless... see McElrath
+- PDF bg memory usage throttling / delete oldest pdf backgrounds
+- fix fix_xinput_coords so it works ok without ENABLE_XINPUT_BUGFIX ?
+   (with both old and new GTK+)
+  (need to shift by (sx,sy), + shift between canvas->window vs canvas in 2.17)
+- Esc should leave text box if editing; and fullscreen if fullscreen?
+- color chooser button (patch tracker?)
+** auto-hide patch from ~/prog/src/xournal-autohide/ ?
+     (check for cpu usage, add flag if need be; handle BOTH edges
+      and only (un)hide stuff at the correct edge!)
+** if bg pdf not found in absolute path, look in path of xoj file before
+   prompting user.
+** GETTEXT i18n patch (sourceforge)
+** PATCH TO WORK AROUND PPM LOADING ISSUE - see tracker
+   (make gdk_pixbuf_ref and g_object_unref(loader) as in the gv_bg 
+   loading) or... switch to poppler?
+** patch to fix focus + allow up/dn in single page mode (Bob McElrath)
+   also comment out contents of reset_focus() ? (tracker patch #2494022)
+** patch to fix underscores in MRU filename display (McElrath) (tracker)
+   (fix memory leak)
+** UI update (Bob McElrath) -- eliminating status bar, compact layout,
+   "compact interface" by default; themes, with line in config file
+   to load pixmaps from pixmaps/$THEME/ (see Jan 9, 2009 emails)
+** antialias BG pixmaps doesn't do anything anymore? 
+** autosave patch (Edward Yang) (fix: optional only, w/ menu + cfgfile
+   entries; fix: should clean up autosave.xoj.bg* files too; config interval)
+- patch (ikim@physics.wisc.edu): multicolumn mode + LASSO SELECTION
+- patch: ortho/snap (revised Apr 13 2009)
+** FIXME: get_pressure_multiplier() should access correct members
+   of event struct, like xinput_coords()
+** FIX RECOGNIZER BUG: for single-segment strokes (e.g. single click),
+   I_xx and I_yy = 0, sometimes -0 -> Rad = nan (should I_xx = abs(...) ?)
+   also Det = division by 0, should return 0 if ixx + iyy = 0.
+   (MAYBE: fix inertia calc: integrate dm over each segment rather than  dm.pt[i])
+- new recognizer icon (andruk on patches tracker)
+- recognizer: if variable-width, associate average width
+- recognizer should snap to existing recognized geometric shapes
 
 - improve recognizer: two passes for polygons (low tolerance, then higher)
   to better detect elongated rectangles? (if low tolerance recognizer
@@ -11,23 +84,36 @@ List of features to be implemented (not in any particular order)
   since otherwise there's too much risk of splitting a segment into 2)
 - snap-to-grid (also for ruler & recognizer vertices)
   and maybe also snap-to-vertices (option for ruler and recognizer)?
-- allow broken PDF with some 19-byte xref entries (LF instead of CRLF).??
-  (Phil Rhoades 3/25/08)
+- config option: config save current tool options instead of default ones
+
+- "new page before/after" on a PDF bg page should ask: same page, other page of
+  PDF file, default paper
+- bug in truetype subset generation w/ Adobe 9, see if gtk-print any better?
 
 - render page to bitmap: for export, preview, and copy-paste
     (render using libart, see how gnomecanvas does it?)
+    NO: render using Cairo !!! then can switch to GtkPrint as well.
     (copy-paste: config option to render only current layer or all below?)
 - cut-and-paste of selection into other apps (as bitmap; as SVG?)
 - navigation sidebar with bitmap page previews
 - bitmap preview for document icon in desktop environments?
 - "organizer" side panel (hierarchy of notes), cf. gjots
 
+- allow toolbar to go vertical
+- toolbar buttons should react to button 2/3 click to modify settings
+  for that tool?
+
 - paste text directly into xournal, from xournal?
     (instead of starting a text item and pasting into/from it)
+- insert links (to URLs; within document/to other xoj? hand mode navigates)
 - increase width of spinPageNo to fit 3 digits
+- should escape '_' to '__' in MRU menu entries (else become mnemonics)
 - a command + keyboard shortcut to switch mappings (1<->2, 1<->3, 2<->3)
      (A. Rechnitzer Sept 11, 2007)
+- modify encoding of TrueType font subsets or provide cmap so pdf text
+  can be extracted
 
+- smoothing of strokes (for users without tablets / with deficient drivers)
 - lasso tool
 - internationalization / translation of interface
 - switch to poppler instead of pdftoppm; with exact float dpi settings
@@ -40,13 +126,20 @@ List of features to be implemented (not in any particular order)
    (keep GnomePrint option for compatibility with GTK+ <2.10)
 - insert images (screen capture or from file or from clipboard), 
   not as full-page backgrounds (new ITEM type)
+
 - convert to/from Jarnal format; to/from MS Journal format???
+- export as SVG, as bitmap (use Cairo for this)
+- improved PDF viewer features (search text, hyperlink, page borders...)
+   (using full poppler api ?)
 
-
+- use system paper size as default (/etc/papersize)
+- autoload *.pdf.xoj if present when opening *.pdf ???
 - sticky notes (anchor visually text box to a bg location)
 - use relative paths for bg documents (e.g. annotated PDF)
 - flush display queue when drawing over a slow X server?
 - more paper customization (in particular, 1/2 inch graph paper)
+    (2 custom papers with settings in config file? 
+     a folder with blank PDF or xoj papers and quick-access?)
 - option to map a button to a context menu (incl. tool selection, ...)
 - option to map a button to "undo"
 - xournal_page-shadow.diff (Martin Kiefel Feb 5 2007)
@@ -57,11 +150,15 @@ List of features to be implemented (not in any particular order)
      (http://shoffsta.afraid.org/Projects/Xournal/)
 - flatten (incl undo/redo...) - enabled only if nlayers>1
 - color chooser (papercolor, pen color); maybe more default colors
+  cf. ojb patch #2083103 adds paper color chooser
 - printing: print-options, save printer settings (throughout a session,
    and on disk) (maybe a separate config file .xournal/gnome-print-settings)
 - help index
 - option for highlighter to be always at bottom of its layer
 - more pen/highlighter shapes (chisel)
+- slanted tip pens (calligraphy)
+- toolbar buttons to access custom preset tools (e.g. text or pen with settings)
+- text boxes with opaque background
 - recalibration upon screen resize / compensation for miscalibration
     (use ConfigureNotify event and XInput? cf "Bugs" tracker 08/2007)
 - find a better behavior for vertical space tool across page boundaries ?
@@ -79,6 +176,8 @@ List of features to be implemented (not in any particular order)
 - customize autogenerated save file names 
 - layer dialog box to set visibility status of each layer regardless of
   which layer is being edited
+- option to link layer creation and visibility status for all pages
+  (Eric Borghs 04/15/08)
 - display corruption on scroll down when bottom of window is obscured??
   (probably a gnomecanvas or X bug -- expose event generated for wrong
   region, or not processed?)
@@ -93,7 +192,9 @@ List of features to be implemented (not in any particular order)
 - EPOS: Export pages to pictures in the Jpg and Png formats.
 - EPOS: Rotate Ink in custom angle.
 - handwriting recognition???? (cellwriter?) unlikely. we don't have grids
+  see galileon comment on 2008-07-29 to tracker #1925309: word recognizer
 - handwritten stroke search in document (see cellwriter?)
+  (correlate inertia-normalized strokes in lift to unit cotangent bundle?)
 - option: export to PDF with incremental pages for successive layers
     (for presentations) (Daniel Brugarth 8/18/07)
 - Samuel Hoffstaetter: lasso, gettext localization, sidebar thumbnails, ...
@@ -102,4 +203,5 @@ List of features to be implemented (not in any particular order)
   rotation doesn't work): gnome_canvas_item_affine_relative(canvas->root, ...)
   would rotate all but text items (still need to modify scroll bbox, and
   adjust event coordinates by inverse rotation).
+- rotate PDF background pages (individually wrt each other, see #2099935)
 - switch to libglade, and allow customization of key shortcuts (accels)

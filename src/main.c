@@ -26,6 +26,21 @@ struct UndoItem *undo, *redo; // the undo and redo stacks
 
 double DEFAULT_ZOOM;
 
+// prevent interface items from getting bogus XInput events
+gboolean filter_extended_events (GtkWidget *widget, GdkEvent *event,
+                                   gpointer user_data)
+{
+  // prevent scrollbars from reacting to XInput events
+  if (event->type == GDK_MOTION_NOTIFY &&
+      event->motion.device != gdk_device_get_core_pointer())
+    return TRUE;
+  if ((event->type == GDK_BUTTON_PRESS || event->type == GDK_2BUTTON_PRESS ||
+      event->type == GDK_3BUTTON_PRESS || event->type == GDK_BUTTON_RELEASE) &&
+      event->button.device != gdk_device_get_core_pointer())
+    return TRUE;
+  return FALSE;
+}
+
 void init_stuff (int argc, char *argv[])
 {
   GtkWidget *w;
@@ -175,6 +190,8 @@ void init_stuff (int argc, char *argv[])
       gdk_device_set_axis_use(device, 1, GDK_AXIS_IGNORE);
 #endif
       gdk_device_set_mode(device, GDK_MODE_SCREEN);
+      if (g_str_has_suffix(device->name, "eraser"))
+        gdk_device_set_source(device, GDK_SOURCE_ERASER);
       can_xinput = TRUE;
     }
     dev_list = dev_list->next;
@@ -213,6 +230,37 @@ void init_stuff (int argc, char *argv[])
      we need the windows to be mapped first */
   gtk_check_menu_item_set_active(
     GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsUseXInput")), ui.use_xinput);
+
+  /* fix a bug in GTK+ 2.16 and beyond: scrollbars shouldn't get extended
+     input events from pointer motion when cursor moves into main window */
+#if GTK_CHECK_VERSION(2,14,0)
+  if (!gtk_check_version(2, 14, 0)) {
+    g_signal_connect (
+      GET_COMPONENT("menubar"),
+      "event", G_CALLBACK (filter_extended_events),
+      NULL);
+    g_signal_connect (
+      GET_COMPONENT("toolbarMain"),
+      "event", G_CALLBACK (filter_extended_events),
+      NULL);
+    g_signal_connect (
+      GET_COMPONENT("toolbarPen"),
+      "event", G_CALLBACK (filter_extended_events),
+      NULL);
+    g_signal_connect (
+      GET_COMPONENT("statusbar"),
+      "event", G_CALLBACK (filter_extended_events),
+      NULL);
+    g_signal_connect (
+      (gpointer)(gtk_scrolled_window_get_vscrollbar(GTK_SCROLLED_WINDOW(w))),
+      "event", G_CALLBACK (filter_extended_events),
+      NULL);
+    g_signal_connect (
+      (gpointer)(gtk_scrolled_window_get_hscrollbar(GTK_SCROLLED_WINDOW(w))),
+      "event", G_CALLBACK (filter_extended_events),
+      NULL);
+  }
+#endif
 
   // load the MRU
   
@@ -274,7 +322,6 @@ main (int argc, char *argv[])
   gtk_main ();
   
   if (bgpdf.status != STATUS_NOT_INIT) shutdown_bgpdf();
-  if (bgpdf.status != STATUS_NOT_INIT) end_bgpdf_shutdown();
 
   save_mru_list();
   if (ui.auto_save_prefs) save_config_to_file();

@@ -351,10 +351,9 @@ void get_pointer_coords(GdkEvent *event, gdouble *ret)
 
 void fix_xinput_coords(GdkEvent *event)
 {
-#ifdef ENABLE_XINPUT_BUGFIX
   double *axes, *px, *py, axis_width;
   GdkDevice *device;
-  int wx, wy, sx, sy;
+  int wx, wy, sx, sy, ix, iy;
 
   if (event->type == GDK_BUTTON_PRESS || event->type == GDK_BUTTON_RELEASE) {
     axes = event->button.axes;
@@ -369,18 +368,26 @@ void fix_xinput_coords(GdkEvent *event)
     device = event->motion.device;
   }
   else return; // nothing we know how to do
-  
+
   // use canvas window, not event window (else get GTK+ 2.11 bugs!)            
   gdk_window_get_origin(GTK_WIDGET(canvas)->window, &wx, &wy);  
   gnome_canvas_get_scroll_offsets(canvas, &sx, &sy);
-  
-  axis_width = device->axes[0].max - device->axes[0].min;
-  if (axis_width>EPSILON)
-    *px = (axes[0]/axis_width)*ui.screen_width + sx - wx;
 
-  axis_width = device->axes[1].max - device->axes[1].min;
-  if (axis_width>EPSILON)
-    *py = (axes[1]/axis_width)*ui.screen_height + sy - wy;
+#ifdef ENABLE_XINPUT_BUGFIX
+  // fix broken events with the core pointer's location
+  if (!finite(axes[0]) || !finite(axes[1]) || (axes[0]==0. && axes[1]==0.)) {
+    gdk_window_get_pointer(GTK_WIDGET(canvas)->window, &ix, &iy, NULL);
+    *px = ix + sx; 
+    *py = iy + sy;
+  }
+  else {
+    axis_width = device->axes[0].max - device->axes[0].min;
+    if (axis_width>EPSILON)
+      *px = (axes[0]/axis_width)*ui.screen_width + sx - wx;
+    axis_width = device->axes[1].max - device->axes[1].min;
+    if (axis_width>EPSILON)
+      *py = (axes[1]/axis_width)*ui.screen_height + sy - wy;
+  }
 #endif
 }
 
@@ -512,6 +519,7 @@ void update_canvas_bg(struct Page *pg)
   double *pt;
   double x, y;
   int w, h;
+  gboolean is_well_scaled;
   
   if (pg->bg->canvas_item != NULL)
     gtk_object_destroy(GTK_OBJECT(pg->bg->canvas_item));
@@ -596,15 +604,23 @@ void update_canvas_bg(struct Page *pg)
   if (pg->bg->type == BG_PDF)
   {
     if (pg->bg->pixbuf == NULL) return;
-    pg->bg->canvas_item = gnome_canvas_item_new(pg->group, 
-        gnome_canvas_pixbuf_get_type(), 
-        "pixbuf", pg->bg->pixbuf,
-        "width", pg->width, "height", pg->height, 
-        "width-set", TRUE, "height-set", TRUE, 
-        NULL);
+    is_well_scaled = (fabs(pg->bg->pixel_width - pg->width*ui.zoom) < 2.
+                   && fabs(pg->bg->pixel_height - pg->height*ui.zoom) < 2.);
+    if (is_well_scaled)
+      pg->bg->canvas_item = gnome_canvas_item_new(pg->group, 
+          gnome_canvas_pixbuf_get_type(), 
+          "pixbuf", pg->bg->pixbuf,
+          "width-in-pixels", TRUE, "height-in-pixels", TRUE, 
+          NULL);
+    else
+      pg->bg->canvas_item = gnome_canvas_item_new(pg->group, 
+          gnome_canvas_pixbuf_get_type(), 
+          "pixbuf", pg->bg->pixbuf,
+          "width", pg->width, "height", pg->height, 
+          "width-set", TRUE, "height-set", TRUE, 
+          NULL);
     lower_canvas_item_to(pg->group, pg->bg->canvas_item, NULL);
   }
-
 }
 
 gboolean is_visible(struct Page *pg)
@@ -624,6 +640,8 @@ void rescale_bg_pixmaps(void)
   GList *pglist;
   struct Page *pg;
   GdkPixbuf *pix;
+  gboolean is_well_scaled;
+  gdouble zoom_to_request;
   
   for (pglist = journal.pages; pglist!=NULL; pglist = pglist->next) {
     pg = (struct Page *)pglist->data;
@@ -649,10 +667,24 @@ void rescale_bg_pixmaps(void)
         pg->bg->pixbuf_scale = 0;
       }
     }
-    if (pg->bg->type == BG_PDF) { // request an asynchronous update
-      if (pg->bg->pixbuf_scale == ui.zoom) continue;
-      add_bgpdf_request(pg->bg->file_page_seq, ui.zoom, FALSE);
-      pg->bg->pixbuf_scale = ui.zoom;
+    if (pg->bg->type == BG_PDF) { 
+      // make pixmap scale to correct size if current one is wrong
+      is_well_scaled = (fabs(pg->bg->pixel_width - pg->width*ui.zoom) < 2.
+                     && fabs(pg->bg->pixel_height - pg->height*ui.zoom) < 2.);
+      if (pg->bg->canvas_item != NULL && !is_well_scaled) {
+        g_object_get(pg->bg->canvas_item, "width-in-pixels", &is_well_scaled, NULL);
+        if (is_well_scaled)
+          gnome_canvas_item_set(pg->bg->canvas_item,
+            "width", pg->width, "height", pg->height, 
+            "width-in-pixels", FALSE, "height-in-pixels", FALSE, 
+            "width-set", TRUE, "height-set", TRUE, 
+            NULL);
+      }
+      // request an asynchronous update to a better pixmap if needed
+      zoom_to_request = MIN(ui.zoom, MAX_SAFE_RENDER_DPI/72.0);
+      if (pg->bg->pixbuf_scale == zoom_to_request) continue;
+      add_bgpdf_request(pg->bg->file_page_seq, zoom_to_request);
+      pg->bg->pixbuf_scale = zoom_to_request;
     }
   }
 }
@@ -1591,12 +1623,6 @@ gboolean ok_to_close(void)
   return TRUE;
 }
 
-// test if we're still busy loading a PDF background file
-gboolean page_ops_forbidden(void)
-{
-  return (bgpdf.status != STATUS_NOT_INIT && bgpdf.create_pages);
-}
-
 // send the focus back to the appropriate widget
 void reset_focus(void)
 {
@@ -1622,6 +1648,7 @@ void reset_selection(void)
   update_thickness_buttons();
   update_color_buttons();
   update_font_button();
+  update_cursor();
 }
 
 void move_journal_items_by(GList *itemlist, double dx, double dy,
@@ -1882,6 +1909,8 @@ void allow_all_accels(void)
   g_signal_connect((gpointer) GET_COMPONENT("toolsTextFont"),
       "can-activate-accel", G_CALLBACK(can_accel), NULL);
   g_signal_connect((gpointer) GET_COMPONENT("toolsRuler"),
+      "can-activate-accel", G_CALLBACK(can_accel), NULL);
+  g_signal_connect((gpointer) GET_COMPONENT("toolsReco"),
       "can-activate-accel", G_CALLBACK(can_accel), NULL);
 }
 

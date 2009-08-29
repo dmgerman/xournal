@@ -3081,7 +3081,6 @@
 
 	  <child>
 	    <widget class="GtkSpinButton" id="spinPageNo">
-	      <property name="width_request">39</property>
 	      <property name="visible">True</property>
 	      <property name="tooltip" translatable="yes">Set page number</property>
 	      <property name="can_focus">True</property>
@@ -3091,7 +3090,7 @@
 	      <property name="update_policy">GTK_UPDATE_ALWAYS</property>
 	      <property name="snap_to_ticks">True</property>
 	      <property name="wrap">False</property>
-	      <property name="adjustment">1 1 1 1 1 1</property>
+	      <property name="adjustment">1 1 1 1 0 0</property>
 	      <signal name="value_changed" handler="on_spinPageNo_value_changed" last_modification_time="Tue, 13 Dec 2005 21:15:21 GMT"/>
 	    </widget>
 	    <packing>
@@ -3179,7 +3178,7 @@
 	  <child>
 	    <widget class="GtkStatusbar" id="statusbar">
 	      <property name="visible">True</property>
-	      <property name="has_resize_grip">True</property>
+	      <property name="has_resize_grip">False</property>
 	    </widget>
 	    <packing>
 	      <property name="padding">0</property>
@@ -3681,7 +3680,7 @@ points</property>
 		  <property name="update_policy">GTK_UPDATE_ALWAYS</property>
 		  <property name="snap_to_ticks">False</property>
 		  <property name="wrap">False</property>
-		  <property name="adjustment">100 10 1500 5 20 20</property>
+		  <property name="adjustment">100 10 1500 5 0 0</property>
 		  <signal name="value_changed" handler="on_spinZoom_value_changed" last_modification_time="Sat, 22 Jul 2006 21:04:21 GMT"/>
 		</widget>
 		<packing>
