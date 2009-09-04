@@ -51,15 +51,15 @@ on_fileNewBackground_activate          (GtkMenuItem     *menuitem,
   reset_focus();
   if (!ok_to_close()) return; // user aborted on save confirmation
   
-  dialog = gtk_file_chooser_dialog_new("Open PDF", GTK_WINDOW (winMain),
+  dialog = gtk_file_chooser_dialog_new(_("Open PDF"), GTK_WINDOW (winMain),
      GTK_FILE_CHOOSER_ACTION_OPEN, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
      GTK_STOCK_OPEN, GTK_RESPONSE_OK, NULL);
      
   filt_all = gtk_file_filter_new();
-  gtk_file_filter_set_name(filt_all, "All files");
+  gtk_file_filter_set_name(filt_all, _("All files"));
   gtk_file_filter_add_pattern(filt_all, "*");
   filt_pdf = gtk_file_filter_new();
-  gtk_file_filter_set_name(filt_pdf, "PDF files");
+  gtk_file_filter_set_name(filt_pdf, _("PDF files"));
   gtk_file_filter_add_pattern(filt_pdf, "*.pdf");
   gtk_file_filter_add_pattern(filt_pdf, "*.PDF");
   gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (dialog), filt_pdf);
@@ -67,7 +67,7 @@ on_fileNewBackground_activate          (GtkMenuItem     *menuitem,
 
   if (ui.default_path!=NULL) gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (dialog), ui.default_path);
 
-  attach_opt = gtk_check_button_new_with_label("Attach file to the journal");
+  attach_opt = gtk_check_button_new_with_label(_("Attach file to the journal"));
   gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(attach_opt), FALSE);
   gtk_file_chooser_set_extra_widget(GTK_FILE_CHOOSER (dialog), attach_opt);
   
@@ -102,7 +102,7 @@ on_fileNewBackground_activate          (GtkMenuItem     *menuitem,
   
   /* open failed */
   dialog = gtk_message_dialog_new(GTK_WINDOW (winMain), GTK_DIALOG_DESTROY_WITH_PARENT,
-    GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, "Error opening file '%s'", filename);
+    GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, _("Error opening file '%s'"), filename);
   gtk_dialog_run(GTK_DIALOG(dialog));
   gtk_widget_destroy(dialog);
   g_free(filename);
@@ -122,15 +122,15 @@ on_fileOpen_activate                   (GtkMenuItem     *menuitem,
   reset_focus();
   if (!ok_to_close()) return; // user aborted on save confirmation
   
-  dialog = gtk_file_chooser_dialog_new("Open Journal", GTK_WINDOW (winMain),
+  dialog = gtk_file_chooser_dialog_new(_("Open Journal"), GTK_WINDOW (winMain),
      GTK_FILE_CHOOSER_ACTION_OPEN, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
      GTK_STOCK_OPEN, GTK_RESPONSE_OK, NULL);
      
   filt_all = gtk_file_filter_new();
-  gtk_file_filter_set_name(filt_all, "All files");
+  gtk_file_filter_set_name(filt_all, _("All files"));
   gtk_file_filter_add_pattern(filt_all, "*");
   filt_xoj = gtk_file_filter_new();
-  gtk_file_filter_set_name(filt_xoj, "Xournal files");
+  gtk_file_filter_set_name(filt_xoj, _("Xournal files"));
   gtk_file_filter_add_pattern(filt_xoj, "*.xoj");
   gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (dialog), filt_xoj);
   gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (dialog), filt_all);
@@ -151,7 +151,7 @@ on_fileOpen_activate                   (GtkMenuItem     *menuitem,
   
   /* open failed */
   dialog = gtk_message_dialog_new(GTK_WINDOW (winMain), GTK_DIALOG_DESTROY_WITH_PARENT,
-    GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, "Error opening file '%s'", filename);
+    GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, _("Error opening file '%s'"), filename);
   gtk_dialog_run(GTK_DIALOG(dialog));
   gtk_widget_destroy(dialog);
   g_free(filename);
@@ -180,7 +180,7 @@ on_fileSave_activate                   (GtkMenuItem     *menuitem,
   set_cursor_busy(FALSE);
   /* save failed */
   dialog = gtk_message_dialog_new(GTK_WINDOW (winMain), GTK_DIALOG_DESTROY_WITH_PARENT,
-    GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, "Error saving file '%s'", ui.filename);
+    GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, _("Error saving file '%s'"), ui.filename);
   gtk_dialog_run(GTK_DIALOG(dialog));
   gtk_widget_destroy(dialog);
 }
@@ -200,7 +200,7 @@ on_fileSaveAs_activate                 (GtkMenuItem     *menuitem,
   
   end_text();
   reset_focus();
-  dialog = gtk_file_chooser_dialog_new("Save Journal", GTK_WINDOW (winMain),
+  dialog = gtk_file_chooser_dialog_new(_("Save Journal"), GTK_WINDOW (winMain),
      GTK_FILE_CHOOSER_ACTION_SAVE, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
      GTK_STOCK_SAVE, GTK_RESPONSE_OK, NULL);
      
@@ -225,10 +225,10 @@ on_fileSaveAs_activate                 (GtkMenuItem     *menuitem,
   }
      
   filt_all = gtk_file_filter_new();
-  gtk_file_filter_set_name(filt_all, "All files");
+  gtk_file_filter_set_name(filt_all, _("All files"));
   gtk_file_filter_add_pattern(filt_all, "*");
   filt_xoj = gtk_file_filter_new();
-  gtk_file_filter_set_name(filt_xoj, "Xournal files");
+  gtk_file_filter_set_name(filt_xoj, _("Xournal files"));
   gtk_file_filter_add_pattern(filt_xoj, "*.xoj");
   gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (dialog), filt_xoj);
   gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (dialog), filt_all);
@@ -254,7 +254,7 @@ on_fileSaveAs_activate                 (GtkMenuItem     *menuitem,
     if (warn) {
       warning_dialog = gtk_message_dialog_new(GTK_WINDOW(winMain), 
         GTK_DIALOG_MODAL, GTK_MESSAGE_QUESTION, GTK_BUTTONS_YES_NO,
-        "Should the file %s be overwritten?", filename);
+        _("Should the file %s be overwritten?"), filename);
       if (gtk_dialog_run(GTK_DIALOG(warning_dialog)) == GTK_RESPONSE_YES)
         warn = FALSE;
       gtk_widget_destroy(warning_dialog);
@@ -273,7 +273,7 @@ on_fileSaveAs_activate                 (GtkMenuItem     *menuitem,
   set_cursor_busy(FALSE);
   /* save failed */
   dialog = gtk_message_dialog_new(GTK_WINDOW (winMain), GTK_DIALOG_DESTROY_WITH_PARENT,
-    GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, "Error saving file '%s'", filename);
+    GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, _("Error saving file '%s'"), filename);
   gtk_dialog_run(GTK_DIALOG(dialog));
   gtk_widget_destroy(dialog);
   g_free(filename);
@@ -326,10 +326,10 @@ on_filePrint_activate                  (GtkMenuItem     *menuitem,
   gpj = gnome_print_job_new(config); /* was NULL */
   gnome_print_config_unref(config);
 /* end */
-  printDialog = gnome_print_dialog_new(gpj, (guchar *)"Print", GNOME_PRINT_DIALOG_RANGE);
+  printDialog = gnome_print_dialog_new(gpj, (guchar *) _("Print"), GNOME_PRINT_DIALOG_RANGE);
   gnome_print_dialog_construct_range_page(GNOME_PRINT_DIALOG(printDialog),
     GNOME_PRINT_RANGE_ALL | GNOME_PRINT_RANGE_RANGE,
-    1, journal.npages, (guchar *)"Current page", (guchar *)"Pages");
+    1, journal.npages, (guchar *) _("Current page"), (guchar *) _("Pages"));
   /* don't have "Current page" as option, else it becomes the default!! */
   
   gtk_dialog_set_response_sensitive(GTK_DIALOG(printDialog),
@@ -385,7 +385,7 @@ on_filePrintPDF_activate               (GtkMenuItem     *menuitem,
   
   end_text();
   reset_focus();
-  dialog = gtk_file_chooser_dialog_new("Export to PDF", GTK_WINDOW (winMain),
+  dialog = gtk_file_chooser_dialog_new(_("Export to PDF"), GTK_WINDOW (winMain),
      GTK_FILE_CHOOSER_ACTION_SAVE, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
      GTK_STOCK_SAVE, GTK_RESPONSE_OK, NULL);
      
@@ -408,10 +408,10 @@ on_filePrintPDF_activate               (GtkMenuItem     *menuitem,
   }
      
   filt_all = gtk_file_filter_new();
-  gtk_file_filter_set_name(filt_all, "All files");
+  gtk_file_filter_set_name(filt_all, _("All files"));
   gtk_file_filter_add_pattern(filt_all, "*");
   filt_pdf = gtk_file_filter_new();
-  gtk_file_filter_set_name(filt_pdf, "PDF files");
+  gtk_file_filter_set_name(filt_pdf, _("PDF files"));
   gtk_file_filter_add_pattern(filt_pdf, "*.pdf");
   gtk_file_filter_add_pattern(filt_pdf, "*.PDF");
   gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (dialog), filt_pdf);
@@ -429,7 +429,7 @@ on_filePrintPDF_activate               (GtkMenuItem     *menuitem,
     if (warn) {
       warning_dialog = gtk_message_dialog_new(GTK_WINDOW(winMain),
         GTK_DIALOG_MODAL, GTK_MESSAGE_QUESTION, GTK_BUTTONS_YES_NO,
-        "Should the file %s be overwritten?", filename);
+        _("Should the file %s be overwritten?"), filename);
       if (gtk_dialog_run(GTK_DIALOG(warning_dialog)) == GTK_RESPONSE_YES)
         warn = FALSE;
       gtk_widget_destroy(warning_dialog);
@@ -442,7 +442,7 @@ on_filePrintPDF_activate               (GtkMenuItem     *menuitem,
   if (!print_to_pdf(filename)) {
     set_cursor_busy(FALSE);
     dialog = gtk_message_dialog_new(GTK_WINDOW (winMain), GTK_DIALOG_DESTROY_WITH_PARENT,
-      GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, "Error creating file '%s'", filename);
+      GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, _("Error creating file '%s'"), filename);
     gtk_dialog_run(GTK_DIALOG(dialog));
     gtk_widget_destroy(dialog);
   }
@@ -1474,12 +1474,12 @@ on_journalLoadBackground_activate      (GtkMenuItem     *menuitem,
   
   end_text();
   reset_focus();
-  dialog = gtk_file_chooser_dialog_new("Open Background", GTK_WINDOW (winMain),
+  dialog = gtk_file_chooser_dialog_new(_("Open Background"), GTK_WINDOW (winMain),
      GTK_FILE_CHOOSER_ACTION_OPEN, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
      GTK_STOCK_OPEN, GTK_RESPONSE_OK, NULL);
 
   filt_all = gtk_file_filter_new();
-  gtk_file_filter_set_name(filt_all, "All files");
+  gtk_file_filter_set_name(filt_all, _("All files"));
   gtk_file_filter_add_pattern(filt_all, "*");
   gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (dialog), filt_all);
 
@@ -1487,7 +1487,7 @@ on_journalLoadBackground_activate      (GtkMenuItem     *menuitem,
 
   if (!gtk_check_version(2, 6, 0)) {
     filt_pix = gtk_file_filter_new();
-    gtk_file_filter_set_name(filt_pix, "Bitmap files");
+    gtk_file_filter_set_name(filt_pix, _("Bitmap files"));
     gtk_file_filter_add_pixbuf_formats(filt_pix);
     gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (dialog), filt_pix);
   }
@@ -1495,14 +1495,14 @@ on_journalLoadBackground_activate      (GtkMenuItem     *menuitem,
 #endif
 
   filt_pspdf = gtk_file_filter_new();
-  gtk_file_filter_set_name(filt_pspdf, "PS/PDF files (as bitmaps)");
+  gtk_file_filter_set_name(filt_pspdf, _("PS/PDF files (as bitmaps)"));
   gtk_file_filter_add_pattern(filt_pspdf, "*.ps");
   gtk_file_filter_add_pattern(filt_pspdf, "*.PS");
   gtk_file_filter_add_pattern(filt_pspdf, "*.pdf");
   gtk_file_filter_add_pattern(filt_pspdf, "*.PDF");
   gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (dialog), filt_pspdf);
 
-  attach_opt = gtk_check_button_new_with_label("Attach file to the journal");
+  attach_opt = gtk_check_button_new_with_label(_("Attach file to the journal"));
   gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(attach_opt), FALSE);
   gtk_file_chooser_set_extra_widget(GTK_FILE_CHOOSER (dialog), attach_opt);
 
@@ -1525,7 +1525,7 @@ on_journalLoadBackground_activate      (GtkMenuItem     *menuitem,
   if (bglist == NULL) {
     dialog = gtk_message_dialog_new(GTK_WINDOW(winMain), GTK_DIALOG_MODAL,
       GTK_MESSAGE_ERROR, GTK_BUTTONS_OK,
-      "Error opening background '%s'", filename);
+      _("Error opening background '%s'"), filename);
     gtk_dialog_run(GTK_DIALOG(dialog));
     gtk_widget_destroy(dialog);
     g_free(filename);
@@ -2077,7 +2077,7 @@ on_toolsTextFont_activate              (GtkMenuItem     *menuitem,
   GtkWidget *dialog;
   gchar *str;
   
-  dialog = gtk_font_selection_dialog_new("Select Font");
+  dialog = gtk_font_selection_dialog_new(_("Select Font"));
   str = make_cur_font_name();
   gtk_font_selection_dialog_set_font_name(GTK_FONT_SELECTION_DIALOG(dialog), str);
   g_free(str);
@@ -2436,8 +2436,8 @@ on_canvas_button_press_event           (GtkWidget       *widget,
   if (ui.cur_layer == NULL) {
     /* warn */
     dialog = gtk_message_dialog_new(GTK_WINDOW(winMain), GTK_DIALOG_MODAL,
-      GTK_MESSAGE_WARNING, GTK_BUTTONS_OK, "Drawing is not allowed on the "
-      "background layer.\n Switching to Layer 1.");
+      GTK_MESSAGE_WARNING, GTK_BUTTONS_OK, _("Drawing is not allowed on the "
+      "background layer.\n Switching to Layer 1."));
     gtk_dialog_run(GTK_DIALOG(dialog));
     gtk_widget_destroy(dialog);
     on_viewShowLayer_activate(NULL, NULL);
@@ -3064,7 +3064,7 @@ on_mru_activate                        (GtkMenuItem     *menuitem,
 
   /* open failed */
   dialog = gtk_message_dialog_new(GTK_WINDOW (winMain), GTK_DIALOG_DESTROY_WITH_PARENT,
-    GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, "Error opening file '%s'", ui.mru[which]);
+    GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, _("Error opening file '%s'"), ui.mru[which]);
   gtk_dialog_run(GTK_DIALOG(dialog));
   gtk_widget_destroy(dialog);
   delete_mru_entry(which);

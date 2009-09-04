@@ -119,7 +119,7 @@ gboolean save_journal(const char *filename)
           if (!gdk_pixbuf_save(pg->bg->pixbuf, tmpfn, "png", NULL, NULL)) {
             dialog = gtk_message_dialog_new(GTK_WINDOW(winMain), GTK_DIALOG_MODAL,
               GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, 
-              "Could not write background '%s'. Continuing anyway.", tmpfn);
+              _("Could not write background '%s'. Continuing anyway."), tmpfn);
             gtk_dialog_run(GTK_DIALOG(dialog));
             gtk_widget_destroy(dialog);
           }
@@ -151,7 +151,7 @@ gboolean save_journal(const char *filename)
           if (!success) {
             dialog = gtk_message_dialog_new(GTK_WINDOW(winMain), GTK_DIALOG_MODAL,
               GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, 
-              "Could not write background '%s'. Continuing anyway.", tmpfn);
+              _("Could not write background '%s'. Continuing anyway."), tmpfn);
             gtk_dialog_run(GTK_DIALOG(dialog));
             gtk_widget_destroy(dialog);
           }
@@ -248,7 +248,7 @@ struct Background *tmpBg_pdf;
 
 GError *xoj_invalid(void)
 {
-  return g_error_new(G_MARKUP_ERROR, G_MARKUP_ERROR_INVALID_CONTENT, "Invalid file contents");
+  return g_error_new(G_MARKUP_ERROR, G_MARKUP_ERROR_INVALID_CONTENT, _("Invalid file contents"));
 }
 
 void xoj_parser_start_element(GMarkupParseContext *context,
@@ -398,7 +398,7 @@ void xoj_parser_start_element(GMarkupParseContext *context,
             if (tmpPage->bg->pixbuf == NULL) {
               dialog = gtk_message_dialog_new(GTK_WINDOW(winMain), GTK_DIALOG_MODAL,
                 GTK_MESSAGE_WARNING, GTK_BUTTONS_OK, 
-                "Could not open background '%s'. Setting background to white.",
+                _("Could not open background '%s'. Setting background to white."),
                 tmpbg_filename);
               gtk_dialog_run(GTK_DIALOG(dialog));
               gtk_widget_destroy(dialog);
@@ -656,20 +656,20 @@ gboolean user_wants_second_chance(char **filename)
 
   dialog = gtk_message_dialog_new(GTK_WINDOW(winMain), GTK_DIALOG_MODAL,
     GTK_MESSAGE_ERROR, GTK_BUTTONS_YES_NO, 
-    "Could not open background '%s'.\nSelect another file?",
+    _("Could not open background '%s'.\nSelect another file?"),
     *filename);
   response = gtk_dialog_run(GTK_DIALOG(dialog));
   gtk_widget_destroy(dialog);
   if (response != GTK_RESPONSE_YES) return FALSE;
-  dialog = gtk_file_chooser_dialog_new("Open PDF", GTK_WINDOW (winMain),
+  dialog = gtk_file_chooser_dialog_new(_("Open PDF"), GTK_WINDOW (winMain),
      GTK_FILE_CHOOSER_ACTION_OPEN, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
      GTK_STOCK_OPEN, GTK_RESPONSE_OK, NULL);
 
   filt_all = gtk_file_filter_new();
-  gtk_file_filter_set_name(filt_all, "All files");
+  gtk_file_filter_set_name(filt_all, _("All files"));
   gtk_file_filter_add_pattern(filt_all, "*");
   filt_pdf = gtk_file_filter_new();
-  gtk_file_filter_set_name(filt_pdf, "PDF files");
+  gtk_file_filter_set_name(filt_pdf, _("PDF files"));
   gtk_file_filter_add_pattern(filt_pdf, "*.pdf");
   gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (dialog), filt_pdf);
   gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (dialog), filt_all);
@@ -769,7 +769,7 @@ gboolean open_journal(char *filename)
       bgpdf.filename = refstring_ref(tmpBg_pdf->filename);
     } else {
       dialog = gtk_message_dialog_new(GTK_WINDOW(winMain), GTK_DIALOG_MODAL,
-        GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, "Could not open background '%s'.",
+        GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, _("Could not open background '%s'."),
         tmpfn);
       gtk_dialog_run(GTK_DIALOG(dialog));
       gtk_widget_destroy(dialog);
@@ -956,7 +956,7 @@ gboolean bgpdf_scheduler_callback(gpointer data)
   // if all requests have been cancelled, remove ourselves from main loop
   if (bgpdf.requests == NULL) { bgpdf.pid = 0; return FALSE; }
   if (bgpdf.status == STATUS_NOT_INIT)
-    { printf("BGPDF not initialized??\n"); bgpdf.pid = 0; return FALSE; }
+    { printf("DEBUG: BGPDF not initialized??\n"); bgpdf.pid = 0; return FALSE; }
 
   req = (struct BgPdfRequest *)bgpdf.requests->data;
 
@@ -964,7 +964,7 @@ gboolean bgpdf_scheduler_callback(gpointer data)
   pixbuf = NULL;
   pdfpage = poppler_document_get_page(bgpdf.document, req->pageno-1);
   if (pdfpage) {
-//    printf("Processing request for page %d at %f dpi\n", req->pageno, req->dpi);
+//    printf("DEBUG: Processing request for page %d at %f dpi\n", req->pageno, req->dpi);
     set_cursor_busy(TRUE);
     poppler_page_get_size(pdfpage, &width, &height);
     scaled_width = (int) (req->dpi * width/72);
@@ -996,7 +996,7 @@ gboolean bgpdf_scheduler_callback(gpointer data)
   } else { // failure
     if (!bgpdf.has_failed) {
       dialog = gtk_message_dialog_new(GTK_WINDOW(winMain), GTK_DIALOG_MODAL,
-        GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, "Unable to render one or more PDF pages.");
+        GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, _("Unable to render one or more PDF pages."));
       gtk_dialog_run(GTK_DIALOG(dialog));
       gtk_widget_destroy(dialog);
     }
@@ -1021,7 +1021,7 @@ void add_bgpdf_request(int pageno, double zoom)
   req = g_new(struct BgPdfRequest, 1);
   req->pageno = pageno;
   req->dpi = 72*zoom;
-//  printf("Enqueuing request for page %d at %f dpi\n", pageno, req->dpi);
+//  printf("DEBUG: Enqueuing request for page %d at %f dpi\n", pageno, req->dpi);
 
   // cancel any request this may supersede
   for (list = bgpdf.requests; list != NULL; ) {
@@ -1379,217 +1379,217 @@ void save_config_to_file(void)
       &ui.window_default_width, &ui.window_default_height);
 
   update_keyval("general", "display_dpi",
-    " the display resolution, in pixels per inch",
+    _(" the display resolution, in pixels per inch"),
     g_strdup_printf("%.2f", DEFAULT_ZOOM*72));
   update_keyval("general", "initial_zoom",
-    " the initial zoom level, in percent",
+    _(" the initial zoom level, in percent"),
     g_strdup_printf("%.2f", 100*ui.zoom/DEFAULT_ZOOM));
   update_keyval("general", "window_maximize",
-    " maximize the window at startup (true/false)",
+    _(" maximize the window at startup (true/false)"),
     g_strdup(ui.maximize_at_start?"true":"false"));
   update_keyval("general", "window_fullscreen",
-    " start in full screen mode (true/false)",
+    _(" start in full screen mode (true/false)"),
     g_strdup(ui.fullscreen?"true":"false"));
   update_keyval("general", "window_width",
-    " the window width in pixels (when not maximized)",
+    _(" the window width in pixels (when not maximized)"),
     g_strdup_printf("%d", ui.window_default_width));
   update_keyval("general", "window_height",
-    " the window height in pixels",
+    _(" the window height in pixels"),
     g_strdup_printf("%d", ui.window_default_height));
   update_keyval("general", "scrollbar_speed",
-    " scrollbar step increment (in pixels)",
+    _(" scrollbar step increment (in pixels)"),
     g_strdup_printf("%d", ui.scrollbar_step_increment));
   update_keyval("general", "zoom_dialog_increment",
-    " the step increment in the zoom dialog box",
+    _(" the step increment in the zoom dialog box"),
     g_strdup_printf("%d", ui.zoom_step_increment));
   update_keyval("general", "zoom_step_factor",
-    " the multiplicative factor for zoom in/out",
+    _(" the multiplicative factor for zoom in/out"),
     g_strdup_printf("%.3f", ui.zoom_step_factor));
   update_keyval("general", "view_continuous",
-    " document view (true = continuous, false = single page)",
+    _(" document view (true = continuous, false = single page)"),
     g_strdup(ui.view_continuous?"true":"false"));
   update_keyval("general", "use_xinput",
-    " use XInput extensions (true/false)",
+    _(" use XInput extensions (true/false)"),
     g_strdup(ui.allow_xinput?"true":"false"));
   update_keyval("general", "discard_corepointer",
-    " discard Core Pointer events in XInput mode (true/false)",
+    _(" discard Core Pointer events in XInput mode (true/false)"),
     g_strdup(ui.discard_corepointer?"true":"false"));
   update_keyval("general", "use_erasertip",
-    " always map eraser tip to eraser (true/false)",
+    _(" always map eraser tip to eraser (true/false)"),
     g_strdup(ui.use_erasertip?"true":"false"));
   update_keyval("general", "default_path",
-    " default path for open/save (leave blank for current directory)",
+    _(" default path for open/save (leave blank for current directory)"),
     g_strdup((ui.default_path!=NULL)?ui.default_path:""));
   update_keyval("general", "pressure_sensitivity",
-     " use pressure sensitivity to control pen stroke width (true/false)",
+     _(" use pressure sensitivity to control pen stroke width (true/false)"),
      g_strdup(ui.pressure_sensitivity?"true":"false"));
   update_keyval("general", "width_minimum_multiplier",
-     " minimum width multiplier",
+     _(" minimum width multiplier"),
      g_strdup_printf("%.2f", ui.width_minimum_multiplier));
   update_keyval("general", "width_maximum_multiplier",
-     " maximum width multiplier",
+     _(" maximum width multiplier"),
      g_strdup_printf("%.2f", ui.width_maximum_multiplier));
   update_keyval("general", "interface_order",
-    " interface components from top to bottom\n valid values: drawarea menu main_toolbar pen_toolbar statusbar",
+    _(" interface components from top to bottom\n valid values: drawarea menu main_toolbar pen_toolbar statusbar"),
     verbose_vertical_order(ui.vertical_order[0]));
   update_keyval("general", "interface_fullscreen",
-    " interface components in fullscreen mode, from top to bottom",
+    _(" interface components in fullscreen mode, from top to bottom"),
     verbose_vertical_order(ui.vertical_order[1]));
   update_keyval("general", "interface_lefthanded",
-    " interface has left-handed scrollbar (true/false)",
+    _(" interface has left-handed scrollbar (true/false)"),
     g_strdup(ui.left_handed?"true":"false"));
   update_keyval("general", "shorten_menus",
-    " hide some unwanted menu or toolbar items (true/false)",
+    _(" hide some unwanted menu or toolbar items (true/false)"),
     g_strdup(ui.shorten_menus?"true":"false"));
   update_keyval("general", "shorten_menu_items",
-    " interface items to hide (customize at your own risk!)\n see source file xo-interface.c for a list of item names",
+    _(" interface items to hide (customize at your own risk!)\n see source file xo-interface.c for a list of item names"),
     g_strdup(ui.shorten_menu_items));
   update_keyval("general", "highlighter_opacity",
-    " highlighter opacity (0 to 1, default 0.5)\n warning: opacity level is not saved in xoj files!",
+    _(" highlighter opacity (0 to 1, default 0.5)\n warning: opacity level is not saved in xoj files!"),
     g_strdup_printf("%.2f", ui.hiliter_opacity));
   update_keyval("general", "autosave_prefs",
-    " auto-save preferences on exit (true/false)",
+    _(" auto-save preferences on exit (true/false)"),
     g_strdup(ui.auto_save_prefs?"true":"false"));
 
   update_keyval("paper", "width",
-    " the default page width, in points (1/72 in)",
+    _(" the default page width, in points (1/72 in)"),
     g_strdup_printf("%.2f", ui.default_page.width));
   update_keyval("paper", "height",
-    " the default page height, in points (1/72 in)",
+    _(" the default page height, in points (1/72 in)"),
     g_strdup_printf("%.2f", ui.default_page.height));
   update_keyval("paper", "color",
-    " the default paper color",
+    _(" the default paper color"),
     g_strdup(bgcolor_names[ui.default_page.bg->color_no]));
   update_keyval("paper", "style",
-    " the default paper style (plain, lined, ruled, or graph)",
+    _(" the default paper style (plain, lined, ruled, or graph)"),
     g_strdup(bgstyle_names[ui.default_page.bg->ruling]));
   update_keyval("paper", "apply_all",
-    " apply paper style changes to all pages (true/false)",
+    _(" apply paper style changes to all pages (true/false)"),
     g_strdup(ui.bg_apply_all_pages?"true":"false"));
   update_keyval("paper", "default_unit",
-    " preferred unit (cm, in, px, pt)",
+    _(" preferred unit (cm, in, px, pt)"),
     g_strdup(unit_names[ui.default_unit]));
   update_keyval("paper", "print_ruling",
-    " include paper ruling when printing or exporting to PDF (true/false)",
+    _(" include paper ruling when printing or exporting to PDF (true/false)"),
     g_strdup(ui.print_ruling?"true":"false"));
   update_keyval("paper", "antialias_bg",
-    " antialiased bitmap backgrounds (true/false)",
+    _(" antialiased bitmap backgrounds (true/false)"),
     g_strdup(ui.antialias_bg?"true":"false"));
   update_keyval("paper", "progressive_bg",
-    " just-in-time update of page backgrounds (true/false)",
+    _(" just-in-time update of page backgrounds (true/false)"),
     g_strdup(ui.progressive_bg?"true":"false"));
   update_keyval("paper", "gs_bitmap_dpi",
-    " bitmap resolution of PS/PDF backgrounds rendered using ghostscript (dpi)",
+    _(" bitmap resolution of PS/PDF backgrounds rendered using ghostscript (dpi)"),
     g_strdup_printf("%d", GS_BITMAP_DPI));
   update_keyval("paper", "pdftoppm_printing_dpi",
-    " bitmap resolution of PDF backgrounds when printing with libgnomeprint (dpi)",
+    _(" bitmap resolution of PDF backgrounds when printing with libgnomeprint (dpi)"),
     g_strdup_printf("%d", PDFTOPPM_PRINTING_DPI));
 
   update_keyval("tools", "startup_tool",
-    " selected tool at startup (pen, eraser, highlighter, selectrect, vertspace, hand)",
+    _(" selected tool at startup (pen, eraser, highlighter, selectrect, vertspace, hand)"),
     g_strdup(tool_names[ui.startuptool]));
   update_keyval("tools", "pen_color",
-    " default pen color",
+    _(" default pen color"),
     g_strdup(color_names[ui.default_brushes[TOOL_PEN].color_no]));
   update_keyval("tools", "pen_thickness",
-    " default pen thickness (fine = 1, medium = 2, thick = 3)",
+    _(" default pen thickness (fine = 1, medium = 2, thick = 3)"),
     g_strdup_printf("%d", ui.default_brushes[TOOL_PEN].thickness_no));
   update_keyval("tools", "pen_ruler",
-    " default pen is in ruler mode (true/false)",
+    _(" default pen is in ruler mode (true/false)"),
     g_strdup(ui.default_brushes[TOOL_PEN].ruler?"true":"false"));
   update_keyval("tools", "pen_recognizer",
-    " default pen is in shape recognizer mode (true/false)",
+    _(" default pen is in shape recognizer mode (true/false)"),
     g_strdup(ui.default_brushes[TOOL_PEN].recognizer?"true":"false"));
   update_keyval("tools", "eraser_thickness",
-    " default eraser thickness (fine = 1, medium = 2, thick = 3)",
+    _(" default eraser thickness (fine = 1, medium = 2, thick = 3)"),
     g_strdup_printf("%d", ui.default_brushes[TOOL_ERASER].thickness_no));
   update_keyval("tools", "eraser_mode",
-    " default eraser mode (standard = 0, whiteout = 1, strokes = 2)",
+    _(" default eraser mode (standard = 0, whiteout = 1, strokes = 2)"),
     g_strdup_printf("%d", ui.default_brushes[TOOL_ERASER].tool_options));
   update_keyval("tools", "highlighter_color",
-    " default highlighter color",
+    _(" default highlighter color"),
     g_strdup(color_names[ui.default_brushes[TOOL_HIGHLIGHTER].color_no]));
   update_keyval("tools", "highlighter_thickness",
-    " default highlighter thickness (fine = 1, medium = 2, thick = 3)",
+    _(" default highlighter thickness (fine = 1, medium = 2, thick = 3)"),
     g_strdup_printf("%d", ui.default_brushes[TOOL_HIGHLIGHTER].thickness_no));
   update_keyval("tools", "highlighter_ruler",
-    " default highlighter is in ruler mode (true/false)",
+    _(" default highlighter is in ruler mode (true/false)"),
     g_strdup(ui.default_brushes[TOOL_HIGHLIGHTER].ruler?"true":"false"));
   update_keyval("tools", "highlighter_recognizer",
-    " default highlighter is in shape recognizer mode (true/false)",
+    _(" default highlighter is in shape recognizer mode (true/false)"),
     g_strdup(ui.default_brushes[TOOL_HIGHLIGHTER].recognizer?"true":"false"));
   update_keyval("tools", "btn2_tool",
-    " button 2 tool (pen, eraser, highlighter, text, selectrect, vertspace, hand)",
+    _(" button 2 tool (pen, eraser, highlighter, text, selectrect, vertspace, hand)"),
     g_strdup(tool_names[ui.toolno[1]]));
   update_keyval("tools", "btn2_linked",
-    " button 2 brush linked to primary brush (true/false) (overrides all other settings)",
+    _(" button 2 brush linked to primary brush (true/false) (overrides all other settings)"),
     g_strdup((ui.linked_brush[1]==BRUSH_LINKED)?"true":"false"));
   update_keyval("tools", "btn2_color",
-    " button 2 brush color (for pen or highlighter only)",
+    _(" button 2 brush color (for pen or highlighter only)"),
     g_strdup((ui.toolno[1]<NUM_STROKE_TOOLS)?
                color_names[ui.brushes[1][ui.toolno[1]].color_no]:"white"));
   update_keyval("tools", "btn2_thickness",
-    " button 2 brush thickness (pen, eraser, or highlighter only)",
+    _(" button 2 brush thickness (pen, eraser, or highlighter only)"),
     g_strdup_printf("%d", (ui.toolno[1]<NUM_STROKE_TOOLS)?
                             ui.brushes[1][ui.toolno[1]].thickness_no:0));
   update_keyval("tools", "btn2_ruler",
-    " button 2 ruler mode (true/false) (for pen or highlighter only)",
+    _(" button 2 ruler mode (true/false) (for pen or highlighter only)"),
     g_strdup(((ui.toolno[1]<NUM_STROKE_TOOLS)?
               ui.brushes[1][ui.toolno[1]].ruler:FALSE)?"true":"false"));
   update_keyval("tools", "btn2_recognizer",
-    " button 2 shape recognizer mode (true/false) (pen or highlighter only)",
+    _(" button 2 shape recognizer mode (true/false) (pen or highlighter only)"),
     g_strdup(((ui.toolno[1]<NUM_STROKE_TOOLS)?
               ui.brushes[1][ui.toolno[1]].recognizer:FALSE)?"true":"false"));
   update_keyval("tools", "btn2_erasermode",
-    " button 2 eraser mode (eraser only)",
+    _(" button 2 eraser mode (eraser only)"),
     g_strdup_printf("%d", ui.brushes[1][TOOL_ERASER].tool_options));
   update_keyval("tools", "btn3_tool",
-    " button 3 tool (pen, eraser, highlighter, text, selectrect, vertspace, hand)",
+    _(" button 3 tool (pen, eraser, highlighter, text, selectrect, vertspace, hand)"),
     g_strdup(tool_names[ui.toolno[2]]));
   update_keyval("tools", "btn3_linked",
-    " button 3 brush linked to primary brush (true/false) (overrides all other settings)",
+    _(" button 3 brush linked to primary brush (true/false) (overrides all other settings)"),
     g_strdup((ui.linked_brush[2]==BRUSH_LINKED)?"true":"false"));
   update_keyval("tools", "btn3_color",
-    " button 3 brush color (for pen or highlighter only)",
+    _(" button 3 brush color (for pen or highlighter only)"),
     g_strdup((ui.toolno[2]<NUM_STROKE_TOOLS)?
                color_names[ui.brushes[2][ui.toolno[2]].color_no]:"white"));
   update_keyval("tools", "btn3_thickness",
-    " button 3 brush thickness (pen, eraser, or highlighter only)",
+    _(" button 3 brush thickness (pen, eraser, or highlighter only)"),
     g_strdup_printf("%d", (ui.toolno[2]<NUM_STROKE_TOOLS)?
                             ui.brushes[2][ui.toolno[2]].thickness_no:0));
   update_keyval("tools", "btn3_ruler",
-    " button 3 ruler mode (true/false) (for pen or highlighter only)",
+    _(" button 3 ruler mode (true/false) (for pen or highlighter only)"),
     g_strdup(((ui.toolno[2]<NUM_STROKE_TOOLS)?
               ui.brushes[2][ui.toolno[2]].ruler:FALSE)?"true":"false"));
   update_keyval("tools", "btn3_recognizer",
-    " button 3 shape recognizer mode (true/false) (pen or highlighter only)",
+    _(" button 3 shape recognizer mode (true/false) (pen or highlighter only)"),
     g_strdup(((ui.toolno[2]<NUM_STROKE_TOOLS)?
               ui.brushes[2][ui.toolno[2]].recognizer:FALSE)?"true":"false"));
   update_keyval("tools", "btn3_erasermode",
-    " button 3 eraser mode (eraser only)",
+    _(" button 3 eraser mode (eraser only)"),
     g_strdup_printf("%d", ui.brushes[2][TOOL_ERASER].tool_options));
 
   update_keyval("tools", "pen_thicknesses",
-    " thickness of the various pens (in points, 1 pt = 1/72 in)",
+    _(" thickness of the various pens (in points, 1 pt = 1/72 in)"),
     g_strdup_printf("%.2f;%.2f;%.2f;%.2f;%.2f", 
       predef_thickness[TOOL_PEN][0], predef_thickness[TOOL_PEN][1],
       predef_thickness[TOOL_PEN][2], predef_thickness[TOOL_PEN][3],
       predef_thickness[TOOL_PEN][4]));
   update_keyval("tools", "eraser_thicknesses",
-    " thickness of the various erasers (in points, 1 pt = 1/72 in)",
+    _(" thickness of the various erasers (in points, 1 pt = 1/72 in)"),
     g_strdup_printf("%.2f;%.2f;%.2f", 
       predef_thickness[TOOL_ERASER][1], predef_thickness[TOOL_ERASER][2],
       predef_thickness[TOOL_ERASER][3]));
   update_keyval("tools", "highlighter_thicknesses",
-    " thickness of the various highlighters (in points, 1 pt = 1/72 in)",
+    _(" thickness of the various highlighters (in points, 1 pt = 1/72 in)"),
     g_strdup_printf("%.2f;%.2f;%.2f", 
       predef_thickness[TOOL_HIGHLIGHTER][1], predef_thickness[TOOL_HIGHLIGHTER][2],
       predef_thickness[TOOL_HIGHLIGHTER][3]));
   update_keyval("tools", "default_font",
-    " name of the default font",
+    _(" name of the default font"),
     g_strdup(ui.default_font_name));
   update_keyval("tools", "default_font_size",
-    " default font size",
+    _(" default font size"),
     g_strdup_printf("%.1f", ui.default_font_size));
 
   buf = g_key_file_to_data(ui.config_data, NULL, NULL);
@@ -1745,9 +1745,9 @@ void load_config_from_file(void)
     g_key_file_free(ui.config_data);
     ui.config_data = g_key_file_new();
     g_key_file_set_comment(ui.config_data, NULL, NULL, 
-           " Xournal configuration file.\n"
+         _(" Xournal configuration file.\n"
            " This file is generated automatically upon saving preferences.\n"
-           " Use caution when editing this file manually.\n", NULL);
+           " Use caution when editing this file manually.\n"), NULL);
     return;
   }
 

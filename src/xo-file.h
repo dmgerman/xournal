@@ -9,10 +9,6 @@ extern int GS_BITMAP_DPI, PDFTOPPM_PRINTING_DPI;
 
 #define TMPDIR_TEMPLATE "/tmp/xournalpdf.XXXXXX"
 
-#define PDFTOPPM_ARGV \
-     { "pdftoppm", "-q", "-f", pageno_str, "-l", pageno_str, \
-       "-r", dpi_str, pdf_filename, ppm_root, NULL }
-
 void new_journal(void);
 gboolean save_journal(const char *filename);
 gboolean close_journal(void);

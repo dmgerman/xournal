@@ -77,8 +77,8 @@ void init_stuff (int argc, char *argv[])
   ui.layerbox_length = 0;
 
   if (argc > 2 || (argc == 2 && argv[1][0] == '-')) {
-    printf("Invalid command line parameters.\n"
-           "Usage: %s [filename.xoj]\n", argv[0]);
+    printf(_("Invalid command line parameters.\n"
+           "Usage: %s [filename.xoj]\n"), argv[0]);
     gtk_exit(0);
   }
    
@@ -283,7 +283,7 @@ void init_stuff (int argc, char *argv[])
   set_cursor_busy(FALSE);
   if (!success) {
     w = gtk_message_dialog_new(GTK_WINDOW (winMain), GTK_DIALOG_DESTROY_WITH_PARENT,
-       GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, "Error opening file '%s'", argv[1]);
+       GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, _("Error opening file '%s'"), argv[1]);
     gtk_dialog_run(GTK_DIALOG(w));
     gtk_widget_destroy(w);
   }
@@ -294,6 +294,12 @@ int
 main (int argc, char *argv[])
 {
   gchar *path, *path1, *path2;
+  
+#ifdef ENABLE_NLS
+  bindtextdomain (GETTEXT_PACKAGE, PACKAGE_LOCALE_DIR);
+  bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
+  textdomain (GETTEXT_PACKAGE);
+#endif
   
   gtk_set_locale ();
   gtk_init (&argc, &argv);

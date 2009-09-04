@@ -17,7 +17,7 @@ List of features to be implemented (not in any particular order)
    or see if removing the GTK bugfix would help? -- e.g. by recalling an
    internal gtk init function?
 
-DONE: fix GTK+ 2.16 XInput issues with scrollbars and menus
+DONE: fix GTK+ 2.16/2.17 XInput issues with scrollbars and menus
 DONE: fix bug 2826845 (shape recognizer accel doesn't work in fullscreen mode)
 DONE: bug affecting resize zone in statusbar
 DONE: page spinbutton wide enough for 3 digits; avoid "deprecated" warning
@@ -29,17 +29,16 @@ DONE: device with "eraser" at the end of its name is of type ERASER
       (Edward Yang)
 DONE: fix_xinput_coords() replaces buggy xinput events by core pointer 
       coordinates
-DONE: use poppler to render PDF bakgrounds (after patches contributed
+DONE: use poppler to render PDF backgrounds (after patches contributed
       by Mike Ter Louw and Bob McElrath)
-
-
-
-****** gnu-gettext patch?
+DONE: gettext internationalization (contributed by David Planella)
+DONE: Catalan translation (by David Planella); French translation
 
 ****** URGENT: gtkprint; new release by November end for Debian!
   nb: libgnomeprint produces many warnings (spinbutton; gpa assertions)
 
-
+- prerelease: update help file (remove references to pdftoppm/libgnomeprint
+  to poppler/gtkprint
 - remove "antialias bg" flag, useless... see McElrath
 - PDF bg memory usage throttling / delete oldest pdf backgrounds
 - fix fix_xinput_coords so it works ok without ENABLE_XINPUT_BUGFIX ?
@@ -52,10 +51,6 @@ DONE: use poppler to render PDF bakgrounds (after patches contributed
       and only (un)hide stuff at the correct edge!)
 ** if bg pdf not found in absolute path, look in path of xoj file before
    prompting user.
-** GETTEXT i18n patch (sourceforge)
-** PATCH TO WORK AROUND PPM LOADING ISSUE - see tracker
-   (make gdk_pixbuf_ref and g_object_unref(loader) as in the gv_bg 
-   loading) or... switch to poppler?
 ** patch to fix focus + allow up/dn in single page mode (Bob McElrath)
    also comment out contents of reset_focus() ? (tracker patch #2494022)
 ** patch to fix underscores in MRU filename display (McElrath) (tracker)
@@ -115,8 +110,6 @@ DONE: use poppler to render PDF bakgrounds (after patches contributed
 
 - smoothing of strokes (for users without tablets / with deficient drivers)
 - lasso tool
-- internationalization / translation of interface
-- switch to poppler instead of pdftoppm; with exact float dpi settings
 - load PDF pages only on demand (create empty pixmaps at first if can
    parse PDF geometry ourselves, else try pdfinfo ??)
    (and config option to limit total memory usage for PDF bitmaps)

@@ -87,7 +87,7 @@ create_pixmap                          (GtkWidget       *widget,
 
   if (!pathname)
     {
-      g_warning ("Couldn't find pixmap file: %s", filename);
+      g_warning (_("Couldn't find pixmap file: %s"), filename);
       return gtk_image_new ();
     }
 
@@ -111,14 +111,14 @@ create_pixbuf                          (const gchar     *filename)
 
   if (!pathname)
     {
-      g_warning ("Couldn't find pixmap file: %s", filename);
+      g_warning (_("Couldn't find pixmap file: %s"), filename);
       return NULL;
     }
 
   pixbuf = gdk_pixbuf_new_from_file (pathname, &error);
   if (!pixbuf)
     {
-      fprintf (stderr, "Failed to load pixbuf file: %s: %s\n",
+      fprintf (stderr, _("Failed to load pixbuf file: %s: %s\n"),
                pathname, error->message);
       g_error_free (error);
     }

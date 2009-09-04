@@ -5,7 +5,6 @@
   <name>Xournal</name>
   <program_name>xournal</program_name>
   <gnome_support>FALSE</gnome_support>
-  <gettext_support>FALSE</gettext_support>
   <gnome_help_support>TRUE</gnome_help_support>
   <main_source_file>xo-interface.c</main_source_file>
   <main_header_file>xo-interface.h</main_header_file>

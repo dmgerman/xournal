@@ -18,5 +18,5 @@ xournal_SOURCES = \
 	xo-callbacks.c xo-callbacks.h \
 	xo-shapes.c xo-shapes.h
 
-xournal_LDADD = @PACKAGE_LIBS@
+xournal_LDADD = @PACKAGE_LIBS@ $(INTLLIBS)
 

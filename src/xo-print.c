@@ -19,6 +19,7 @@
 #include "sft.h" /* Sun Font Tools, embedded in libgnomeprint */
 
 #include "xournal.h"
+#include "xo-support.h"
 #include "xo-misc.h"
 #include "xo-paint.h"
 #include "xo-print.h"
@@ -1490,7 +1491,7 @@ void print_page(GnomePrintContext *gpc, struct Page *pg, int pageno,
   
   if (pg==NULL) return;
   
-  g_snprintf(tmp, 10, "Page %d", pageno);
+  g_snprintf(tmp, 10, _("Page %d"), pageno);
   gnome_print_beginpage(gpc, (guchar *)tmp);
   gnome_print_gsave(gpc);
   
@@ -1581,7 +1582,7 @@ void print_job_render(GnomePrintJob *gpj, int fromPage, int toPage)
 
   abort = FALSE;
   wait_dialog = gtk_message_dialog_new(GTK_WINDOW(winMain), GTK_DIALOG_MODAL,
-     GTK_MESSAGE_INFO, GTK_BUTTONS_CANCEL, "Preparing print job");
+     GTK_MESSAGE_INFO, GTK_BUTTONS_CANCEL, _("Preparing print job"));
   gtk_widget_show(wait_dialog);
   g_signal_connect(wait_dialog, "response", G_CALLBACK (cb_print_abort), &abort);
   
@@ -1589,7 +1590,7 @@ void print_job_render(GnomePrintJob *gpj, int fromPage, int toPage)
 #if GTK_CHECK_VERSION(2,6,0)
     if (!gtk_check_version(2, 6, 0))
       gtk_message_dialog_format_secondary_text(
-             GTK_MESSAGE_DIALOG(wait_dialog), "Page %d", i+1); 
+             GTK_MESSAGE_DIALOG(wait_dialog), _("Page %d"), i+1); 
 #endif
     while (gtk_events_pending()) gtk_main_iteration();
     print_page(gpc, (struct Page *)g_list_nth_data(journal.pages, i), i+1,
@@ -1599,7 +1600,7 @@ void print_job_render(GnomePrintJob *gpj, int fromPage, int toPage)
 #if GTK_CHECK_VERSION(2,6,0)
   if (!gtk_check_version(2, 6, 0))
     gtk_message_dialog_format_secondary_text(
-              GTK_MESSAGE_DIALOG(wait_dialog), "Finalizing...");
+              GTK_MESSAGE_DIALOG(wait_dialog), _("Finalizing..."));
 #endif
   while (gtk_events_pending()) gtk_main_iteration();
 

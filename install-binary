@@ -27,6 +27,13 @@ if test `id -u` = 0; then
     ln -s ../pixmaps /usr/local/share/xournal/html-doc/pixmaps
   fi
 
+  echo "Installing translation files in /usr/local/share/locale/*/LC_MESSAGES/xournal.mo..."
+  for gmofile in po/*.gmo; do
+    lang=`basename $gmofile .gmo`
+    install -d /usr/local/share/locale/$lang/LC_MESSAGES
+    install -c -m 644 $gmofile /usr/local/share/locale/$lang/LC_MESSAGES/xournal.mo
+  done
+
   echo "Installing desktop files and MIME info in /usr/local/share and /usr/share/mimelnk..."
   install -d /usr/local/share/icons/hicolor/scalable/apps
   install -d /usr/local/share/icons/hicolor/scalable/mimetypes

@@ -134,7 +134,7 @@ struct UndoErasureData;
 typedef struct Item {
   int type;
   struct Brush brush; // the brush to use, if ITEM_STROKE
-  // 'brush" also contains color info for text items
+  // 'brush' also contains color info for text items
   GnomeCanvasPoints *path;
   gdouble *widths;
   GnomeCanvasItem *canvas_item; // the corresponding canvas item, or NULL

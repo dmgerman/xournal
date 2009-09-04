@@ -1241,12 +1241,12 @@ void update_page_stuff(void)
   gtk_spin_button_set_range(spin, 1, journal.npages+1);
     /* npages+1 will be used to create a new page at end */
   gtk_spin_button_set_value(spin, ui.pageno+1);
-  g_snprintf(tmp, 10, " of %d", journal.npages);
+  g_snprintf(tmp, 10, _(" of %d"), journal.npages);
   gtk_label_set_text(GTK_LABEL(GET_COMPONENT("labelNumpages")), tmp);
 
   layerbox = GTK_COMBO_BOX(GET_COMPONENT("comboLayer"));
   if (ui.layerbox_length == 0) {
-    gtk_combo_box_prepend_text(layerbox, "Background");
+    gtk_combo_box_prepend_text(layerbox, _("Background"));
     ui.layerbox_length++;
   }
   while (ui.layerbox_length > ui.cur_page->nlayers+1) {
@@ -1254,7 +1254,7 @@ void update_page_stuff(void)
     ui.layerbox_length--;
   }
   while (ui.layerbox_length < ui.cur_page->nlayers+1) {
-    g_snprintf(tmp, 10, "Layer %d", ui.layerbox_length++);
+    g_snprintf(tmp, 10, _("Layer %d"), ui.layerbox_length++);
     gtk_combo_box_prepend_text(layerbox, tmp);
   }
   gtk_combo_box_set_active(layerbox, ui.cur_page->nlayers-1-ui.layerno);
@@ -1370,13 +1370,13 @@ void update_file_name(char *filename)
   if (ui.filename != NULL) g_free(ui.filename);
   ui.filename = filename;
   if (filename == NULL) {
-    gtk_window_set_title(GTK_WINDOW (winMain), "Xournal");
+    gtk_window_set_title(GTK_WINDOW (winMain), _("Xournal"));
     return;
   }
   p = g_utf8_strrchr(filename, -1, '/');
   if (p == NULL) p = filename; 
   else p = g_utf8_next_char(p);
-  g_snprintf(tmp, 100, "Xournal - %s", p);
+  g_snprintf(tmp, 100, _("Xournal - %s"), p);
   gtk_window_set_title(GTK_WINDOW (winMain), tmp);
   new_mru_entry(filename);
 }
@@ -1609,8 +1609,8 @@ gboolean ok_to_close(void)
 
   if (ui.saved) return TRUE;
   dialog = gtk_message_dialog_new(GTK_WINDOW (winMain), GTK_DIALOG_DESTROY_WITH_PARENT,
-    GTK_MESSAGE_WARNING, GTK_BUTTONS_YES_NO, "Save changes to '%s'?",
-    (ui.filename!=NULL) ? ui.filename:"Untitled");
+    GTK_MESSAGE_WARNING, GTK_BUTTONS_YES_NO, _("Save changes to '%s'?"),
+    (ui.filename!=NULL) ? ui.filename:_("Untitled"));
   gtk_dialog_add_button(GTK_DIALOG (dialog), GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL);
   response = gtk_dialog_run(GTK_DIALOG (dialog));
   gtk_widget_destroy(dialog);
