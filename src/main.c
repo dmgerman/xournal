@@ -26,21 +26,6 @@ struct UndoItem *undo, *redo; // the undo and redo stacks
 
 double DEFAULT_ZOOM;
 
-// prevent interface items from getting bogus XInput events
-gboolean filter_extended_events (GtkWidget *widget, GdkEvent *event,
-                                   gpointer user_data)
-{
-  // prevent scrollbars from reacting to XInput events
-  if (event->type == GDK_MOTION_NOTIFY &&
-      event->motion.device != gdk_device_get_core_pointer())
-    return TRUE;
-  if ((event->type == GDK_BUTTON_PRESS || event->type == GDK_2BUTTON_PRESS ||
-      event->type == GDK_3BUTTON_PRESS || event->type == GDK_BUTTON_RELEASE) &&
-      event->button.device != gdk_device_get_core_pointer())
-    return TRUE;
-  return FALSE;
-}
-
 void init_stuff (int argc, char *argv[])
 {
   GtkWidget *w;
@@ -161,6 +146,9 @@ void init_stuff (int argc, char *argv[])
   g_signal_connect ((gpointer) canvas, "enter_notify_event",
                     G_CALLBACK (on_canvas_enter_notify_event),
                     NULL);
+  g_signal_connect ((gpointer) canvas, "leave_notify_event",
+                    G_CALLBACK (on_canvas_leave_notify_event),
+                    NULL);
   g_signal_connect ((gpointer) canvas, "expose_event",
                     G_CALLBACK (on_canvas_expose_event),
                     NULL);
@@ -200,6 +188,7 @@ void init_stuff (int argc, char *argv[])
     gtk_widget_set_sensitive(GET_COMPONENT("optionsUseXInput"), FALSE);
 
   ui.use_xinput = ui.allow_xinput && can_xinput;
+  ui.need_emergency_disable_xinput = FALSE;
 
   gtk_check_menu_item_set_active(
     GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsAntialiasBG")), ui.antialias_bg);
@@ -234,7 +223,7 @@ void init_stuff (int argc, char *argv[])
   /* fix a bug in GTK+ 2.16 and beyond: scrollbars shouldn't get extended
      input events from pointer motion when cursor moves into main window */
 #if GTK_CHECK_VERSION(2,14,0)
-  if (!gtk_check_version(2, 14, 0)) {
+  if (!gtk_check_version(2, 16, 0)) {
     g_signal_connect (
       GET_COMPONENT("menubar"),
       "event", G_CALLBACK (filter_extended_events),
@@ -258,6 +247,10 @@ void init_stuff (int argc, char *argv[])
     g_signal_connect (
       (gpointer)(gtk_scrolled_window_get_hscrollbar(GTK_SCROLLED_WINDOW(w))),
       "event", G_CALLBACK (filter_extended_events),
+      NULL);
+    g_signal_connect (
+      GET_COMPONENT("comboLayer"),
+      "notify::popup-shown", G_CALLBACK (combobox_popup_disable_xinput),
       NULL);
   }
 #endif

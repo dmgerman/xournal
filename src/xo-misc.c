@@ -7,6 +7,7 @@
 #include <gtk/gtk.h>
 #include <libgnomecanvas/libgnomecanvas.h>
 #include <gdk/gdkkeysyms.h>
+#include <X11/Xlib.h>
 
 #include "xournal.h"
 #include "xo-interface.h"
@@ -1975,3 +1976,78 @@ void hide_unimplemented(void)
     gtk_widget_hide(GET_COMPONENT("optionsSavePreferences"));
   }
 }  
+
+/* attempt to work around GTK+ 2.16/2.17 bugs where random interface
+   elements receive XInput events that they can't handle properly    */
+
+// prevent interface items from getting bogus XInput events
+
+gboolean filter_extended_events (GtkWidget *widget, GdkEvent *event,
+                                   gpointer user_data)
+{
+  if (event->type == GDK_MOTION_NOTIFY &&
+      event->motion.device != gdk_device_get_core_pointer())
+    return TRUE;
+  if ((event->type == GDK_BUTTON_PRESS || event->type == GDK_2BUTTON_PRESS ||
+      event->type == GDK_3BUTTON_PRESS || event->type == GDK_BUTTON_RELEASE) &&
+      event->button.device != gdk_device_get_core_pointer())
+    return TRUE;
+  return FALSE;
+}
+
+/* Code to turn an extended input event into a core event and send it to
+   a different GdkWindow -- e.g. could be used when a click in a text edit box
+   gets sent to the canvas instead due to incorrect event translation.
+   We now turn off xinput altogether while editing text under GTK+ 2.17, so
+   this isn't needed any more... but could become useful again someday!
+*/
+
+/*  
+gboolean fix_extended_events (GtkWidget *widget, GdkEvent *event,
+                                   gpointer user_data)
+{
+  int ix, iy;
+  GdkWindow *window;
+
+  if (user_data) window = (GdkWindow *)user_data;
+  else window = widget->window;
+
+  if (event->type == GDK_MOTION_NOTIFY &&
+      event->motion.device != gdk_device_get_core_pointer()) {
+//    printf("fixing motion\n");
+    gdk_window_get_pointer(window, &ix, &iy, NULL);
+    event->motion.x = ix; event->motion.y = iy;
+    event->motion.device = gdk_device_get_core_pointer();
+    g_object_unref(event->motion.window);
+    event->motion.window = g_object_ref(window);
+    gtk_widget_event(widget, event);
+    return TRUE;
+  }
+  if ((event->type == GDK_BUTTON_PRESS || event->type == GDK_BUTTON_RELEASE) &&
+      event->button.device != gdk_device_get_core_pointer()) {
+//    printf("fixing button from pos = %f, %f\n", event->button.x, event->button.y);
+    gdk_window_get_pointer(window, &ix, &iy, NULL);
+    event->button.x = ix; event->button.y = iy;
+    event->button.device = gdk_device_get_core_pointer();
+    g_object_unref(event->button.window);
+    event->button.window = g_object_ref(window);
+//    printf("fixing button to pos = %f, %f\n", event->button.x, event->button.y);
+    gtk_widget_event(widget, event);
+    return TRUE;
+  }
+  return FALSE;
+}
+*/
+
+// disable xinput when layer combo box is popped up, to avoid crash
+
+gboolean combobox_popup_disable_xinput (GtkWidget *widget, GdkEvent *event,
+                                   gpointer user_data)
+{
+  gboolean is_shown;
+  
+  g_object_get(G_OBJECT(widget), "popup-shown", &is_shown, NULL);
+  gdk_input_set_extension_events(GTK_WIDGET(canvas)->window, 
+     GDK_POINTER_MOTION_MASK | GDK_BUTTON_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK,
+     (ui.use_xinput && !is_shown)?GDK_EXTENSION_EVENTS_ALL:GDK_EXTENSION_EVENTS_NONE);
+}

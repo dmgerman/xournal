@@ -404,6 +404,11 @@ on_canvas_enter_notify_event           (GtkWidget       *widget,
                                         gpointer         user_data);
 
 gboolean
+on_canvas_leave_notify_event           (GtkWidget       *widget,
+                                        GdkEventCrossing *event,
+                                        gpointer         user_data);
+
+gboolean
 on_canvas_expose_event                 (GtkWidget       *widget,
                                         GdkEventExpose  *event,
                                         gpointer         user_data);

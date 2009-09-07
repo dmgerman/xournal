@@ -36,7 +36,9 @@ DONE: Catalan translation (by David Planella); French translation
 
 ****** URGENT: gtkprint; new release by November end for Debian!
   nb: libgnomeprint produces many warnings (spinbutton; gpa assertions)
+  nb: gtkprint includes sft.c or not?? see font generation...
 
+- get GTK+ 2.17 events while editing text to work.
 - prerelease: update help file (remove references to pdftoppm/libgnomeprint
   to poppler/gtkprint
 - remove "antialias bg" flag, useless... see McElrath
@@ -46,6 +48,8 @@ DONE: Catalan translation (by David Planella); French translation
   (need to shift by (sx,sy), + shift between canvas->window vs canvas in 2.17)
 - Esc should leave text box if editing; and fullscreen if fullscreen?
 - color chooser button (patch tracker?)
+- option to have buttons *toggle* the tool rather than act as tool
+   (ie button 2 causes button 1 to map to tool 2) [Dylan Thurston]
 ** auto-hide patch from ~/prog/src/xournal-autohide/ ?
      (check for cpu usage, add flag if need be; handle BOTH edges
       and only (un)hide stuff at the correct edge!)
@@ -133,6 +137,7 @@ DONE: Catalan translation (by David Planella); French translation
 - more paper customization (in particular, 1/2 inch graph paper)
     (2 custom papers with settings in config file? 
      a folder with blank PDF or xoj papers and quick-access?)
+    (also: engineering paper; isometric paper -- Dan Ott  Sep 4 '09)
 - option to map a button to a context menu (incl. tool selection, ...)
 - option to map a button to "undo"
 - xournal_page-shadow.diff (Martin Kiefel Feb 5 2007)

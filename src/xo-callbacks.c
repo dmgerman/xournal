@@ -2395,8 +2395,13 @@ on_canvas_button_press_event           (GtkWidget       *widget,
 #endif
   if (!finite(event->x) || !finite(event->y)) return FALSE; // Xorg 7.3 bug
 
-  if (ui.cur_item_type == ITEM_TEXT && !is_event_within_textview(event))
-    end_text();
+  if (ui.cur_item_type == ITEM_TEXT) {
+    if (!is_event_within_textview(event)) end_text();
+/* // bugfix for GTK+ 2.17, no longer needed as XInput is disabled during text edition
+    else fix_extended_events(ui.cur_item->widget, (GdkEvent *)event,
+            gtk_text_view_get_window(GTK_TEXT_VIEW(ui.cur_item->widget), GTK_TEXT_WINDOW_TEXT));
+*/
+  }
   if (ui.cur_item_type == ITEM_STROKE && ui.is_corestroke && !is_core &&
       ui.cur_path.num_points == 1) { 
       // Xorg 7.3+ sent core event before XInput event: fix initial point 
@@ -2543,6 +2548,21 @@ on_canvas_enter_notify_event           (GtkWidget       *widget,
                                         gpointer         user_data)
 {
 
+  return FALSE;
+}
+
+gboolean
+on_canvas_leave_notify_event           (GtkWidget       *widget,
+                                        GdkEventCrossing *event,
+                                        gpointer         user_data)
+{
+#ifdef INPUT_DEBUG
+  printf("DEBUG: leave notify\n");
+#endif
+  if (ui.need_emergency_disable_xinput) {
+    gtk_widget_set_extension_events(GTK_WIDGET (canvas), GDK_EXTENSION_EVENTS_NONE);
+    ui.need_emergency_disable_xinput = FALSE;
+  }
   return FALSE;
 }
 
@@ -2719,7 +2739,9 @@ on_optionsUseXInput_activate           (GtkMenuItem     *menuitem,
   ui.allow_xinput = ui.use_xinput =
     gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem));
 
-/* Important note: we'd like ONLY the canvas window itself to receive
+/* HOW THINGS USED TO BE:
+
+   We'd like ONLY the canvas window itself to receive
    XInput events, while its child window in the GDK hierarchy (also
    associated to the canvas widget) receives the core events.
    This way on_canvas_... will get both types of events -- otherwise,
@@ -2731,12 +2753,21 @@ on_optionsUseXInput_activate           (GtkMenuItem     *menuitem,
    also traverses GDK child windows that belong to the widget
    and sets their extension events too. We want to avoid that.
    So we use gdk_input_set_extension_events() directly on the canvas.
+
+   As much as possible, we'd like to keep doing this, though GTK+ 2.17
+   is making our life harder (crasher bugs require us to disable XInput
+   while editing text or using the layers combo box, but disabling
+   XInput while in a XInput-aware window causes the interface to become
+   non-responsive). 
 */
-   
-/*  // this causes GTK+ 2.11 bugs
-    gtk_widget_set_extension_events(GTK_WIDGET (canvas), 
+
+  // this causes core events to be discarded... unwanted!
+/*
+   gtk_widget_set_extension_events(GTK_WIDGET (canvas), 
       ui.use_xinput?GDK_EXTENSION_EVENTS_ALL:GDK_EXTENSION_EVENTS_NONE);
 */
+
+  // this version only activates extension events on the canvas's parent GdkWindow
   gdk_input_set_extension_events(GTK_WIDGET(canvas)->window, 
     GDK_POINTER_MOTION_MASK | GDK_BUTTON_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK,
     ui.use_xinput?GDK_EXTENSION_EVENTS_ALL:GDK_EXTENSION_EVENTS_NONE);

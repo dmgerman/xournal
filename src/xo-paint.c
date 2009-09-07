@@ -1215,6 +1215,17 @@ void start_text(GdkEvent *event, struct Item *item)
   get_pointer_coords(event, pt);
   ui.cur_item_type = ITEM_TEXT;
 
+  // HACK TO BYPASS GTK+ 2.17 issues
+  if (!gtk_check_version(2, 17, 0)) {
+    /* first we make *all* canvas subwindows become XInput aware, 
+       so that it'll be safe to disable XInput later on... (!!!) */
+    gtk_widget_set_extension_events(GTK_WIDGET (canvas), 
+       ui.use_xinput?GDK_EXTENSION_EVENTS_ALL:GDK_EXTENSION_EVENTS_NONE);
+    /* then we ask the canvas's leave-notify handler to disable 
+       xinput when it's safe to do so... */
+    ui.need_emergency_disable_xinput = TRUE;
+  }
+
   if (item==NULL) {
     item = g_new(struct Item, 1);
     item->text = NULL;
@@ -1277,6 +1288,14 @@ void end_text(void)
   GnomeCanvasItem *tmpitem;
 
   if (ui.cur_item_type!=ITEM_TEXT) return; // nothing for us to do!
+
+  // HACK TO BYPASS GTK+ 2.17 issues
+  if (!gtk_check_version(2, 17, 0)) {
+    // re-enable XInput if needed (we disabled it during text edition)
+    gdk_input_set_extension_events(GTK_WIDGET(canvas)->window, 
+      GDK_POINTER_MOTION_MASK | GDK_BUTTON_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK,
+      ui.use_xinput?GDK_EXTENSION_EVENTS_ALL:GDK_EXTENSION_EVENTS_NONE);
+  }
   
   // finalize the text that's been edited... 
   buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(ui.cur_item->widget));

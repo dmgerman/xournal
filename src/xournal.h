@@ -274,6 +274,7 @@ typedef struct UIData {
   gboolean shorten_menus; // shorten menus ?
   gchar *shorten_menu_items; // which items to hide
   gboolean is_sel_cursor; // displaying a selection-related cursor
+  gboolean need_emergency_disable_xinput; // need to disable xinput to avoid GTK+ 2.17 bug ?
 } UIData;
 
 #define BRUSH_LINKED 0
