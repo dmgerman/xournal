@@ -7,7 +7,6 @@
 #include <gtk/gtk.h>
 #include <libgnomecanvas/libgnomecanvas.h>
 #include <time.h>
-#include <libgnomeprintui/gnome-print-dialog.h>
 #include <glib/gstdio.h>
 #include <gdk/gdkkeysyms.h>
 
@@ -287,87 +286,57 @@ on_filePrintOptions_activate           (GtkMenuItem     *menuitem,
 
 }
 
-
 void
 on_filePrint_activate                  (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  GtkWidget *printDialog;
-  GnomePrintJob *gpj;
+#if GTK_CHECK_VERSION(2, 10, 0)
+  GtkPrintOperation *print;
+  GtkPrintOperationResult res;
+  
   int fromPage, toPage;
   int response;
-  char *in_fn;
-  guchar *s;
-  GnomePrintConfig *config = gnome_print_config_default();
+  char *in_fn, *p;
 
   end_text();
   reset_focus();
-  if (ui.filename!=NULL) {
-    if (g_str_has_suffix(ui.filename, ".xoj")) {
-      in_fn = g_strdup(ui.filename);
-      g_strlcpy(g_strrstr(in_fn, "xoj"), "pdf", 4);
-    } 
-    else
-      in_fn = g_strdup_printf("%s.pdf", ui.filename);
-    gnome_print_config_set(config, (guchar *)"Printer", (guchar *)"PDF");
-    gnome_print_config_set(config, (guchar *)GNOME_PRINT_KEY_OUTPUT_FILENAME, (guchar *)in_fn);
-    gnome_print_config_set(config, (guchar *)"Settings.Transport.Backend.FileName", (guchar *)in_fn);
-    g_strlcpy(g_strrstr(in_fn, "pdf"), "ps", 3);
-    gnome_print_config_set(config, (guchar *)"Printer", (guchar *)"GENERIC");
-    gnome_print_config_set (config, (guchar *)GNOME_PRINT_KEY_OUTPUT_FILENAME, (guchar *)in_fn);
-    s = gnome_print_config_get(config, (guchar *)"Settings.Transport.Backend.FileName");
-    if (s != NULL) {
-      g_free(s);
-      gnome_print_config_set(config, (guchar *)"Settings.Transport.Backend.FileName", (guchar *)in_fn);
-    }
-    g_free(in_fn);
-  }
-  
-  gpj = gnome_print_job_new(config); /* was NULL */
-  gnome_print_config_unref(config);
-/* end */
-  printDialog = gnome_print_dialog_new(gpj, (guchar *) _("Print"), GNOME_PRINT_DIALOG_RANGE);
-  gnome_print_dialog_construct_range_page(GNOME_PRINT_DIALOG(printDialog),
-    GNOME_PRINT_RANGE_ALL | GNOME_PRINT_RANGE_RANGE,
-    1, journal.npages, (guchar *) _("Current page"), (guchar *) _("Pages"));
-  /* don't have "Current page" as option, else it becomes the default!! */
-  
-  gtk_dialog_set_response_sensitive(GTK_DIALOG(printDialog),
-                         GNOME_PRINT_DIALOG_RESPONSE_PREVIEW, FALSE);
-  /* the print-job-preview "feature" is completely, hopelessly broken */                       
-
-  response = gtk_dialog_run(GTK_DIALOG(printDialog));
-  if (response <= 0) {
-    gtk_widget_destroy(printDialog);
-    return;
-  }
-
+  if (!gtk_check_version(2, 10, 0)) {
+    print = gtk_print_operation_new();
 /*
-  if (response == GNOME_PRINT_DIALOG_RESPONSE_PREVIEW) {
-    print_job_render(gpj, 0, journal.npages-1);
-    gtk_widget_destroy(printDialog);
-    preview = gnome_print_job_preview_new(gpj, (guchar *)"Preview");
-    try_fix_print_preview_ui(preview);
-    gtk_window_set_modal(GTK_WINDOW(preview), TRUE);
-    gtk_widget_show_all(preview);
-  }
-*/
-
-  if (response == GNOME_PRINT_DIALOG_RESPONSE_PRINT) {
-    switch(gnome_print_dialog_get_range(GNOME_PRINT_DIALOG(printDialog))) {
-      case GNOME_PRINT_RANGE_RANGE: 
-        gnome_print_dialog_get_range_page(GNOME_PRINT_DIALOG(printDialog), &fromPage, &toPage);
-        fromPage--;
-        toPage--;
-        break;
-      default: 
-        fromPage = 0; 
-        toPage = journal.npages-1;
+    if (!ui.print_settings)
+      ui.print_settings = gtk_print_settings_new();
+    if (ui.filename!=NULL) {
+      if (g_str_has_suffix(ui.filename, ".xoj")) {
+        in_fn = g_strdup(ui.filename);
+        g_strlcpy(g_strrstr(in_fn, "xoj"), "pdf", 4);
+      } 
+      else in_fn = g_strdup_printf("%s.pdf", ui.filename);
+      gtk_print_settings_set(ui.print_settings, GTK_PRINT_SETTINGS_OUTPUT_URI,
+         g_filename_to_uri(in_fn, NULL, NULL));
+      g_free(in_fn);
     }
-
-    gtk_widget_destroy(printDialog);
-    print_job_render(gpj, fromPage, toPage);
+*/
+    if (ui.print_settings!=NULL)
+       gtk_print_operation_set_print_settings (print, ui.print_settings);
+    gtk_print_operation_set_n_pages(print, journal.npages);
+    gtk_print_operation_set_current_page(print, ui.pageno);
+    gtk_print_operation_set_show_progress(print, TRUE);
+    if (ui.filename!=NULL) {
+      p = g_utf8_strrchr(ui.filename, -1, '/');
+      if (p==NULL) p = ui.filename;
+      else p++;
+      gtk_print_operation_set_job_name(print, p);
+    }
+    g_signal_connect (print, "draw_page", G_CALLBACK (print_job_render_page), NULL);
+    res = gtk_print_operation_run(print, GTK_PRINT_OPERATION_ACTION_PRINT_DIALOG,
+                                  GTK_WINDOW(winMain), NULL);
+    if (res == GTK_PRINT_OPERATION_RESULT_APPLY) {
+      if (ui.print_settings!=NULL) g_object_unref(ui.print_settings);
+      ui.print_settings = g_object_ref(gtk_print_operation_get_print_settings(print));
+    }
+    g_object_unref(print);
   }
+#endif
 }
 
 
@@ -2582,6 +2551,12 @@ on_canvas_key_press_event              (GtkWidget       *widget,
                                         GdkEventKey     *event,
                                         gpointer         user_data)
 {
+  // Esc leaves text edition, or leaves fullscreen mode
+  if (event->keyval == GDK_Escape) {
+    if (ui.cur_item_type == ITEM_TEXT) { end_text(); reset_focus(); }
+    else if (ui.fullscreen) do_fullscreen(FALSE);
+  }
+  
   // If zoomed-out and in single page mode, switch pages with PgUp/PgDn.
   if (!ui.view_continuous && 
       (0.96 * ui.zoom * ui.cur_page->height < 
@@ -3014,18 +2989,7 @@ on_viewFullscreen_activate             (GtkMenuItem     *menuitem,
     active = gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON (menuitem));
 
   if (active == ui.fullscreen) return;
-  end_text();
-  reset_focus();
-  ui.fullscreen = active;
-  gtk_check_menu_item_set_active(
-    GTK_CHECK_MENU_ITEM(GET_COMPONENT("viewFullscreen")), ui.fullscreen);
-  gtk_toggle_tool_button_set_active(
-    GTK_TOGGLE_TOOL_BUTTON(GET_COMPONENT("buttonFullscreen")), ui.fullscreen);
-
-  if (ui.fullscreen) gtk_window_fullscreen(GTK_WINDOW(winMain));
-  else gtk_window_unfullscreen(GTK_WINDOW(winMain));
-  
-  update_vbox_order(ui.vertical_order[ui.fullscreen?1:0]);
+  do_fullscreen(active);
 }
 
 

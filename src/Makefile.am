@@ -1,5 +1,7 @@
 ## Process this file with automake to produce Makefile.in
 
+SUBDIRS = ttsubset
+
 INCLUDES = \
 	-DPACKAGE_DATA_DIR=\""$(datadir)"\" \
 	-DPACKAGE_LOCALE_DIR=\""$(prefix)/$(DATADIRNAME)/locale"\" \
@@ -18,5 +20,5 @@ xournal_SOURCES = \
 	xo-callbacks.c xo-callbacks.h \
 	xo-shapes.c xo-shapes.h
 
-xournal_LDADD = @PACKAGE_LIBS@ $(INTLLIBS)
+xournal_LDADD = ttsubset/libttsubset.a @PACKAGE_LIBS@ $(INTLLIBS)
 

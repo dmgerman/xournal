@@ -1330,6 +1330,11 @@ void init_config_default(void)
   PDFTOPPM_PRINTING_DPI = 150;
   
   ui.hiliter_opacity = 0.5;
+  
+#if GTK_CHECK_VERSION(2,10,0)
+  ui.print_settings = NULL;
+#endif
+  
 }
 
 #if GLIB_CHECK_VERSION(2,6,0)

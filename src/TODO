@@ -33,20 +33,25 @@ DONE: use poppler to render PDF backgrounds (after patches contributed
       by Mike Ter Louw and Bob McElrath)
 DONE: gettext internationalization (contributed by David Planella)
 DONE: Catalan translation (by David Planella); French translation
+DONE: fix unresponsiveness to button events in text edition box (GTK+ 2.17)
+      and segfaults when dragging text or using Layers combobox (GTK+ 2.17)
+DONE: Esc leaves text box if editing; and leaves fullscreen mode
+DONE: package our own copy of the ttsubset library (to remove a dependency
+      on libgnomeprint), and create TT subfonts in memory
+DONE: use gtk-print instead of libgnomeprint
 
-****** URGENT: gtkprint; new release by November end for Debian!
-  nb: libgnomeprint produces many warnings (spinbutton; gpa assertions)
-  nb: gtkprint includes sft.c or not?? see font generation...
+** update: include ttsubset/(Makefile.am, *.c, *.h, README) in cvs
+           also revised configure.in, src/Makefile.am
+           remove src/sft.h
 
-- get GTK+ 2.17 events while editing text to work.
 - prerelease: update help file (remove references to pdftoppm/libgnomeprint
-  to poppler/gtkprint
+  & update to poppler/gtkprint)
 - remove "antialias bg" flag, useless... see McElrath
 - PDF bg memory usage throttling / delete oldest pdf backgrounds
+- replace ttsubset by something more modern? (eg. from cairo ?)
 - fix fix_xinput_coords so it works ok without ENABLE_XINPUT_BUGFIX ?
    (with both old and new GTK+)
   (need to shift by (sx,sy), + shift between canvas->window vs canvas in 2.17)
-- Esc should leave text box if editing; and fullscreen if fullscreen?
 - color chooser button (patch tracker?)
 - option to have buttons *toggle* the tool rather than act as tool
    (ie button 2 causes button 1 to map to tool 2) [Dylan Thurston]
@@ -97,6 +102,8 @@ DONE: Catalan translation (by David Planella); French translation
 - navigation sidebar with bitmap page previews
 - bitmap preview for document icon in desktop environments?
 - "organizer" side panel (hierarchy of notes), cf. gjots
+- see iRex code for generic viewer + PDF plugin including caching,
+  throttling etc. (Marcel Hendrickx email of Sep 11 '09) 
 
 - allow toolbar to go vertical
 - toolbar buttons should react to button 2/3 click to modify settings

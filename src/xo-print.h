@@ -67,4 +67,6 @@ gboolean pdf_parse_info(GString *pdfbuf, struct PdfInfo *pdfinfo, struct XrefTab
 
 gboolean print_to_pdf(char *filename);
 
-void print_job_render(GnomePrintJob *gpj, int fromPage, int toPage);
+#if GTK_CHECK_VERSION(2, 10, 0)
+void print_job_render_page(GtkPrintOperation *print, GtkPrintContext *context, gint pageno, gpointer user_data);
+#endif

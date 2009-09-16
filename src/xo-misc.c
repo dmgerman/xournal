@@ -1970,12 +1970,33 @@ void hide_unimplemented(void)
   gtk_widget_hide(GET_COMPONENT("colorOther"));
   gtk_widget_hide(GET_COMPONENT("helpIndex")); 
 
-  /* config file only works with glib 2.6 */
+  /* config file only works with glib 2.6 and beyond */
   if (glib_minor_version<6) {
     gtk_widget_hide(GET_COMPONENT("optionsAutoSavePrefs"));
     gtk_widget_hide(GET_COMPONENT("optionsSavePreferences"));
   }
+  /* gtkprint only works with gtk+ 2.10 and beyond */
+  if (gtk_check_version(2, 10, 0)) {
+    gtk_widget_hide(GET_COMPONENT("filePrint"));
+  }  
 }  
+
+// toggle fullscreen mode
+void do_fullscreen(gboolean active)
+{
+  end_text();
+  reset_focus();
+  ui.fullscreen = active;
+  gtk_check_menu_item_set_active(
+    GTK_CHECK_MENU_ITEM(GET_COMPONENT("viewFullscreen")), ui.fullscreen);
+  gtk_toggle_tool_button_set_active(
+    GTK_TOGGLE_TOOL_BUTTON(GET_COMPONENT("buttonFullscreen")), ui.fullscreen);
+
+  if (ui.fullscreen) gtk_window_fullscreen(GTK_WINDOW(winMain));
+  else gtk_window_unfullscreen(GTK_WINDOW(winMain));
+  
+  update_vbox_order(ui.vertical_order[ui.fullscreen?1:0]);
+}
 
 /* attempt to work around GTK+ 2.16/2.17 bugs where random interface
    elements receive XInput events that they can't handle properly    */

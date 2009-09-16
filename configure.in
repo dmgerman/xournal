@@ -1,16 +1,17 @@
 dnl Process this file with autoconf to produce a configure script.
 
 AC_INIT(configure.in)
-AM_INIT_AUTOMAKE(xournal, 0.4.2.9)
+AM_INIT_AUTOMAKE(xournal, 0.4.3)
 AM_CONFIG_HEADER(config.h)
 AM_MAINTAINER_MODE
 
 AC_ISC_POSIX
 AC_PROG_CC
 AM_PROG_CC_STDC
+AC_PROG_RANLIB
 AC_HEADER_STDC
 
-pkg_modules="gtk+-2.0 >= 2.4.0 libgnomecanvas-2.0 >= 2.4.0 libgnomeprintui-2.2 >= 2.0.0 poppler-glib >= 0.6.1"
+pkg_modules="gtk+-2.0 >= 2.10.0 libgnomecanvas-2.0 >= 2.4.0 poppler-glib >= 0.6.1"
 PKG_CHECK_MODULES(PACKAGE, [$pkg_modules])
 AC_SUBST(PACKAGE_CFLAGS)
 AC_SUBST(PACKAGE_LIBS)
@@ -26,6 +27,7 @@ AM_GLIB_GNU_GETTEXT
 AC_OUTPUT([
 Makefile
 src/Makefile
+src/ttsubset/Makefile
 po/Makefile.in
 ])
 

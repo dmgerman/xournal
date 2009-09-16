@@ -6,17 +6,20 @@
 
 #include <gtk/gtk.h>
 #include <libgnomecanvas/libgnomecanvas.h>
-#include <libgnomeprint/gnome-print-job.h>
-#include <libgnomeprint/gnome-print-pango.h>
 #include <zlib.h>
 #include <string.h>
 #include <locale.h>
 #include <pango/pango.h>
 #include <pango/pangofc-font.h>
+#include <pango/pangoft2.h>
 #include <fontconfig/fontconfig.h>
 #include <ft2build.h>
 #include FT_FREETYPE_H
-#include "sft.h" /* Sun Font Tools, embedded in libgnomeprint */
+
+#define NO_MAPPERS
+#define NO_TYPE3
+#define NO_TYPE42
+#include "ttsubset/sft.h"
 
 #include "xournal.h"
 #include "xo-support.h"
@@ -840,7 +843,7 @@ void embed_pdffont(GString *pdfbuf, struct XrefTable *xref, struct PdfFont *font
   int i, j, num, len1, len2;
   gsize len;
   TrueTypeFont *ttfnt;
-  char *tmpfile, *seg1, *seg2;
+  char *seg1, *seg2;
   char *fontdata, *p;
   char prefix[8];
   int nobj_fontprog, nobj_descr, lastchar;
@@ -859,11 +862,8 @@ void embed_pdffont(GString *pdfbuf, struct XrefTable *xref, struct PdfFont *font
       }
     font->num_glyphs_used = num-1;
     if (OpenTTFont(font->filename, 0, &ttfnt) == SF_OK) {
-      tmpfile = mktemp(g_strdup(TMPDIR_TEMPLATE));
-      CreateTTFromTTGlyphs(ttfnt, tmpfile, glyphs, encoding, num, 
-                           0, NULL, TTCF_AutoName | TTCF_IncludeOS2);
-      CloseTTFont(ttfnt);
-      if (g_file_get_contents(tmpfile, &fontdata, &len, NULL) && len>=8) {
+      if (CreateTTFromTTGlyphs_tomemory(ttfnt, (guint8**)&fontdata, &len, glyphs, encoding, num, 
+                   0, NULL, TTCF_AutoName | TTCF_IncludeOS2) == SF_OK) {
         make_xref(xref, xref->last+1, pdfbuf->len);
         nobj_fontprog = xref->last;
         g_string_append_printf(pdfbuf, 
@@ -872,12 +872,11 @@ void embed_pdffont(GString *pdfbuf, struct XrefTable *xref, struct PdfFont *font
         g_string_append_len(pdfbuf, fontdata, len);
         g_string_append(pdfbuf, "endstream\nendobj\n");
         g_free(fontdata);
-      } 
+      }
       else fallback = TRUE;
-      unlink(tmpfile);
-      g_free(tmpfile);
-    }
-    else fallback = TRUE;  
+      CloseTTFont(ttfnt);
+    } 
+    else fallback = TRUE;
   } else {
   // embed the font file: Type1 case
     if (g_file_get_contents(font->filename, &fontdata, &len, NULL) && len>=8) {
@@ -1026,6 +1025,7 @@ void pdf_draw_page(struct Page *pg, GString *str, gboolean *use_hiliter,
   PangoRectangle logical_rect;
   PangoLayoutRun *run;
   PangoFcFont *fcfont;
+  PangoFontMap *fontmap;
   FcPattern *pattern;
   int baseline, advance;
   int glyph_no, glyph_page, current_page;
@@ -1080,8 +1080,11 @@ void pdf_draw_page(struct Page *pg, GString *str, gboolean *use_hiliter,
           g_string_append_printf(str, "%.2f %.2f %.2f rg ",
             RGBA_RGB(item->brush.color_rgba));
         old_text_rgba = item->brush.color_rgba & ~0xff;
-        context = gnome_print_pango_create_context(gnome_print_pango_get_default_font_map());
+        fontmap = pango_ft2_font_map_new();
+        pango_ft2_font_map_set_resolution(PANGO_FT2_FONT_MAP (fontmap), 72, 72);
+        context = pango_font_map_create_context(fontmap);
         layout = pango_layout_new(context);
+        g_object_unref(fontmap);
         g_object_unref(context);
         font_desc = pango_font_description_from_string(item->font_name);
         pango_font_description_set_absolute_size(font_desc,
@@ -1401,84 +1404,79 @@ gboolean print_to_pdf(char *filename)
   return TRUE;
 }
 
-/*********** Printing via libgnomeprint **********/
+/*********** Printing via gtk-print **********/
+
+#if GTK_CHECK_VERSION(2, 10, 0)
 
 // does the same job as update_canvas_bg(), but to a print context
 
-void print_background(GnomePrintContext *gpc, struct Page *pg, gboolean *abort)
+void print_background(cairo_t *cr, struct Page *pg)
 {
   double x, y;
   GdkPixbuf *pix;
   BgPdfPage *pgpdf;
   PopplerPage *pdfpage;
-  int width, height;
+  cairo_surface_t *cr_pixbuf;
   double pgwidth, pgheight;
 
   if (pg->bg->type == BG_SOLID) {
-    gnome_print_setopacity(gpc, 1.0);
-    gnome_print_setrgbcolor(gpc, RGBA_RGB(pg->bg->color_rgba));
-    gnome_print_rect_filled(gpc, 0, 0, pg->width, -pg->height);
-
+    cairo_set_source_rgb(cr, RGBA_RGB(pg->bg->color_rgba));
+    cairo_rectangle(cr, 0, 0, pg->width, pg->height);
+    cairo_fill(cr);
     if (!ui.print_ruling) return;
     if (pg->bg->ruling == RULING_NONE) return;
-    gnome_print_setrgbcolor(gpc, RGBA_RGB(RULING_COLOR));
-    gnome_print_setlinewidth(gpc, RULING_THICKNESS);
-    
+    cairo_set_source_rgb(cr, RGBA_RGB(RULING_COLOR));
+    cairo_set_line_width(cr, RULING_THICKNESS);
+
     if (pg->bg->ruling == RULING_GRAPH) {
       for (x=RULING_GRAPHSPACING; x<pg->width-1; x+=RULING_GRAPHSPACING)
-        gnome_print_line_stroked(gpc, x, 0, x, -pg->height);
+        { cairo_move_to(cr, x, 0); cairo_line_to(cr, x, pg->height); }
       for (y=RULING_GRAPHSPACING; y<pg->height-1; y+=RULING_GRAPHSPACING)
-        gnome_print_line_stroked(gpc, 0, -y, pg->width, -y);
+        { cairo_move_to(cr, 0, y); cairo_line_to(cr, pg->width, y); }
+      cairo_stroke(cr);
       return;
     }
     
     for (y=RULING_TOPMARGIN; y<pg->height-1; y+=RULING_SPACING)
-      gnome_print_line_stroked(gpc, 0, -y, pg->width, -y);
+      { cairo_move_to(cr, 0, y); cairo_line_to(cr, pg->width, y); }
+    cairo_stroke(cr);
     if (pg->bg->ruling == RULING_LINED) {
-      gnome_print_setrgbcolor(gpc, RGBA_RGB(RULING_MARGIN_COLOR));
-      gnome_print_line_stroked(gpc, RULING_LEFTMARGIN, 0, RULING_LEFTMARGIN, -pg->height);
+      cairo_set_source_rgb(cr, RGBA_RGB(RULING_MARGIN_COLOR));
+      cairo_move_to(cr, RULING_LEFTMARGIN, 0);
+      cairo_line_to(cr, RULING_LEFTMARGIN, pg->height);
+      cairo_stroke(cr);
     }
     return;
   }
+  else
+  if (pg->bg->type == BG_PDF) {
+    if (!bgpdf.document) return;
+    pdfpage = poppler_document_get_page(bgpdf.document, pg->bg->file_page_seq-1);
+    if (!pdfpage) return;
+    poppler_page_get_size(pdfpage, &pgwidth, &pgheight);
+    cairo_save(cr);
+    cairo_scale(cr, pg->width/pgwidth, pg->height/pgheight);
+    poppler_page_render(pdfpage, cr);
+    cairo_restore(cr);
+    g_object_unref(pdfpage);
+  }
   else 
-  if (pg->bg->type == BG_PIXMAP || pg->bg->type == BG_PDF) {
-    if (pg->bg->type == BG_PDF) {
-      if (!bgpdf.document) return;
-      pdfpage = poppler_document_get_page(bgpdf.document, pg->bg->file_page_seq-1);
-      if (!pdfpage) return;
-      poppler_page_get_size(pdfpage, &pgwidth, &pgheight);
-      width = (int) (PDFTOPPM_PRINTING_DPI * pgwidth/72.0);
-      height = (int) (PDFTOPPM_PRINTING_DPI * pgheight/72.0);
-      pix = gdk_pixbuf_new(GDK_COLORSPACE_RGB, FALSE, 8, width, height);
-      poppler_page_render_to_pixbuf(
-         pdfpage, 0, 0, width, height, PDFTOPPM_PRINTING_DPI/72.0, 0, pix);
-      g_object_unref(pdfpage);
-    }
-    else pix = g_object_ref(pg->bg->pixbuf);
-
-    if (gdk_pixbuf_get_bits_per_sample(pix) != 8 ||
-        gdk_pixbuf_get_colorspace(pix) != GDK_COLORSPACE_RGB)
-      { g_object_unref(pix); return; }
-    gnome_print_gsave(gpc);
-    gnome_print_scale(gpc, pg->width, pg->height);
-    gnome_print_translate(gpc, 0., -1.);
-    if (gdk_pixbuf_get_n_channels(pix) == 3)
-       gnome_print_rgbimage(gpc, gdk_pixbuf_get_pixels(pix),
-         gdk_pixbuf_get_width(pix), gdk_pixbuf_get_height(pix), gdk_pixbuf_get_rowstride(pix));
-    else if (gdk_pixbuf_get_n_channels(pix) == 4)
-       gnome_print_rgbaimage(gpc, gdk_pixbuf_get_pixels(pix),
-         gdk_pixbuf_get_width(pix), gdk_pixbuf_get_height(pix), gdk_pixbuf_get_rowstride(pix));
-    g_object_unref(pix);
-    gnome_print_grestore(gpc);
-    return;
+  if (pg->bg->type == BG_PIXMAP) {
+    cairo_save(cr);
+    cairo_scale(cr, pg->width/gdk_pixbuf_get_width(pg->bg->pixbuf),
+                    pg->height/gdk_pixbuf_get_height(pg->bg->pixbuf));
+    gdk_cairo_set_source_pixbuf(cr, pg->bg->pixbuf, 0, 0);
+    cairo_rectangle(cr, 0, 0, gdk_pixbuf_get_width(pg->bg->pixbuf), gdk_pixbuf_get_height(pg->bg->pixbuf));
+    cairo_fill(cr);
+    cairo_restore(cr);
   }
 }
 
-void print_page(GnomePrintContext *gpc, struct Page *pg, int pageno,
-                double pgwidth, double pgheight, gboolean *abort)
+void print_job_render_page(GtkPrintOperation *print, GtkPrintContext *context, gint pageno, gpointer user_data)
 {
-  char tmp[10];
-  gdouble scale;
+  cairo_t *cr;
+  gdouble width, height, scale;
+  struct Page *pg;
   guint old_rgba;
   double old_thickness;
   GList *layerlist, *itemlist;
@@ -1488,128 +1486,69 @@ void print_page(GnomePrintContext *gpc, struct Page *pg, int pageno,
   double *pt;
   PangoFontDescription *font_desc;
   PangoLayout *layout;
+        
+  pg = (struct Page *)g_list_nth_data(journal.pages, pageno);
+  cr = gtk_print_context_get_cairo_context(context);
+  width = gtk_print_context_get_width(context);
+  height = gtk_print_context_get_height(context);
+  scale = MIN(width/pg->width, height/pg->height);
   
-  if (pg==NULL) return;
+  cairo_translate(cr, (width-scale*pg->width)/2, (height-scale*pg->height)/2);
+  cairo_scale(cr, scale, scale);
+  cairo_set_line_join(cr, CAIRO_LINE_JOIN_ROUND);
+  cairo_set_line_cap(cr, CAIRO_LINE_CAP_ROUND);
   
-  g_snprintf(tmp, 10, _("Page %d"), pageno);
-  gnome_print_beginpage(gpc, (guchar *)tmp);
-  gnome_print_gsave(gpc);
-  
-  scale = MIN(pgwidth/pg->width, pgheight/pg->height)*0.95;
-  gnome_print_translate(gpc,
-     (pgwidth - scale*pg->width)/2, (pgheight + scale*pg->height)/2);
-  gnome_print_scale(gpc, scale, scale);
-  gnome_print_setlinejoin(gpc, 1); // round
-  gnome_print_setlinecap(gpc, 1); // round
+  print_background(cr, pg);
 
-  print_background(gpc, pg, abort);
-
-  old_rgba = 0x12345678;    // not any values we use, so we'll reset them
+  old_rgba = predef_colors_rgba[COLOR_BLACK];
+  cairo_set_source_rgb(cr, 0, 0, 0);
   old_thickness = 0.0;
 
   for (layerlist = pg->layers; layerlist!=NULL; layerlist = layerlist->next) {
-    if (*abort) break;
     l = (struct Layer *)layerlist->data;
     for (itemlist = l->items; itemlist!=NULL; itemlist = itemlist->next) {
-      if (*abort) break;
       item = (struct Item *)itemlist->data;
       if (item->type == ITEM_STROKE || item->type == ITEM_TEXT) {
-        if ((item->brush.color_rgba & ~0xff) != (old_rgba & ~0xff))
-          gnome_print_setrgbcolor(gpc, RGBA_RGB(item->brush.color_rgba));
-        if ((item->brush.color_rgba & 0xff) != (old_rgba & 0xff))
-          gnome_print_setopacity(gpc, RGBA_ALPHA(item->brush.color_rgba));
+        if (item->brush.color_rgba != old_rgba)
+          cairo_set_source_rgba(cr, RGBA_RGB(item->brush.color_rgba),
+                                    RGBA_ALPHA(item->brush.color_rgba));
         old_rgba = item->brush.color_rgba;
       }
       if (item->type == ITEM_STROKE) {    
         if (item->brush.thickness != old_thickness)
-          gnome_print_setlinewidth(gpc, item->brush.thickness);
-        gnome_print_newpath(gpc);
+          cairo_set_line_width(cr, item->brush.thickness);
         pt = item->path->coords;
         if (!item->brush.variable_width) {
-          gnome_print_moveto(gpc, pt[0], -pt[1]);
+          cairo_move_to(cr, pt[0], pt[1]);
           for (i=1, pt+=2; i<item->path->num_points; i++, pt+=2)
-            gnome_print_lineto(gpc, pt[0], -pt[1]);
-          gnome_print_stroke(gpc);
+            cairo_line_to(cr, pt[0], pt[1]);
+          cairo_stroke(cr);
           old_thickness = item->brush.thickness;
         } else {
           for (i=0; i<item->path->num_points-1; i++, pt+=2) {
-            gnome_print_moveto(gpc, pt[0], -pt[1]);
-            gnome_print_setlinewidth(gpc, item->widths[i]);
-            gnome_print_lineto(gpc, pt[2], -pt[3]);
-            gnome_print_stroke(gpc);
+            cairo_move_to(cr, pt[0], pt[1]);
+            cairo_set_line_width(cr, item->widths[i]);
+            cairo_line_to(cr, pt[2], pt[3]);
+            cairo_stroke(cr);
           }
           old_thickness = 0.0;
         }
       }
       if (item->type == ITEM_TEXT) {
-        layout = gnome_print_pango_create_layout(gpc);
+        layout = gtk_print_context_create_pango_layout(context);
         font_desc = pango_font_description_from_string(item->font_name);
-        pango_font_description_set_absolute_size(font_desc,
-          item->font_size*PANGO_SCALE);
+        if (item->font_size)
+          pango_font_description_set_absolute_size(font_desc,
+            item->font_size*PANGO_SCALE);
         pango_layout_set_font_description(layout, font_desc);
         pango_font_description_free(font_desc);
         pango_layout_set_text(layout, item->text, -1);
-        gnome_print_moveto(gpc, item->bbox.left, -item->bbox.top);
-        gnome_print_pango_layout(gpc, layout);
+        cairo_move_to(cr, item->bbox.left, item->bbox.top);
+        pango_cairo_show_layout(cr, layout);
         g_object_unref(layout);
       }
     }
   }
-  
-  gnome_print_grestore(gpc);
-  gnome_print_showpage(gpc);
 }
 
-void cb_print_abort(GtkDialog *dialog, gint response, gboolean *abort)
-{
-  *abort = TRUE;
-}
-
-void print_job_render(GnomePrintJob *gpj, int fromPage, int toPage)
-{
-  GnomePrintConfig *config;
-  GnomePrintContext *gpc;
-  GtkWidget *wait_dialog;
-  double pgwidth, pgheight;
-  int i;
-  gboolean abort;
-  
-  config = gnome_print_job_get_config(gpj);
-  gnome_print_config_get_page_size(config, &pgwidth, &pgheight);
-  g_object_unref(G_OBJECT(config));
-
-  gpc = gnome_print_job_get_context(gpj);
-
-  abort = FALSE;
-  wait_dialog = gtk_message_dialog_new(GTK_WINDOW(winMain), GTK_DIALOG_MODAL,
-     GTK_MESSAGE_INFO, GTK_BUTTONS_CANCEL, _("Preparing print job"));
-  gtk_widget_show(wait_dialog);
-  g_signal_connect(wait_dialog, "response", G_CALLBACK (cb_print_abort), &abort);
-  
-  for (i = fromPage; i <= toPage; i++) {
-#if GTK_CHECK_VERSION(2,6,0)
-    if (!gtk_check_version(2, 6, 0))
-      gtk_message_dialog_format_secondary_text(
-             GTK_MESSAGE_DIALOG(wait_dialog), _("Page %d"), i+1); 
 #endif
-    while (gtk_events_pending()) gtk_main_iteration();
-    print_page(gpc, (struct Page *)g_list_nth_data(journal.pages, i), i+1,
-                                             pgwidth, pgheight, &abort);
-    if (abort) break;
-  }
-#if GTK_CHECK_VERSION(2,6,0)
-  if (!gtk_check_version(2, 6, 0))
-    gtk_message_dialog_format_secondary_text(
-              GTK_MESSAGE_DIALOG(wait_dialog), _("Finalizing..."));
-#endif
-  while (gtk_events_pending()) gtk_main_iteration();
-
-  gnome_print_context_close(gpc);  
-  g_object_unref(G_OBJECT(gpc));  
-
-  gnome_print_job_close(gpj);
-  if (!abort) gnome_print_job_print(gpj);
-  g_object_unref(G_OBJECT(gpj));
-
-  gtk_widget_destroy(wait_dialog);
-}
