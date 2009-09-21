@@ -241,8 +241,8 @@ create_winMain (void)
   GtkWidget *button3LinkBrush;
   GtkWidget *button3CopyBrush;
   GtkWidget *button3NABrush;
+  GtkWidget *optionsButtonSwitchMapping;
   GtkWidget *separator18;
-  GtkWidget *optionsAntialiasBG;
   GtkWidget *optionsProgressiveBG;
   GtkWidget *optionsPrintRuling;
   GtkWidget *optionsLeftHanded;
@@ -323,6 +323,8 @@ create_winMain (void)
   GtkWidget *buttonYellow;
   GtkWidget *buttonWhite;
   GtkWidget *buttonColorOther;
+  GtkWidget *toolitem22;
+  GtkWidget *buttonColorChooser;
   GtkWidget *toolitem21;
   GtkWidget *vseparator10;
   GtkWidget *toolitem20;
@@ -1022,11 +1024,9 @@ create_winMain (void)
   gtk_container_add (GTK_CONTAINER (toolsColor_menu), colorWhite);
   gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (colorWhite), TRUE);
 
-  colorOther = gtk_radio_menu_item_new_with_mnemonic (colorBlack_group, _("other..."));
-  colorBlack_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (colorOther));
+  colorOther = gtk_menu_item_new_with_mnemonic (_("other..."));
   gtk_widget_show (colorOther);
   gtk_container_add (GTK_CONTAINER (toolsColor_menu), colorOther);
-  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (colorOther), TRUE);
 
   colorNA = gtk_radio_menu_item_new_with_mnemonic (colorBlack_group, _("NA"));
   colorBlack_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (colorNA));
@@ -1354,14 +1354,14 @@ create_winMain (void)
   gtk_container_add (GTK_CONTAINER (button3_mapping_menu), button3NABrush);
   gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (button3NABrush), TRUE);
 
+  optionsButtonSwitchMapping = gtk_check_menu_item_new_with_mnemonic (_("Buttons Switch Mappings"));
+  gtk_widget_show (optionsButtonSwitchMapping);
+  gtk_container_add (GTK_CONTAINER (menuOptions_menu), optionsButtonSwitchMapping);
+
   separator18 = gtk_separator_menu_item_new ();
   gtk_widget_show (separator18);
   gtk_container_add (GTK_CONTAINER (menuOptions_menu), separator18);
   gtk_widget_set_sensitive (separator18, FALSE);
-
-  optionsAntialiasBG = gtk_check_menu_item_new_with_mnemonic (_("_Antialiased Bitmaps"));
-  gtk_widget_show (optionsAntialiasBG);
-  gtk_container_add (GTK_CONTAINER (menuOptions_menu), optionsAntialiasBG);
 
   optionsProgressiveBG = gtk_check_menu_item_new_with_mnemonic (_("_Progressive Backgrounds"));
   gtk_widget_show (optionsProgressiveBG);
@@ -1881,6 +1881,17 @@ create_winMain (void)
   gtk_radio_tool_button_set_group (GTK_RADIO_TOOL_BUTTON (buttonColorOther), buttonBlack_group);
   buttonBlack_group = gtk_radio_tool_button_get_group (GTK_RADIO_TOOL_BUTTON (buttonColorOther));
 
+  toolitem22 = (GtkWidget*) gtk_tool_item_new ();
+  gtk_widget_show (toolitem22);
+  gtk_container_add (GTK_CONTAINER (toolbarPen), toolitem22);
+
+  buttonColorChooser = gtk_color_button_new ();
+  gtk_widget_show (buttonColorChooser);
+  gtk_container_add (GTK_CONTAINER (toolitem22), buttonColorChooser);
+  gtk_widget_set_size_request (buttonColorChooser, 34, 32);
+  gtk_container_set_border_width (GTK_CONTAINER (buttonColorChooser), 2);
+  GTK_WIDGET_UNSET_FLAGS (buttonColorChooser, GTK_CAN_FOCUS);
+
   toolitem21 = (GtkWidget*) gtk_tool_item_new ();
   gtk_widget_show (toolitem21);
   gtk_container_add (GTK_CONTAINER (toolbarPen), toolitem21);
@@ -2189,7 +2200,7 @@ create_winMain (void)
   g_signal_connect ((gpointer) colorWhite, "toggled",
                     G_CALLBACK (on_colorWhite_activate),
                     NULL);
-  g_signal_connect ((gpointer) colorOther, "toggled",
+  g_signal_connect ((gpointer) colorOther, "activate",
                     G_CALLBACK (on_colorOther_activate),
                     NULL);
   g_signal_connect ((gpointer) penthicknessVeryFine, "toggled",
@@ -2324,8 +2335,8 @@ create_winMain (void)
   g_signal_connect ((gpointer) button3CopyBrush, "activate",
                     G_CALLBACK (on_button3CopyBrush_activate),
                     NULL);
-  g_signal_connect ((gpointer) optionsAntialiasBG, "activate",
-                    G_CALLBACK (on_optionsAntialiasBG_activate),
+  g_signal_connect ((gpointer) optionsButtonSwitchMapping, "toggled",
+                    G_CALLBACK (on_optionsButtonsSwitchMappings_activate),
                     NULL);
   g_signal_connect ((gpointer) optionsProgressiveBG, "activate",
                     G_CALLBACK (on_optionsProgressiveBG_activate),
@@ -2482,6 +2493,9 @@ create_winMain (void)
                     NULL);
   g_signal_connect ((gpointer) buttonWhite, "toggled",
                     G_CALLBACK (on_colorWhite_activate),
+                    NULL);
+  g_signal_connect ((gpointer) buttonColorChooser, "color_set",
+                    G_CALLBACK (on_buttonColorChooser_set),
                     NULL);
   g_signal_connect ((gpointer) fontButton, "font_set",
                     G_CALLBACK (on_fontButton_font_set),
@@ -2693,8 +2707,8 @@ create_winMain (void)
   GLADE_HOOKUP_OBJECT (winMain, button3LinkBrush, "button3LinkBrush");
   GLADE_HOOKUP_OBJECT (winMain, button3CopyBrush, "button3CopyBrush");
   GLADE_HOOKUP_OBJECT (winMain, button3NABrush, "button3NABrush");
+  GLADE_HOOKUP_OBJECT (winMain, optionsButtonSwitchMapping, "optionsButtonSwitchMapping");
   GLADE_HOOKUP_OBJECT (winMain, separator18, "separator18");
-  GLADE_HOOKUP_OBJECT (winMain, optionsAntialiasBG, "optionsAntialiasBG");
   GLADE_HOOKUP_OBJECT (winMain, optionsProgressiveBG, "optionsProgressiveBG");
   GLADE_HOOKUP_OBJECT (winMain, optionsPrintRuling, "optionsPrintRuling");
   GLADE_HOOKUP_OBJECT (winMain, optionsLeftHanded, "optionsLeftHanded");
@@ -2770,6 +2784,8 @@ create_winMain (void)
   GLADE_HOOKUP_OBJECT (winMain, buttonYellow, "buttonYellow");
   GLADE_HOOKUP_OBJECT (winMain, buttonWhite, "buttonWhite");
   GLADE_HOOKUP_OBJECT (winMain, buttonColorOther, "buttonColorOther");
+  GLADE_HOOKUP_OBJECT (winMain, toolitem22, "toolitem22");
+  GLADE_HOOKUP_OBJECT (winMain, buttonColorChooser, "buttonColorChooser");
   GLADE_HOOKUP_OBJECT (winMain, toolitem21, "toolitem21");
   GLADE_HOOKUP_OBJECT (winMain, vseparator10, "vseparator10");
   GLADE_HOOKUP_OBJECT (winMain, toolitem20, "toolitem20");

@@ -477,13 +477,8 @@ on_optionsButtonMappings_activate      (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
 
 void
-on_optionsAntialiasBG_activate         (GtkMenuItem     *menuitem,
-                                        gpointer         user_data);
-
-void
 on_optionsProgressiveBG_activate       (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
-
 
 void
 on_mru_activate                        (GtkMenuItem     *menuitem,
@@ -628,4 +623,12 @@ on_toolsReco_activate                  (GtkMenuItem     *menuitem,
 
 void
 on_optionsPressureSensitive_activate   (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_buttonColorChooser_set              (GtkColorButton  *colorbutton,
+                                        gpointer         user_data);
+
+void
+on_optionsButtonsSwitchMappings_activate(GtkMenuItem    *menuitem,
                                         gpointer         user_data);

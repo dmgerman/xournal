@@ -220,6 +220,7 @@ typedef struct UIData {
   struct Brush default_brushes[NUM_STROKE_TOOLS]; // the default ones
   int linked_brush[NUM_BUTTONS+1]; // whether brushes are linked across buttons
   int cur_mapping; // the current button number for mappings
+  gboolean button_switch_mapping; // button clicks switch button 1 mappings
   gboolean use_erasertip;
   int which_mouse_button; // the mouse button drawing the current path
   struct Page default_page;  // the model for the default page
@@ -247,8 +248,7 @@ typedef struct UIData {
   gboolean in_update_page_stuff; // semaphore to avoid scrollbar retroaction
   struct Selection *selection;
   GdkCursor *cursor;
-  gboolean antialias_bg; // bilinear interpolation on bg pixmaps
-  gboolean progressive_bg; // rescale bg's one at a time
+  gboolean progressive_bg; // update PDF bg's one at a time
   char *mrufile, *configfile; // file names for MRU & config
   char *mru[MRU_SIZE]; // MRU data
   GtkWidget *mrumenu[MRU_SIZE];

@@ -39,24 +39,26 @@ DONE: Esc leaves text box if editing; and leaves fullscreen mode
 DONE: package our own copy of the ttsubset library (to remove a dependency
       on libgnomeprint), and create TT subfonts in memory
 DONE: use gtk-print instead of libgnomeprint
+DONE: remove deprecated "antialias bg" option
+DONE: fix fix_xinput_coords so it works ok without ENABLE_XINPUT_BUGFIX ?
+DONE: disable ctrl-left/right accelerators during text edition
+DONE: custom color chooser button (after a patch contributed by Alex Ray)
+DONE: remember last used directory (after a patch contributed by Lu Zhihe)
+DONE: discard Alt-click and Control-click events
 
-** update: include ttsubset/(Makefile.am, *.c, *.h, README) in cvs
-           also revised configure.in, src/Makefile.am
-           remove src/sft.h
+(go through Patches tracker and take the good stuff... now at 2009-05-09)
 
+** option to have buttons *toggle* the tool rather than act as tool
+   (ie button 2 causes button 1 to map to tool 2) [Dylan Thurston]
+
+- paper color chooser (see tracker 2083103)
 - prerelease: update help file (remove references to pdftoppm/libgnomeprint
   & update to poppler/gtkprint)
-- remove "antialias bg" flag, useless... see McElrath
+- document config options into manual file?
 - PDF bg memory usage throttling / delete oldest pdf backgrounds
 - replace ttsubset by something more modern? (eg. from cairo ?)
-- fix fix_xinput_coords so it works ok without ENABLE_XINPUT_BUGFIX ?
-   (with both old and new GTK+)
-  (need to shift by (sx,sy), + shift between canvas->window vs canvas in 2.17)
-- color chooser button (patch tracker?)
-- option to have buttons *toggle* the tool rather than act as tool
-   (ie button 2 causes button 1 to map to tool 2) [Dylan Thurston]
-** auto-hide patch from ~/prog/src/xournal-autohide/ ?
-     (check for cpu usage, add flag if need be; handle BOTH edges
+- auto-hide patch from ~/prog/src/xournal-autohide/ ?
+     (check for cpu usage; handle BOTH edges
       and only (un)hide stuff at the correct edge!)
 ** if bg pdf not found in absolute path, look in path of xoj file before
    prompting user.
@@ -67,7 +69,6 @@ DONE: use gtk-print instead of libgnomeprint
 ** UI update (Bob McElrath) -- eliminating status bar, compact layout,
    "compact interface" by default; themes, with line in config file
    to load pixmaps from pixmaps/$THEME/ (see Jan 9, 2009 emails)
-** antialias BG pixmaps doesn't do anything anymore? 
 ** autosave patch (Edward Yang) (fix: optional only, w/ menu + cfgfile
    entries; fix: should clean up autosave.xoj.bg* files too; config interval)
 - patch (ikim@physics.wisc.edu): multicolumn mode + LASSO SELECTION
@@ -121,9 +122,7 @@ DONE: use gtk-print instead of libgnomeprint
 
 - smoothing of strokes (for users without tablets / with deficient drivers)
 - lasso tool
-- load PDF pages only on demand (create empty pixmaps at first if can
-   parse PDF geometry ourselves, else try pdfinfo ??)
-   (and config option to limit total memory usage for PDF bitmaps)
+- add config option to limit total memory usage for PDF bitmaps
 - ability to select entire page for copy-paste (as bitmap / reorder xournal)
 - copy/paste of an entire page (beware if PDF bg is not compatible!)
 - rewrite printing using GtkPrint + Cairo as GnomePrint replacement

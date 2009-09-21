@@ -34,6 +34,7 @@ gboolean have_intersect(struct BBox *a, struct BBox *b);
 void lower_canvas_item_to(GnomeCanvasGroup *g, GnomeCanvasItem *item, GnomeCanvasItem *after);
 
 void rgb_to_gdkcolor(guint rgba, GdkColor *color);
+guint32 gdkcolor_to_rgba(GdkColor gdkcolor, guint16 alpha);
 
 // interface misc functions
 
@@ -60,9 +61,9 @@ void update_font_button(void);
 
 void update_mapping_linkings(int toolno);
 void do_switch_page(int pg, gboolean rescroll, gboolean refresh_all);
-void set_cur_color(int color);
+void set_cur_color(int color_no, guint color_rgba);
 void recolor_temp_text(int color_no, guint color_rgba);
-void process_color_activate(GtkMenuItem *menuitem, int color);
+void process_color_activate(GtkMenuItem *menuitem, int color_no, guint color_rgba);
 void process_thickness_activate(GtkMenuItem *menuitem, int tool, int val);
 void process_papercolor_activate(GtkMenuItem *menuitem, int color);
 void process_paperstyle_activate(GtkMenuItem *menuitem, int style);
@@ -100,6 +101,8 @@ void do_fullscreen(gboolean active);
 gboolean filter_extended_events(GtkWidget *widget, GdkEvent *event, gpointer user_data);
 // gboolean fix_extended_events(GtkWidget *widget, GdkEvent *event, gpointer user_data);
 gboolean combobox_popup_disable_xinput(GtkWidget *widget, GdkEvent *event, gpointer user_data);
+
+
 
 // defines for paper rulings
 

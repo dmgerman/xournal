@@ -1086,7 +1086,7 @@ void clipboard_paste(void)
 
 // modify the color or thickness of pen strokes in a selection
 
-void recolor_selection(int color)
+void recolor_selection(int color_no, guint color_rgba)
 {
   GList *itemlist;
   struct Item *item;
@@ -1108,8 +1108,8 @@ void recolor_selection(int color)
     g_memmove(brush, &(item->brush), sizeof(struct Brush));
     undo->auxlist = g_list_append(undo->auxlist, brush);
     // repaint the stroke
-    item->brush.color_no = color;
-    item->brush.color_rgba = predef_colors_rgba[color];
+    item->brush.color_no = color_no;
+    item->brush.color_rgba = color_rgba;
     if (item->canvas_item!=NULL) {
       if (!item->brush.variable_width)
         gnome_canvas_item_set(item->canvas_item, 

@@ -1226,13 +1226,11 @@
 			  </child>
 
 			  <child>
-			    <widget class="GtkRadioMenuItem" id="colorOther">
+			    <widget class="GtkMenuItem" id="colorOther">
 			      <property name="visible">True</property>
 			      <property name="label" translatable="yes">other...</property>
 			      <property name="use_underline">True</property>
-			      <property name="active">True</property>
-			      <property name="group">colorBlack</property>
-			      <signal name="toggled" handler="on_colorOther_activate" last_modification_time="Thu, 01 Dec 2005 21:56:57 GMT"/>
+			      <signal name="activate" handler="on_colorOther_activate" last_modification_time="Thu, 01 Dec 2005 21:56:57 GMT"/>
 			    </widget>
 			  </child>
 
@@ -1842,19 +1840,19 @@
 		    </widget>
 		  </child>
 
-		  <child>
-		    <widget class="GtkSeparatorMenuItem" id="separator18">
+                  <child>
+		    <widget class="GtkCheckMenuItem" id="optionsButtonSwitchMapping">
 		      <property name="visible">True</property>
+		      <property name="label" translatable="yes">Buttons Switch Mappings</property>
+		      <property name="use_underline">True</property>
+		      <property name="active">False</property>
+		      <signal name="toggled" handler="on_optionsButtonsSwitchMappings_activate" last_modification_time="Sun, 20 Sep 2009 22:54:39 GMT"/>
 		    </widget>
 		  </child>
 
 		  <child>
-		    <widget class="GtkCheckMenuItem" id="optionsAntialiasBG">
+		    <widget class="GtkSeparatorMenuItem" id="separator18">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">_Antialiased Bitmaps</property>
-		      <property name="use_underline">True</property>
-		      <property name="active">False</property>
-		      <signal name="activate" handler="on_optionsAntialiasBG_activate" last_modification_time="Thu, 26 Jan 2006 03:42:27 GMT"/>
 		    </widget>
 		  </child>
 
@@ -2973,6 +2971,31 @@
 	    <packing>
 	      <property name="expand">False</property>
 	      <property name="homogeneous">True</property>
+	    </packing>
+	  </child>
+
+	  <child>
+	    <widget class="GtkToolItem" id="toolitem22">
+	      <property name="visible">True</property>
+	      <property name="visible_horizontal">True</property>
+	      <property name="visible_vertical">True</property>
+	      <property name="is_important">False</property>
+
+	      <child>
+		<widget class="GtkColorButton" id="buttonColorChooser">
+		  <property name="border_width">2</property>
+		  <property name="width_request">34</property>
+		  <property name="height_request">32</property>
+		  <property name="visible">True</property>
+		  <property name="use_alpha">False</property>
+		  <property name="focus_on_click">True</property>
+		  <signal name="color_set" handler="on_buttonColorChooser_set" last_modification_time="Wed, 16 Sep 2009 23:45:14 GMT"/>
+		</widget>
+	      </child>
+	    </widget>
+	    <packing>
+	      <property name="expand">False</property>
+	      <property name="homogeneous">False</property>
 	    </packing>
 	  </child>
 

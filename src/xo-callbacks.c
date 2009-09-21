@@ -1654,14 +1654,15 @@ on_toolsPen_activate                   (GtkMenuItem     *menuitem,
       return;
   }
   
-  if (ui.cur_mapping != 0) return;
-  if (ui.toolno[0] == TOOL_PEN) return;
+  if (ui.cur_mapping != 0 && !ui.button_switch_mapping) return; // not user-generated
+  if (ui.toolno[ui.cur_mapping] == TOOL_PEN) return;
 
+  ui.cur_mapping = 0; // don't use switch_mapping() (refreshes buttons too soon)
   end_text();
   reset_focus();
   reset_selection();
-  ui.toolno[0] = TOOL_PEN;
-  ui.cur_brush = &(ui.brushes[0][TOOL_PEN]);
+  ui.toolno[ui.cur_mapping] = TOOL_PEN;
+  ui.cur_brush = &(ui.brushes[ui.cur_mapping][TOOL_PEN]);
   ui.cur_brush->ruler = ui.default_brushes[TOOL_PEN].ruler;
   ui.cur_brush->recognizer = ui.default_brushes[TOOL_PEN].recognizer;
   update_mapping_linkings(TOOL_PEN);
@@ -1684,14 +1685,15 @@ on_toolsEraser_activate                (GtkMenuItem     *menuitem,
       return;
   }
   
-  if (ui.cur_mapping != 0) return;
-  if (ui.toolno[0] == TOOL_ERASER) return;
+  if (ui.cur_mapping != 0 && !ui.button_switch_mapping) return; // not user-generated
+  if (ui.toolno[ui.cur_mapping] == TOOL_ERASER) return;
   
+  ui.cur_mapping = 0; // don't use switch_mapping() (refreshes buttons too soon)
   end_text();
   reset_focus();
   reset_selection();
-  ui.toolno[0] = TOOL_ERASER;
-  ui.cur_brush = &(ui.brushes[0][TOOL_ERASER]);
+  ui.toolno[ui.cur_mapping] = TOOL_ERASER;
+  ui.cur_brush = &(ui.brushes[ui.cur_mapping][TOOL_ERASER]);
   update_mapping_linkings(TOOL_ERASER);
   update_tool_buttons();
   update_tool_menu();
@@ -1712,14 +1714,15 @@ on_toolsHighlighter_activate           (GtkMenuItem     *menuitem,
       return;
   }
   
-  if (ui.cur_mapping != 0) return; // not user-generated
-  if (ui.toolno[0] == TOOL_HIGHLIGHTER) return;
+  if (ui.cur_mapping != 0 && !ui.button_switch_mapping) return; // not user-generated
+  if (ui.toolno[ui.cur_mapping] == TOOL_HIGHLIGHTER) return;
   
+  ui.cur_mapping = 0; // don't use switch_mapping() (refreshes buttons too soon)
   end_text();
   reset_focus();
   reset_selection();
-  ui.toolno[0] = TOOL_HIGHLIGHTER;
-  ui.cur_brush = &(ui.brushes[0][TOOL_HIGHLIGHTER]);
+  ui.toolno[ui.cur_mapping] = TOOL_HIGHLIGHTER;
+  ui.cur_brush = &(ui.brushes[ui.cur_mapping][TOOL_HIGHLIGHTER]);
   ui.cur_brush->ruler = ui.default_brushes[TOOL_HIGHLIGHTER].ruler;
   ui.cur_brush->recognizer = ui.default_brushes[TOOL_HIGHLIGHTER].recognizer;
   update_mapping_linkings(TOOL_HIGHLIGHTER);
@@ -1742,13 +1745,14 @@ on_toolsText_activate                  (GtkMenuItem     *menuitem,
       return;
   }
   
-  if (ui.cur_mapping != 0) return; // not user-generated
-  if (ui.toolno[0] == TOOL_TEXT) return;
+  if (ui.cur_mapping != 0 && !ui.button_switch_mapping) return; // not user-generated
+  if (ui.toolno[ui.cur_mapping] == TOOL_TEXT) return;
   
+  ui.cur_mapping = 0; // don't use switch_mapping() (refreshes buttons too soon)
   reset_focus();
   reset_selection();
-  ui.toolno[0] = TOOL_TEXT;
-  ui.cur_brush = &(ui.brushes[0][TOOL_PEN]);
+  ui.toolno[ui.cur_mapping] = TOOL_TEXT;
+  ui.cur_brush = &(ui.brushes[ui.cur_mapping][TOOL_PEN]);
   update_mapping_linkings(-1);
   update_tool_buttons();
   update_tool_menu();
@@ -1777,12 +1781,13 @@ on_toolsSelectRectangle_activate       (GtkMenuItem     *menuitem,
       return;
   }
   
-  if (ui.cur_mapping != 0) return; // not user-generated
-  if (ui.toolno[0] == TOOL_SELECTRECT) return;
+  if (ui.cur_mapping != 0 && !ui.button_switch_mapping) return; // not user-generated
+  if (ui.toolno[ui.cur_mapping] == TOOL_SELECTRECT) return;
   
+  ui.cur_mapping = 0; // don't use switch_mapping() (refreshes buttons too soon)
   end_text();
   reset_focus();
-  ui.toolno[0] = TOOL_SELECTRECT;
+  ui.toolno[ui.cur_mapping] = TOOL_SELECTRECT;
   update_mapping_linkings(-1);
   update_tool_buttons();
   update_tool_menu();
@@ -1803,13 +1808,14 @@ on_toolsVerticalSpace_activate         (GtkMenuItem     *menuitem,
       return;
   }
   
-  if (ui.cur_mapping != 0) return; // not user-generated
-  if (ui.toolno[0] == TOOL_VERTSPACE) return;
+  if (ui.cur_mapping != 0 && !ui.button_switch_mapping) return; // not user-generated
+  if (ui.toolno[ui.cur_mapping] == TOOL_VERTSPACE) return;
   
+  ui.cur_mapping = 0; // don't use switch_mapping() (refreshes buttons too soon)
   end_text();
   reset_focus();
   reset_selection();
-  ui.toolno[0] = TOOL_VERTSPACE;
+  ui.toolno[ui.cur_mapping] = TOOL_VERTSPACE;
   update_mapping_linkings(-1);
   update_tool_buttons();
   update_tool_menu();
@@ -1822,7 +1828,7 @@ void
 on_colorBlack_activate                 (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  process_color_activate(menuitem, COLOR_BLACK);
+  process_color_activate(menuitem, COLOR_BLACK, predef_colors_rgba[COLOR_BLACK]);
 }
 
 
@@ -1830,8 +1836,7 @@ void
 on_colorBlue_activate                  (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  process_color_activate(menuitem, COLOR_BLUE);
-
+  process_color_activate(menuitem, COLOR_BLUE, predef_colors_rgba[COLOR_BLUE]);
 }
 
 
@@ -1839,7 +1844,7 @@ void
 on_colorRed_activate                   (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  process_color_activate(menuitem, COLOR_RED);
+  process_color_activate(menuitem, COLOR_RED, predef_colors_rgba[COLOR_RED]);
 }
 
 
@@ -1847,7 +1852,7 @@ void
 on_colorGreen_activate                 (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  process_color_activate(menuitem, COLOR_GREEN);
+  process_color_activate(menuitem, COLOR_GREEN, predef_colors_rgba[COLOR_GREEN]);
 }
 
 
@@ -1855,7 +1860,7 @@ void
 on_colorGray_activate                  (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  process_color_activate(menuitem, COLOR_GRAY);
+  process_color_activate(menuitem, COLOR_GRAY, predef_colors_rgba[COLOR_GRAY]);
 }
 
 
@@ -1863,7 +1868,7 @@ void
 on_colorLightBlue_activate             (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  process_color_activate(menuitem, COLOR_LIGHTBLUE);
+  process_color_activate(menuitem, COLOR_LIGHTBLUE, predef_colors_rgba[COLOR_LIGHTBLUE]);
 }
 
 
@@ -1871,7 +1876,7 @@ void
 on_colorLightGreen_activate            (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  process_color_activate(menuitem, COLOR_LIGHTGREEN);
+  process_color_activate(menuitem, COLOR_LIGHTGREEN, predef_colors_rgba[COLOR_LIGHTGREEN]);
 }
 
 
@@ -1879,7 +1884,7 @@ void
 on_colorMagenta_activate               (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  process_color_activate(menuitem, COLOR_MAGENTA);
+  process_color_activate(menuitem, COLOR_MAGENTA, predef_colors_rgba[COLOR_MAGENTA]);
 }
 
 
@@ -1887,7 +1892,7 @@ void
 on_colorOrange_activate                (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  process_color_activate(menuitem, COLOR_ORANGE);
+  process_color_activate(menuitem, COLOR_ORANGE, predef_colors_rgba[COLOR_ORANGE]);
 }
 
 
@@ -1895,7 +1900,7 @@ void
 on_colorYellow_activate                (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  process_color_activate(menuitem, COLOR_YELLOW);
+  process_color_activate(menuitem, COLOR_YELLOW, predef_colors_rgba[COLOR_YELLOW]);
 }
 
 
@@ -1903,7 +1908,7 @@ void
 on_colorWhite_activate                 (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  process_color_activate(menuitem, COLOR_WHITE);
+  process_color_activate(menuitem, COLOR_WHITE, predef_colors_rgba[COLOR_WHITE]);
 }
 
 
@@ -1911,7 +1916,7 @@ void
 on_colorOther_activate                 (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-
+  gtk_button_clicked(GTK_BUTTON(GET_COMPONENT("buttonColorChooser")));
 }
 
 
@@ -2152,10 +2157,11 @@ on_toolsSetAsDefault_activate          (GtkMenuItem     *menuitem,
 {
   struct Item *it;
   
-  if (ui.cur_mapping!=0) return;
-  if (ui.toolno[0] < NUM_STROKE_TOOLS)
-    g_memmove(ui.default_brushes+ui.toolno[0], &(ui.brushes[0][ui.toolno[0]]), sizeof(struct Brush));
-  if (ui.toolno[0] == TOOL_TEXT) {
+  if (ui.cur_mapping!=0 && !ui.button_switch_mapping) return;
+  if (ui.toolno[ui.cur_mapping] < NUM_STROKE_TOOLS)
+    g_memmove(ui.default_brushes+ui.toolno[ui.cur_mapping], 
+              &(ui.brushes[ui.cur_mapping][ui.toolno[ui.cur_mapping]]), sizeof(struct Brush));
+  if (ui.toolno[ui.cur_mapping] == TOOL_TEXT) {
     if (ui.cur_item_type == ITEM_TEXT) {
       g_free(ui.font_name);
       ui.font_name = g_strdup(ui.cur_item->font_name);
@@ -2188,16 +2194,17 @@ on_toolsRuler_activate                 (GtkMenuItem     *menuitem,
   else
     active = gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON (menuitem));
 
-  if (ui.cur_mapping != 0) return;
-  current = (ui.toolno[0] == TOOL_PEN || ui.toolno[0] == TOOL_HIGHLIGHTER) && ui.cur_brush->ruler;
+  if (ui.cur_mapping != 0 && !ui.button_switch_mapping) return;
+  current = (ui.toolno[ui.cur_mapping] == TOOL_PEN || ui.toolno[ui.cur_mapping] == TOOL_HIGHLIGHTER) && ui.cur_brush->ruler;
   if (active == current) return;
-  
+
+  ui.cur_mapping = 0;  
   end_text();
   reset_focus();
-  if (ui.toolno[0]!=TOOL_PEN && ui.toolno[0]!=TOOL_HIGHLIGHTER) {
+  if (ui.toolno[ui.cur_mapping]!=TOOL_PEN && ui.toolno[ui.cur_mapping]!=TOOL_HIGHLIGHTER) {
     reset_selection();
-    ui.toolno[0] = TOOL_PEN;
-    ui.cur_brush = &(ui.brushes[0][TOOL_PEN]);
+    ui.toolno[ui.cur_mapping] = TOOL_PEN;
+    ui.cur_brush = &(ui.brushes[ui.cur_mapping][TOOL_PEN]);
     update_color_menu();
     update_tool_buttons();
     update_tool_menu();
@@ -2206,7 +2213,7 @@ on_toolsRuler_activate                 (GtkMenuItem     *menuitem,
   
   ui.cur_brush->ruler = active;
   if (active) ui.cur_brush->recognizer = FALSE;
-  update_mapping_linkings(ui.toolno[0]);
+  update_mapping_linkings(ui.toolno[ui.cur_mapping]);
   update_ruler_indicator();
 }
 
@@ -2222,16 +2229,17 @@ on_toolsReco_activate                  (GtkMenuItem *menuitem,
   else
     active = gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON (menuitem));
 
-  if (ui.cur_mapping != 0) return;
-  current = (ui.toolno[0] == TOOL_PEN || ui.toolno[0] == TOOL_HIGHLIGHTER) && ui.cur_brush->recognizer;
+  if (ui.cur_mapping != 0 && !ui.button_switch_mapping) return;
+  current = (ui.toolno[ui.cur_mapping] == TOOL_PEN || ui.toolno[ui.cur_mapping] == TOOL_HIGHLIGHTER) && ui.cur_brush->recognizer;
   if (active == current) return;
   
+  ui.cur_mapping = 0;
   end_text();
   reset_focus();
-  if (ui.toolno[0]!=TOOL_PEN && ui.toolno[0]!=TOOL_HIGHLIGHTER) {
+  if (ui.toolno[ui.cur_mapping]!=TOOL_PEN && ui.toolno[ui.cur_mapping]!=TOOL_HIGHLIGHTER) {
     reset_selection();
-    ui.toolno[0] = TOOL_PEN;
-    ui.cur_brush = &(ui.brushes[0][TOOL_PEN]);
+    ui.toolno[ui.cur_mapping] = TOOL_PEN;
+    ui.cur_brush = &(ui.brushes[ui.cur_mapping][TOOL_PEN]);
     update_color_menu();
     update_tool_buttons();
     update_tool_menu();
@@ -2243,7 +2251,7 @@ on_toolsReco_activate                  (GtkMenuItem *menuitem,
     ui.cur_brush->ruler = FALSE;
     reset_recognizer();
   }
-  update_mapping_linkings(ui.toolno[0]);
+  update_mapping_linkings(ui.toolno[ui.cur_mapping]);
   update_ruler_indicator();
 }
 
@@ -2313,8 +2321,8 @@ void
 on_buttonFine_clicked                  (GtkToolButton   *toolbutton,
                                         gpointer         user_data)
 {
-  if (ui.cur_mapping != 0) return;
-  process_thickness_activate((GtkMenuItem*)toolbutton, ui.toolno[0], THICKNESS_FINE);
+  if (ui.cur_mapping != 0 && !ui.button_switch_mapping) return;
+  process_thickness_activate((GtkMenuItem*)toolbutton, ui.toolno[ui.cur_mapping], THICKNESS_FINE);
 }
 
 
@@ -2322,8 +2330,8 @@ void
 on_buttonMedium_clicked                (GtkToolButton   *toolbutton,
                                         gpointer         user_data)
 {
-  if (ui.cur_mapping != 0) return;
-  process_thickness_activate((GtkMenuItem*)toolbutton, ui.toolno[0], THICKNESS_MEDIUM);
+  if (ui.cur_mapping != 0 && !ui.button_switch_mapping) return;
+  process_thickness_activate((GtkMenuItem*)toolbutton, ui.toolno[ui.cur_mapping], THICKNESS_MEDIUM);
 }
 
 
@@ -2331,8 +2339,8 @@ void
 on_buttonThick_clicked                 (GtkToolButton   *toolbutton,
                                         gpointer         user_data)
 {
-  if (ui.cur_mapping != 0) return;
-  process_thickness_activate((GtkMenuItem*)toolbutton, ui.toolno[0], THICKNESS_THICK);
+  if (ui.cur_mapping != 0 && !ui.button_switch_mapping) return;
+  process_thickness_activate((GtkMenuItem*)toolbutton, ui.toolno[ui.cur_mapping], THICKNESS_THICK);
 }
 
 
@@ -2355,6 +2363,8 @@ on_canvas_button_press_event           (GtkWidget       *widget,
   if (event->button > 3) return FALSE; // no painting with the mouse wheel!
   if (event->type != GDK_BUTTON_PRESS) return FALSE; 
     // double-clicks may have broken axes member (free'd) due to a bug in GDK
+  if ((event->state & (GDK_CONTROL_MASK|GDK_MOD1_MASK)) != 0) return FALSE;
+    // no control-clicking or alt-clicking
   if (!is_core)
     fix_xinput_coords((GdkEvent *)event);
 
@@ -2366,10 +2376,7 @@ on_canvas_button_press_event           (GtkWidget       *widget,
 
   if (ui.cur_item_type == ITEM_TEXT) {
     if (!is_event_within_textview(event)) end_text();
-/* // bugfix for GTK+ 2.17, no longer needed as XInput is disabled during text edition
-    else fix_extended_events(ui.cur_item->widget, (GdkEvent *)event,
-            gtk_text_view_get_window(GTK_TEXT_VIEW(ui.cur_item->widget), GTK_TEXT_WINDOW_TEXT));
-*/
+    else return FALSE;
   }
   if (ui.cur_item_type == ITEM_STROKE && ui.is_corestroke && !is_core &&
       ui.cur_path.num_points == 1) { 
@@ -2379,10 +2386,19 @@ on_canvas_button_press_event           (GtkWidget       *widget,
   }
   if (ui.cur_item_type != ITEM_NONE) return FALSE; // we're already doing something
 
+  // if button_switch_mapping enabled, button 2 or 3 clicks only switch mapping
+  if (ui.button_switch_mapping && event->button > 1) {
+    if (is_core == ui.use_xinput) return FALSE; // duplicate event
+    if (ui.cur_mapping == event->button-1) switch_mapping(0);
+    else switch_mapping(event->button-1);
+    return FALSE;
+  }
+
   ui.is_corestroke = is_core;
 
   if (ui.use_erasertip && event->device->source == GDK_SOURCE_ERASER)
        mapping = NUM_BUTTONS;
+  else if (ui.button_switch_mapping) mapping = ui.cur_mapping;
   else mapping = event->button-1;
 
   // check whether we're in a page
@@ -2506,7 +2522,8 @@ on_canvas_button_release_event         (GtkWidget       *widget,
     ui.cur_item_type = ITEM_NONE;
   }
 
-  switch_mapping(0);
+  if (!ui.button_switch_mapping || ui.cur_mapping == NUM_BUTTONS) 
+    switch_mapping(0);
   return FALSE;
 }
 
@@ -2591,6 +2608,7 @@ on_canvas_motion_notify_event          (GtkWidget       *widget,
      or if there's a selection (then we might want to change the mouse
      cursor to indicate the possibility of resizing) */  
   if (ui.cur_item_type == ITEM_NONE && ui.selection==NULL) return FALSE;
+  if (ui.cur_item_type == ITEM_TEXT) return FALSE;
 
   is_core = (event->device == gdk_device_get_core_pointer());
   if (!ui.use_xinput && !is_core) return FALSE;
@@ -3006,21 +3024,6 @@ on_optionsButtonMappings_activate      (GtkMenuItem     *menuitem,
 
 
 void
-on_optionsAntialiasBG_activate         (GtkMenuItem     *menuitem,
-                                        gpointer         user_data)
-{
-  gboolean active;
-  
-  active = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem));
-  if (ui.antialias_bg == active) return;
-  end_text();
-  reset_focus();
-  ui.antialias_bg = active;
-  rescale_bg_pixmaps();
-} 
-
-
-void
 on_optionsProgressiveBG_activate       (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -3359,13 +3362,14 @@ on_toolsHand_activate                  (GtkMenuItem     *menuitem,
       return;
   }
 
-  if (ui.cur_mapping != 0) return;
-  if (ui.toolno[0] == TOOL_HAND) return;
+  if (ui.cur_mapping != 0 && !ui.button_switch_mapping) return;
+  if (ui.toolno[ui.cur_mapping] == TOOL_HAND) return;
 
+  ui.cur_mapping = 0;
   end_text();
   reset_focus();
   reset_selection();
-  ui.toolno[0] = TOOL_HAND;
+  ui.toolno[ui.cur_mapping] = TOOL_HAND;
   update_mapping_linkings(-1);
   update_tool_buttons();
   update_tool_menu();
@@ -3487,5 +3491,29 @@ on_optionsPressureSensitive_activate   (GtkMenuItem     *menuitem,
   for (i=0; i<=NUM_BUTTONS; i++)
     ui.brushes[i][TOOL_PEN].variable_width = ui.pressure_sensitivity;
   update_mappings_menu();
+}
+
+
+void
+on_buttonColorChooser_set              (GtkColorButton  *colorbutton,
+                                        gpointer         user_data)
+{
+  GdkColor gdkcolor;
+  guint16 alpha;
+  
+  gtk_color_button_get_color(colorbutton, &gdkcolor);
+  alpha = gtk_color_button_get_alpha(colorbutton);
+  process_color_activate((GtkMenuItem*)colorbutton, COLOR_OTHER, gdkcolor_to_rgba(gdkcolor, alpha));
+}
+
+
+void
+on_optionsButtonsSwitchMappings_activate(GtkMenuItem    *menuitem,
+                                        gpointer         user_data)
+{
+  end_text();
+  reset_focus();
+  switch_mapping(0);
+  ui.button_switch_mapping = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem));
 }
 

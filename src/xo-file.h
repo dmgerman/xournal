@@ -1,5 +1,5 @@
 #define DEFAULT_SHORTEN_MENUS \
-  "optionsAntialiasBG optionsProgressiveBG optionsLeftHanded"
+  "optionsProgressiveBG optionsLeftHanded optionsButtonSwitchMapping"
 
 #define GS_CMDLINE \
   "gs -sDEVICE=bmp16m -r%f -q -sOutputFile=- " \

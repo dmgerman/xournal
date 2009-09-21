@@ -89,9 +89,11 @@ void init_stuff (int argc, char *argv[])
     for (i=0; i < NUM_STROKE_TOOLS; i++) {
       b = &(ui.brushes[j][i]);
       b->tool_type = i;
-      b->color_rgba = predef_colors_rgba[b->color_no];
-      if (i == TOOL_HIGHLIGHTER) {
-        b->color_rgba &= ui.hiliter_alpha_mask;
+      if (b->color_no>=0) {
+        b->color_rgba = predef_colors_rgba[b->color_no];
+        if (i == TOOL_HIGHLIGHTER) {
+          b->color_rgba &= ui.hiliter_alpha_mask;
+        }
       }
       b->thickness = predef_thickness[i][b->thickness_no];
     }
@@ -118,6 +120,7 @@ void init_stuff (int argc, char *argv[])
       GTK_TOGGLE_TOOL_BUTTON(GET_COMPONENT("buttonFullscreen")), TRUE);
     gtk_window_fullscreen(GTK_WINDOW(winMain));
   }
+  gtk_button_set_relief(GTK_BUTTON(GET_COMPONENT("buttonColorChooser")), GTK_RELIEF_NONE);
 
   allow_all_accels();
   add_scroll_bindings();
@@ -191,8 +194,6 @@ void init_stuff (int argc, char *argv[])
   ui.need_emergency_disable_xinput = FALSE;
 
   gtk_check_menu_item_set_active(
-    GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsAntialiasBG")), ui.antialias_bg);
-  gtk_check_menu_item_set_active(
     GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsProgressiveBG")), ui.progressive_bg);
   gtk_check_menu_item_set_active(
     GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsPrintRuling")), ui.print_ruling);
@@ -202,6 +203,8 @@ void init_stuff (int argc, char *argv[])
     GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsShortenMenus")), ui.shorten_menus);
   gtk_check_menu_item_set_active(
     GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsAutoSavePrefs")), ui.auto_save_prefs);
+  gtk_check_menu_item_set_active(
+    GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsButtonSwitchMapping")), ui.button_switch_mapping);
   
   hide_unimplemented();
 
