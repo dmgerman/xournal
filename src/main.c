@@ -101,6 +101,7 @@ void init_stuff (int argc, char *argv[])
     g_memmove(ui.default_brushes+i, &(ui.brushes[0][i]), sizeof(struct Brush));
 
   ui.cur_mapping = 0;
+  ui.which_unswitch_button = 0;
   
   reset_recognizer();
 
@@ -223,9 +224,9 @@ void init_stuff (int argc, char *argv[])
   gtk_check_menu_item_set_active(
     GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsUseXInput")), ui.use_xinput);
 
-  /* fix a bug in GTK+ 2.16 and beyond: scrollbars shouldn't get extended
+  /* fix a bug in GTK+ 2.16 and 2.17: scrollbars shouldn't get extended
      input events from pointer motion when cursor moves into main window */
-#if GTK_CHECK_VERSION(2,14,0)
+
   if (!gtk_check_version(2, 16, 0)) {
     g_signal_connect (
       GET_COMPONENT("menubar"),
@@ -256,7 +257,6 @@ void init_stuff (int argc, char *argv[])
       "notify::popup-shown", G_CALLBACK (combobox_popup_disable_xinput),
       NULL);
   }
-#endif
 
   // load the MRU
   

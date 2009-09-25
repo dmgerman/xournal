@@ -2356,22 +2356,52 @@ on_canvas_button_press_event           (GtkWidget       *widget,
   int mapping;
   gboolean is_core;
   struct Item *item;
+  GdkEvent scroll_event;
 
+#ifdef INPUT_DEBUG
+  printf("DEBUG: ButtonPress (%s) (x,y)=(%.2f,%.2f), button %d, modifier %x\n", 
+    event->device->name, event->x, event->y, event->button, event->state);
+#endif
+
+  if (ui.cur_item_type != ITEM_TEXT) // remove focus from other elements
+    gtk_widget_grab_focus(GTK_WIDGET(canvas));
+    
   is_core = (event->device == gdk_device_get_core_pointer());
   if (!ui.use_xinput && !is_core) return FALSE;
   if (ui.use_xinput && is_core && ui.discard_corepointer) return FALSE;
-  if (event->button > 3) return FALSE; // no painting with the mouse wheel!
   if (event->type != GDK_BUTTON_PRESS) return FALSE; 
     // double-clicks may have broken axes member (free'd) due to a bug in GDK
+
+  if (event->button > 3) { // scroll wheel events! don't paint...
+    if (ui.use_xinput && !gtk_check_version(2, 17, 0) && event->button <= 7) {
+      /* with GTK+ 2.17 and later, the entire widget hierarchy is xinput-aware,
+         so the core button event gets discarded and the scroll event never 
+         gets processed by the main window. This is arguably a GTK+ bug.
+         We work around it. */
+      scroll_event.scroll.type = GDK_SCROLL;
+      scroll_event.scroll.window = event->window;
+      scroll_event.scroll.send_event = event->send_event;
+      scroll_event.scroll.time = event->time;
+      scroll_event.scroll.x = event->x;
+      scroll_event.scroll.y = event->y;
+      scroll_event.scroll.state = event->state;
+      scroll_event.scroll.device = event->device;
+      scroll_event.scroll.x_root = event->x_root;
+      scroll_event.scroll.y_root = event->y_root;
+      if (event->button == 4) scroll_event.scroll.direction = GDK_SCROLL_UP;
+      else if (event->button == 5) scroll_event.scroll.direction = GDK_SCROLL_DOWN;
+      else if (event->button == 6) scroll_event.scroll.direction = GDK_SCROLL_LEFT;
+      else scroll_event.scroll.direction = GDK_SCROLL_RIGHT;
+      printf("sending...\n");
+      gtk_widget_event(GET_COMPONENT("scrolledwindowMain"), &scroll_event);
+    }
+    return FALSE;
+  }
   if ((event->state & (GDK_CONTROL_MASK|GDK_MOD1_MASK)) != 0) return FALSE;
     // no control-clicking or alt-clicking
   if (!is_core)
     fix_xinput_coords((GdkEvent *)event);
 
-#ifdef INPUT_DEBUG
-  printf("DEBUG: ButtonDown (%s) (x,y)=(%.2f,%.2f)\n", 
-    is_core?"core":"xinput", event->x, event->y);
-#endif
   if (!finite(event->x) || !finite(event->y)) return FALSE; // Xorg 7.3 bug
 
   if (ui.cur_item_type == ITEM_TEXT) {
@@ -2388,17 +2418,21 @@ on_canvas_button_press_event           (GtkWidget       *widget,
 
   // if button_switch_mapping enabled, button 2 or 3 clicks only switch mapping
   if (ui.button_switch_mapping && event->button > 1) {
-    if (is_core == ui.use_xinput) return FALSE; // duplicate event
-    if (ui.cur_mapping == event->button-1) switch_mapping(0);
-    else switch_mapping(event->button-1);
+    ui.which_unswitch_button = event->button;
+    switch_mapping(event->button-1);
     return FALSE;
   }
 
   ui.is_corestroke = is_core;
+  ui.stroke_device = event->device;
 
   if (ui.use_erasertip && event->device->source == GDK_SOURCE_ERASER)
-       mapping = NUM_BUTTONS;
-  else if (ui.button_switch_mapping) mapping = ui.cur_mapping;
+    mapping = NUM_BUTTONS;
+  else if (ui.button_switch_mapping) {
+    mapping = ui.cur_mapping;
+    if (!mapping && (event->state & GDK_BUTTON2_MASK)) mapping = 1;
+    if (!mapping && (event->state & GDK_BUTTON3_MASK)) mapping = 2;
+  }
   else mapping = event->button-1;
 
   // check whether we're in a page
@@ -2493,14 +2527,19 @@ on_canvas_button_release_event         (GtkWidget       *widget,
 {
   gboolean is_core;
   
-  if (ui.cur_item_type == ITEM_NONE) return FALSE; // not doing anything
-
-  if (event->button != ui.which_mouse_button) return FALSE; // ignore
+#ifdef INPUT_DEBUG
+  printf("DEBUG: ButtonRelease (%s) (x,y)=(%.2f,%.2f), button %d, modifier %x\n", 
+      event->device->name, event->x, event->y, event->button, event->state);
+#endif
 
   is_core = (event->device == gdk_device_get_core_pointer());
   if (!ui.use_xinput && !is_core) return FALSE;
   if (ui.use_xinput && is_core && !ui.is_corestroke) return FALSE;
   if (!is_core) fix_xinput_coords((GdkEvent *)event);
+
+  if (event->button != ui.which_mouse_button && 
+      event->button != ui.which_unswitch_button)
+    return FALSE;
 
   if (ui.cur_item_type == ITEM_STROKE) {
     finalize_stroke();
@@ -2521,9 +2560,10 @@ on_canvas_button_release_event         (GtkWidget       *widget,
   else if (ui.cur_item_type == ITEM_HAND) {
     ui.cur_item_type = ITEM_NONE;
   }
+  
+  if (!ui.which_unswitch_button || event->button == ui.which_unswitch_button)
+    switch_mapping(0); // will reset ui.which_unswitch_button
 
-  if (!ui.button_switch_mapping || ui.cur_mapping == NUM_BUTTONS) 
-    switch_mapping(0);
   return FALSE;
 }
 
@@ -2603,6 +2643,7 @@ on_canvas_motion_notify_event          (GtkWidget       *widget,
 {
   gboolean looks_wrong, is_core;
   double pt[2];
+  GdkModifierType mask;
 
   /* we don't care about this event unless some operation is in progress;
      or if there's a selection (then we might want to change the mouse
@@ -2625,11 +2666,15 @@ on_canvas_motion_notify_event          (GtkWidget       *widget,
   if (!is_core) ui.is_corestroke = FALSE;
 
 #ifdef INPUT_DEBUG
-  printf("DEBUG: MotionNotify (%s) (x,y)=(%.2f,%.2f)\n", 
-    is_core?"core":"xinput", event->x, event->y);
+  printf("DEBUG: MotionNotify (%s) (x,y)=(%.2f,%.2f), modifier %x\n", 
+    is_core?"core":"xinput", event->x, event->y, event->state);
 #endif
   
   looks_wrong = !(event->state & (1<<(7+ui.which_mouse_button)));
+  if (looks_wrong) {
+    gdk_device_get_state(ui.stroke_device, event->window, NULL, &mask);
+    looks_wrong = !(mask & (1<<(7+ui.which_mouse_button)));
+  }
   
   if (looks_wrong) { /* mouse button shouldn't be up... give up */
     if (ui.cur_item_type == ITEM_STROKE) {
@@ -2734,12 +2779,11 @@ on_optionsUseXInput_activate           (GtkMenuItem     *menuitem,
 
 /* HOW THINGS USED TO BE:
 
-   We'd like ONLY the canvas window itself to receive
-   XInput events, while its child window in the GDK hierarchy (also
-   associated to the canvas widget) receives the core events.
-   This way on_canvas_... will get both types of events -- otherwise,
-   the proximity detection code in GDK is broken and we'll lose core
-   events.
+   We'd like on_canvas_... to get BOTH core and xinput events. Up to
+   GTK+ 2.16 this is achieved by making only the canvas's parent 
+   GdkWindow xinput-aware, rather than the entire hierarchy.
+   Otherwise, the proximity detection code in GDK is broken and 
+   we'll lose core events.
    
    Up to GTK+ 2.10, gtk_widget_set_extension_events() only sets
    extension events for the widget's main window itself; in GTK+ 2.11
@@ -2754,17 +2798,23 @@ on_optionsUseXInput_activate           (GtkMenuItem     *menuitem,
    non-responsive). 
 */
 
-  // this causes core events to be discarded... unwanted!
-/*
-   gtk_widget_set_extension_events(GTK_WIDGET (canvas), 
+  if (!gtk_check_version(2, 17, 0)) {
+    /* GTK+ 2.17 and later: everybody shares a single native window,
+       so we'll never get any core events, and we might as well set 
+       extension events the way we're supposed to. Doing so helps solve 
+       crasher bugs in 2.17, and prevents us from losing two-button
+       events in 2.18 */
+    gtk_widget_set_extension_events(GTK_WIDGET (canvas), 
+       ui.use_xinput?GDK_EXTENSION_EVENTS_ALL:GDK_EXTENSION_EVENTS_NONE);
+  } else {
+    /* GTK+ 2.16 and earlier: we only activate extension events on the
+       canvas's parent GdkWindow. This allows us to keep receiving core
+       events. */
+    gdk_input_set_extension_events(GTK_WIDGET(canvas)->window, 
+      GDK_POINTER_MOTION_MASK | GDK_BUTTON_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK,
       ui.use_xinput?GDK_EXTENSION_EVENTS_ALL:GDK_EXTENSION_EVENTS_NONE);
-*/
-
-  // this version only activates extension events on the canvas's parent GdkWindow
-  gdk_input_set_extension_events(GTK_WIDGET(canvas)->window, 
-    GDK_POINTER_MOTION_MASK | GDK_BUTTON_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK,
-    ui.use_xinput?GDK_EXTENSION_EVENTS_ALL:GDK_EXTENSION_EVENTS_NONE);
-
+  }
+  
   update_mappings_menu();
 }
 

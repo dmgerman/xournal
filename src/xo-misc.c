@@ -93,15 +93,15 @@ struct Page *new_page_with_bg(struct Background *bg, double width, double height
 void realloc_cur_path(int n)
 {
   if (n <= ui.cur_path_storage_alloc) return;
-  ui.cur_path_storage_alloc = n+10;
-  ui.cur_path.coords = g_realloc(ui.cur_path.coords, 2*(n+10)*sizeof(double));
+  ui.cur_path_storage_alloc = n+100;
+  ui.cur_path.coords = g_realloc(ui.cur_path.coords, 2*(n+100)*sizeof(double));
 }
 
 void realloc_cur_widths(int n)
 {
   if (n <= ui.cur_widths_storage_alloc) return;
-  ui.cur_widths_storage_alloc = n+10;
-  ui.cur_widths = g_realloc(ui.cur_widths, (n+10)*sizeof(double));
+  ui.cur_widths_storage_alloc = n+100;
+  ui.cur_widths = g_realloc(ui.cur_widths, (n+100)*sizeof(double));
 }
 
 // undo utility functions
@@ -395,14 +395,18 @@ void fix_xinput_coords(GdkEvent *event)
     *py = iy + sy;
   }
   else {
-    *px += sx;
-    *py += sy;
+    /* with GTK+ 2.16 or earlier, the event comes from the parent gdkwindow
+       and so needs to be adjusted for scrolling */
+    if (gtk_major_version == 2 && gtk_minor_version <= 16) {
+      *px += sx;
+      *py += sy;
+    }
     /* with GTK+ 2.17, events come improperly translated, and the event's
        GdkWindow isn't even the same for ButtonDown as for MotionNotify... */
-    if (!gtk_check_version(2,17,0)) { // GTK+ 2.17 issues !!
+    if (gtk_major_version == 2 && gtk_minor_version == 17) { // GTK+ 2.17 issues !!
       gdk_window_get_position(GTK_WIDGET(canvas)->window, &wx, &wy);
-      *px -= wx;
-      *py -= wy;
+      *px += sx - wx;
+      *py += sy - wy;
     }
   }
 #endif
@@ -1798,7 +1802,8 @@ void resize_journal_items_by(GList *itemlist, double scaling_x, double scaling_y
 
 /* NOTE ABOUT BUTTON MAPPINGS: ui.cur_mapping is 0 except while a canvas
    click event is being processed ... or if ui.button_switch_mapping is
-   enabled and mappings are switched! */
+   enabled and mappings are switched (but even then, canvas should have
+   a pointer grab from the initial click that switched the mapping) */
 
 void switch_mapping(int m)
 {
@@ -1809,6 +1814,8 @@ void switch_mapping(int m)
     ui.cur_brush = &(ui.brushes[m][ui.toolno[m]]);
   if (ui.toolno[m] == TOOL_TEXT)
     ui.cur_brush = &(ui.brushes[m][TOOL_PEN]);
+  if (m==0) ui.which_unswitch_button = 0;
+  
   update_tool_buttons();
   update_color_menu();
   update_cursor();
@@ -2114,9 +2121,6 @@ gboolean combobox_popup_disable_xinput (GtkWidget *widget, GdkEvent *event,
   gboolean is_shown;
   
   g_object_get(G_OBJECT(widget), "popup-shown", &is_shown, NULL);
-  gdk_input_set_extension_events(GTK_WIDGET(canvas)->window, 
-     GDK_POINTER_MOTION_MASK | GDK_BUTTON_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK,
-     (ui.use_xinput && !is_shown)?GDK_EXTENSION_EVENTS_ALL:GDK_EXTENSION_EVENTS_NONE);
+  gtk_widget_set_extension_events(GTK_WIDGET (canvas), 
+       (ui.use_xinput && !is_shown)?GDK_EXTENSION_EVENTS_ALL:GDK_EXTENSION_EVENTS_NONE);
 }
-
-

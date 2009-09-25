@@ -48,12 +48,15 @@ DONE: discard Alt-click and Control-click events
 
 (go through Patches tracker and take the good stuff... now at 2009-05-09)
 
-** option to have buttons *toggle* the tool rather than act as tool
-   (ie button 2 causes button 1 to map to tool 2) [Dylan Thurston]
+DONE?? option to have buttons *toggle* the tool rather than act as tool
+       (ie button 2 causes button 1 to map to tool 2) [Dylan Thurston]
+
+** commit patches from Bob McElrath
 
 - paper color chooser (see tracker 2083103)
 - prerelease: update help file (remove references to pdftoppm/libgnomeprint
   & update to poppler/gtkprint)
+- REMOVE BINARY INSTALLER (poppler breaks ABI all the time)
 - document config options into manual file?
 - PDF bg memory usage throttling / delete oldest pdf backgrounds
 - replace ttsubset by something more modern? (eg. from cairo ?)
@@ -71,6 +74,7 @@ DONE: discard Alt-click and Control-click events
    to load pixmaps from pixmaps/$THEME/ (see Jan 9, 2009 emails)
 ** autosave patch (Edward Yang) (fix: optional only, w/ menu + cfgfile
    entries; fix: should clean up autosave.xoj.bg* files too; config interval)
+- horizontal mode instead of dual-view / multicolumn ?
 - patch (ikim@physics.wisc.edu): multicolumn mode + LASSO SELECTION
 - patch: ortho/snap (revised Apr 13 2009)
 ** FIXME: get_pressure_multiplier() should access correct members
@@ -94,6 +98,10 @@ DONE: discard Alt-click and Control-click events
 - "new page before/after" on a PDF bg page should ask: same page, other page of
   PDF file, default paper
 - bug in truetype subset generation w/ Adobe 9, see if gtk-print any better?
+
+- drag-and-drop, copy-paste text & images directly into xournal
+- proximity detection: eraser proximity switches mapping? 
+  proximity out removes cursor until next motionnotify?
 
 - render page to bitmap: for export, preview, and copy-paste
     (render using libart, see how gnomecanvas does it?)

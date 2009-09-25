@@ -223,6 +223,7 @@ typedef struct UIData {
   gboolean button_switch_mapping; // button clicks switch button 1 mappings
   gboolean use_erasertip;
   int which_mouse_button; // the mouse button drawing the current path
+  int which_unswitch_button; // if button_switch_mapping, the mouse button that switched the mapping
   struct Page default_page;  // the model for the default page
   int layerbox_length;  // the number of entries registered in the layers combo-box
   struct Item *cur_item; // the item being drawn, or NULL
@@ -238,6 +239,7 @@ typedef struct UIData {
   gboolean pressure_sensitivity; // use pen pressure to control stroke width?
   double width_minimum_multiplier, width_maximum_multiplier; // calibration for pressure sensitivity
   gboolean is_corestroke; // this stroke is painted with core pointer
+  GdkDevice *stroke_device; // who's painting this stroke
   int screen_width, screen_height; // initial screen size, for XInput events
   double hand_refpt[2];
   int hand_scrollto_cx, hand_scrollto_cy;
