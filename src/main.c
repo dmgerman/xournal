@@ -126,6 +126,15 @@ void init_stuff (int argc, char *argv[])
   allow_all_accels();
   add_scroll_bindings();
 
+  // prevent interface items from stealing focus
+  // glade doesn't properly handle can_focus, so manually set it
+  gtk_combo_box_set_focus_on_click(GTK_COMBO_BOX(GET_COMPONENT("comboLayer")), FALSE);
+  g_signal_connect(GET_COMPONENT("spinPageNo"), "activate",
+          G_CALLBACK(handle_activate_signal), NULL);
+  gtk_container_foreach(GTK_CONTAINER(winMain), unset_flags, (gpointer)GTK_CAN_FOCUS);
+  GTK_WIDGET_SET_FLAGS(GTK_WIDGET(canvas), GTK_CAN_FOCUS);
+  GTK_WIDGET_SET_FLAGS(GTK_WIDGET(GET_COMPONENT("spinPageNo")), GTK_CAN_FOCUS);
+
   // set up and initialize the canvas
 
   gtk_widget_show (GTK_WIDGET (canvas));
@@ -252,6 +261,8 @@ void init_stuff (int argc, char *argv[])
       (gpointer)(gtk_scrolled_window_get_hscrollbar(GTK_SCROLLED_WINDOW(w))),
       "event", G_CALLBACK (filter_extended_events),
       NULL);
+  }
+  if (!gtk_check_version(2, 17, 0)) {
     g_signal_connect (
       GET_COMPONENT("comboLayer"),
       "notify::popup-shown", G_CALLBACK (combobox_popup_disable_xinput),

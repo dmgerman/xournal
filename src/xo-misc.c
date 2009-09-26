@@ -1667,11 +1667,13 @@ gboolean ok_to_close(void)
 // send the focus back to the appropriate widget
 void reset_focus(void)
 {
+/*
   if (ui.cur_item_type == ITEM_TEXT)
     gtk_widget_grab_focus(ui.cur_item->widget);
   else
     gtk_widget_grab_focus(GTK_WIDGET(canvas));
   reset_recognizer();
+*/
 }
 
 // selection / clipboard stuff
@@ -2124,3 +2126,21 @@ gboolean combobox_popup_disable_xinput (GtkWidget *widget, GdkEvent *event,
   gtk_widget_set_extension_events(GTK_WIDGET (canvas), 
        (ui.use_xinput && !is_shown)?GDK_EXTENSION_EVENTS_ALL:GDK_EXTENSION_EVENTS_NONE);
 }
+
+/* When enter is pressed into page spinbox, send focus back to canvas. */
+
+gboolean handle_activate_signal(GtkWidget *widget, gpointer user_data)
+{
+  gtk_widget_grab_focus(GTK_WIDGET(canvas));
+  return FALSE;
+}
+
+/* recursively unset widget flags */
+
+void unset_flags(GtkWidget *w, gpointer flag)
+{
+  GTK_WIDGET_UNSET_FLAGS(w, (GtkWidgetFlags)flag);
+  if(GTK_IS_CONTAINER(w))
+    gtk_container_foreach(GTK_CONTAINER(w), unset_flags, flag);
+}
+        

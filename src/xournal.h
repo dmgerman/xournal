@@ -12,6 +12,11 @@
    XInput and want to try things differently. This will probably break
    on-the-fly display rotation after application startup, though. */
 
+#define FILE_DIALOG_SIZE_BUGFIX
+/* ugly, but should help users with versions of GTK+ that suffer from the
+   "tiny file dialog" syndrome, without hurting those with well-behaved
+   versions of GTK+. Comment out if you'd prefer not to include this fix. */
+
 // PREF FILES INFO
 
 #define CONFIG_DIR ".xournal"

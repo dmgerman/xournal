@@ -53,6 +53,9 @@ on_fileNewBackground_activate          (GtkMenuItem     *menuitem,
   dialog = gtk_file_chooser_dialog_new(_("Open PDF"), GTK_WINDOW (winMain),
      GTK_FILE_CHOOSER_ACTION_OPEN, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
      GTK_STOCK_OPEN, GTK_RESPONSE_OK, NULL);
+#ifdef FILE_DIALOG_SIZE_BUGFIX
+  gtk_window_set_default_size(GTK_WINDOW(dialog), 500, 400);
+#endif
      
   filt_all = gtk_file_filter_new();
   gtk_file_filter_set_name(filt_all, _("All files"));
@@ -124,6 +127,9 @@ on_fileOpen_activate                   (GtkMenuItem     *menuitem,
   dialog = gtk_file_chooser_dialog_new(_("Open Journal"), GTK_WINDOW (winMain),
      GTK_FILE_CHOOSER_ACTION_OPEN, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
      GTK_STOCK_OPEN, GTK_RESPONSE_OK, NULL);
+#ifdef FILE_DIALOG_SIZE_BUGFIX
+  gtk_window_set_default_size(GTK_WINDOW(dialog), 500, 400);
+#endif
      
   filt_all = gtk_file_filter_new();
   gtk_file_filter_set_name(filt_all, _("All files"));
@@ -202,6 +208,9 @@ on_fileSaveAs_activate                 (GtkMenuItem     *menuitem,
   dialog = gtk_file_chooser_dialog_new(_("Save Journal"), GTK_WINDOW (winMain),
      GTK_FILE_CHOOSER_ACTION_SAVE, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
      GTK_STOCK_SAVE, GTK_RESPONSE_OK, NULL);
+#ifdef FILE_DIALOG_SIZE_BUGFIX
+  gtk_window_set_default_size(GTK_WINDOW(dialog), 500, 400);
+#endif
      
   if (ui.filename!=NULL) {
     gtk_file_chooser_set_filename(GTK_FILE_CHOOSER (dialog), ui.filename);
@@ -357,6 +366,9 @@ on_filePrintPDF_activate               (GtkMenuItem     *menuitem,
   dialog = gtk_file_chooser_dialog_new(_("Export to PDF"), GTK_WINDOW (winMain),
      GTK_FILE_CHOOSER_ACTION_SAVE, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
      GTK_STOCK_SAVE, GTK_RESPONSE_OK, NULL);
+#ifdef FILE_DIALOG_SIZE_BUGFIX
+  gtk_window_set_default_size(GTK_WINDOW(dialog), 500, 400);
+#endif
      
   if (ui.filename!=NULL) {
     if (g_str_has_suffix(ui.filename, ".xoj")) {
@@ -1446,6 +1458,9 @@ on_journalLoadBackground_activate      (GtkMenuItem     *menuitem,
   dialog = gtk_file_chooser_dialog_new(_("Open Background"), GTK_WINDOW (winMain),
      GTK_FILE_CHOOSER_ACTION_OPEN, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
      GTK_STOCK_OPEN, GTK_RESPONSE_OK, NULL);
+#ifdef FILE_DIALOG_SIZE_BUGFIX
+  gtk_window_set_default_size(GTK_WINDOW(dialog), 500, 400);
+#endif
 
   filt_all = gtk_file_filter_new();
   gtk_file_filter_set_name(filt_all, _("All files"));
@@ -2608,28 +2623,54 @@ on_canvas_key_press_event              (GtkWidget       *widget,
                                         GdkEventKey     *event,
                                         gpointer         user_data)
 {
+  GtkAdjustment *adj;
+  gint pgheight;
+
   // Esc leaves text edition, or leaves fullscreen mode
   if (event->keyval == GDK_Escape) {
-    if (ui.cur_item_type == ITEM_TEXT) { end_text(); reset_focus(); }
-    else if (ui.fullscreen) do_fullscreen(FALSE);
+    if (ui.cur_item_type == ITEM_TEXT) { 
+      end_text(); 
+      reset_focus();
+      return TRUE;
+    }
+    else if (ui.fullscreen) {
+      do_fullscreen(FALSE);
+      return TRUE;
+    }
+    else return FALSE;
   }
   
-  // If zoomed-out and in single page mode, switch pages with PgUp/PgDn.
-  if (!ui.view_continuous && 
-      (0.96 * ui.zoom * ui.cur_page->height < 
-       GTK_WIDGET(canvas)->allocation.height)) {
-    if (event->keyval == GDK_Page_Down) {
+  /* In single page mode, switch pages with PgUp/PgDn (or Up/Dn) 
+     when there's nowhere else to go. */
+  pgheight = GTK_WIDGET(canvas)->allocation.height;
+  adj = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(GET_COMPONENT("scrolledwindowMain")));
+
+  if (event->keyval == GDK_Page_Down || event->keyval == GDK_Down) {
+    if (!ui.view_continuous && 
+         (0.96 * ui.zoom * ui.cur_page->height < pgheight ||
+          adj->value == adj->upper-pgheight)) 
+    {
       end_text();
-      reset_focus();
-      if (ui.pageno == journal.npages-1) { return FALSE; }
-      do_switch_page(ui.pageno+1, TRUE, FALSE);
+      if (ui.pageno < journal.npages-1)
+        do_switch_page(ui.pageno+1, TRUE, FALSE);
+      return TRUE;
     }
-    if (event->keyval == GDK_Page_Up) {
+    if (adj->value == adj->upper-pgheight) return TRUE; // don't send focus away
+  }
+
+  if (event->keyval == GDK_Page_Up || event->keyval == GDK_Up) {
+    if (!ui.view_continuous && 
+         (0.96 * ui.zoom * ui.cur_page->height < pgheight ||
+          adj->value == adj->lower))
+    {
       end_text();
-      reset_focus();
-      if (ui.pageno == 0) { return FALSE; }
-      do_switch_page(ui.pageno-1, TRUE, FALSE);
+      if (ui.pageno != 0) {
+        do_switch_page(ui.pageno-1, TRUE, FALSE);
+        gtk_adjustment_set_value(adj, adj->upper-pgheight);
+      }
+      return TRUE;
     }
+    if (adj->value == adj->lower) return TRUE; // don't send focus away
   }
 
   return FALSE;

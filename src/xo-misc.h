@@ -102,7 +102,9 @@ gboolean filter_extended_events(GtkWidget *widget, GdkEvent *event, gpointer use
 // gboolean fix_extended_events(GtkWidget *widget, GdkEvent *event, gpointer user_data);
 gboolean combobox_popup_disable_xinput(GtkWidget *widget, GdkEvent *event, gpointer user_data);
 
-
+// help with focus
+gboolean handle_activate_signal(GtkWidget *widget, gpointer user_data);
+void unset_flags(GtkWidget *w, gpointer flag);
 
 // defines for paper rulings
 

@@ -45,30 +45,31 @@ DONE: disable ctrl-left/right accelerators during text edition
 DONE: custom color chooser button (after a patch contributed by Alex Ray)
 DONE: remember last used directory (after a patch contributed by Lu Zhihe)
 DONE: discard Alt-click and Control-click events
+DONE: option to have buttons *toggle* the tool rather than act as tool
+       (ie button 2 causes button 1 to map to tool 2) [Dylan Thurston]
+DONE: patch to fix focus + allow up/dn in single page mode (Bob McElrath)
+      also comment out contents of reset_focus() ? (tracker patch #2494022)
+DONE: patch to fix underscores in MRU filename display (Bob McElrath)
+DONE: patch to avoid tiny file dialogs (Bob McElrath)
 
 (go through Patches tracker and take the good stuff... now at 2009-05-09)
-
-DONE?? option to have buttons *toggle* the tool rather than act as tool
-       (ie button 2 causes button 1 to map to tool 2) [Dylan Thurston]
-
-** commit patches from Bob McElrath
 
 - paper color chooser (see tracker 2083103)
 - prerelease: update help file (remove references to pdftoppm/libgnomeprint
   & update to poppler/gtkprint)
 - REMOVE BINARY INSTALLER (poppler breaks ABI all the time)
+   but add a configure script (+ Makefile.in, etc ?)
 - document config options into manual file?
 - PDF bg memory usage throttling / delete oldest pdf backgrounds
 - replace ttsubset by something more modern? (eg. from cairo ?)
 - auto-hide patch from ~/prog/src/xournal-autohide/ ?
      (check for cpu usage; handle BOTH edges
       and only (un)hide stuff at the correct edge!)
+** remove reset_focus() and calls to it, after enough testing.
+   check if we should call reset_recognizer() in some of those places
+   (e.g., undo/redo?)
 ** if bg pdf not found in absolute path, look in path of xoj file before
    prompting user.
-** patch to fix focus + allow up/dn in single page mode (Bob McElrath)
-   also comment out contents of reset_focus() ? (tracker patch #2494022)
-** patch to fix underscores in MRU filename display (McElrath) (tracker)
-   (fix memory leak)
 ** UI update (Bob McElrath) -- eliminating status bar, compact layout,
    "compact interface" by default; themes, with line in config file
    to load pixmaps from pixmaps/$THEME/ (see Jan 9, 2009 emails)

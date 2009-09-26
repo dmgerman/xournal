@@ -1209,7 +1209,8 @@ void update_mru_menu(void)
   
   for (i=0; i<MRU_SIZE; i++) {
     if (ui.mru[i]!=NULL) {
-      tmp = g_strdup_printf("_%d %s", i+1, g_basename(ui.mru[i]));
+      tmp = g_strdup_printf("_%d %s", i+1,
+               g_strjoinv("__", g_strsplit_set(g_basename(ui.mru[i]),"_",-1)));
       gtk_label_set_text_with_mnemonic(GTK_LABEL(gtk_bin_get_child(GTK_BIN(ui.mrumenu[i]))),
           tmp);
       g_free(tmp);
