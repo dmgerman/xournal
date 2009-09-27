@@ -1281,6 +1281,8 @@ void update_page_stuff(void)
   gtk_combo_box_set_active(layerbox, ui.cur_page->nlayers-1-ui.layerno);
   ui.in_update_page_stuff = FALSE;
   
+  gtk_container_forall(GTK_CONTAINER(layerbox), unset_flags, (gpointer)GTK_CAN_FOCUS);
+  
   // update the paper-style menu radio buttons
   
   if (ui.view_continuous)
@@ -1492,7 +1494,6 @@ void process_color_activate(GtkMenuItem *menuitem, int color_no, guint color_rgb
   }
 
   if (ui.cur_mapping != 0 && !ui.button_switch_mapping) return; // not user-generated
-  reset_focus();
 
   if (ui.cur_item_type == ITEM_TEXT)
     recolor_temp_text(color_no, color_rgba);
@@ -1535,7 +1536,6 @@ void process_thickness_activate(GtkMenuItem *menuitem, int tool, int val)
   if (ui.cur_mapping != 0 && !ui.button_switch_mapping) return; // not user-generated
 
   if (ui.selection != NULL && GTK_OBJECT_TYPE(menuitem) != GTK_TYPE_RADIO_MENU_ITEM) {
-    reset_focus();
     rethicken_selection(val);
     update_thickness_buttons();
   }
@@ -1549,7 +1549,6 @@ void process_thickness_activate(GtkMenuItem *menuitem, int tool, int val)
     which_mapping = ui.cur_mapping;
   else which_mapping = 0;
   if (ui.brushes[which_mapping][tool].thickness_no == val) return;
-  reset_focus();
   end_text();
   ui.brushes[which_mapping][tool].thickness_no = val;
   ui.brushes[which_mapping][tool].thickness = predef_thickness[tool][val];
@@ -1665,15 +1664,13 @@ gboolean ok_to_close(void)
 }
 
 // send the focus back to the appropriate widget
+
 void reset_focus(void)
 {
-/*
   if (ui.cur_item_type == ITEM_TEXT)
     gtk_widget_grab_focus(ui.cur_item->widget);
   else
     gtk_widget_grab_focus(GTK_WIDGET(canvas));
-  reset_recognizer();
-*/
 }
 
 // selection / clipboard stuff
@@ -1830,7 +1827,6 @@ void process_mapping_activate(GtkMenuItem *menuitem, int m, int tool)
   if (ui.toolno[m] == tool) return;
   switch_mapping(0);
   end_text();
-  reset_focus();
     
   ui.toolno[m] = tool;
   if (ui.linked_brush[m] == BRUSH_COPIED) {
@@ -2040,7 +2036,6 @@ void hide_unimplemented(void)
 void do_fullscreen(gboolean active)
 {
   end_text();
-  reset_focus();
   ui.fullscreen = active;
   gtk_check_menu_item_set_active(
     GTK_CHECK_MENU_ITEM(GET_COMPONENT("viewFullscreen")), ui.fullscreen);
@@ -2131,7 +2126,7 @@ gboolean combobox_popup_disable_xinput (GtkWidget *widget, GdkEvent *event,
 
 gboolean handle_activate_signal(GtkWidget *widget, gpointer user_data)
 {
-  gtk_widget_grab_focus(GTK_WIDGET(canvas));
+  reset_focus();
   return FALSE;
 }
 
@@ -2141,6 +2136,44 @@ void unset_flags(GtkWidget *w, gpointer flag)
 {
   GTK_WIDGET_UNSET_FLAGS(w, (GtkWidgetFlags)flag);
   if(GTK_IS_CONTAINER(w))
-    gtk_container_foreach(GTK_CONTAINER(w), unset_flags, flag);
+    gtk_container_forall(GTK_CONTAINER(w), unset_flags, flag);
 }
-        
+
+/* reset focus when a key or button press event reaches someone, or when the
+   page-number spin button should relinquish control... */
+
+gboolean intercept_activate_events(GtkWidget *w, GdkEvent *ev, gpointer data)
+{
+  if (w == GET_COMPONENT("hbox1")) {
+    /* the event won't be processed since the hbox1 doesn't know what to do with it,
+       so we might as well kill it and avoid confusing ourselves when it gets
+       propagated further ... */
+    return TRUE;
+  }
+  if (w == GET_COMPONENT("spinPageNo")) {
+    /* we let the spin button take care of itself, and don't steal its focus,
+       unless the user presses Esc or Tab (in those cases we intervene) */
+    if (ev->type != GDK_KEY_PRESS) return FALSE;
+    if (ev->key.keyval == GDK_Escape) 
+       gtk_spin_button_set_value(GTK_SPIN_BUTTON(w), ui.pageno+1); // abort
+    else if (ev->key.keyval != GDK_Tab && ev->key.keyval != GDK_ISO_Left_Tab)
+       return FALSE; // let the spin button process it
+  }
+
+  // otherwise, we want to make sure the canvas or text item gets focus back...
+  reset_focus();  
+  return FALSE;
+}
+
+void install_focus_hooks(GtkWidget *w, gpointer data)
+{
+  if (w == NULL) return;
+  g_signal_connect(w, "key-press-event", G_CALLBACK(intercept_activate_events), data);
+  g_signal_connect(w, "button-press-event", G_CALLBACK(intercept_activate_events), data);
+  if (GTK_IS_MENU_ITEM(w)) {
+    g_signal_connect(w, "activate", G_CALLBACK(intercept_activate_events), data);
+    install_focus_hooks(gtk_menu_item_get_submenu(GTK_MENU_ITEM(w)), data);
+  }
+  if(GTK_IS_CONTAINER(w))
+    gtk_container_forall(GTK_CONTAINER(w), install_focus_hooks, data);
+}

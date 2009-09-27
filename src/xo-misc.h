@@ -105,6 +105,8 @@ gboolean combobox_popup_disable_xinput(GtkWidget *widget, GdkEvent *event, gpoin
 // help with focus
 gboolean handle_activate_signal(GtkWidget *widget, gpointer user_data);
 void unset_flags(GtkWidget *w, gpointer flag);
+gboolean intercept_activate_events(GtkWidget *w, GdkEvent *ev, gpointer data);
+void install_focus_hooks(GtkWidget *w, gpointer data);
 
 // defines for paper rulings
 

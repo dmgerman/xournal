@@ -131,9 +131,12 @@ void init_stuff (int argc, char *argv[])
   gtk_combo_box_set_focus_on_click(GTK_COMBO_BOX(GET_COMPONENT("comboLayer")), FALSE);
   g_signal_connect(GET_COMPONENT("spinPageNo"), "activate",
           G_CALLBACK(handle_activate_signal), NULL);
-  gtk_container_foreach(GTK_CONTAINER(winMain), unset_flags, (gpointer)GTK_CAN_FOCUS);
+  gtk_container_forall(GTK_CONTAINER(winMain), unset_flags, (gpointer)GTK_CAN_FOCUS);
   GTK_WIDGET_SET_FLAGS(GTK_WIDGET(canvas), GTK_CAN_FOCUS);
   GTK_WIDGET_SET_FLAGS(GTK_WIDGET(GET_COMPONENT("spinPageNo")), GTK_CAN_FOCUS);
+  
+  // install hooks on button/key/activation events to make the spinPageNo lose focus
+  gtk_container_forall(GTK_CONTAINER(winMain), install_focus_hooks, NULL);
 
   // set up and initialize the canvas
 
@@ -227,7 +230,7 @@ void init_stuff (int argc, char *argv[])
   
   gtk_widget_show (winMain);
   update_cursor();
-  
+
   /* this will cause extension events to get enabled/disabled, but
      we need the windows to be mapped first */
   gtk_check_menu_item_set_active(
@@ -272,7 +275,7 @@ void init_stuff (int argc, char *argv[])
   // load the MRU
   
   init_mru();
-  
+
   // and finally, open a file specified on the command line
   // (moved here because display parameters weren't initialized yet...)
   

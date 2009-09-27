@@ -48,9 +48,9 @@ DONE: discard Alt-click and Control-click events
 DONE: option to have buttons *toggle* the tool rather than act as tool
        (ie button 2 causes button 1 to map to tool 2) [Dylan Thurston]
 DONE: patch to fix focus + allow up/dn in single page mode (Bob McElrath)
-      also comment out contents of reset_focus() ? (tracker patch #2494022)
 DONE: patch to fix underscores in MRU filename display (Bob McElrath)
 DONE: patch to avoid tiny file dialogs (Bob McElrath)
+DONE: further fixes for focus; can Esc out of page selection box
 
 (go through Patches tracker and take the good stuff... now at 2009-05-09)
 
@@ -65,9 +65,6 @@ DONE: patch to avoid tiny file dialogs (Bob McElrath)
 - auto-hide patch from ~/prog/src/xournal-autohide/ ?
      (check for cpu usage; handle BOTH edges
       and only (un)hide stuff at the correct edge!)
-** remove reset_focus() and calls to it, after enough testing.
-   check if we should call reset_recognizer() in some of those places
-   (e.g., undo/redo?)
 ** if bg pdf not found in absolute path, look in path of xoj file before
    prompting user.
 ** UI update (Bob McElrath) -- eliminating status bar, compact layout,
@@ -84,6 +81,8 @@ DONE: patch to avoid tiny file dialogs (Bob McElrath)
    I_xx and I_yy = 0, sometimes -0 -> Rad = nan (should I_xx = abs(...) ?)
    also Det = division by 0, should return 0 if ixx + iyy = 0.
    (MAYBE: fix inertia calc: integrate dm over each segment rather than  dm.pt[i])
+** "new page before/after" on a PDF bg page should ask: same page, other page of
+  PDF file, default paper
 - new recognizer icon (andruk on patches tracker)
 - recognizer: if variable-width, associate average width
 - recognizer should snap to existing recognized geometric shapes
@@ -96,8 +95,6 @@ DONE: patch to avoid tiny file dialogs (Bob McElrath)
   and maybe also snap-to-vertices (option for ruler and recognizer)?
 - config option: config save current tool options instead of default ones
 
-- "new page before/after" on a PDF bg page should ask: same page, other page of
-  PDF file, default paper
 - bug in truetype subset generation w/ Adobe 9, see if gtk-print any better?
 
 - drag-and-drop, copy-paste text & images directly into xournal

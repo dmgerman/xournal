@@ -1211,8 +1211,9 @@ void start_text(GdkEvent *event, struct Item *item)
   GnomeCanvasItem *canvas_item;
   PangoFontDescription *font_desc;
   GdkColor color;
-  
+
   get_pointer_coords(event, pt);
+
   ui.cur_item_type = ITEM_TEXT;
 
   // HACK TO BYPASS GTK+ 2.17 issue: crash if move text within selection
@@ -1267,13 +1268,13 @@ void start_text(GdkEvent *event, struct Item *item)
   item->canvas_item = canvas_item;
 
   gtk_widget_show(item->widget);
-  gtk_widget_grab_focus(item->widget);
   ui.resize_signal_handler = 
     g_signal_connect((gpointer) winMain, "check_resize",
        G_CALLBACK(resize_textview), NULL);
   update_font_button();
   gtk_widget_set_sensitive(GET_COMPONENT("editPaste"), FALSE);
   gtk_widget_set_sensitive(GET_COMPONENT("buttonPaste"), FALSE);
+  gtk_widget_grab_focus(item->widget); 
 }
 
 void end_text(void)
@@ -1425,7 +1426,6 @@ void process_font_sel(gchar *str)
     else *p=0;
   }
   else size=0.;
-  reset_focus();
   g_free(ui.font_name);
   ui.font_name = str;  
   if (size>0.) ui.font_size = size;

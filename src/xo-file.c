@@ -219,6 +219,7 @@ gboolean close_journal(void)
   
   // free everything...
   reset_selection();
+  reset_recognizer();
   clear_redo_stack();
   clear_undo_stack();
 
