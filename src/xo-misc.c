@@ -653,7 +653,7 @@ void rescale_bg_pixmaps(void)
     // in progressive mode we scale only visible pages
     if (ui.progressive_bg && !is_visible(pg)) continue;
 
-    if (pg->bg->type == BG_PIXMAP && pg->bg->canvas_item!=NULL) { // do the rescaling ourselves
+    if (pg->bg->type == BG_PIXMAP && pg->bg->canvas_item!=NULL) {
       g_object_get(G_OBJECT(pg->bg->canvas_item), "pixbuf", &pix, NULL);
       if (pix!=pg->bg->pixbuf)
         gnome_canvas_item_set(pg->bg->canvas_item, "pixbuf", pg->bg->pixbuf, NULL);
@@ -675,8 +675,8 @@ void rescale_bg_pixmaps(void)
       // request an asynchronous update to a better pixmap if needed
       zoom_to_request = MIN(ui.zoom, MAX_SAFE_RENDER_DPI/72.0);
       if (pg->bg->pixbuf_scale == zoom_to_request) continue;
-      add_bgpdf_request(pg->bg->file_page_seq, zoom_to_request);
-      pg->bg->pixbuf_scale = zoom_to_request;
+      if (add_bgpdf_request(pg->bg->file_page_seq, zoom_to_request))
+        pg->bg->pixbuf_scale = zoom_to_request;
     }
   }
 }
@@ -1320,7 +1320,7 @@ void update_page_stuff(void)
         break;
       default:
         gtk_check_menu_item_set_active(
-          GTK_CHECK_MENU_ITEM(GET_COMPONENT("papercolorOther")), TRUE);
+          GTK_CHECK_MENU_ITEM(GET_COMPONENT("papercolorNA")), TRUE);
         break;
     }
     switch (ui.cur_page->bg->ruling) {
@@ -1561,16 +1561,18 @@ void process_thickness_activate(GtkMenuItem *menuitem, int tool, int val)
   update_cursor();
 }
 
-void process_papercolor_activate(GtkMenuItem *menuitem, int color)
+void process_papercolor_activate(GtkMenuItem *menuitem, int color, guint rgba)
 {
   struct Page *pg;
   GList *pglist;
   gboolean hasdone;
 
-  if (!gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem)))
-    return;
+  if (GTK_OBJECT_TYPE(menuitem) == GTK_TYPE_RADIO_MENU_ITEM) {
+    if (!gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem)))
+      return;
+  }
 
-  if ((ui.cur_page->bg->type != BG_SOLID) || ui.bg_apply_all_pages)
+  if ((ui.cur_page->bg->type != BG_SOLID) || ui.bg_apply_all_pages || color == COLOR_OTHER)
     gtk_check_menu_item_set_active(
       GTK_CHECK_MENU_ITEM(GET_COMPONENT("papercolorNA")), TRUE);
 
@@ -1578,7 +1580,7 @@ void process_papercolor_activate(GtkMenuItem *menuitem, int color)
   hasdone = FALSE;
   for (pglist = journal.pages; pglist!=NULL; pglist = pglist->next) {
     if (ui.bg_apply_all_pages) pg = (struct Page *)pglist->data;
-    if (pg->bg->type == BG_SOLID && pg->bg->color_no != color) {
+    if (pg->bg->type == BG_SOLID && pg->bg->color_rgba != rgba) {
       prepare_new_undo();
       if (hasdone) undo->multiop |= MULTIOP_CONT_UNDO;
       undo->multiop |= MULTIOP_CONT_REDO;
@@ -1589,7 +1591,7 @@ void process_papercolor_activate(GtkMenuItem *menuitem, int color)
       undo->bg->canvas_item = NULL;
 
       pg->bg->color_no = color;
-      pg->bg->color_rgba = predef_bgcolors_rgba[color];
+      pg->bg->color_rgba = rgba;
       update_canvas_bg(pg);
     }
     if (!ui.bg_apply_all_pages) break;
@@ -2014,7 +2016,6 @@ void hide_unimplemented(void)
 {
   gtk_widget_hide(GET_COMPONENT("filePrintOptions"));
   gtk_widget_hide(GET_COMPONENT("journalFlatten"));  
-  gtk_widget_hide(GET_COMPONENT("papercolorOther")); 
   gtk_widget_hide(GET_COMPONENT("toolsSelectRegion"));
   gtk_widget_hide(GET_COMPONENT("buttonSelectRegion"));
   gtk_widget_hide(GET_COMPONENT("button2SelectRegion"));
@@ -2110,17 +2111,6 @@ gboolean fix_extended_events (GtkWidget *widget, GdkEvent *event,
 }
 */
 
-// disable xinput when layer combo box is popped up, to avoid GTK+ 2.17 crash
-
-gboolean combobox_popup_disable_xinput (GtkWidget *widget, GdkEvent *event,
-                                   gpointer user_data)
-{
-  gboolean is_shown;
-  
-  g_object_get(G_OBJECT(widget), "popup-shown", &is_shown, NULL);
-  gtk_widget_set_extension_events(GTK_WIDGET (canvas), 
-       (ui.use_xinput && !is_shown)?GDK_EXTENSION_EVENTS_ALL:GDK_EXTENSION_EVENTS_NONE);
-}
 
 /* When enter is pressed into page spinbox, send focus back to canvas. */
 

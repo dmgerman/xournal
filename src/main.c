@@ -204,12 +204,13 @@ void init_stuff (int argc, char *argv[])
     gtk_widget_set_sensitive(GET_COMPONENT("optionsUseXInput"), FALSE);
 
   ui.use_xinput = ui.allow_xinput && can_xinput;
-  ui.need_emergency_disable_xinput = FALSE;
 
   gtk_check_menu_item_set_active(
     GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsProgressiveBG")), ui.progressive_bg);
   gtk_check_menu_item_set_active(
     GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsPrintRuling")), ui.print_ruling);
+  gtk_check_menu_item_set_active(
+    GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsAutoloadPdfXoj")), ui.autoload_pdf_xoj);
   gtk_check_menu_item_set_active(
     GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsLeftHanded")), ui.left_handed);
   gtk_check_menu_item_set_active(
@@ -263,12 +264,6 @@ void init_stuff (int argc, char *argv[])
     g_signal_connect (
       (gpointer)(gtk_scrolled_window_get_hscrollbar(GTK_SCROLLED_WINDOW(w))),
       "event", G_CALLBACK (filter_extended_events),
-      NULL);
-  }
-  if (!gtk_check_version(2, 17, 0)) {
-    g_signal_connect (
-      GET_COMPONENT("comboLayer"),
-      "notify::popup-shown", G_CALLBACK (combobox_popup_disable_xinput),
       NULL);
   }
 

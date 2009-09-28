@@ -1308,7 +1308,7 @@ on_papercolorWhite_activate            (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
   end_text();
-  process_papercolor_activate(menuitem, COLOR_WHITE);
+  process_papercolor_activate(menuitem, COLOR_WHITE, predef_bgcolors_rgba[COLOR_WHITE]);
 }
 
 
@@ -1317,7 +1317,7 @@ on_papercolorYellow_activate           (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
   end_text();
-  process_papercolor_activate(menuitem, COLOR_YELLOW);
+  process_papercolor_activate(menuitem, COLOR_YELLOW, predef_bgcolors_rgba[COLOR_YELLOW]);
 }
 
 
@@ -1326,7 +1326,7 @@ on_papercolorPink_activate             (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
   end_text();
-  process_papercolor_activate(menuitem, COLOR_RED);
+  process_papercolor_activate(menuitem, COLOR_RED, predef_bgcolors_rgba[COLOR_RED]);
 }
 
 
@@ -1335,7 +1335,7 @@ on_papercolorOrange_activate           (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
   end_text();
-  process_papercolor_activate(menuitem, COLOR_ORANGE);
+  process_papercolor_activate(menuitem, COLOR_ORANGE, predef_bgcolors_rgba[COLOR_ORANGE]);
 }
 
 
@@ -1344,7 +1344,7 @@ on_papercolorBlue_activate             (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
   end_text();
-  process_papercolor_activate(menuitem, COLOR_BLUE);
+  process_papercolor_activate(menuitem, COLOR_BLUE, predef_bgcolors_rgba[COLOR_BLUE]);
 }
 
 
@@ -1353,7 +1353,7 @@ on_papercolorGreen_activate            (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
   end_text();
-  process_papercolor_activate(menuitem, COLOR_GREEN);
+  process_papercolor_activate(menuitem, COLOR_GREEN, predef_bgcolors_rgba[COLOR_GREEN]);
 }
 
 
@@ -1361,7 +1361,25 @@ void
 on_papercolorOther_activate            (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-
+  GtkWidget *dialog;
+  GtkColorSelection *colorsel;
+  gint result;
+  guint rgba;
+  GdkColor gdkcolor;
+  
+  end_text();
+  dialog = gtk_color_selection_dialog_new(_("Pick a Paper Color"));
+  colorsel = GTK_COLOR_SELECTION(GTK_COLOR_SELECTION_DIALOG(dialog)->colorsel);
+  if (ui.cur_page->bg->type == BG_SOLID) rgba = ui.cur_page->bg->color_rgba;
+  else rgba = ui.default_page.bg->color_rgba;
+  rgb_to_gdkcolor(rgba, &gdkcolor);
+  gtk_color_selection_set_current_color(colorsel, &gdkcolor);
+  
+  if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_OK) {
+    gtk_color_selection_get_current_color(colorsel, &gdkcolor);
+    process_papercolor_activate(menuitem, COLOR_OTHER, gdkcolor_to_rgba(gdkcolor, 0xffff));
+  }
+  gtk_widget_destroy(dialog);
 }
 
 
@@ -2526,7 +2544,20 @@ on_canvas_enter_notify_event           (GtkWidget       *widget,
                                         GdkEventCrossing *event,
                                         gpointer         user_data)
 {
+  GList *dev_list;
+  GdkDevice *dev;
 
+#ifdef INPUT_DEBUG
+  printf("DEBUG: enter notify\n");
+#endif
+    /* re-enable input devices after they've been emergency-disabled
+       by leave_notify */
+  if (!gtk_check_version(2, 17, 0)) {
+    for (dev_list = gdk_devices_list(); dev_list != NULL; dev_list = dev_list->next) {
+      dev = GDK_DEVICE(dev_list->data);
+      gdk_device_set_mode(dev, GDK_MODE_SCREEN);
+    }
+  }
   return FALSE;
 }
 
@@ -2535,12 +2566,19 @@ on_canvas_leave_notify_event           (GtkWidget       *widget,
                                         GdkEventCrossing *event,
                                         gpointer         user_data)
 {
+  GList *dev_list;
+  GdkDevice *dev;
+
 #ifdef INPUT_DEBUG
-  printf("DEBUG: leave notify\n");
+  printf("DEBUG: leave notify (mode=%d, details=%d)\n", event->mode, event->detail);
 #endif
-  if (ui.need_emergency_disable_xinput) {
-    gtk_widget_set_extension_events(GTK_WIDGET (canvas), GDK_EXTENSION_EVENTS_NONE);
-    ui.need_emergency_disable_xinput = FALSE;
+    /* emergency disable XInput to avoid segfaults (GTK+ 2.17) or 
+       interface non-responsiveness (GTK+ 2.18) */
+  if (!gtk_check_version(2, 17, 0)) { 
+    for (dev_list = gdk_devices_list(); dev_list != NULL; dev_list = dev_list->next) {
+      dev = GDK_DEVICE(dev_list->data);
+      gdk_device_set_mode(dev, GDK_MODE_DISABLED);
+    }
   }
   return FALSE;
 }
@@ -3417,6 +3455,14 @@ on_optionsPrintRuling_activate         (GtkMenuItem     *menuitem,
 {
   end_text();
   ui.print_ruling = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem));
+}
+
+void
+on_optionsAutoloadPdfXoj_activate      (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+  end_text();
+  ui.autoload_pdf_xoj = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem));
 }
 
 void

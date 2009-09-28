@@ -65,7 +65,7 @@ void set_cur_color(int color_no, guint color_rgba);
 void recolor_temp_text(int color_no, guint color_rgba);
 void process_color_activate(GtkMenuItem *menuitem, int color_no, guint color_rgba);
 void process_thickness_activate(GtkMenuItem *menuitem, int tool, int val);
-void process_papercolor_activate(GtkMenuItem *menuitem, int color);
+void process_papercolor_activate(GtkMenuItem *menuitem, int color, guint rgba);
 void process_paperstyle_activate(GtkMenuItem *menuitem, int style);
 
 gboolean ok_to_close(void);
@@ -100,7 +100,6 @@ void do_fullscreen(gboolean active);
 // fix GTK+ 2.16/2.17 issues with XInput events
 gboolean filter_extended_events(GtkWidget *widget, GdkEvent *event, gpointer user_data);
 // gboolean fix_extended_events(GtkWidget *widget, GdkEvent *event, gpointer user_data);
-gboolean combobox_popup_disable_xinput(GtkWidget *widget, GdkEvent *event, gpointer user_data);
 
 // help with focus
 gboolean handle_activate_signal(GtkWidget *widget, gpointer user_data);

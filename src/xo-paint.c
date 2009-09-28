@@ -1109,7 +1109,7 @@ void recolor_selection(int color_no, guint color_rgba)
     undo->auxlist = g_list_append(undo->auxlist, brush);
     // repaint the stroke
     item->brush.color_no = color_no;
-    item->brush.color_rgba = color_rgba;
+    item->brush.color_rgba = color_rgba | 0xff; // no alpha
     if (item->canvas_item!=NULL) {
       if (!item->brush.variable_width)
         gnome_canvas_item_set(item->canvas_item, 
@@ -1216,14 +1216,6 @@ void start_text(GdkEvent *event, struct Item *item)
 
   ui.cur_item_type = ITEM_TEXT;
 
-  // HACK TO BYPASS GTK+ 2.17 issue: crash if move text within selection
-  // also bypass: non-responsiveness of clicks in text box with 2.17 & 2.18
-  if (!gtk_check_version(2, 17, 0)) {
-    /* ask the canvas's leave-notify handler to disable 
-       xinput when it's safe to do so... */
-    ui.need_emergency_disable_xinput = TRUE;
-  }
-
   if (item==NULL) {
     item = g_new(struct Item, 1);
     item->text = NULL;
@@ -1287,13 +1279,6 @@ void end_text(void)
 
   if (ui.cur_item_type!=ITEM_TEXT) return; // nothing for us to do!
 
-  // HACK TO BYPASS GTK+ 2.17 issues
-  if (!gtk_check_version(2, 17, 0)) {
-    // re-enable XInput if needed (we disabled it during text edition)
-    gtk_widget_set_extension_events(GTK_WIDGET (canvas), 
-       ui.use_xinput?GDK_EXTENSION_EVENTS_ALL:GDK_EXTENSION_EVENTS_NONE);
-  }
-  
   // finalize the text that's been edited... 
   buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(ui.cur_item->widget));
   gtk_text_buffer_get_bounds(buffer, &start, &end);

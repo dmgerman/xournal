@@ -267,6 +267,7 @@ typedef struct UIData {
   int zoom_step_increment; // the increment in the zoom dialog box
   double zoom_step_factor; // the multiplicative factor in zoom in/out
   double startup_zoom;
+  gboolean autoload_pdf_xoj;
 #if GLIB_CHECK_VERSION(2,6,0)
   GKeyFile *config_data;
 #endif
@@ -281,7 +282,6 @@ typedef struct UIData {
   gboolean shorten_menus; // shorten menus ?
   gchar *shorten_menu_items; // which items to hide
   gboolean is_sel_cursor; // displaying a selection-related cursor
-  gboolean need_emergency_disable_xinput; // need to disable xinput to avoid GTK+ 2.17 bug ?
 #if GTK_CHECK_VERSION(2,10,0)
   GtkPrintSettings *print_settings;
 #endif

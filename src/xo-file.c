@@ -665,7 +665,10 @@ gboolean user_wants_second_chance(char **filename)
   dialog = gtk_file_chooser_dialog_new(_("Open PDF"), GTK_WINDOW (winMain),
      GTK_FILE_CHOOSER_ACTION_OPEN, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
      GTK_STOCK_OPEN, GTK_RESPONSE_OK, NULL);
-
+#ifdef FILE_DIALOG_SIZE_BUGFIX
+  gtk_window_set_default_size(GTK_WINDOW(dialog), 500, 400);
+#endif
+  
   filt_all = gtk_file_filter_new();
   gtk_file_filter_set_name(filt_all, _("All files"));
   gtk_file_filter_add_pattern(filt_all, "*");
@@ -674,6 +677,8 @@ gboolean user_wants_second_chance(char **filename)
   gtk_file_filter_add_pattern(filt_pdf, "*.pdf");
   gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (dialog), filt_pdf);
   gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (dialog), filt_all);
+
+  if (ui.default_path!=NULL) gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (dialog), ui.default_path);
 
   if (gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_OK) {
     gtk_widget_destroy(dialog);
@@ -697,11 +702,25 @@ gboolean open_journal(char *filename)
   gzFile f;
   char buffer[1000];
   int len;
-  gchar *tmpfn;
+  gchar *tmpfn, *tmpfn2, *p, *q;
   gboolean maybe_pdf;
   
+  tmpfn = g_strdup_printf("%s.xoj", filename);
+  if (ui.autoload_pdf_xoj && g_file_test(tmpfn, G_FILE_TEST_EXISTS) &&
+      (g_str_has_suffix(filename, ".pdf") || g_str_has_suffix(filename, ".PDF")))
+  {
+    valid = open_journal(tmpfn);
+    g_free(tmpfn);
+    return valid;
+  }
+  g_free(tmpfn);
+
   f = gzopen(filename, "r");
   if (f==NULL) return FALSE;
+  if (filename[0]=='/') {
+    if (ui.default_path != NULL) g_free(ui.default_path);
+    ui.default_path = g_path_get_dirname(filename);
+  }
   
   context = g_markup_parse_context_new(&parser, 0, NULL, NULL);
   valid = TRUE;
@@ -756,7 +775,21 @@ gboolean open_journal(char *filename)
     else
       tmpfn = g_strdup(tmpBg_pdf->filename->s);
     valid = init_bgpdf(tmpfn, FALSE, tmpBg_pdf->file_domain);
-    // in case the file name became invalid
+    // if file name is invalid: first try in xoj file's directory
+    if (!valid && tmpBg_pdf->file_domain != DOMAIN_ATTACH) {
+      p = g_path_get_dirname(filename);
+      q = g_path_get_basename(tmpfn);
+      tmpfn2 = g_strdup_printf("%s/%s", p, q);
+      g_free(p); g_free(q);
+      valid = init_bgpdf(tmpfn2, FALSE, tmpBg_pdf->file_domain);
+      if (valid) {  // change the file name...
+        printf("substituting %s -> %s\n", tmpfn, tmpfn2);
+        g_free(tmpBg_pdf->filename->s);
+        tmpBg_pdf->filename->s = tmpfn2;
+      }
+      else g_free(tmpfn2);
+    }
+    // if file name is invalid: next prompt user
     if (!valid && tmpBg_pdf->file_domain != DOMAIN_ATTACH)
       if (user_wants_second_chance(&tmpfn)) {
         valid = init_bgpdf(tmpfn, FALSE, tmpBg_pdf->file_domain);
@@ -1012,13 +1045,13 @@ gboolean bgpdf_scheduler_callback(gpointer data)
 
 /* make a request */
 
-void add_bgpdf_request(int pageno, double zoom)
+gboolean add_bgpdf_request(int pageno, double zoom)
 {
   struct BgPdfRequest *req, *cmp_req;
   GList *list;
-  
+
   if (bgpdf.status == STATUS_NOT_INIT)
-    return; // don't accept requests
+    return FALSE; // don't accept requests
   req = g_new(struct BgPdfRequest, 1);
   req->pageno = pageno;
   req->dpi = 72*zoom;
@@ -1034,6 +1067,7 @@ void add_bgpdf_request(int pageno, double zoom)
   // make the request
   bgpdf.requests = g_list_append(bgpdf.requests, req);
   if (!bgpdf.pid) bgpdf.pid = g_idle_add(bgpdf_scheduler_callback, NULL);
+  return TRUE;
 }
 
 /* shutdown the PDF reader */
@@ -1300,6 +1334,7 @@ void init_config_default(void)
   ui.width_minimum_multiplier = 0.0;
   ui.width_maximum_multiplier = 1.25;
   ui.button_switch_mapping = FALSE;
+  ui.autoload_pdf_xoj = FALSE;
   
   // the default UI vertical order
   ui.vertical_order[0][0] = 1; 
@@ -1432,6 +1467,9 @@ void save_config_to_file(void)
   update_keyval("general", "buttons_switch_mappings",
     _(" buttons 2 and 3 switch mappings instead of drawing (useful for some tablets) (true/false)"),
     g_strdup(ui.button_switch_mapping?"true":"false"));
+  update_keyval("general", "autoload_pdf_xoj",
+    _(" automatically load filename.pdf.xoj instead of filename.pdf (true/false)"),
+    g_strdup(ui.autoload_pdf_xoj?"true":"false"));
   update_keyval("general", "default_path",
     _(" default path for open/save (leave blank for current directory)"),
     g_strdup((ui.default_path!=NULL)?ui.default_path:""));
@@ -1815,6 +1853,7 @@ void load_config_from_file(void)
   parse_keyval_boolean("general", "discard_corepointer", &ui.discard_corepointer);
   parse_keyval_boolean("general", "use_erasertip", &ui.use_erasertip);
   parse_keyval_boolean("general", "buttons_switch_mappings", &ui.button_switch_mapping);
+  parse_keyval_boolean("general", "autoload_pdf_xoj", &ui.autoload_pdf_xoj);
   parse_keyval_string("general", "default_path", &ui.default_path);
   parse_keyval_boolean("general", "pressure_sensitivity", &ui.pressure_sensitivity);
   parse_keyval_float("general", "width_minimum_multiplier", &ui.width_minimum_multiplier, 0., 10.);

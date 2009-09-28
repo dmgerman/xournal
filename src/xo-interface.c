@@ -245,6 +245,7 @@ create_winMain (void)
   GtkWidget *separator18;
   GtkWidget *optionsProgressiveBG;
   GtkWidget *optionsPrintRuling;
+  GtkWidget *optionsAutoloadPdfXoj;
   GtkWidget *optionsLeftHanded;
   GtkWidget *optionsShortenMenus;
   GtkWidget *separator21;
@@ -754,11 +755,9 @@ create_winMain (void)
   gtk_container_add (GTK_CONTAINER (journalPaperColor_menu), papercolorGreen);
   gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (papercolorGreen), TRUE);
 
-  papercolorOther = gtk_radio_menu_item_new_with_mnemonic (papercolorWhite_group, _("other..."));
-  papercolorWhite_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (papercolorOther));
+  papercolorOther = gtk_menu_item_new_with_mnemonic (_("other..."));
   gtk_widget_show (papercolorOther);
   gtk_container_add (GTK_CONTAINER (journalPaperColor_menu), papercolorOther);
-  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (papercolorOther), TRUE);
 
   papercolorNA = gtk_radio_menu_item_new_with_mnemonic (papercolorWhite_group, _("NA"));
   papercolorWhite_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (papercolorNA));
@@ -1370,6 +1369,10 @@ create_winMain (void)
   optionsPrintRuling = gtk_check_menu_item_new_with_mnemonic (_("Print Paper _Ruling"));
   gtk_widget_show (optionsPrintRuling);
   gtk_container_add (GTK_CONTAINER (menuOptions_menu), optionsPrintRuling);
+
+  optionsAutoloadPdfXoj = gtk_check_menu_item_new_with_mnemonic (_("Autoload pdf.xoj"));
+  gtk_widget_show (optionsAutoloadPdfXoj);
+  gtk_container_add (GTK_CONTAINER (menuOptions_menu), optionsAutoloadPdfXoj);
 
   optionsLeftHanded = gtk_check_menu_item_new_with_mnemonic (_("Left-Handed Scrollbar"));
   gtk_widget_show (optionsLeftHanded);
@@ -2107,7 +2110,7 @@ create_winMain (void)
   g_signal_connect ((gpointer) papercolorGreen, "toggled",
                     G_CALLBACK (on_papercolorGreen_activate),
                     NULL);
-  g_signal_connect ((gpointer) papercolorOther, "toggled",
+  g_signal_connect ((gpointer) papercolorOther, "activate",
                     G_CALLBACK (on_papercolorOther_activate),
                     NULL);
   g_signal_connect ((gpointer) paperstylePlain, "toggled",
@@ -2343,6 +2346,9 @@ create_winMain (void)
                     NULL);
   g_signal_connect ((gpointer) optionsPrintRuling, "activate",
                     G_CALLBACK (on_optionsPrintRuling_activate),
+                    NULL);
+  g_signal_connect ((gpointer) optionsAutoloadPdfXoj, "activate",
+                    G_CALLBACK (on_optionsAutoloadPdfXoj_activate),
                     NULL);
   g_signal_connect ((gpointer) optionsLeftHanded, "toggled",
                     G_CALLBACK (on_optionsLeftHanded_activate),
@@ -2711,6 +2717,7 @@ create_winMain (void)
   GLADE_HOOKUP_OBJECT (winMain, separator18, "separator18");
   GLADE_HOOKUP_OBJECT (winMain, optionsProgressiveBG, "optionsProgressiveBG");
   GLADE_HOOKUP_OBJECT (winMain, optionsPrintRuling, "optionsPrintRuling");
+  GLADE_HOOKUP_OBJECT (winMain, optionsAutoloadPdfXoj, "optionsAutoloadPdfXoj");
   GLADE_HOOKUP_OBJECT (winMain, optionsLeftHanded, "optionsLeftHanded");
   GLADE_HOOKUP_OBJECT (winMain, optionsShortenMenus, "optionsShortenMenus");
   GLADE_HOOKUP_OBJECT (winMain, separator21, "separator21");

@@ -51,10 +51,22 @@ DONE: patch to fix focus + allow up/dn in single page mode (Bob McElrath)
 DONE: patch to fix underscores in MRU filename display (Bob McElrath)
 DONE: patch to avoid tiny file dialogs (Bob McElrath)
 DONE: further fixes for focus; can Esc out of page selection box
+DONE: further fixes for xinput under GTK+ 2.17
+DONE: option to auto-load *.pdf.xoj instead of *.pdf (Bob McElrath)
+DONE: look for PDF backgrounds in path of xoj file before prompting user
+DONE: paper color chooser (after a patch by ojb)
 
-(go through Patches tracker and take the good stuff... now at 2009-05-09)
+** patch: ortho/snap (revised Apr 13 2009)
+   xournal_ortho_snap_patch_4 (by Josef Pavlicek)
 
-- paper color chooser (see tracker 2083103)
+** patch (Ian-Woo Kim): multicolumn mode + LASSO SELECTION
+   xournal_lasso_multipage_zoom_button_20090620.patch
+
+** autosave patch (Edward Yang) (fix: optional only, w/ menu + cfgfile
+   entries; fix: should clean up autosave.xoj.bg* files too; config interval)
+   0001-Implement-autosave-for-documents-revised.patch (2 seconds after
+   modification, vs original 5 seconds)
+
 - prerelease: update help file (remove references to pdftoppm/libgnomeprint
   & update to poppler/gtkprint)
 - REMOVE BINARY INSTALLER (poppler breaks ABI all the time)
@@ -65,16 +77,10 @@ DONE: further fixes for focus; can Esc out of page selection box
 - auto-hide patch from ~/prog/src/xournal-autohide/ ?
      (check for cpu usage; handle BOTH edges
       and only (un)hide stuff at the correct edge!)
-** if bg pdf not found in absolute path, look in path of xoj file before
-   prompting user.
 ** UI update (Bob McElrath) -- eliminating status bar, compact layout,
    "compact interface" by default; themes, with line in config file
    to load pixmaps from pixmaps/$THEME/ (see Jan 9, 2009 emails)
-** autosave patch (Edward Yang) (fix: optional only, w/ menu + cfgfile
-   entries; fix: should clean up autosave.xoj.bg* files too; config interval)
 - horizontal mode instead of dual-view / multicolumn ?
-- patch (ikim@physics.wisc.edu): multicolumn mode + LASSO SELECTION
-- patch: ortho/snap (revised Apr 13 2009)
 ** FIXME: get_pressure_multiplier() should access correct members
    of event struct, like xinput_coords()
 ** FIX RECOGNIZER BUG: for single-segment strokes (e.g. single click),

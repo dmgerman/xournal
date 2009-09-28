@@ -772,13 +772,11 @@
 			  </child>
 
 			  <child>
-			    <widget class="GtkRadioMenuItem" id="papercolorOther">
+			    <widget class="GtkMenuItem" id="papercolorOther">
 			      <property name="visible">True</property>
 			      <property name="label" translatable="yes">other...</property>
 			      <property name="use_underline">True</property>
-			      <property name="active">True</property>
-			      <property name="group">papercolorWhite</property>
-			      <signal name="toggled" handler="on_papercolorOther_activate" last_modification_time="Thu, 01 Dec 2005 22:00:06 GMT"/>
+			      <signal name="activate" handler="on_papercolorOther_activate" last_modification_time="Sun, 27 Sep 2009 22:00:06 GMT"/>
 			    </widget>
 			  </child>
 
@@ -1873,6 +1871,16 @@
 		      <property name="use_underline">True</property>
 		      <property name="active">False</property>
 		      <signal name="activate" handler="on_optionsPrintRuling_activate" last_modification_time="Sat, 25 Nov 2006 03:42:27 GMT"/>
+		    </widget>
+		  </child>
+
+		  <child>
+		    <widget class="GtkCheckMenuItem" id="optionsAutoloadPdfXoj">
+		      <property name="visible">True</property>
+		      <property name="label" translatable="yes">Autoload pdf.xoj</property>
+		      <property name="use_underline">True</property>
+		      <property name="active">False</property>
+		      <signal name="activate" handler="on_optionsAutoloadPdfXoj_activate" last_modification_time="Sat, 25 Nov 2006 03:42:27 GMT"/>
 		    </widget>
 		  </child>
 
