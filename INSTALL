@@ -1,23 +1,6 @@
 Xournal Installation instructions
 =================================
 
-Binary installer:
------------------
-
-The tarball includes an executable file for Linux IA32.  If your setup
-is sufficiently standard, you might be able to use the binary installer
-script, "install-binary".
-
-Either run this script as root, to install xournal in /usr/local/bin
-(and the dependencies in /usr/local/share/xournal), or as any user, to
-install xournal in your home directory.
-
-You will still need to have gtk+ 2.4 or later and the other required
-libraries installed on your system (see below).
-
-Otherwise, read on for compilation and installation instructions.
-
-
 Dependencies:
 -------------
 
@@ -26,25 +9,24 @@ Required packages and libraries:
 * TO COMPILE xournal:
 
 - autoconf, automake  (to generate the makefiles)
-- gtk+ 2.4 or later development packages  (2.6 recommended)
+- gtk+ 2.10 or later development packages
    (package gtk2-devel and its dependencies)
 - libgnomecanvas 2.4 or later development packages 
    (package libgnomecanvas-devel and its dependencies)
-- libgnomeprint and libgnomeprintui 2.2 development packages
-   (packages libgnomeprint22-devel, libgnomeprintui22-devel, and dependencies)
+- poppler-glib 0.5.4 or later development packages
+   (package poppler-glib-devel and dependencies)
 
 * TO RUN xournal:
 
-- gtk+ 2.4 or later (2.6 recommended)
+- gtk+ 2.10 or later
    (package gtk2 and dependencies)
 - libgnomecanvas 2.4 or later
    (package libgnomecanvas and dependencies)
-- libgnomeprint and libgnomeprintui 2.2 or later 
-    (packages libgnomeprint22, libgnomeprintui22, and dependencies)
+- poppler-glib 0.5.4 or later
+   (package poppler-glib and dependencies)
 
 * OTHER:
 
-- xpdf (more precisely, pdftoppm) is required for PDF file annotation
 - ghostscript (optional: used to import PS/PDF files as bitmap backgrounds)
 
 
@@ -53,14 +35,13 @@ Compilation and installation:
 
 Installation in /usr/local:
 
-./autogen.sh
+./configure
 make
 (as root) make install
 (as root) make desktop-install
 
 Installation in $HOME:
 
-./autogen.sh
 ./configure --prefix=$HOME
 make
 make install

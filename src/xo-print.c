@@ -1082,7 +1082,8 @@ void pdf_draw_page(struct Page *pg, GString *str, gboolean *use_hiliter,
         old_text_rgba = item->brush.color_rgba & ~0xff;
         fontmap = pango_ft2_font_map_new();
         pango_ft2_font_map_set_resolution(PANGO_FT2_FONT_MAP (fontmap), 72, 72);
-        context = pango_font_map_create_context(fontmap);
+        context = pango_context_new();
+        pango_context_set_font_map(context, fontmap);
         layout = pango_layout_new(context);
         g_object_unref(fontmap);
         g_object_unref(context);

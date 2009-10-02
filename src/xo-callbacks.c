@@ -3466,16 +3466,6 @@ on_optionsAutoloadPdfXoj_activate      (GtkMenuItem     *menuitem,
 }
 
 void
-on_optionsDiscardCore_activate         (GtkMenuItem     *menuitem,
-                                        gpointer         user_data)
-{
-  end_text();
-  ui.discard_corepointer =
-    gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem));
-  update_mappings_menu();
-}
-
-void
 on_fontButton_font_set                 (GtkFontButton   *fontbutton,
                                         gpointer         user_data)
 {

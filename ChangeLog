@@ -1,3 +1,18 @@
+Version 0.4.5 (Oct 2, 2009):
+  - bugfixes for GTK+ 2.16/2.17 issues with xinput events
+  - various minor UI bugfixes
+  - gettext internationalization (contributed by David Planella)
+  - Catalan translation (by David Planella), French translation
+  - use poppler instead of pdftoppm to render PDF backgrounds 
+    (after patches by Mike Ter Louw and Bob McElrath)
+  - various improvements to UI and to key bindings (including
+    patches by Bob McElrath and Lu Zhihe)
+  - use gtk-print instead of libgnomeprint for printing
+  - custom color chooser (patch contributed by Alex Ray)
+  - option to have tablet buttons toggle the mapping rather than draw
+  - paper color chooser (after a patch by Ole Joergen Broenner)
+  - remove binary installer (due to binary incompatibilities)
+
 Version 0.4.2.1 (Mar 27, 2008):
   - bugfix for #1926757 (crash upon pasting variable-width stroke)
   - bugfix: set ruler/recognizer setting to default upon switching tools

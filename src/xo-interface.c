@@ -206,7 +206,6 @@ create_winMain (void)
   GtkWidget *menuOptions;
   GtkWidget *menuOptions_menu;
   GtkWidget *optionsUseXInput;
-  GtkWidget *optionsDiscardCoreEvents;
   GtkWidget *optionsButtonMappings;
   GtkWidget *optionsPressureSensitive;
   GtkWidget *button2_mapping;
@@ -1188,10 +1187,6 @@ create_winMain (void)
   optionsUseXInput = gtk_check_menu_item_new_with_mnemonic (_("Use _XInput"));
   gtk_widget_show (optionsUseXInput);
   gtk_container_add (GTK_CONTAINER (menuOptions_menu), optionsUseXInput);
-
-  optionsDiscardCoreEvents = gtk_check_menu_item_new_with_mnemonic (_("Discard _Core Events"));
-  gtk_widget_show (optionsDiscardCoreEvents);
-  gtk_container_add (GTK_CONTAINER (menuOptions_menu), optionsDiscardCoreEvents);
 
   optionsButtonMappings = gtk_check_menu_item_new_with_mnemonic (_("_Eraser Tip"));
   gtk_widget_show (optionsButtonMappings);
@@ -2269,9 +2264,6 @@ create_winMain (void)
   g_signal_connect ((gpointer) optionsUseXInput, "toggled",
                     G_CALLBACK (on_optionsUseXInput_activate),
                     NULL);
-  g_signal_connect ((gpointer) optionsDiscardCoreEvents, "toggled",
-                    G_CALLBACK (on_optionsDiscardCore_activate),
-                    NULL);
   g_signal_connect ((gpointer) optionsButtonMappings, "activate",
                     G_CALLBACK (on_optionsButtonMappings_activate),
                     NULL);
@@ -2682,7 +2674,6 @@ create_winMain (void)
   GLADE_HOOKUP_OBJECT (winMain, menuOptions, "menuOptions");
   GLADE_HOOKUP_OBJECT (winMain, menuOptions_menu, "menuOptions_menu");
   GLADE_HOOKUP_OBJECT (winMain, optionsUseXInput, "optionsUseXInput");
-  GLADE_HOOKUP_OBJECT (winMain, optionsDiscardCoreEvents, "optionsDiscardCoreEvents");
   GLADE_HOOKUP_OBJECT (winMain, optionsButtonMappings, "optionsButtonMappings");
   GLADE_HOOKUP_OBJECT (winMain, optionsPressureSensitive, "optionsPressureSensitive");
   GLADE_HOOKUP_OBJECT (winMain, button2_mapping, "button2_mapping");
@@ -2962,7 +2953,7 @@ create_aboutDialog (void)
   gtk_box_pack_start (GTK_BOX (dialog_vbox2), labelTitle, FALSE, FALSE, 3);
   gtk_label_set_justify (GTK_LABEL (labelTitle), GTK_JUSTIFY_CENTER);
 
-  labelInfo = gtk_label_new (_("Written by Denis Auroux\n       http://xournal.sourceforge.net/       "));
+  labelInfo = gtk_label_new (_("Written by Denis Auroux\nand other contributors\n       http://xournal.sourceforge.net/       "));
   gtk_widget_show (labelInfo);
   gtk_box_pack_start (GTK_BOX (dialog_vbox2), labelInfo, FALSE, FALSE, 0);
   gtk_label_set_justify (GTK_LABEL (labelInfo), GTK_JUSTIFY_CENTER);

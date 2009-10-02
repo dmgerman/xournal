@@ -1116,6 +1116,7 @@ gboolean init_bgpdf(char *pdfname, gboolean create_pages, int file_domain)
   struct Page *pg;
   PopplerPage *pdfpage;
   gdouble width, height;
+  gchar *uri;
   
   if (bgpdf.status != STATUS_NOT_INIT) return FALSE;
   
@@ -1135,8 +1136,17 @@ gboolean init_bgpdf(char *pdfname, gboolean create_pages, int file_domain)
   bgpdf.pid = 0;
   bgpdf.has_failed = FALSE;
 
-  bgpdf.document = poppler_document_new_from_data(bgpdf.file_contents, bgpdf.file_length, NULL, NULL);
-  if (bgpdf.document == NULL) shutdown_bgpdf();
+/* poppler_document_new_from_data() starts at 0.6.1, but we want to
+   be compatible with poppler 0.5.4 = latest in CentOS as of sept 2009 */
+  uri = g_filename_to_uri(pdfname, NULL, NULL);
+  if (!uri) uri = g_strdup_printf("file://%s", pdfname);
+  bgpdf.document = poppler_document_new_from_file(uri, NULL, NULL);
+  g_free(uri);
+/*    with poppler 0.6.1 or later, can replace the above 4 lines by:
+  bgpdf.document = poppler_document_new_from_data(bgpdf.file_contents, 
+                          bgpdf.file_length, NULL, NULL);
+*/
+  if (bgpdf.document == NULL) { shutdown_bgpdf(); return FALSE; }
   
   if (pdfname[0]=='/' && ui.filename == NULL) {
     if (ui.default_path!=NULL) g_free(ui.default_path);

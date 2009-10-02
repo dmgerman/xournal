@@ -1,21 +1,7 @@
 List of features to be implemented (not in any particular order)
 ----------------------------------------------------------------
 
-- collaborative editing (see discussion with Erik Demaine)
-- porting to Win32 and MacOS; merge Nokia port
-- multiple-scenario undo history
-
-- collaborative: allow non-x86 endianness (for ints, for floats?)
-- collaborative: have an initial undo item = contents of the initial
-  xoj file + attachments for bitmap, pdf, and ps backgrounds
-
-- cleanup of undo history (keep track of refcounts, delete old undo)
-  save-and-clear-undo ?
-
-- RandR / recalibration awareness?
-  (e.g. if xinput events are far away from core events, re-query geometry?)
-   or see if removing the GTK bugfix would help? -- e.g. by recalling an
-   internal gtk init function?
+THINGS DONE IN THIS RELEASE:
 
 DONE: fix GTK+ 2.16/2.17 XInput issues with scrollbars and menus
 DONE: fix bug 2826845 (shape recognizer accel doesn't work in fullscreen mode)
@@ -55,6 +41,28 @@ DONE: further fixes for xinput under GTK+ 2.17
 DONE: option to auto-load *.pdf.xoj instead of *.pdf (Bob McElrath)
 DONE: look for PDF backgrounds in path of xoj file before prompting user
 DONE: paper color chooser (after a patch by ojb)
+DONE: remove "Discard core events" from options menu
+DONE: remove binary installer (poppler is binary incompatible across versions)
+      but provide configure script
+
+REMAINING THINGS TO DO:
+
+- collaborative editing (see discussion with Erik Demaine)
+- porting to Win32 and MacOS; merge Nokia port
+- multiple-scenario undo history
+
+- collaborative: allow non-x86 endianness (for ints, for floats?)
+- collaborative: have an initial undo item = contents of the initial
+  xoj file + attachments for bitmap, pdf, and ps backgrounds
+
+- cleanup of undo history (keep track of refcounts, delete old undo)
+  save-and-clear-undo ?
+
+- RandR / recalibration awareness?
+  (e.g. if xinput events are far away from core events, re-query geometry?)
+   or see if removing the GTK bugfix would help? -- e.g. by recalling an
+   internal gtk init function?
+
 
 ** patch: ortho/snap (revised Apr 13 2009)
    xournal_ortho_snap_patch_4 (by Josef Pavlicek)
@@ -67,10 +75,9 @@ DONE: paper color chooser (after a patch by ojb)
    0001-Implement-autosave-for-documents-revised.patch (2 seconds after
    modification, vs original 5 seconds)
 
+- TEST AGAINST 2.18.x ?
 - prerelease: update help file (remove references to pdftoppm/libgnomeprint
   & update to poppler/gtkprint)
-- REMOVE BINARY INSTALLER (poppler breaks ABI all the time)
-   but add a configure script (+ Makefile.in, etc ?)
 - document config options into manual file?
 - PDF bg memory usage throttling / delete oldest pdf backgrounds
 - replace ttsubset by something more modern? (eg. from cairo ?)
@@ -221,3 +228,9 @@ DONE: paper color chooser (after a patch by ojb)
   adjust event coordinates by inverse rotation).
 - rotate PDF background pages (individually wrt each other, see #2099935)
 - switch to libglade, and allow customization of key shortcuts (accels)
+
+- command to copy a selected shape to a keybinding that will paste it
+  (so one can define symbols to insert into typed notes)  (e.g. "be able
+  to bind Ctrl-B to draw a \beta" for class notes). (shape, binding) sets are
+  local to one session (different for different classes; but save them into
+  the xoj file maybe ?) [Felix Giannelia 09/29/2009]

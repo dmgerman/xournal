@@ -414,12 +414,24 @@ void fix_xinput_coords(GdkEvent *event)
 
 double get_pressure_multiplier(GdkEvent *event)
 {
+  double *axes;
   double rawpressure;
-  
-  if (event->button.device == gdk_device_get_core_pointer()
-      || event->button.device->num_axes <= 2) return 1.0;
+  GdkDevice *device;
 
-  rawpressure = event->button.axes[2]/(event->button.device->axes[2].max - event->button.device->axes[2].min);
+  if (event->type == GDK_MOTION_NOTIFY) {
+    axes = event->motion.axes;
+    device = event->motion.device;
+  }
+  else {
+    axes = event->button.axes;
+    device = event->button.device;
+  }
+  
+  if (device == gdk_device_get_core_pointer()
+      || device->num_axes <= 2) return 1.0;
+
+  rawpressure = axes[2]/(device->axes[2].max - device->axes[2].min);
+  if (!finite(rawpressure)) return 1.0;
 
   return ((1-rawpressure)*ui.width_minimum_multiplier + rawpressure*ui.width_maximum_multiplier);
 }
@@ -1104,12 +1116,9 @@ void update_mappings_menu_linkings(void)
 void update_mappings_menu(void)
 {
   gtk_widget_set_sensitive(GET_COMPONENT("optionsButtonMappings"), ui.use_xinput);
-  gtk_widget_set_sensitive(GET_COMPONENT("optionsDiscardCoreEvents"), ui.use_xinput);
   gtk_widget_set_sensitive(GET_COMPONENT("optionsPressureSensitive"), ui.use_xinput);
   gtk_check_menu_item_set_active(
     GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsButtonMappings")), ui.use_erasertip);
-  gtk_check_menu_item_set_active(
-    GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsDiscardCoreEvents")), ui.discard_corepointer);
   gtk_check_menu_item_set_active(
     GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsPressureSensitive")), ui.pressure_sensitivity);
 

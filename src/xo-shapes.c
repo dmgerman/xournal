@@ -69,28 +69,34 @@ inline double center_y(struct Inertia s)
 
 inline double I_xx(struct Inertia s)
 {
+  if (s.mass <= 0.) return 0.;
   return (s.sxx - s.sx*s.sx/s.mass)/s.mass;
 }
 
 inline double I_xy(struct Inertia s)
 {
+  if (s.mass <= 0.) return 0.;
   return (s.sxy - s.sx*s.sy/s.mass)/s.mass;
 }
 
 inline double I_yy(struct Inertia s)
 {
+  if (s.mass <= 0.) return 0.;
   return (s.syy - s.sy*s.sy/s.mass)/s.mass;
 }
 
 inline double I_rad(struct Inertia s)
 {
-  return sqrt(I_xx(s)+I_yy(s));
+  double ixx = I_xx(s), iyy = I_yy(s);
+  if (ixx+iyy <= 0.) return 0.;
+  return sqrt(ixx+iyy);
 }
 
 inline double I_det(struct Inertia s)
 {
-  if (s.mass == 0.) return 0.;
   double ixx = I_xx(s), iyy = I_yy(s), ixy = I_xy(s);
+  if (s.mass <= 0.) return 0.;
+  if (ixx+iyy <= 0.) return 0.;
   return 4*(ixx*iyy-ixy*ixy)/(ixx+iyy)/(ixx+iyy);
 }
 
