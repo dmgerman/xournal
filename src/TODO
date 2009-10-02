@@ -42,6 +42,8 @@ DONE: option to auto-load *.pdf.xoj instead of *.pdf (Bob McElrath)
 DONE: look for PDF backgrounds in path of xoj file before prompting user
 DONE: paper color chooser (after a patch by ojb)
 DONE: remove "Discard core events" from options menu
+DONE: get_pressure_multiplier() accesses correct members of event union
+DONE: address recognizer bug on single-segment strokes (division by 0)
 DONE: remove binary installer (poppler is binary incompatible across versions)
       but provide configure script
 
@@ -75,10 +77,6 @@ REMAINING THINGS TO DO:
    0001-Implement-autosave-for-documents-revised.patch (2 seconds after
    modification, vs original 5 seconds)
 
-- TEST AGAINST 2.18.x ?
-- prerelease: update help file (remove references to pdftoppm/libgnomeprint
-  & update to poppler/gtkprint)
-- document config options into manual file?
 - PDF bg memory usage throttling / delete oldest pdf backgrounds
 - replace ttsubset by something more modern? (eg. from cairo ?)
 - auto-hide patch from ~/prog/src/xournal-autohide/ ?
@@ -88,12 +86,6 @@ REMAINING THINGS TO DO:
    "compact interface" by default; themes, with line in config file
    to load pixmaps from pixmaps/$THEME/ (see Jan 9, 2009 emails)
 - horizontal mode instead of dual-view / multicolumn ?
-** FIXME: get_pressure_multiplier() should access correct members
-   of event struct, like xinput_coords()
-** FIX RECOGNIZER BUG: for single-segment strokes (e.g. single click),
-   I_xx and I_yy = 0, sometimes -0 -> Rad = nan (should I_xx = abs(...) ?)
-   also Det = division by 0, should return 0 if ixx + iyy = 0.
-   (MAYBE: fix inertia calc: integrate dm over each segment rather than  dm.pt[i])
 ** "new page before/after" on a PDF bg page should ask: same page, other page of
   PDF file, default paper
 - new recognizer icon (andruk on patches tracker)

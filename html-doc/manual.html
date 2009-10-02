@@ -24,7 +24,7 @@
   Xournal User's Manual
 </h2>
 <p style="font-size: 0.95em; text-align: center; color: rgb(0,0,0)">
- Version 0.4.2.1
+ Version 0.4.5
 </p>
 <hr />
 <p>
@@ -39,13 +39,12 @@
 <p>
 Xournal can be downloaded at
 <a href="http://xournal.sourceforge.net/">http://xournal.sourceforge.net/</a> or 
-<a href="http://math.mit.edu/~auroux/software/xournal/">http://math.mit.edu/~auroux/software/xournal/</a>
+<a href="http://math.berkeley.edu/~auroux/software/xournal/">http://math.berkeley.edu/~auroux/software/xournal/</a>
 </p>
 <p>
  Xournal aims to provide superior graphical quality (subpixel resolution) and overall
- functionality; however it lacks the collaborative features of Jarnal.
- Since Xournal is still in its early development stages, it may not
- be fully stable, and some features have not been implemented yet.
+ functionality; however various advanced features have not been implemented
+ yet.
 </p>
 <h2 class="subtitle">Table of contents</h2>
 <p>
@@ -54,7 +53,7 @@ Xournal can be downloaded at
   <li> <a href="manual.html#tools">The drawing and selection tools</a> </li>
   <li> <a href="manual.html#pages-layers">Pages, layers, and backgrounds</a> </li>
   <li> <a href="manual.html#printing">Printing</a> </li>
-  <li> <a href="manual.html#configuration">Configuration</a> </li>
+  <li> <a href="manual.html#configuration">Configuration file</a> </li>
   <li> <a href="manual.html#author">Author information, license, bug-reports</a> </li>
   <li> <a href="manual.html#changelog">Version history</a> </li>
   <li> <a href="manual.html#file-format">The file format</a> </li>
@@ -79,7 +78,7 @@ Xournal can be downloaded at
  </a>
 </p>
 <p>
-Refer the next few sections of this manual for more information about
+Refer to the next few sections of this manual for more information about
 the various functionalities.
 </p>
 <hr />
@@ -284,6 +283,11 @@ the Tools menu):
   is most useful if your X server is configured to map the eraser tip of
   your tablet's stylus to button 1.
 </p>
+<p>
+  Also note the "Buttons switch mappings" option, which may be useful to
+  users of external tablets: when this option is turned on, buttons 2 and 3
+  only switch the tool mapping, and drawing is still done with button 1.
+</p>
 <hr />
 <a name="pages-layers"></a>
 <h2 class="subtitle">Pages, layers, and backgrounds</h2>
@@ -389,8 +393,9 @@ resizes the current page according to the size of the bitmap image, and
 resets the zoom level to 100%. If <i>ghostscript</i> is installed on your
 system, you can also use this method to import a fixed-resolution bitmap
 version of a Postscript or PDF file; in that case, all pages will be
-imported sequentially as backgrounds into consecutive pages (this is not the
-recommended method; PDF annotation is better in many respects).
+imported sequentially as backgrounds into consecutive pages (this is
+<i>not</i> the
+recommended method; PDF annotation is better in every respect).
 </p>
 <p>
 To capture a <b>screenshot</b> of a window or the entire screen and make it
@@ -411,29 +416,15 @@ ghostscript) are automatically "attached" to the journal file: when the
 journal is saved, they will be saved (in PNG format) along with it
 (using file names of the form *.xoj.bg_*.png).
 </p>
-<p>
-<b>Rescaling and anti-aliasing:</b> by default,
-bitmap backgrounds are rescaled and anti-aliased as needed when the zoom
-level is changed, to ensure their appearance always remains acceptable.
-Because this consumes a lot of memory and CPU resources, by default this
-rescaling is performed on-demand as each page becomes visible. This means
-that you will occasionally notice bitmap backgrounds being smoothed while
-you are scrolling inside the document (at large zoom levels, this can slow
-down the screen refresh rate noticeably). If you'd prefer all backgrounds to
-be rescaled immediately upon changing the zoom level (slower but maybe more
-intuitive), disable the "Progressive Backgrounds" option in the Options
-menu.<br />
-If you are handling large bitmaps, you can save memory and CPU resources (at the
-expense of quality) by disabling the "Antialiased Bitmaps" option in the Options menu.
-</p>
 
 <a name="pdfannotate"></a>
 <h3 class="subsub">PDF annotation</h3>
 <p>
 Xournal can be used to annotate PDF files, by loading the pages of a PDF
-file as backgrounds for a journal. This feature requires the
-<i>pdftoppm</i> converter to be installed (this is part of the <i>xpdf</i>
-&nbsp;PDF file viewer).
+file as backgrounds for a journal. As of version 0.4.5 this is done using
+the <i>poppler</i> library (previous versions used the
+<i>pdftoppm</i> converter, which is part of the <i>xpdf</i> utilities or
+the <i>poppler</i> utilities depending on distributions).
 </p>
 <p>
 The "Annotate PDF" command in the File menu can be used to load a PDF file
@@ -460,9 +451,10 @@ become visible on the screen (unless you disable the "Progressive
 Backgrounds" option in the Options menu). This means that you will
 occasionally notice the page backgrounds being updated while you are
 scrolling inside the document (at large zoom levels, it can take a while
-for the updated background to appear). However, since the backgrounds are
-generated asynchronously by a separate Unix process, you can keep drawing in the journal
-while the update process is still in progress.
+for the updated background to appear). 
+<!-- However, since the backgrounds are generated asynchronously by a 
+separate Unix process, you can keep drawing in the journal
+while the update process is still in progress. -->
 </p>
 <p>
 It is strongly recommended that you do not resize PDF pages (using the
@@ -478,54 +470,61 @@ possible to include pages from more than one PDF file into a single journal
 document. If you need to annotate two or more PDF files inside a same
 journal document, please consider using an external utility for merging
 PDF files (for example <i>pdfmerge</i>).
+</p>
+<p>
+<b>Note:</b> the PDF backgrounds are
+rescaled and/or regenerated as needed when the zoom level is changed.
+Because this consumes a lot of memory and CPU resources, by default this
+rescaling is performed on-demand as each page becomes visible. This means
+that you will occasionally notice backgrounds being generated while
+you are scrolling inside the document (at large zoom levels, this can slow
+down the screen refresh rate noticeably). If you'd prefer all backgrounds to
+be loaded in advance and rescaled immediately upon changing the zoom level,
+disable the "Progressive Backgrounds" option in the Options menu. Be aware
+that this increases the memory consumption and will cause out-of-memory
+crashes when viewing long documents.
+</p>
+
 <hr />
 <a name="printing"></a>
 <h2 class="subtitle">Printing</h2>
 <p>
-Xournal uses the gnome-print architecture for printing. While it is very
-powerful, some aspects of the API leave to be desired. As of version 0.3,
-Xournal also includes a native PDF printing feature.
+As of version 0.4.5, Xournal uses the gtk-print architecture for printing
+(previous versions used gnome-print). Xournal also includes a native PDF 
+printing feature.
 </p>
-<h3 class="subsub">Printing via gnome-print</h3>
+<h3 class="subsub">Printing via gtk-print</h3>
 <p>
-The "Printer" tab of the print dialog box lets you select a printer
-(either one of the printers installed on your system, or the generic
-Postscript printer, or the PDF virtual printer). The "Job" tab lets you
-select a range of pages to print (the default is to print the entire
-journal). The "Paper" tab lets you select the paper size. Each page
+The print dialog box lets you select a printer
+(either one of the printers installed on your system, or the "Print to File"
+virtual printer), and a range of pages to print (the default is to print 
+the entire journal). Each page
 of the journal is automatically rescaled so as to fit the paper size.
-(minus a 5% margin all around).
+</p>
+<p>
+Unlike the older gnome-print architecture, gtk-print and poppler make it
+possible to efficiently print files that annotate PDF backgrounds. (Prior to
+version 0.4.5, PDF backgrounds had to be converted to bitmaps upon printing,
+resulting in huge print jobs and low printout quality).
 </p>
 <p>
 The settings are currently not saved properly from one print job to
-the next, so make sure to select the appropriate printer and verify
-the paper size. When printing to a file (Postscript or PDF), Xournal
-attempts to pre-fill the output file name (for the Postscript driver
-this often fails due to gnome-print API issues).
-</p>
-<p>
-Note that the PDF virtual printer produces files that are very large
-and far from optimal, so its use is not recommended.
-The gnome-print architecture also forces page backgrounds (bitmaps
-and PDF) to be generated as uncompressed bitmaps, which leads to gigantic
-print job files. A better alternative is to export a PDF file, and
-print the PDF file.
+the next, so make sure to verify the settings.
 </p>
 <h3 class="subsub">Exporting to PDF</h3>
 <p>
-Starting with version 0.3, Xournal provides its own PDF rendering
+Xournal also provides its own PDF rendering
 engine. The "Export to PDF" command (in the File menu) produces a
-PDF-1.4 file from the currently loaded document. The resulting PDF
-file is much more compact than those produced via gnome-print, and
-its pages have the same size as in Xournal. Highlighter strokes
+PDF-1.4 file from the currently loaded document. The pages of the
+resulting PDF file have the same size as in Xournal. Highlighter strokes
 are rendered in a partially transparent manner (note however that
 applications such as xpdf and ghostview do not always handle
 PDF transparency properly). Text items are rendered by embedding
 TrueType subsets or Type 1 fonts into the PDF document as appropriate.
 </p>
 <p>
-Xournal also includes a PDF file parser compatible with PDF format
-version 1.4; the compression features of PDF 1.5 (Acrobat 6) are
+Xournal includes a PDF file parser compatible with PDF format
+version 1.4; the compression features of PDF 1.5 are
 not supported. When exporting a document that uses PDF
 backgrounds, Xournal attempts to preserve most of the structure of
 the original PDF file (however, auxiliary data such as thumbnails, hyperlinks,
@@ -535,10 +534,10 @@ PDF file is generated from scratch.
 </p>
 <hr />
 <a name="configuration"></a>
-<h2 class="subtitle">Configuration</h2>
+<h2 class="subtitle">Configuration file</h2>
 <p>
-Starting with version 0.3.2, Xournal's configuration settings can be
-saved to a file (<tt>~user/.xournal/config</tt>) by using the "Save
+Xournal's configuration settings are saved to the file
+<tt>~user/.xournal/config</tt> by using the "Save
 Preferences" command in the Options menu. The settings saved in the
 configuration file include in particular:
 <ul>
@@ -557,17 +556,171 @@ the tool selected at startup, the thickness of the various drawing tools,
 the default directory for opening and saving files, the visibility and
 position of the menu and toolbars, ...
 </p>
+<p>Here is a partial list of configuration file settings:
+<ul> 
+<li> <p><b>Display settings</b> (in the <tt><b>[general]</b></tt> section): <ul>
+<li><tt><b>display_dpi:</b></tt> 
+the display resolution in pixels per inch</li>
+<li><tt><b>initial_zoom:</b></tt> 
+the initial zoom level, in percent</li>
+<li><tt><b>window_maximize:</b></tt> 
+whether to start with a maximized window</li>
+<li><tt><b>window_fullscreen:</b></tt> 
+whether to start in fullscreen mode</li>
+<li><tt><b>window_width, window_height:</b></tt> 
+the preferred window size (if not maximized)</li>
+<li><tt><b>zoom_step_factor:</b></tt> 
+the (multiplicative) factor by which the zoom in/zoom out buttons change the zoom
+level</li>
+<li><tt><b>view_continuous:</b></tt> 
+whether to start in continuous or single-page view mode (see also View menu)</li>
+<li><tt><b>highlighter_opacity:</b></tt> 
+the opacity level of highlighter strokes (from 0 to 1; 1 is fully opaque).
+Note that .xoj files do not store the opacity level of strokes, so if you
+change from the default value of 0.5 your files will look different when
+opened on another machine.</li>
+</ul></p></li>
+<li> <p><b>User interface settings</b> (in the <tt><b>[general]</b></tt> section): <ul>
+<li><tt><b>autosave_prefs:</b></tt> 
+whether to automatically save preferences upon exiting Xournal.</li>
+<li><tt><b>interface_order:</b></tt> 
+the position of the various toolbars relative to the drawing area, 
+from top to bottom. The default order is: <tt>menu main_toolbar pen_toolbar
+drawarea statusbar</tt>. Switching elements around rearranges the
+interface. Removing elements from the list hides them.</li>
+<li><tt><b>interface_fullscreen:</b></tt> 
+the same thing, but in fullscreen mode. For example, <tt>drawarea main_toolbar
+pen_toolbar</tt> would position the toolbars below the drawing area, and hide
+the menu and status bar.
+interface.</li>
+<li><tt><b>shorten_menus:</b></tt> 
+whether to hide some little-used menu or toolbar items (see also "Shorten
+Menus" in Options menu)</li>
+<li><tt><b>shorten_menu_items:</b></tt> 
+the list of interface items to hide when shorten_menus is enabled. Virtually
+everything in the interface can be hidden. A complete list of interface item ID names
+can be obtained by running the command <tt>grep id= xournal.glade</tt> in
+the base directory of the source code distribution.</li>
+<li><tt><b>default_path:</b></tt> 
+the default path for the open/save dialog boxes (leave blank to use the
+current directory)</li>
+<li><tt><b>autoload_pdf_xoj:</b></tt> 
+whether to load filename.pdf.xoj (if it exists) when the user opens
+filename.pdf (see also "Autoload .pdf.xoj" in Options menu)</li>
+</ul></p></li>
+<li> <p><b>Input device settings</b> (in the <tt><b>[general]</b></tt> section): <ul>
+<li><tt><b>use_xinput:</b></tt> 
+whether to enable XInput extensions for high-resolution tablet input
+(see also "Use XInput" in Options menu)</li>
+<li><tt><b>discard_corepointer:</b></tt> 
+whether to discard Core events when XInput extensions are enabled. Setting
+this to "false" should be safe.</li>
+<li><tt><b>use_erasertip:</b></tt> 
+whether to always map the eraser tip of a stylus to the eraser
+(see also "Eraser Tip" in Options menu)</li>
+<li><tt><b>buttons_switch_mappings:</b></tt> 
+whether to have buttons 2 and 3 switch the tool mapping instead of actually
+drawing (useful with some external tablets; see also "Buttons Switch
+Mappings" in Options menu)</li>
+<li><tt><b>pressure_sensitivity:</b></tt> 
+whether to use stylus pressure to control stroke width (see also "Pressure
+Sensitivity" in Options menu)</li>
+<li><tt><b>width_minimum_multiplier, width_maximum_multiplier:</b></tt> 
+the minimum and maximum width multipliers for pressure-sensitive strokes</li>
+</ul></p></li>
+<li> <p><b>Paper settings</b> (in the <tt><b>[paper]</b></tt> section): <ul>
+<li><tt><b>width, height:</b></tt> 
+the default paper size, in points (1 point = 1/72 in = 0.353 mm)</li>
+<li><tt><b>color:</b></tt> 
+the default paper color (named color or #rrggbbaa)</li>
+<li><tt><b>style:</b></tt> 
+the default paper style (plain, lined, ruled, or graph)</li>
+<li><tt><b>apply_all:</b></tt> 
+whether paper style changes get applied to all pages (see also "Apply to all
+pages" in Journal menu)</li>
+<li><tt><b>print_ruling:</b></tt> 
+whether to include the paper ruling lines when printing
+(see also "Print Paper Ruling" in Options menu)</li>
+<li><tt><b>progressive_bg:</b></tt> 
+whether to generate PDF backgrounds just-in-time as pages become visible
+(rather than immediately upon opening the document or changing the zoom 
+level, which is more memory-intensive); see also "Progressive Backgrounds"
+in Options menu</li>
+<li><tt><b>gs_bitmap_dpi:</b></tt> 
+resolution (in dpi) of bitmap backgrounds generated from PS/PDF files
+when using "Load Background" in Journal menu; higher values mean higher
+quality but larger memory usage</li>
+<li><tt><b>pdftoppm_printing_dpi:</b></tt> 
+resolution (in dpi) of bitmaps generated from PDF backgrounds when exporting
+to PDF (only used if the PDF parser is unable to process the background PDF
+file); higher values mean higher quality but larger output files</li>
+</ul></p></li>
+<li> <p><b>Tool settings</b> (in the <tt><b>[tools]</b></tt> section): <ul>
+<li><tt><b>startup_tool:</b></tt> 
+the tool selected at startup (one of: pen, eraser, highlighter, selectrect,
+vertspace, hand)</li>
+<li><tt><b>pen_color, pen_thickness, pen_ruler, pen_recognizer:</b></tt> 
+the default pen settings: color (a named color or #rrggbbaa), thickness
+(fine = 1, medium = 2, thick = 3), ruler mode, recognizer mode</li>
+<li><tt><b>highlighter_color, highlighter_thickness, highlighter_ruler,
+highlighter_recognizer:</b></tt> 
+the default highlighter settings</li>
+<li><tt><b>eraser_thickness, eraser_mode:</b></tt> 
+the default eraser settings: thickness (fine = 1, medium = 2, thick = 3)
+and operating mode (standard = 0, whiteout = 1, delete strokes = 2)</li>
+<li><tt><b>btn2_tool, btn3_tool:</b></tt> 
+the tools mapped to buttons 2 and 3 (can be: pen, eraser, highlighter, selectrect,
+vertspace, hand)</li>
+<li><tt><b>btn2_linked, btn3_linked:</b></tt> 
+whether the settings of the tools for buttons 2 and 3 are linked to those of
+the corresponding primary tools</li>
+<li><tt><b>btn2_color, btn2_thickness, btn2_ruler, btn2_recognizer,
+btn2_erasermode:</b></tt> 
+if the settings are not linked to the primary tool (<tt>btn2_linked</tt> is
+false), the settings of the tool mapped to button 2. Not all entries are 
+applicable, depending on the value of <tt>btn2_tool</tt>.</li>
+<li><tt><b>btn3_color, btn3_thickness, btn3_ruler, btn3_recognizer,
+btn3_erasermode:</b></tt> 
+similarly for the button 3 tool.</li> 
+<li><tt><b>pen_thicknesses, eraser_thicknesses, highlighter_thicknesses:</b></tt> 
+the widths in points (1 pt = 1/72 in = 0.353 mm) of the various pens
+(5 values from 'very fine' to 'very thick'), erasers (3 values from 'fine'
+to 'thick') and highlighters (3 values from 'fine' to 'thick') </li> 
+<li><tt><b>default_font, default_font_size:</b></tt> 
+the name and point size of the default text font.</li>
+</ul></p></li>
+</ul>
+</p>
 <hr />
 <a name="author"></a>
 <h2 class="subtitle">Author information, license, bug-reports</h2>
 <p>
 Xournal is written by Denis Auroux
-(aur<!--despam-->oux<span>&#x40;</span><span>math</span>&#x2e;<span>mit&#x2e;edu).
-<br />It is distributed under the GNU General Public License.
+(aur<!--despam-->oux<span>&#x40;</span><span>math</span>&#x2e;<span>mit&#x2e;edu,
+aur<!--despam-->oux<span>&#x40;</span><span>math</span>&#x2e;<span>berkeley&#x2e;edu).
+</p>
+<p>
+The source code includes contributions by the following people: 
+Eduardo de Barros Lima, Mathieu Bouchard, Ole J&oslash;rgen Br&oslash;nner,
+Vincenzo Ciancia, Luca de Cicco, Michele Codutti, 
+Robert Gerlach, Lukasz Kaiser, Danny Kukawka, Bob McElrath, 
+Andy Neitzke, David Planella, Alex Ray, Jean-Baptiste Rouquier, 
+Mike Ter Louw, Uwe Winter, Lu Zhihe.
+</p>
+<p style="font-size:0.9em">(Let me know if you are missing from this list or
+if your name is mis-spelled)</p>
+<p>
+Xournal is distributed under the GNU General Public License.
+</p>
+<p style="font-size: 0.9em; font-style: italic">
+ <b>Note:</b> most of the code of version 0.4.2.1 
+ (excluding graphics and a few portions of the code) has also been released
+ under the MIT License. Please contact the main developer if 
+ you need an MIT License version of the 0.4.2.1 code. Later versions are
+ not available under MIT License.
 </p>
 <p>Feel free to contact me with bug reports and suggestions; I apologize
 in advance if I am unable to respond properly to some requests.
-</p><p>
 If you find a sequence of operations which crashes Xournal in a reproducible
 manner, please send detailed instructions on how to reproduce the crash. 
 A core file may also be helpful.
@@ -579,6 +732,26 @@ Bug reports and suggestions can also be submitted on Xournal's
 <hr />
 <a name="changelog"></a>
 <h2 class="subtitle">Version history</h2>
+<p>
+Version 0.4.5 (Oct 2, 2009):
+<ul>
+     <li>bugfixes for GTK+ 2.16/2.17 issues with xinput events
+</li><li>various minor UI bugfixes
+</li><li>gettext internationalization (contributed by David Planella)
+</li><li>Catalan translation (by David Planella), French translation
+</li><li>use poppler instead of pdftoppm to render PDF backgrounds 
+    (after patches by Mike Ter Louw and Bob McElrath)
+</li><li>various improvements to UI and to key bindings (including
+    patches by Bob McElrath and Lu Zhihe)
+</li><li>use gtk-print instead of libgnomeprint for printing
+</li><li>custom color chooser (patch contributed by Alex Ray)
+</li><li>option to have tablet buttons toggle the mapping rather than draw
+</li><li>paper color chooser (after a patch by Ole Joergen Broenner)
+</li><li>remove binary installer (due to binary incompatibilities)
+</li><li>UPDATED DEPENDENCIES: need gtk+ 2.10, poppler-glib 0.5.4
+</li>
+</ul>
+</p>                             
 <p>
 Version 0.4.2.1 (Mar 27, 2008):
 <ul>
@@ -891,29 +1064,27 @@ and the text itself).
 <h3 class="subsub">Dependencies</h3>
 <p>
 The following libraries are required to run Xournal (they are standard on
-modern Linux distributions such as Fedora Core 3 or later, or RHEL 4 or
-later):
+modern Linux distributions such as Fedora 6 or later, RHEL 5 or
+later, Ubuntu 6.10 or later, etc.):
 <ul>
- <li> the <b>gtk+</b> libraries, version <b>2.4</b> or later 
-       (<b>2.6</b> strongly recommended) &nbsp; (package gtk2 and dependencies)</li>
+ <li> the <b>gtk+</b> libraries, version <b>2.10</b> or later 
+ (package gtk2 and dependencies)</li>
  <li> <b>libgnomecanvas</b> version <b>2.4</b> or later &nbsp;
-       (package libgnomecanvas and dependencies)</li>
- <li> <b>libgnomeprint</b> and <b>libgnomeprintui</b> version <b>2.2</b> or later &nbsp;
-       (packages libgnomeprint22, libgnomeprintui22, and dependencies) </li>
+ (package libgnomecanvas and dependencies)</li>
+ <li> <b>poppler-glib</b> version <b>0.5.4</b> or later &nbsp;
+ (package poppler-glib and dependencies)</li>
 </ul>
 </p>
 <p>
- Additionally:
+ Optional:
 <ul>
- <li> <b>xpdf</b> (more precisely, <b>pdftoppm</b>) is required for PDF file
-annotation</li>
- <li> <b>ghostscript</b> (optional: used to import PS/PDF files as bitmap 
+ <li> ghostscript (optional: used to import PS/PDF files as bitmap 
  backgrounds)</li>
 </ul>
 <p>
 To compile Xournal, you also need the <b>development packages</b> for the above
-libraries (packages gtk2-devel, libgnomecanvas-devel, libgnomeprint22-devel,
-libgnomeprintui22-devel, and dependencies), as well as <b>autoconf</b> and
+libraries (packages gtk2-devel, libgnomecanvas-devel, poppler-glib-devel,
+and dependencies), as well as <b>autoconf</b> and
 <b>automake</b>.
 </p>
 <h3 class="subsub">Compilation and installation procedure</h3>
@@ -921,20 +1092,9 @@ libgnomeprintui22-devel, and dependencies), as well as <b>autoconf</b> and
 Download the Xournal distribution tar.gz file, and any needed dependencies.
 </p>
 <p>
-<b>Binary installation in /usr/local:</b><br />
-Run (as root) the installer script
-<pre>./install-binary</pre> (and upgrade GTK+ and the other libraries if needed).
-</p>
-<p>
-<b>Binary installation in home directory:</b><br />
-Run (as any user) the installer script
-<pre>./install-binary</pre> (and hope that the required libraries are
-installed on your system).
-</p>
-<p>
 <b>Compilation and installation in /usr/local:</b>
 <pre>
-./autogen.sh
+./configure
 make
 (as root) make install
 (as root) make desktop-install
@@ -943,7 +1103,6 @@ make
 <p>
 <b>Compilation and installation in $HOME:</b>
 <pre>
-./autogen.sh
 ./configure --prefix=$HOME
 make
 make install
@@ -951,9 +1110,10 @@ make home-desktop-install
 </pre>
 </p>
 <p><b>Configure error message:</b> <br />
-If autogen.sh generates the error message
+If configure generates the error message
 &nbsp; &nbsp; <tt><i>
-configure: error: Library requirements (gtk+-2.0 >= 2.4.0 libgnomecanvas-2.0 >= 2.4.0 libgnomeprintui-2.2 >= 2.0.0) not met
+configure: error: Package requirements (gtk+-2.0 >= 2.10.0
+libgnomecanvas-2.0 >= 2.4.0 poppler-glib >= 0.5.4)  not met
 </i></tt> &nbsp; &nbsp; 
 even though you have sufficiently recent versions of these libraries on your
 system, then you need to install some missing development packages.
@@ -978,8 +1138,15 @@ be higher by several orders of magnitude).
 </p>
 <p>
 The configuration of tablet devices is controlled in the X server's
-configuration file (usually <b>XF86Config</b> or <b>xorg.conf</b> depending on your
-distribution). The ServerLayout section should contain lines like:
+configuration file (usually <b>/etc/X11/xorg.conf</b> depending on your
+distribution). The latest X servers can detect a tablet automatically and
+do not require the presence of xorg.conf to work properly; so recent
+distributions typically no longer includde such a file. However, if
+auto-configuration fails, you can always create a xorg.conf that explicitly
+specifies tablet devices.
+</p>
+<p>
+Assuming you do have a xorg.conf, the ServerLayout section should contain lines like:
 <pre>
 Section "ServerLayout"
         ...
@@ -1037,12 +1204,19 @@ to be used as an XInput extension device. Thus, your tablet input devices
 should <b>not</b> be designated as the core pointer device. Instead, they
 should be configured with the "SendCoreEvents" option, which enables them
 to simultaneously generate XInput extension events and move the cursor on
-the screen. Since high-resolution coordinates cannot be obtained for the
-core pointer device, it is disabled in Xournal by default. 
-Starting with version 0.3.3,
-it is possible to have core events processed alongside with extension
-events (uncheck "Discard Core Events" in the Options menu); however, in
-some rare cases this may lead to a loss of resolution on all devices.
+the screen. 
+</p>
+<p>
+<b>If you have a newer X server</b> and no xorg.conf file, the input devices can be
+configured using the <i>xinput</i> command.
+</p>
+<p>
+<b>Note:</b> with older X servers, only tablet devices are XInput devices, while
+a built-in pointing device or an external mouse would only act as the core
+pointer. In newer X servers, all devices are handled through XInput (even
+though without advanced capabilities), though mice and touchpads typically
+send invalid event data. Xournal tries to work around the most common bugs
+in input device drivers and GTK+ input event processing.
 </p>
 <h3 class="subsub">The cursor doesn't appear in the right place...</h3>
 <p>
@@ -1064,39 +1238,44 @@ appears right under the tip of the stylus).
 </p>
 <p>
 Once you have found the perfect settings for your tablet, update your X
-server's configuration file (due to issues with some versions of the
-linuxwacom driver, the tablet calibration information is often not updated
-properly when using xsetwacom).
+server's configuration file or startup scripts.
 </p>
 <p>
-<b>Important:</b> due to issues with old versions of the linuxwacom
-driver (&lt; 0.7.6), it is important to upgrade your driver,
-or restrict your choice of settings as follows:
-<ul>
-<li> your calibration settings should not be changed at runtime (i.e.,
-insert your settings directly into your X server configuration file.
-Do not add a list of xsetwacom commands to your startup files).
-</li>
-<li> TopX and TopY values should always be 0.
-</li>
-</ul>
+<b>Important:</b> on older systems, the TopX and TopY values should always
+be kept at 0 to avoid calibration bugs.
 </p>
-<h3 class="subsub">Strokes aren't drawn under the cursor...</h3>
+<h3 class="subsub">The cursor is in the right place, but strokes aren't 
+drawn under the cursor...</h3>
 <p>
-This is typically due to misfeatures in the linuxwacom driver in versions
-prior to 0.7.6, and will happen in all of the following cases:
+If you experience this while trying to draw with a mouse, touchpad, or other
+non-tablet device:
 <ul>
-<li> the calibration settings have been changed after the X server was
-started (using xsetwacom) </li>
-<li> the calibration TopX or TopY values are not 0 </li>
-<li> the display has been rotated </li>
+<li> If you don't have a tablet, simply disable "Use XInput" in the Options
+menu, this is the fastest way of fixing the problem.</li>
+<li> Upgrade to a recent version of Xournal (0.4.5 or later). Older versions
+of Xournal are not compatible with the event handling code of recent X server
+and GTK+ library versions.</li>
+<li> Check that the "Discard Core Events" option is disabled
+(<tt>discard_corepointer</tt> should be set to <tt>false</tt> in
+~/.xournal/config).</li>
 </ul>
-Most of these issues should have been fixed in version 0.7.6 of the
-wacom driver. Otherwise, you can
-either disable XInput support in Xournal (in the Options menu), at a
-price of a severe loss of resolution (and the eraser tip won't be detected
-anymore), or inspect carefully your X server configuration and make
-sure the tablet devices are calibrated and configured properly.
+If you experience this while trying to draw with a tablet pen:
+<ul>
+<li> If you are using an obsolete version of the linuxwacom driver (before
+0.7.6) or of GTK+, please upgrade your system.</li>
+<li>If you are using GTK+ 2.17 or newer, please upgrade to Xournal 0.4.5 or
+later. The input event processing behavior of GTK+ has changed and is no
+longer compatible with older versions of Xournal.</li>
+<li> The display geometry might have changed since the beginning of your
+session in Xournal
+(resolution changed, external monitor connected, display rotated, etc.).
+You need to exit Xournal and re-start it each time your display
+configuration changes.</li>
+<li> Your tablet devices might be incorrectly calibrated or configured.</li>
+</ul>
+If all else fails, you can disable XInput support in Xournal (in the
+Options menu), at a price of a severe loss of resolution (and the eraser tip
+won't be detected anymore).
 </p>
 <p>
 I have also had a report that one of the workarounds used by Xournal to
@@ -1126,10 +1305,13 @@ To return to landscape mode:
   xrandr -o 0
   xsetwacom set stylus Rotate none
 </pre>
-<b>Note:</b> you should not rotate the display while Xournal is running,
+<b>Note #1:</b> you should not rotate the display while Xournal is running,
 otherwise the tablet calibration in Xournal may (and most likely will)
 become incorrect.
 Exit Xournal and restart it after the display has been rotated.
 </p>
+<p>
+<b>Note #2:</b> the syntax of xrandr commands has changed in newer X servers.
+Consult the xrandr manual page for the new syntax.
 </body>
 </html>

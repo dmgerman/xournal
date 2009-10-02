@@ -12,6 +12,7 @@ Version 0.4.5 (Oct 2, 2009):
   - option to have tablet buttons toggle the mapping rather than draw
   - paper color chooser (after a patch by Ole Joergen Broenner)
   - remove binary installer (due to binary incompatibilities)
+  - UPDATED DEPENDENCIES: need gtk+ 2.10, poppler-glib 0.5.4
 
 Version 0.4.2.1 (Mar 27, 2008):
   - bugfix for #1926757 (crash upon pasting variable-width stroke)
