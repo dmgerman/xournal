@@ -7,7 +7,6 @@
 #include <gtk/gtk.h>
 #include <libgnomecanvas/libgnomecanvas.h>
 #include <gdk/gdkkeysyms.h>
-#include <X11/Xlib.h>
 
 #include "xournal.h"
 #include "xo-interface.h"
@@ -2040,6 +2039,11 @@ void hide_unimplemented(void)
   if (gtk_check_version(2, 10, 0)) {
     gtk_widget_hide(GET_COMPONENT("filePrint"));
   }  
+  
+  /* screenshot feature doesn't work yet in Win32 */
+#ifdef WIN32
+  gtk_widget_hide(GET_COMPONENT("journalScreenshot"));
+#endif
 }  
 
 // toggle fullscreen mode
@@ -2052,9 +2056,23 @@ void do_fullscreen(gboolean active)
   gtk_toggle_tool_button_set_active(
     GTK_TOGGLE_TOOL_BUTTON(GET_COMPONENT("buttonFullscreen")), ui.fullscreen);
 
-  if (ui.fullscreen) gtk_window_fullscreen(GTK_WINDOW(winMain));
-  else gtk_window_unfullscreen(GTK_WINDOW(winMain));
-  
+  if (ui.fullscreen) {
+#ifdef WIN32
+    gtk_window_get_size(GTK_WINDOW(winMain), &ui.pre_fullscreen_width, &ui.pre_fullscreen_height);
+    gtk_widget_set_size_request(GTK_WIDGET(winMain), gdk_screen_width(),
+                                                     gdk_screen_height());
+#endif
+    gtk_window_fullscreen(GTK_WINDOW(winMain));
+  }
+  else {
+#ifdef WIN32
+    gtk_widget_set_size_request(GTK_WIDGET(winMain), -1, -1);
+    gtk_window_resize(GTK_WINDOW(winMain), ui.pre_fullscreen_width,
+                                           ui.pre_fullscreen_height);
+#endif
+    gtk_window_unfullscreen(GTK_WINDOW(winMain));
+  }
+
   update_vbox_order(ui.vertical_order[ui.fullscreen?1:0]);
 }
 

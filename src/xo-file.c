@@ -11,12 +11,15 @@
 #include <libgnomecanvas/libgnomecanvas.h>
 #include <zlib.h>
 #include <math.h>
-#include <gdk/gdkx.h>
-#include <X11/Xlib.h>
 #include <locale.h>
 #include <glib.h>
 #include <glib/gstdio.h>
 #include <poppler/glib/poppler.h>
+
+#ifndef WIN32
+ #include <gdk/gdkx.h>
+ #include <X11/Xlib.h>
+#endif
 
 #include "xournal.h"
 #include "xo-interface.h"
@@ -83,7 +86,7 @@ gboolean save_journal(const char *filename)
   GList *pagelist, *layerlist, *itemlist, *list;
   GtkWidget *dialog;
   
-  f = gzopen(filename, "w");
+  f = gzopen(filename, "wb");
   if (f==NULL) return FALSE;
   chk_attach_names();
 
@@ -143,7 +146,7 @@ gboolean save_journal(const char *filename)
           success = FALSE;
           if (bgpdf.status != STATUS_NOT_INIT && bgpdf.file_contents != NULL)
           {
-            tmpf = fopen(tmpfn, "w");
+            tmpf = fopen(tmpfn, "wb");
             if (tmpf != NULL && fwrite(bgpdf.file_contents, 1, bgpdf.file_length, tmpf) == bgpdf.file_length)
               success = TRUE;
             fclose(tmpf);
@@ -715,7 +718,7 @@ gboolean open_journal(char *filename)
   }
   g_free(tmpfn);
 
-  f = gzopen(filename, "r");
+  f = gzopen(filename, "rb");
   if (f==NULL) return FALSE;
   if (filename[0]=='/') {
     if (ui.default_path != NULL) g_free(ui.default_path);
@@ -864,7 +867,7 @@ GList *attempt_load_gv_bg(char *filename)
   char *pipename;
   int buflen, remnlen, file_pageno;
   
-  f = fopen(filename, "r");
+  f = fopen(filename, "rb");
   if (f == NULL) return NULL;
   buf = g_malloc(BUFSIZE); // a reasonable buffer size
   if (fread(buf, 1, 4, f) !=4 ||
@@ -876,7 +879,7 @@ GList *attempt_load_gv_bg(char *filename)
   
   fclose(f);
   pipename = g_strdup_printf(GS_CMDLINE, (double)GS_BITMAP_DPI, filename);
-  gs_pipe = popen(pipename, "r");
+  gs_pipe = popen(pipename, "rb");
   g_free(pipename);
   
   bg_list = NULL;
@@ -922,6 +925,7 @@ GList *attempt_load_gv_bg(char *filename)
 
 struct Background *attempt_screenshot_bg(void)
 {
+#ifndef WIN32
   struct Background *bg;
   GdkPixbuf *pix;
   XEvent x_event;
@@ -958,6 +962,10 @@ struct Background *attempt_screenshot_bg(void)
   bg->filename = new_refstring(NULL);
   bg->file_domain = DOMAIN_ATTACH;
   return bg;
+#else
+  // not implemented under WIN32
+  return FALSE;
+#endif
 }
 
 /************** pdf annotation ***************/

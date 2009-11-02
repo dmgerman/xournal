@@ -1191,7 +1191,7 @@ gboolean print_to_pdf(char *filename)
   struct PdfFont *font;
   char *tmpbuf;
   
-  f = fopen(filename, "w");
+  f = fopen(filename, "wb");
   if (f == NULL) return FALSE;
   setlocale(LC_NUMERIC, "C");
   annot = FALSE;

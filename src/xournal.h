@@ -24,6 +24,14 @@
 #define MRU_SIZE 8 
 #define CONFIG_FILE "config"
 
+// version string for about box
+
+#ifdef WIN32
+#define VERSION_STRING VERSION "-win32"
+#else
+#define VERSION_STRING VERSION
+#endif
+
 // DATA STRUCTURES AND CONSTANTS
 
 #define PIXEL_MOTION_THRESHOLD 0.3
@@ -282,6 +290,7 @@ typedef struct UIData {
   gboolean shorten_menus; // shorten menus ?
   gchar *shorten_menu_items; // which items to hide
   gboolean is_sel_cursor; // displaying a selection-related cursor
+  gint pre_fullscreen_width, pre_fullscreen_height; // for win32 fullscreen
 #if GTK_CHECK_VERSION(2,10,0)
   GtkPrintSettings *print_settings;
 #endif

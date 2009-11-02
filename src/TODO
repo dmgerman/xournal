@@ -1,56 +1,8 @@
 List of features to be implemented (not in any particular order)
 ----------------------------------------------------------------
 
-THINGS DONE IN THIS RELEASE:
-
-DONE: fix GTK+ 2.16/2.17 XInput issues with scrollbars and menus
-DONE: fix bug 2826845 (shape recognizer accel doesn't work in fullscreen mode)
-DONE: bug affecting resize zone in statusbar
-DONE: page spinbutton wide enough for 3 digits; avoid "deprecated" warning
-DONE: edit->paste command should refresh toolbar to unselect color/thickness
-      (so can repaint sel)
-DONE: cursor doesn't reset properly after selection operation if primary
-      tool is select mode (stays with arrow cursor instead of pointer)
-DONE: device with "eraser" at the end of its name is of type ERASER
-      (Edward Yang)
-DONE: fix_xinput_coords() replaces buggy xinput events by core pointer 
-      coordinates
-DONE: use poppler to render PDF backgrounds (after patches contributed
-      by Mike Ter Louw and Bob McElrath)
-DONE: gettext internationalization (contributed by David Planella)
-DONE: Catalan translation (by David Planella); French translation
-DONE: fix unresponsiveness to button events in text edition box (GTK+ 2.17)
-      and segfaults when dragging text or using Layers combobox (GTK+ 2.17)
-DONE: Esc leaves text box if editing; and leaves fullscreen mode
-DONE: package our own copy of the ttsubset library (to remove a dependency
-      on libgnomeprint), and create TT subfonts in memory
-DONE: use gtk-print instead of libgnomeprint
-DONE: remove deprecated "antialias bg" option
-DONE: fix fix_xinput_coords so it works ok without ENABLE_XINPUT_BUGFIX ?
-DONE: disable ctrl-left/right accelerators during text edition
-DONE: custom color chooser button (after a patch contributed by Alex Ray)
-DONE: remember last used directory (after a patch contributed by Lu Zhihe)
-DONE: discard Alt-click and Control-click events
-DONE: option to have buttons *toggle* the tool rather than act as tool
-       (ie button 2 causes button 1 to map to tool 2) [Dylan Thurston]
-DONE: patch to fix focus + allow up/dn in single page mode (Bob McElrath)
-DONE: patch to fix underscores in MRU filename display (Bob McElrath)
-DONE: patch to avoid tiny file dialogs (Bob McElrath)
-DONE: further fixes for focus; can Esc out of page selection box
-DONE: further fixes for xinput under GTK+ 2.17
-DONE: option to auto-load *.pdf.xoj instead of *.pdf (Bob McElrath)
-DONE: look for PDF backgrounds in path of xoj file before prompting user
-DONE: paper color chooser (after a patch by ojb)
-DONE: remove "Discard core events" from options menu
-DONE: get_pressure_multiplier() accesses correct members of event union
-DONE: address recognizer bug on single-segment strokes (division by 0)
-DONE: remove binary installer (poppler is binary incompatible across versions)
-      but provide configure script
-
-REMAINING THINGS TO DO:
-
 - collaborative editing (see discussion with Erik Demaine)
-- porting to Win32 and MacOS; merge Nokia port
+- porting to MacOS; merge Nokia port
 - multiple-scenario undo history
 
 - collaborative: allow non-x86 endianness (for ints, for floats?)
@@ -65,6 +17,21 @@ REMAINING THINGS TO DO:
    or see if removing the GTK bugfix would help? -- e.g. by recalling an
    internal gtk init function?
 
+BUGS:
+** lingering issues with synaptics touchpads? (#2872667)
+     - add patch 0.4.5-fix-synaptics-v1.patch (fix ButtonDown events)
+     - set device to Absolute mode at startup? (GDK doesn't expose API,
+       cf XSetDeviceMode() in /usr/include/X11/extensions/XInput.h)
+** color picker into canvas doesn't work in GTK+ 2.16 (should disable
+   xinput first?)
+
+WIN32:
+- test further
+- write an installer
+
+PATCHES TO INCORPORATE:
+** Italian translation (add_it_po.patch unless updated on tracker)
+   (by Marco Poletti)
 
 ** patch: ortho/snap (revised Apr 13 2009)
    xournal_ortho_snap_patch_4 (by Josef Pavlicek)
@@ -72,10 +39,12 @@ REMAINING THINGS TO DO:
 ** patch (Ian-Woo Kim): multicolumn mode + LASSO SELECTION
    xournal_lasso_multipage_zoom_button_20090620.patch
 
-** autosave patch (Edward Yang) (fix: optional only, w/ menu + cfgfile
+** autosave patch (Edward Yang) (should fix: optional only, w/ menu + cfgfile
    entries; fix: should clean up autosave.xoj.bg* files too; config interval)
    0001-Implement-autosave-for-documents-revised.patch (2 seconds after
    modification, vs original 5 seconds)
+   *** NEW VERSION: #2881919 (autosave for 0.4.5, w/ some changes)
+   NB: last modif should be triggered by prepare_new_undo() and undo/redo?
 
 - PDF bg memory usage throttling / delete oldest pdf backgrounds
 - replace ttsubset by something more modern? (eg. from cairo ?)
@@ -119,13 +88,11 @@ REMAINING THINGS TO DO:
 
 - allow toolbar to go vertical
 - toolbar buttons should react to button 2/3 click to modify settings
-  for that tool?
+  for that tool!!
 
 - paste text directly into xournal, from xournal?
     (instead of starting a text item and pasting into/from it)
 - insert links (to URLs; within document/to other xoj? hand mode navigates)
-- increase width of spinPageNo to fit 3 digits
-- should escape '_' to '__' in MRU menu entries (else become mnemonics)
 - a command + keyboard shortcut to switch mappings (1<->2, 1<->3, 2<->3)
      (A. Rechnitzer Sept 11, 2007)
 - modify encoding of TrueType font subsets or provide cmap so pdf text
@@ -145,9 +112,9 @@ REMAINING THINGS TO DO:
 - export as SVG, as bitmap (use Cairo for this)
 - improved PDF viewer features (search text, hyperlink, page borders...)
    (using full poppler api ?)
+- search text: among PDF background (using poppler); among text annotations
 
 - use system paper size as default (/etc/papersize)
-- autoload *.pdf.xoj if present when opening *.pdf ???
 - sticky notes (anchor visually text box to a bg location)
 - use relative paths for bg documents (e.g. annotated PDF)
 - flush display queue when drawing over a slow X server?
@@ -164,8 +131,8 @@ REMAINING THINGS TO DO:
 - lasso selection tool (see shoffsta patch)
      (http://shoffsta.afraid.org/Projects/Xournal/)
 - flatten (incl undo/redo...) - enabled only if nlayers>1
-- color chooser (papercolor, pen color); maybe more default colors
-  cf. ojb patch #2083103 adds paper color chooser
+- color chooser (papercolor, pen color); have default colors and a history
+  appear as palette in there!
 - printing: print-options, save printer settings (throughout a session,
    and on disk) (maybe a separate config file .xournal/gnome-print-settings)
 - help index

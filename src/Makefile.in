@@ -32,6 +32,8 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
+build_triplet = @build@
+host_triplet = @host@
 bin_PROGRAMS = xournal$(EXEEXT)
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in TODO
@@ -51,7 +53,12 @@ am_xournal_OBJECTS = main.$(OBJEXT) xo-misc.$(OBJEXT) \
 	xo-callbacks.$(OBJEXT) xo-shapes.$(OBJEXT)
 xournal_OBJECTS = $(am_xournal_OBJECTS)
 am__DEPENDENCIES_1 =
-xournal_DEPENDENCIES = ttsubset/libttsubset.a $(am__DEPENDENCIES_1)
+@WIN32_FALSE@xournal_DEPENDENCIES = ttsubset/libttsubset.a \
+@WIN32_FALSE@	$(am__DEPENDENCIES_1)
+@WIN32_TRUE@xournal_DEPENDENCIES = win32/xournal.res \
+@WIN32_TRUE@	ttsubset/libttsubset.a $(am__DEPENDENCIES_1)
+xournal_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(xournal_LDFLAGS) \
+	$(LDFLAGS) -o $@
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -76,7 +83,7 @@ AM_RECURSIVE_TARGETS = $(RECURSIVE_TARGETS:-recursive=) \
 	distdir
 ETAGS = etags
 CTAGS = ctags
-DIST_SUBDIRS = $(SUBDIRS)
+DIST_SUBDIRS = ttsubset win32
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 am__relativize = \
   dir0=`pwd`; \
@@ -179,14 +186,22 @@ am__quote = @am__quote@
 am__tar = @am__tar@
 am__untar = @am__untar@
 bindir = @bindir@
+build = @build@
 build_alias = @build_alias@
+build_cpu = @build_cpu@
+build_os = @build_os@
+build_vendor = @build_vendor@
 builddir = @builddir@
 datadir = @datadir@
 datarootdir = @datarootdir@
 docdir = @docdir@
 dvidir = @dvidir@
 exec_prefix = @exec_prefix@
+host = @host@
 host_alias = @host_alias@
+host_cpu = @host_cpu@
+host_os = @host_os@
+host_vendor = @host_vendor@
 htmldir = @htmldir@
 includedir = @includedir@
 infodir = @infodir@
@@ -210,7 +225,8 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-SUBDIRS = ttsubset
+@WIN32_FALSE@SUBDIRS = ttsubset
+@WIN32_TRUE@SUBDIRS = ttsubset win32
 INCLUDES = \
 	-DPACKAGE_DATA_DIR=\""$(datadir)"\" \
 	-DPACKAGE_LOCALE_DIR=\""$(prefix)/$(DATADIRNAME)/locale"\" \
@@ -227,7 +243,9 @@ xournal_SOURCES = \
 	xo-callbacks.c xo-callbacks.h \
 	xo-shapes.c xo-shapes.h
 
-xournal_LDADD = ttsubset/libttsubset.a @PACKAGE_LIBS@ $(INTLLIBS)
+@WIN32_TRUE@xournal_LDFLAGS = -mwindows
+@WIN32_FALSE@xournal_LDADD = ttsubset/libttsubset.a @PACKAGE_LIBS@ $(INTLLIBS)
+@WIN32_TRUE@xournal_LDADD = win32/xournal.res ttsubset/libttsubset.a @PACKAGE_LIBS@ $(INTLLIBS) -lz
 all: all-recursive
 
 .SUFFIXES:
@@ -301,7 +319,7 @@ clean-binPROGRAMS:
 	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
 xournal$(EXEEXT): $(xournal_OBJECTS) $(xournal_DEPENDENCIES) 
 	@rm -f xournal$(EXEEXT)
-	$(LINK) $(xournal_OBJECTS) $(xournal_LDADD) $(LIBS)
+	$(xournal_LINK) $(xournal_OBJECTS) $(xournal_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
