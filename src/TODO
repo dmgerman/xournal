@@ -19,11 +19,13 @@ List of features to be implemented (not in any particular order)
 
 BUGS:
 ** lingering issues with synaptics touchpads? (#2872667)
-     - add patch 0.4.5-fix-synaptics-v1.patch (fix ButtonDown events)
-     - set device to Absolute mode at startup? (GDK doesn't expose API,
-       cf XSetDeviceMode() in /usr/include/X11/extensions/XInput.h)
+ (DONE) - add patch 0.4.5-fix-synaptics-v1.patch (fix ButtonDown events)
+        - set device to Absolute mode at startup? (GDK doesn't expose API,
+          cf XSetDeviceMode() in /usr/include/X11/extensions/XInput.h)
 ** color picker into canvas doesn't work in GTK+ 2.16 (should disable
    xinput first?)
+** PDF export crashes in 64-bit due to wrong types (#2897699)
+ (DONE) patch by Robert Buchholz
 
 WIN32:
 - test further
@@ -46,6 +48,8 @@ PATCHES TO INCORPORATE:
    *** NEW VERSION: #2881919 (autosave for 0.4.5, w/ some changes)
    NB: last modif should be triggered by prepare_new_undo() and undo/redo?
 
+** insert images patch (Victor Saase) #2890925
+
 - PDF bg memory usage throttling / delete oldest pdf backgrounds
 - replace ttsubset by something more modern? (eg. from cairo ?)
 - auto-hide patch from ~/prog/src/xournal-autohide/ ?
@@ -60,6 +64,7 @@ PATCHES TO INCORPORATE:
 - new recognizer icon (andruk on patches tracker)
 - recognizer: if variable-width, associate average width
 - recognizer should snap to existing recognized geometric shapes
+- patch to find text in PDF (dmg = Daniel German, Nov 13 2009)
 
 - improve recognizer: two passes for polygons (low tolerance, then higher)
   to better detect elongated rectangles? (if low tolerance recognizer
