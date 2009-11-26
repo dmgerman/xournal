@@ -187,14 +187,14 @@ void init_stuff (int argc, char *argv[])
   dev_list = gdk_devices_list();
   while (dev_list != NULL) {
     device = (GdkDevice *)dev_list->data;
-    if (device != gdk_device_get_core_pointer()) {
+    if (device != gdk_device_get_core_pointer() && device->num_axes >= 2) {
       /* get around a GDK bug: map the valuator range CORRECTLY to [0,1] */
 #ifdef ENABLE_XINPUT_BUGFIX
       gdk_device_set_axis_use(device, 0, GDK_AXIS_IGNORE);
       gdk_device_set_axis_use(device, 1, GDK_AXIS_IGNORE);
 #endif
       gdk_device_set_mode(device, GDK_MODE_SCREEN);
-      if (g_str_has_suffix(device->name, "eraser"))
+      if (g_strrstr(device->name, "raser"))
         gdk_device_set_source(device, GDK_SOURCE_ERASER);
       can_xinput = TRUE;
     }

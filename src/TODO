@@ -20,16 +20,20 @@ List of features to be implemented (not in any particular order)
 BUGS:
 ** lingering issues with synaptics touchpads? (#2872667)
  (DONE) - add patch 0.4.5-fix-synaptics-v1.patch (fix ButtonDown events)
-        - set device to Absolute mode at startup? (GDK doesn't expose API,
+ (todo) - set device to Absolute mode at startup? (GDK doesn't expose API,
           cf XSetDeviceMode() in /usr/include/X11/extensions/XInput.h)
 ** color picker into canvas doesn't work in GTK+ 2.16 (should disable
    xinput first?)
 ** PDF export crashes in 64-bit due to wrong types (#2897699)
- (DONE) patch by Robert Buchholz
+ --- DONE --- patch by Robert Buchholz
+** export to PDF should see cropbox size if smaller, and map the
+   cropbox -- not the entire page -- to the page area! (2009-11-18 forum)
 
 WIN32:
 - test further
 - write an installer
+- bug: opening files with accents in name?
+- bug: cairo-scaled-font in printing? (2009-11-18 bug tracker)
 
 PATCHES TO INCORPORATE:
 ** Italian translation (add_it_po.patch unless updated on tracker)

@@ -2816,7 +2816,9 @@ on_optionsUseXInput_activate           (GtkMenuItem     *menuitem,
    non-responsive). 
 */
 
+#ifndef WIN32
   if (!gtk_check_version(2, 17, 0)) {
+#endif
     /* GTK+ 2.17 and later: everybody shares a single native window,
        so we'll never get any core events, and we might as well set 
        extension events the way we're supposed to. Doing so helps solve 
@@ -2824,14 +2826,18 @@ on_optionsUseXInput_activate           (GtkMenuItem     *menuitem,
        events in 2.18 */
     gtk_widget_set_extension_events(GTK_WIDGET (canvas), 
        ui.use_xinput?GDK_EXTENSION_EVENTS_ALL:GDK_EXTENSION_EVENTS_NONE);
+#ifndef WIN32
   } else {
+#endif
     /* GTK+ 2.16 and earlier: we only activate extension events on the
        canvas's parent GdkWindow. This allows us to keep receiving core
        events. */
     gdk_input_set_extension_events(GTK_WIDGET(canvas)->window, 
       GDK_POINTER_MOTION_MASK | GDK_BUTTON_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK,
       ui.use_xinput?GDK_EXTENSION_EVENTS_ALL:GDK_EXTENSION_EVENTS_NONE);
+#ifndef WIN32
   }
+#endif
   
   update_mappings_menu();
 }
