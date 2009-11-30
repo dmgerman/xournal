@@ -54,6 +54,11 @@ PATCHES TO INCORPORATE:
 
 ** insert images patch (Victor Saase) #2890925
 
+- customize paper ruling (Gautam Iyer e-mail Nov 28 2009, will update with
+   glade dialog box)
+
+
+
 - PDF bg memory usage throttling / delete oldest pdf backgrounds
 - replace ttsubset by something more modern? (eg. from cairo ?)
 - auto-hide patch from ~/prog/src/xournal-autohide/ ?

@@ -2562,6 +2562,7 @@ on_canvas_enter_notify_event           (GtkWidget       *widget,
       dev = GDK_DEVICE(dev_list->data);
       gdk_device_set_mode(dev, GDK_MODE_SCREEN);
     }
+    ui.is_corestroke = ui.saved_is_corestroke;
   }
   return FALSE;
 }
@@ -2584,6 +2585,8 @@ on_canvas_leave_notify_event           (GtkWidget       *widget,
       dev = GDK_DEVICE(dev_list->data);
       gdk_device_set_mode(dev, GDK_MODE_DISABLED);
     }
+    ui.saved_is_corestroke = ui.is_corestroke;
+    ui.is_corestroke = TRUE;
   }
   return FALSE;
 }
@@ -2713,6 +2716,9 @@ on_canvas_motion_notify_event          (GtkWidget       *widget,
     }
     else if (ui.cur_item_type == ITEM_RESIZESEL) {
       finalize_resizesel();
+    }
+    else if (ui.cur_item_type == ITEM_HAND) {
+      ui.cur_item_type = ITEM_NONE;
     }
     switch_mapping(0);
     return FALSE;

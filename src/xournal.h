@@ -252,6 +252,7 @@ typedef struct UIData {
   gboolean pressure_sensitivity; // use pen pressure to control stroke width?
   double width_minimum_multiplier, width_maximum_multiplier; // calibration for pressure sensitivity
   gboolean is_corestroke; // this stroke is painted with core pointer
+  gboolean saved_is_corestroke;
   GdkDevice *stroke_device; // who's painting this stroke
   int screen_width, screen_height; // initial screen size, for XInput events
   double hand_refpt[2];
