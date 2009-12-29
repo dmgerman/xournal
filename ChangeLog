@@ -2,6 +2,7 @@ This version:
   - win32 portability code (contributed by Dirk Gerrits)
   - fix bug in PDF export code on 64-bit systems (patch by Robert Buchholz)
   - fix hand tool bug when exiting canvas (#2905711)
+  - Italian translation (Marco Poletti), German translation (Stefan Lembach)
 
 Version 0.4.5 (Oct 2, 2009):
   - bugfixes for GTK+ 2.16/2.17 issues with xinput events

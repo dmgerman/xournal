@@ -19,13 +19,10 @@ List of features to be implemented (not in any particular order)
 
 BUGS:
 ** lingering issues with synaptics touchpads? (#2872667)
- (DONE) - add patch 0.4.5-fix-synaptics-v1.patch (fix ButtonDown events)
  (todo) - set device to Absolute mode at startup? (GDK doesn't expose API,
           cf XSetDeviceMode() in /usr/include/X11/extensions/XInput.h)
 ** color picker into canvas doesn't work in GTK+ 2.16 (should disable
    xinput first?)
-** PDF export crashes in 64-bit due to wrong types (#2897699)
- --- DONE --- patch by Robert Buchholz
 ** export to PDF should see cropbox size if smaller, and map the
    cropbox -- not the entire page -- to the page area! (2009-11-18 forum)
 
@@ -36,9 +33,6 @@ WIN32:
 - bug: cairo-scaled-font in printing? (2009-11-18 bug tracker)
 
 PATCHES TO INCORPORATE:
-** Italian translation (add_it_po.patch unless updated on tracker)
-   (by Marco Poletti)
-
 ** patch: ortho/snap (revised Apr 13 2009)
    xournal_ortho_snap_patch_4 (by Josef Pavlicek)
 
@@ -51,13 +45,15 @@ PATCHES TO INCORPORATE:
    modification, vs original 5 seconds)
    *** NEW VERSION: #2881919 (autosave for 0.4.5, w/ some changes)
    NB: last modif should be triggered by prepare_new_undo() and undo/redo?
+   *** NEW VERSION: with threading, by Man, e-mail 12/10/2009 10:51pm
 
 ** insert images patch (Victor Saase) #2890925
+** customize paper ruling (Gautam Iyer e-mail Nov 30 2009 / SF tracker)
 
-- customize paper ruling (Gautam Iyer e-mail Nov 28 2009, will update with
-   glade dialog box)
+- option to map device named "touch" to hand tool? (like "Eraser tip")
 
-
+- make line spacing in text objects customizable: to a fixed scaling factor,
+  a fixed number of units, or the paper ruling (esp. the latter!!)
 
 - PDF bg memory usage throttling / delete oldest pdf backgrounds
 - replace ttsubset by something more modern? (eg. from cairo ?)
@@ -94,9 +90,14 @@ PATCHES TO INCORPORATE:
     NO: render using Cairo !!! then can switch to GtkPrint as well.
     (copy-paste: config option to render only current layer or all below?)
 - cut-and-paste of selection into other apps (as bitmap; as SVG?)
+
 - navigation sidebar with bitmap page previews
 - bitmap preview for document icon in desktop environments?
 - "organizer" side panel (hierarchy of notes), cf. gjots
+- maintain e-library: table of md5sums of pdfs with associations
+  to the corresponding xoj's absolute paths (cf. forum topic
+  "Use MD5..." of Dec 2009)
+
 - see iRex code for generic viewer + PDF plugin including caching,
   throttling etc. (Marcel Hendrickx email of Sep 11 '09) 
 
