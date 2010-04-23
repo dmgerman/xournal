@@ -199,7 +199,9 @@ gboolean save_journal(const char *filename)
           else
             gzprintf(f, "#%08x", item->brush.color_rgba);
           tmpstr = g_markup_escape_text(item->text, -1);
-          gzprintf(f, "\">%s</text>\n", tmpstr);
+          gzputs(f, "\">");
+          gzputs(f, tmpstr); // gzprintf() can't handle > 4095 bytes
+          gzputs(f, "</text>\n");
           g_free(tmpstr);
         }
       }

@@ -4,6 +4,7 @@ This version:
   - fix hand tool bug when exiting canvas (#2905711)
   - Italian translation (Marco Poletti), German translation (Stefan Lembach)
   - Spanish translation (Alvaro)
+  - fix save bug with text boxes containing > 4095 characters
 
 Version 0.4.5 (Oct 2, 2009):
   - bugfixes for GTK+ 2.16/2.17 issues with xinput events
