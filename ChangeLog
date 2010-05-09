@@ -3,7 +3,7 @@ This version:
   - fix bug in PDF export code on 64-bit systems (patch by Robert Buchholz)
   - fix hand tool bug when exiting canvas (#2905711)
   - Italian translation (Marco Poletti), German translation (Stefan Lembach)
-  - Spanish translation (Alvaro)
+  - Spanish translation (Alvaro), Brazil Portuguese translation (Marco Souza)
   - fix save bug with text boxes containing > 4095 characters
 
 Version 0.4.5 (Oct 2, 2009):
