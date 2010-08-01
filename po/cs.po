@@ -1,0 +1,1244 @@
+# This file is distributed under the same license as the xournal package.
+#
+# David Kolibac <david@kolibac.cz>, 2010.
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2009-10-02 16:42-0700\n"
+"PO-Revision-Date: 2010-08-01 22:54+0200\n"
+"Last-Translator: David Kolibac <david@kolibac.cz>\n"
+"Language-Team: Czech <kde-czech-apps@lists.sourceforge.net>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Lokalize 1.0\n"
+"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
+
+#: src/main.c:65
+#, c-format
+msgid ""
+"Invalid command line parameters.\n"
+"Usage: %s [filename.xoj]\n"
+msgstr ""
+"Neplatné parametry v příkazovém řádku.\n"
+"Použití: %s [soubor.xoj]\n"
+
+#: src/main.c:291 src/xo-callbacks.c:105 src/xo-callbacks.c:156
+#: src/xo-callbacks.c:3126
+#, c-format
+msgid "Error opening file '%s'"
+msgstr "Chyba při otevírání souboru '%s'"
+
+#: src/xo-interface.c:350 src/xo-interface.c:2951 src/xo-misc.c:1405
+msgid "Xournal"
+msgstr "Xournal"
+
+#: src/xo-interface.c:360
+msgid "_File"
+msgstr "_Soubor"
+
+#: src/xo-interface.c:371
+msgid "Annotate PD_F"
+msgstr "Anotovat PD_F"
+
+#: src/xo-interface.c:396
+msgid "Recent Doc_uments"
+msgstr "Poslední dok_umenty"
+
+#: src/xo-interface.c:403
+msgid "0"
+msgstr "0"
+
+#: src/xo-interface.c:407
+msgid "1"
+msgstr "1"
+
+#: src/xo-interface.c:411
+msgid "2"
+msgstr "2"
+
+#: src/xo-interface.c:415
+msgid "3"
+msgstr "3"
+
+#: src/xo-interface.c:419
+msgid "4"
+msgstr "4"
+
+#: src/xo-interface.c:423
+msgid "5"
+msgstr "5"
+
+#: src/xo-interface.c:427
+msgid "6"
+msgstr "6"
+
+#: src/xo-interface.c:431
+msgid "7"
+msgstr "7"
+
+#: src/xo-interface.c:440
+msgid "Print Options"
+msgstr "Nastavení tisku"
+
+#: src/xo-interface.c:455
+msgid "_Export to PDF"
+msgstr "_Exportovat do PDF"
+
+#: src/xo-interface.c:471
+msgid "_Edit"
+msgstr "_Upravit"
+
+#: src/xo-interface.c:516
+msgid "_View"
+msgstr "_Zobrazení"
+
+#: src/xo-interface.c:523
+msgid "_Continuous"
+msgstr "_Plynulý"
+
+#: src/xo-interface.c:529
+msgid "_One Page"
+msgstr "_Jedna stránka"
+
+#: src/xo-interface.c:540
+msgid "Full Screen"
+msgstr "Celá obrazovka"
+
+#: src/xo-interface.c:552
+msgid "_Zoom"
+msgstr "_Přiblížení"
+
+#: src/xo-interface.c:580
+msgid "Page _Width"
+msgstr "Šířka _stránky"
+
+#: src/xo-interface.c:591
+msgid "_Set Zoom"
+msgstr "Na_stavit přiblížení"
+
+#: src/xo-interface.c:600
+msgid "_First Page"
+msgstr "P_rvní stránka"
+
+#: src/xo-interface.c:611
+msgid "_Previous Page"
+msgstr "_Předchozí stránka"
+
+#: src/xo-interface.c:622
+msgid "_Next Page"
+msgstr "_Následující stránka"
+
+#: src/xo-interface.c:633
+msgid "_Last Page"
+msgstr "Pos_lední stránka"
+
+#: src/xo-interface.c:649
+msgid "_Show Layer"
+msgstr "Zobrazit vr_stvu"
+
+#: src/xo-interface.c:657
+msgid "_Hide Layer"
+msgstr "S_krýt vrstvu"
+
+#: src/xo-interface.c:665
+msgid "_Journal"
+msgstr "_Deník"
+
+#: src/xo-interface.c:672
+msgid "New Page _Before"
+msgstr "Nová stránka _před aktuální"
+
+#: src/xo-interface.c:676
+msgid "New Page _After"
+msgstr "Nová stránka _za aktuální"
+
+#: src/xo-interface.c:680
+msgid "New Page At _End"
+msgstr "Nová stránka na _konec"
+
+#: src/xo-interface.c:684
+msgid "_Delete Page"
+msgstr "_Smazat stránku"
+
+#: src/xo-interface.c:693
+msgid "_New Layer"
+msgstr "_Nová vrstva"
+
+#: src/xo-interface.c:697
+msgid "Delete La_yer"
+msgstr "Smazat v_rstvu"
+
+#: src/xo-interface.c:701
+msgid "_Flatten"
+msgstr "Zp_loštit"
+
+#: src/xo-interface.c:710
+msgid "Paper Si_ze"
+msgstr "_Velikost papíru"
+
+#: src/xo-interface.c:714
+msgid "Paper _Color"
+msgstr "_Barva papíru"
+
+#: src/xo-interface.c:721
+msgid "_white paper"
+msgstr "_bílý papír"
+
+#: src/xo-interface.c:727
+msgid "_yellow paper"
+msgstr "ž_lutý papír"
+
+#: src/xo-interface.c:733
+msgid "_pink paper"
+msgstr "_růžový papír"
+
+#: src/xo-interface.c:739
+msgid "_orange paper"
+msgstr "_oranžový papír"
+
+#: src/xo-interface.c:745
+msgid "_blue paper"
+msgstr "_modrý papír"
+
+#: src/xo-interface.c:751
+msgid "_green paper"
+msgstr "_zelený papír"
+
+#: src/xo-interface.c:757 src/xo-interface.c:1025
+msgid "other..."
+msgstr "_jiná..."
+
+#: src/xo-interface.c:761 src/xo-interface.c:797 src/xo-interface.c:1029
+#: src/xo-interface.c:1270 src/xo-interface.c:1346
+msgid "NA"
+msgstr "Neznámý"
+
+#: src/xo-interface.c:766
+msgid "Paper _Style"
+msgstr "_Druh papíru"
+
+#: src/xo-interface.c:773
+msgid "_plain"
+msgstr "či_stý"
+
+#: src/xo-interface.c:779
+msgid "_lined"
+msgstr "_linkovaný s okrajem"
+
+#: src/xo-interface.c:785
+msgid "_ruled"
+msgstr "l_inkovaný"
+
+#: src/xo-interface.c:791
+msgid "_graph"
+msgstr "č_tverečkovaný"
+
+#: src/xo-interface.c:802
+msgid "Apply _To All Pages"
+msgstr "P_oužít na všechny stránky"
+
+#: src/xo-interface.c:811
+msgid "_Load Background"
+msgstr "N_ačíst pozadí"
+
+#: src/xo-interface.c:819
+msgid "Background Screens_hot"
+msgstr "Sním_ek obrazovky jako pozadí"
+
+#: src/xo-interface.c:828
+msgid "Default _Paper"
+msgstr "Výc_hozí papír"
+
+#: src/xo-interface.c:832
+msgid "Set As De_fault"
+msgstr "Nastavit _jako výchozí"
+
+#: src/xo-interface.c:836
+msgid "_Tools"
+msgstr "_Nástroje"
+
+#: src/xo-interface.c:843 src/xo-interface.c:1206 src/xo-interface.c:1282
+msgid "_Pen"
+msgstr "_Pero"
+
+#: src/xo-interface.c:852 src/xo-interface.c:1212 src/xo-interface.c:1288
+msgid "_Eraser"
+msgstr "_Zmizík"
+
+#: src/xo-interface.c:861 src/xo-interface.c:1218 src/xo-interface.c:1294
+msgid "_Highlighter"
+msgstr "Z_výrazňovač"
+
+#: src/xo-interface.c:870 src/xo-interface.c:1224 src/xo-interface.c:1300
+msgid "_Text"
+msgstr "_Text"
+
+#: src/xo-interface.c:884
+msgid "_Shape Recognizer"
+msgstr "_Rozpoznávání tvarů"
+
+#: src/xo-interface.c:891
+msgid "Ru_ler"
+msgstr "Pr_avítko"
+
+#: src/xo-interface.c:903 src/xo-interface.c:1230 src/xo-interface.c:1306
+msgid "Select Re_gion"
+msgstr "Výběr _oblasti"
+
+#: src/xo-interface.c:912 src/xo-interface.c:1236 src/xo-interface.c:1312
+msgid "Select _Rectangle"
+msgstr "Výběr ob_délníku"
+
+#: src/xo-interface.c:921 src/xo-interface.c:1242 src/xo-interface.c:1318
+msgid "_Vertical Space"
+msgstr "Vert_ikální místo"
+
+#: src/xo-interface.c:930 src/xo-interface.c:1248 src/xo-interface.c:1324
+msgid "H_and Tool"
+msgstr "_Nástroj prohlížení"
+
+#: src/xo-interface.c:943
+msgid "_Color"
+msgstr "_Barva"
+
+#: src/xo-interface.c:954
+msgid "blac_k"
+msgstr "če_rná"
+
+#: src/xo-interface.c:960
+msgid "_blue"
+msgstr "_modrá"
+
+#: src/xo-interface.c:966
+msgid "_red"
+msgstr "č_ervená"
+
+#: src/xo-interface.c:972
+msgid "_green"
+msgstr "_zelená"
+
+#: src/xo-interface.c:978
+msgid "gr_ay"
+msgstr "še_dá"
+
+#: src/xo-interface.c:989
+msgid "light bl_ue"
+msgstr "b_ledě modrá"
+
+#: src/xo-interface.c:995
+msgid "light gr_een"
+msgstr "bledě zele_ná"
+
+#: src/xo-interface.c:1001
+msgid "_magenta"
+msgstr "_fialová"
+
+#: src/xo-interface.c:1007
+msgid "_orange"
+msgstr "_oranžová"
+
+#: src/xo-interface.c:1013
+msgid "_yellow"
+msgstr "žl_utá"
+
+#: src/xo-interface.c:1019
+msgid "_white"
+msgstr "_bílá"
+
+#: src/xo-interface.c:1034
+msgid "Pen _Options"
+msgstr "N_astavení pera"
+
+#: src/xo-interface.c:1041
+msgid "_very fine"
+msgstr "_velmi tenké"
+
+#: src/xo-interface.c:1047 src/xo-interface.c:1078 src/xo-interface.c:1126
+msgid "_fine"
+msgstr "_tenké"
+
+#: src/xo-interface.c:1053 src/xo-interface.c:1084 src/xo-interface.c:1132
+msgid "_medium"
+msgstr "_střední"
+
+#: src/xo-interface.c:1059 src/xo-interface.c:1090 src/xo-interface.c:1138
+msgid "_thick"
+msgstr "t_lusté"
+
+#: src/xo-interface.c:1065
+msgid "ver_y thick"
+msgstr "v_elmi tlusté"
+
+#: src/xo-interface.c:1071
+msgid "Eraser Optio_ns"
+msgstr "_Nastavení zmizíku"
+
+#: src/xo-interface.c:1101
+msgid "_standard"
+msgstr "_výchozí"
+
+#: src/xo-interface.c:1107
+msgid "_whiteout"
+msgstr "_bělení"
+
+#: src/xo-interface.c:1113
+msgid "_delete strokes"
+msgstr "_mazání tahů"
+
+#: src/xo-interface.c:1119
+msgid "Highlighter Opt_ions"
+msgstr "Na_stavení zvýrazňovače"
+
+#: src/xo-interface.c:1144
+msgid "Text _Font..."
+msgstr "_Písmo textu..."
+
+#: src/xo-interface.c:1160
+msgid "_Default Pen"
+msgstr "Výchozí _pero"
+
+#: src/xo-interface.c:1164
+msgid "Default Eraser"
+msgstr "Výchozí _zmizík"
+
+#: src/xo-interface.c:1168
+msgid "Default Highlighter"
+msgstr "Výchozí z_výrazňovač"
+
+#: src/xo-interface.c:1172
+msgid "Default Te_xt"
+msgstr "Výchozí _text"
+
+#: src/xo-interface.c:1176
+msgid "Set As Default"
+msgstr "Nastavit jako výchozí"
+
+#: src/xo-interface.c:1180
+msgid "_Options"
+msgstr "Nastav_ení"
+
+#: src/xo-interface.c:1187
+msgid "Use _XInput"
+msgstr "Používat _XInput"
+
+#: src/xo-interface.c:1191
+msgid "_Eraser Tip"
+msgstr "Špička _zmizíku"
+
+#: src/xo-interface.c:1195
+msgid "_Pressure sensitivity"
+msgstr "_Citlivost na tlak"
+
+#: src/xo-interface.c:1199
+msgid "Button _2 Mapping"
+msgstr "Nastavení tlačítka _2"
+
+#: src/xo-interface.c:1258 src/xo-interface.c:1334
+msgid "_Link to Primary Brush"
+msgstr "_Navázat na primární nástroj"
+
+#: src/xo-interface.c:1264 src/xo-interface.c:1340
+msgid "_Copy of Current Brush"
+msgstr "_Kopie aktuálního nástroje"
+
+#: src/xo-interface.c:1275
+msgid "Button _3 Mapping"
+msgstr "Nastavení tlačítka _3"
+
+#: src/xo-interface.c:1351
+msgid "Buttons Switch Mappings"
+msgstr "Zaměnit mapování tlačítek"
+
+#: src/xo-interface.c:1360
+msgid "_Progressive Backgrounds"
+msgstr "_Posouvající se pozadí"
+
+#: src/xo-interface.c:1364
+msgid "Print Paper _Ruling"
+msgstr "_Tisknout linkování papíru"
+
+#: src/xo-interface.c:1368
+msgid "Autoload pdf.xoj"
+msgstr "Automaticky načítat pdf.xoj"
+
+#: src/xo-interface.c:1372
+msgid "Left-Handed Scrollbar"
+msgstr "Posuvník vlevo"
+
+#: src/xo-interface.c:1376
+msgid "Shorten _Menus"
+msgstr "Zkrátit _nabídky"
+
+#: src/xo-interface.c:1385
+msgid "A_uto-Save Preferences"
+msgstr "A_utomaticky ukládat nastavení"
+
+#: src/xo-interface.c:1389
+msgid "_Save Preferences"
+msgstr "_Uložit nastavení"
+
+#: src/xo-interface.c:1393
+msgid "_Help"
+msgstr "Nápo_věda"
+
+#: src/xo-interface.c:1404
+msgid "_About"
+msgstr "_O programu"
+
+#: src/xo-interface.c:1417
+msgid "Save"
+msgstr "Uložit"
+
+#: src/xo-interface.c:1422
+msgid "New"
+msgstr "Nový"
+
+#: src/xo-interface.c:1427
+msgid "Open"
+msgstr "Otevřít"
+
+#: src/xo-interface.c:1440
+msgid "Cut"
+msgstr "Vyjmout"
+
+#: src/xo-interface.c:1445
+msgid "Copy"
+msgstr "Kopírovat"
+
+#: src/xo-interface.c:1450
+msgid "Paste"
+msgstr "Vložit"
+
+#: src/xo-interface.c:1463
+msgid "Undo"
+msgstr "Zpět"
+
+#: src/xo-interface.c:1468
+msgid "Redo"
+msgstr "Vpřed"
+
+#: src/xo-interface.c:1481
+msgid "First Page"
+msgstr "První stránka"
+
+#: src/xo-interface.c:1486
+msgid "Previous Page"
+msgstr "Předchozí stránka"
+
+#: src/xo-interface.c:1491
+msgid "Next Page"
+msgstr "Následující stránka"
+
+#: src/xo-interface.c:1496
+msgid "Last Page"
+msgstr "Poslední stránka"
+
+#: src/xo-interface.c:1509
+msgid "Zoom Out"
+msgstr "Oddálit"
+
+#: src/xo-interface.c:1514 src/xo-interface.c:3045
+msgid "Page Width"
+msgstr "Šířka stránky"
+
+#: src/xo-interface.c:1520
+msgid "Zoom In"
+msgstr "Přiblížit"
+
+#: src/xo-interface.c:1525
+msgid "Normal Size"
+msgstr "Normální velikost"
+
+#: src/xo-interface.c:1530 src/xo-interface.c:3004
+msgid "Set Zoom"
+msgstr "Nastavit přiblížení"
+
+#: src/xo-interface.c:1539
+msgid "Toggle Fullscreen"
+msgstr "Přepnout režim celé obrazovky"
+
+#: src/xo-interface.c:1548
+msgid "Pencil"
+msgstr "Tužka"
+
+#: src/xo-interface.c:1554
+msgid "Pen"
+msgstr "Pero"
+
+#: src/xo-interface.c:1559 src/xo-interface.c:1565
+msgid "Eraser"
+msgstr "Zmizík"
+
+#: src/xo-interface.c:1570 src/xo-interface.c:1576
+msgid "Highlighter"
+msgstr "Zvýrazňovač"
+
+#: src/xo-interface.c:1581 src/xo-interface.c:1587
+msgid "Text"
+msgstr "Text"
+
+#: src/xo-interface.c:1592 src/xo-interface.c:1598
+msgid "Shape Recognizer"
+msgstr "Rozpoznávání tvarů"
+
+#: src/xo-interface.c:1601 src/xo-interface.c:1607
+msgid "Ruler"
+msgstr "Pravítko"
+
+#: src/xo-interface.c:1618 src/xo-interface.c:1624
+msgid "Select Region"
+msgstr "Výběr oblasti"
+
+#: src/xo-interface.c:1629 src/xo-interface.c:1635
+msgid "Select Rectangle"
+msgstr "Výběr obdélníku"
+
+#: src/xo-interface.c:1640 src/xo-interface.c:1646
+msgid "Vertical Space"
+msgstr "Vertikální místo"
+
+#: src/xo-interface.c:1651
+msgid "Hand Tool"
+msgstr "Nástroj prohlížení"
+
+#: src/xo-interface.c:1670 src/xo-interface.c:1674
+msgid "Default"
+msgstr "Výchozí"
+
+#: src/xo-interface.c:1678 src/xo-interface.c:1681
+msgid "Default Pen"
+msgstr "Výchozí pero"
+
+#: src/xo-interface.c:1692 src/xo-interface.c:1700
+msgid "Fine"
+msgstr "Tenká"
+
+#: src/xo-interface.c:1705 src/xo-interface.c:1713
+msgid "Medium"
+msgstr "Střední"
+
+#: src/xo-interface.c:1718 src/xo-interface.c:1726
+msgid "Thick"
+msgstr "Tlustá"
+
+#: src/xo-interface.c:1745 src/xo-interface.c:1752
+msgid "Black"
+msgstr "Černá"
+
+#: src/xo-interface.c:1757 src/xo-interface.c:1764
+msgid "Blue"
+msgstr "Modrá"
+
+#: src/xo-interface.c:1769 src/xo-interface.c:1776
+msgid "Red"
+msgstr "Červená"
+
+#: src/xo-interface.c:1781 src/xo-interface.c:1788
+msgid "Green"
+msgstr "Zelená"
+
+#: src/xo-interface.c:1793 src/xo-interface.c:1800
+msgid "Gray"
+msgstr "Šedá"
+
+#: src/xo-interface.c:1805 src/xo-interface.c:1812
+msgid "Light Blue"
+msgstr "Bledě modrá"
+
+#: src/xo-interface.c:1817 src/xo-interface.c:1824
+msgid "Light Green"
+msgstr "Bledě zelená"
+
+#: src/xo-interface.c:1829 src/xo-interface.c:1836
+msgid "Magenta"
+msgstr "Fialová"
+
+#: src/xo-interface.c:1841 src/xo-interface.c:1848
+msgid "Orange"
+msgstr "Oranžová"
+
+#: src/xo-interface.c:1853 src/xo-interface.c:1860
+msgid "Yellow"
+msgstr "Žlutá"
+
+#: src/xo-interface.c:1865 src/xo-interface.c:1872
+msgid "White"
+msgstr "Bílá"
+
+#: src/xo-interface.c:1919
+msgid "  Page  "
+msgstr " Stránka "
+
+#: src/xo-interface.c:1927
+msgid "Set page number"
+msgstr "Nastavit číslo stránky"
+
+#: src/xo-interface.c:1931
+msgid " of n"
+msgstr " z n"
+
+#: src/xo-interface.c:1939
+msgid "  Layer:  "
+msgstr " Vrstva: "
+
+#: src/xo-interface.c:2826
+msgid "Set Paper Size"
+msgstr "Nastavit velikost papíru"
+
+#: src/xo-interface.c:2838
+msgid "Standard paper sizes:"
+msgstr "Standardní velikosti papíru:"
+
+#: src/xo-interface.c:2846
+msgid "A4"
+msgstr "A4"
+
+#: src/xo-interface.c:2847
+msgid "A4 (landscape)"
+msgstr "A4 (na šířku)"
+
+#: src/xo-interface.c:2848
+msgid "US Letter"
+msgstr "US Letter"
+
+#: src/xo-interface.c:2849
+msgid "US Letter (landscape)"
+msgstr "US Letter (na šířku)"
+
+#: src/xo-interface.c:2850
+msgid "Custom"
+msgstr "Vlastní"
+
+#: src/xo-interface.c:2856
+msgid "Width:"
+msgstr "Šířka:"
+
+#: src/xo-interface.c:2865
+msgid "Height:"
+msgstr "Výška:"
+
+#: src/xo-interface.c:2877
+msgid "cm"
+msgstr "cm"
+
+#: src/xo-interface.c:2878
+msgid "in"
+msgstr "in"
+
+#: src/xo-interface.c:2879
+msgid "pixels"
+msgstr "pixelů"
+
+#: src/xo-interface.c:2880
+msgid "points"
+msgstr "bodů"
+
+#: src/xo-interface.c:2940
+msgid "About Xournal"
+msgstr "O aplikaci Xournal"
+
+#: src/xo-interface.c:2956
+msgid ""
+"Written by Denis Auroux\n"
+"and other contributors\n"
+"       http://xournal.sourceforge.net/       "
+msgstr ""
+"Napsal Denis Auroux\n"
+"s dalšími přispěvateli\n"
+"       http://xournal.sourceforge.net/       "
+
+#: src/xo-interface.c:3020
+msgid "Zoom: "
+msgstr "Přiblížení: "
+
+#: src/xo-interface.c:3033
+msgid "%"
+msgstr "%"
+
+#: src/xo-interface.c:3038
+msgid "Normal size (100%)"
+msgstr "Normální velikost (100 %)"
+
+#: src/xo-interface.c:3052
+msgid "Page Height"
+msgstr "Výška stránky"
+
+#. user aborted on save confirmation
+#: src/xo-callbacks.c:51 src/xo-file.c:665
+msgid "Open PDF"
+msgstr "Otevřít PDF"
+
+#: src/xo-callbacks.c:59 src/xo-callbacks.c:132 src/xo-callbacks.c:231
+#: src/xo-callbacks.c:385 src/xo-callbacks.c:1444 src/xo-file.c:673
+msgid "All files"
+msgstr "Všechny soubory"
+
+#: src/xo-callbacks.c:62 src/xo-callbacks.c:388 src/xo-file.c:676
+msgid "PDF files"
+msgstr "Soubory PDF"
+
+#: src/xo-callbacks.c:70 src/xo-callbacks.c:1467
+msgid "Attach file to the journal"
+msgstr "Připojit soubor k deníku"
+
+#. user aborted on save confirmation
+#: src/xo-callbacks.c:124
+msgid "Open Journal"
+msgstr "Otevřít deník"
+
+#: src/xo-callbacks.c:135 src/xo-callbacks.c:234
+msgid "Xournal files"
+msgstr "Soubory Xournalu"
+
+#: src/xo-callbacks.c:184 src/xo-callbacks.c:279
+#, c-format
+msgid "Error saving file '%s'"
+msgstr "Chyba při ukládání souboru '%s'"
+
+#: src/xo-callbacks.c:203
+msgid "Save Journal"
+msgstr "Uložit deník"
+
+#: src/xo-callbacks.c:260 src/xo-callbacks.c:406
+#, c-format
+msgid "Should the file %s be overwritten?"
+msgstr "Má být soubor %s přepsán?"
+
+#: src/xo-callbacks.c:359
+msgid "Export to PDF"
+msgstr "Exportovat do PDF"
+
+#: src/xo-callbacks.c:419
+#, c-format
+msgid "Error creating file '%s'"
+msgstr "Chyba při vytváření souboru '%s'"
+
+#: src/xo-callbacks.c:1371
+msgid "Pick a Paper Color"
+msgstr "Vybrat barvu papíru"
+
+#: src/xo-callbacks.c:1436
+msgid "Open Background"
+msgstr "Otevřít pozadí"
+
+#: src/xo-callbacks.c:1452
+msgid "Bitmap files"
+msgstr "Bitmapové soubory"
+
+#: src/xo-callbacks.c:1460
+msgid "PS/PDF files (as bitmaps)"
+msgstr "Soubory PS/PDF (jako bitmapy)"
+
+#: src/xo-callbacks.c:1490
+#, c-format
+msgid "Error opening background '%s'"
+msgstr "Chyba při otevírání pozadí: '%s'"
+
+#: src/xo-callbacks.c:2036
+msgid "Select Font"
+msgstr "Vybrat písmo"
+
+#: src/xo-callbacks.c:2434
+msgid ""
+"Drawing is not allowed on the background layer.\n"
+" Switching to Layer 1."
+msgstr ""
+"Kreslení není povoleno ve vrstvě pozadí.\n"
+" Přepíná se na Vrstvu 1."
+
+#: src/xo-support.c:90 src/xo-support.c:114
+#, c-format
+msgid "Couldn't find pixmap file: %s"
+msgstr "Nelze najít soubor s mapou pixelů: %s"
+
+#: src/xo-file.c:122 src/xo-file.c:154
+#, c-format
+msgid "Could not write background '%s'. Continuing anyway."
+msgstr "Nelze zapsat pozadí '%s'. Přesto se bude pokračovat."
+
+#: src/xo-file.c:252
+#, c-format
+msgid "Invalid file contents"
+msgstr "Chybný obsah souboru"
+
+#: src/xo-file.c:402
+#, c-format
+msgid "Could not open background '%s'. Setting background to white."
+msgstr "Nelze otevřít pozadí '%s'. Pozadí se nastaví na bílé."
+
+#: src/xo-file.c:660
+#, c-format
+msgid ""
+"Could not open background '%s'.\n"
+"Select another file?"
+msgstr ""
+"Nelze otevřít pozadí '%s'.\n"
+"Vybrat jiný soubor?"
+
+#: src/xo-file.c:806
+#, c-format
+msgid "Could not open background '%s'."
+msgstr "Nelze otevřít pozadí '%s'."
+
+#: src/xo-file.c:1033
+msgid "Unable to render one or more PDF pages."
+msgstr "Není možné vykreslit jednu nebo více stránek PDF."
+
+#: src/xo-file.c:1439
+msgid " the display resolution, in pixels per inch"
+msgstr " rozlišení displeje v pixelech na palec"
+
+#: src/xo-file.c:1442
+msgid " the initial zoom level, in percent"
+msgstr " výchozí úroveň přiblížení v procentech"
+
+#: src/xo-file.c:1445
+msgid " maximize the window at startup (true/false)"
+msgstr " maximalizovat okno po spuštění (true/false)"
+
+#: src/xo-file.c:1448
+msgid " start in full screen mode (true/false)"
+msgstr " spouštět v režimu celé obrazovky (true/false)"
+
+#: src/xo-file.c:1451
+msgid " the window width in pixels (when not maximized)"
+msgstr " šířka okna v pixelech (když není maximalizováno)"
+
+#: src/xo-file.c:1454
+msgid " the window height in pixels"
+msgstr " výška okna v pixelech"
+
+#: src/xo-file.c:1457
+msgid " scrollbar step increment (in pixels)"
+msgstr " velikost posunu na posuvníku (v pixelech)"
+
+#: src/xo-file.c:1460
+msgid " the step increment in the zoom dialog box"
+msgstr " velikost posunu v dialogu přiblížení"
+
+#: src/xo-file.c:1463
+msgid " the multiplicative factor for zoom in/out"
+msgstr " násobitel přiblížení/oddálení"
+
+#: src/xo-file.c:1466
+msgid " document view (true = continuous, false = single page)"
+msgstr " zobrazení dokumentu (true = plynulé, false = jedna stránka)"
+
+#: src/xo-file.c:1469
+msgid " use XInput extensions (true/false)"
+msgstr " používat rozšíření XInput (true/false)"
+
+#: src/xo-file.c:1472
+msgid " discard Core Pointer events in XInput mode (true/false)"
+msgstr " zrušit události Core Pointer v režimu XInput (true/false)"
+
+#: src/xo-file.c:1475
+msgid " always map eraser tip to eraser (true/false)"
+msgstr " vždy nastavit špičku zmizíku na zmizík (true/false)"
+
+#: src/xo-file.c:1478
+msgid ""
+" buttons 2 and 3 switch mappings instead of drawing (useful for some "
+"tablets) (true/false)"
+msgstr ""
+" zaměnit nastavení tlačítek 2 a 3 místo kreslení (užitečné pro některé "
+" tablety) (true/false)"
+
+#: src/xo-file.c:1481
+msgid ""
+" automatically load filename.pdf.xoj instead of filename.pdf (true/false)"
+msgstr " automaticky načítat filename.pdf.xoj místo filename.pdf (true/false)"
+
+#: src/xo-file.c:1484
+msgid " default path for open/save (leave blank for current directory)"
+msgstr ""
+" výchozí cesta pro otevírání/ukládání (nechte prázdné pro aktuální adresář)"
+
+#: src/xo-file.c:1487
+msgid " use pressure sensitivity to control pen stroke width (true/false)"
+msgstr " používat citlivost na tlak k určení tloušťky tahu pera (true/false)"
+
+#: src/xo-file.c:1490
+msgid " minimum width multiplier"
+msgstr " minimální násobitel šířky"
+
+#: src/xo-file.c:1493
+msgid " maximum width multiplier"
+msgstr " maximální násobitel šířky"
+
+#: src/xo-file.c:1496
+msgid ""
+" interface components from top to bottom\n"
+" valid values: drawarea menu main_toolbar pen_toolbar statusbar"
+msgstr ""
+" komponenty rozhraní shora dolů\n"
+" přípustné hodnoty: drawarea menu main_toolbar pen_toolbar statusbar"
+
+#: src/xo-file.c:1499
+msgid " interface components in fullscreen mode, from top to bottom"
+msgstr " komponenty rozhraní v režimu celé obrazovky shora dolů"
+
+#: src/xo-file.c:1502
+msgid " interface has left-handed scrollbar (true/false)"
+msgstr " posuvník rozhraní je vlevo (true/false)"
+
+#: src/xo-file.c:1505
+msgid " hide some unwanted menu or toolbar items (true/false)"
+msgstr " skrýt nechtěné položky nabídek nebo lišty (true/false)"
+
+#: src/xo-file.c:1508
+msgid ""
+" interface items to hide (customize at your own risk!)\n"
+" see source file xo-interface.c for a list of item names"
+msgstr ""
+" položky rozhraní, které se mají skrývat (upravujte na vlastní nebezpečí!)\n"
+" seznam názvů položek najdete ve zdrojovém kódu v souboru xo-interface.c"
+
+#: src/xo-file.c:1511
+msgid ""
+" highlighter opacity (0 to 1, default 0.5)\n"
+" warning: opacity level is not saved in xoj files!"
+msgstr ""
+" průhlednost zvýrazňovače (0 až 1, výchozí 0.5)\n"
+" upozornění: míra průhlednosti není ukládána v souborech xoj!"
+
+#: src/xo-file.c:1514
+msgid " auto-save preferences on exit (true/false)"
+msgstr " při ukončení automaticky ukládat nastavení (true/false)"
+
+#: src/xo-file.c:1518
+msgid " the default page width, in points (1/72 in)"
+msgstr " výchozí šířka stránky v bodech (1/72 in)"
+
+#: src/xo-file.c:1521
+msgid " the default page height, in points (1/72 in)"
+msgstr " výchozí výška stránky v bodech (1/72 in)"
+
+#: src/xo-file.c:1524
+msgid " the default paper color"
+msgstr " výchozí barva papíru"
+
+#: src/xo-file.c:1529
+msgid " the default paper style (plain, lined, ruled, or graph)"
+msgstr " výchozí papír (plain, lined, ruled, or graph)"
+
+#: src/xo-file.c:1532
+msgid " apply paper style changes to all pages (true/false)"
+msgstr " použít nastavení papíru na všechny stránky (true/false)"
+
+#: src/xo-file.c:1535
+msgid " preferred unit (cm, in, px, pt)"
+msgstr " preferované jednotky (cm, in, px, pt)"
+
+#: src/xo-file.c:1538
+msgid " include paper ruling when printing or exporting to PDF (true/false)"
+msgstr " zahrnout linkování papíru při tisku nebo exportu do PDF (true/false)"
+
+#: src/xo-file.c:1541
+msgid " just-in-time update of page backgrounds (true/false)"
+msgstr " průběžná aktualizace pozadí stránek (true/false)"
+
+#: src/xo-file.c:1544
+msgid ""
+" bitmap resolution of PS/PDF backgrounds rendered using ghostscript (dpi)"
+msgstr ""
+" rozlišení bitmapových pozadí PS/PDF vykreslených pomocí ghostscriptu (dpi)"
+
+#: src/xo-file.c:1547
+msgid ""
+" bitmap resolution of PDF backgrounds when printing with libgnomeprint (dpi)"
+msgstr ""
+" rozlišení bitmapových pozadí PDF při tisku pomocí libgnomeprint (dpi)"
+
+#: src/xo-file.c:1551
+msgid ""
+" selected tool at startup (pen, eraser, highlighter, selectrect, vertspace, "
+"hand)"
+msgstr ""
+" nástroj vybraný po spuštění (pen, eraser, highlighter, selectrect, "
+"vertspace, "
+"hand)"
+
+#: src/xo-file.c:1554
+msgid " default pen color"
+msgstr " výchozí barva pera"
+
+#: src/xo-file.c:1559
+msgid " default pen thickness (fine = 1, medium = 2, thick = 3)"
+msgstr " výchozí tloušťka pera (tenké = 1, střední = 2, tlusté = 3)"
+
+#: src/xo-file.c:1562
+msgid " default pen is in ruler mode (true/false)"
+msgstr " výchozí pero je v režimu pravítka (true/false)"
+
+#: src/xo-file.c:1565
+msgid " default pen is in shape recognizer mode (true/false)"
+msgstr " výchozí pero je v režimu rozpoznávání tvarů (true/false)"
+
+#: src/xo-file.c:1568
+msgid " default eraser thickness (fine = 1, medium = 2, thick = 3)"
+msgstr " výchozí tloušťka zmizíku (tenké = 1, střední = 2, tlusté = 3)"
+
+#: src/xo-file.c:1571
+msgid " default eraser mode (standard = 0, whiteout = 1, strokes = 2)"
+msgstr " výchozí režim zmizíku (normální = 0, bělení = 1, tahy = 2)"
+
+#: src/xo-file.c:1574
+msgid " default highlighter color"
+msgstr " výchozí barva zvýrazňovače"
+
+#: src/xo-file.c:1579
+msgid " default highlighter thickness (fine = 1, medium = 2, thick = 3)"
+msgstr " výchozí tloušťka zvýrazňovače (tenké = 1, střední = 2, tlusté = 3)"
+
+#: src/xo-file.c:1582
+msgid " default highlighter is in ruler mode (true/false)"
+msgstr " výchozí zvýrazňovač je v režimu pravítka (true/false)"
+
+#: src/xo-file.c:1585
+msgid " default highlighter is in shape recognizer mode (true/false)"
+msgstr " výchozí zvýrazňovač je v režimu rozpoznávání tvarů (true/false)"
+
+#: src/xo-file.c:1588
+msgid ""
+" button 2 tool (pen, eraser, highlighter, text, selectrect, vertspace, hand)"
+msgstr ""
+" nástroj tlačítka 2 (pen, eraser, highlighter, text, selectrect, vertspace, "
+"hand)"
+
+#: src/xo-file.c:1591
+msgid ""
+" button 2 brush linked to primary brush (true/false) (overrides all other "
+"settings)"
+msgstr ""
+" navázat nástroj tlačítka 2 na primární nástroj (true/false) (přepíše "
+"všechna ostatní "
+"nastavení)"
+
+#: src/xo-file.c:1594
+msgid " button 2 brush color (for pen or highlighter only)"
+msgstr " barva nástroje tlačítka 2 (pouze pro pero nebo zvýrazňovač)"
+
+#: src/xo-file.c:1601
+msgid " button 2 brush thickness (pen, eraser, or highlighter only)"
+msgstr ""
+" tloušťka nástroje tlačítka 2 (pouze pro pero, zmizík nebo zvýrazňovač)"
+
+#: src/xo-file.c:1605
+msgid " button 2 ruler mode (true/false) (for pen or highlighter only)"
+msgstr ""
+" režim pravítka nástroje tlačítka 2 (true/false) (pouze pro pero nebo "
+"zvýrazňovač)"
+
+#: src/xo-file.c:1609
+msgid " button 2 shape recognizer mode (true/false) (pen or highlighter only)"
+msgstr ""
+" režim rozpoznávání tvarů nástroje tlačítka 2 (true/false) (pouze pro pero "
+"nebo zvýrazňovač)"
+
+#: src/xo-file.c:1613
+msgid " button 2 eraser mode (eraser only)"
+msgstr " režim zmizíku nástroje tlačítka 2 (pouze pro zmizík)"
+
+#: src/xo-file.c:1616
+msgid ""
+" button 3 tool (pen, eraser, highlighter, text, selectrect, vertspace, hand)"
+msgstr ""
+" nástroj tlačítka 3 (pen, eraser, highlighter, text, selectrect, vertspace, "
+"hand)"
+
+#: src/xo-file.c:1619
+msgid ""
+" button 3 brush linked to primary brush (true/false) (overrides all other "
+"settings)"
+msgstr ""
+" navázat nástroj tlačítka 3 na primární nástroj (true/false) (přepíše "
+"všechna ostatní "
+"nastavení)"
+
+#: src/xo-file.c:1622
+msgid " button 3 brush color (for pen or highlighter only)"
+msgstr " barva nástroje tlačítka 3 (pouze pro pero nebo zvýrazňovač)"
+
+#: src/xo-file.c:1629
+msgid " button 3 brush thickness (pen, eraser, or highlighter only)"
+msgstr ""
+" tloušťka nástroje tlačítka 3 (pouze pro pero, zmizík nebo zvýrazňovač)"
+
+#: src/xo-file.c:1633
+msgid " button 3 ruler mode (true/false) (for pen or highlighter only)"
+msgstr ""
+" režim pravítka nástroje tlačítka 3 (true/false) (pouze pro pero nebo "
+"zvýrazňovač)"
+
+#: src/xo-file.c:1637
+msgid " button 3 shape recognizer mode (true/false) (pen or highlighter only)"
+msgstr ""
+" režim rozpoznávání tvarů nástroje tlačítka 3 (true/false) (pouze pro pero "
+"nebo zvýrazňovač)"
+
+#: src/xo-file.c:1641
+msgid " button 3 eraser mode (eraser only)"
+msgstr " režim zmizíku nástroje tlačítka 3 (pouze pro zmizík)"
+
+#: src/xo-file.c:1645
+msgid " thickness of the various pens (in points, 1 pt = 1/72 in)"
+msgstr " tloušťka různých per (v bodech, 1 pt = 1/72 in)"
+
+#: src/xo-file.c:1651
+msgid " thickness of the various erasers (in points, 1 pt = 1/72 in)"
+msgstr " tloušťka různých zmizíku (v bodech, 1 pt = 1/72 in)"
+
+#: src/xo-file.c:1656
+msgid " thickness of the various highlighters (in points, 1 pt = 1/72 in)"
+msgstr " tloušťka různých zvýrazňovačů (v bodech, 1 pt = 1/72 in)"
+
+#: src/xo-file.c:1661
+msgid " name of the default font"
+msgstr " název výchozího písma"
+
+#: src/xo-file.c:1664
+msgid " default font size"
+msgstr " výchozí velikost písma"
+
+#: src/xo-file.c:1842
+msgid ""
+" Xournal configuration file.\n"
+" This file is generated automatically upon saving preferences.\n"
+" Use caution when editing this file manually.\n"
+msgstr ""
+" Konfigurační soubor Xournalu.\n"
+" Tento soubor je generován automaticky po uložení nastavení.\n"
+" Při ručních úpravách buďte obezřetní.\n"
+
+#: src/xo-misc.c:1274
+#, c-format
+msgid " of %d"
+msgstr " z %d"
+
+#: src/xo-misc.c:1279
+msgid "Background"
+msgstr "Pozadí"
+
+#: src/xo-misc.c:1287
+#, c-format
+msgid "Layer %d"
+msgstr "Vrstva %d"
+
+#: src/xo-misc.c:1411
+#, c-format
+msgid "Xournal - %s"
+msgstr "Xournal - %s"
+
+#: src/xo-misc.c:1663
+#, c-format
+msgid "Save changes to '%s'?"
+msgstr "Uložit změny do '%s'?"
+
+#: src/xo-misc.c:1664
+msgid "Untitled"
+msgstr "Bez titulku"
+
+

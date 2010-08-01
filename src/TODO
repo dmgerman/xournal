@@ -16,6 +16,9 @@ List of features to be implemented (not in any particular order)
   (e.g. if xinput events are far away from core events, re-query geometry?)
    or see if removing the GTK bugfix would help? -- e.g. by recalling an
    internal gtk init function?
+  Also allow for SIGUSR1 to recalibrate (so rotate scripts could pkill
+  xournal). (cf #2944459). Recalibration probably requires talking directly 
+  to X server to query input device geometry and compensate for GTK.
 
 BUGS:
 ** lingering issues with synaptics touchpads? (#2872667)
@@ -31,6 +34,7 @@ WIN32:
 - write an installer
 - bug: opening files with accents in name?
 - bug: cairo-scaled-font in printing? (2009-11-18 bug tracker)
+- bug: printf() sometimes generates stroke coordinates 1.#J -1.#J  (???)
 
 PATCHES TO INCORPORATE:
 ** patch: ortho/snap (revised Apr 13 2009)
@@ -48,12 +52,50 @@ PATCHES TO INCORPORATE:
    *** NEW VERSION: with threading, by Man, e-mail 12/10/2009 10:51pm
 
 ** insert images patch (Victor Saase) #2890925
+** as improved by Simon Guest April 14 2010
+** modified rev2 May 14, 2010: xournal-0.4.5-sjg-image-rev2.patch.gz 
+
 ** customize paper ruling (Gautam Iyer e-mail Nov 30 2009 / SF tracker)
 
-- option to map device named "touch" to hand tool? (like "Eraser tip")
+** cairo export to PNG (Man = Paulo Neves, e-mail Feb 3 '10, saved as
+  cairo-png-rendering.diff.txt (refactor printing of page to cairo surface
+  with the gtk-print code).
+
+- make default in ok_to_close() box "cancel" rather than "no".
 
 - make line spacing in text objects customizable: to a fixed scaling factor,
   a fixed number of units, or the paper ruling (esp. the latter!!)
+
+- page size dialog box should have a check button to keep background size
+  the same (so rescaling creates margin around bitmap or PDF background).
+  This will need an extension to the file format, to allow a page background
+  to have a different size from the page itself.
+
+- option to map device named "touch" to hand tool? (like "Eraser tip")
+
+
+- roadmap towards SVG support: see 1/25/2010 Mark Edgington email & reply
+  (1) export to SVG (using pages and groups for pages and layers; 
+  use comment tags to make export nonlossy;
+  (2) import from this subset of SVG;
+  (3) add SVG to the file-open and save formats
+
+- roadmap towards PDF encapsulation: see 1/29/2010 forum posts
+  When exporting to PDF, don't just append our annotations as PDF code but
+  also include the .xoj file within the pdf, and ensure the initial pdf is
+  well-delimited from the rest. When opening a PDF that includes such
+  markings, discard the annotation part of the PDF and open the embedded xoj
+  instead. Later, offer such PDF as a file-open and save format (even when
+  there's no PDF background being annotated!!).
+
+*** should have Open, Save, Save As manipulate at least 3 formats:
+  - XOJ
+  - PDF with embedded xoj file in an object (opens with annot. in PDF viewer,
+    with background only + separate xoj in xournal)
+  - SVG (subset only)
+  additionally, should have "print to": printer, PDF, SVG, bitmap.
+
+- allow djvu and other backgrounds (but then can't export to PDF)
 
 - PDF bg memory usage throttling / delete oldest pdf backgrounds
 - replace ttsubset by something more modern? (eg. from cairo ?)
@@ -70,6 +112,10 @@ PATCHES TO INCORPORATE:
 - recognizer: if variable-width, associate average width
 - recognizer should snap to existing recognized geometric shapes
 - patch to find text in PDF (dmg = Daniel German, Nov 13 2009)
+
+- search through text (xoj and PDF background) (with highlight? forwd/backwd)
+  (see evince). Also: ability to select rectangle on PDF bg and copy-paste
+  as bitmap or as text.
 
 - improve recognizer: two passes for polygons (low tolerance, then higher)
   to better detect elongated rectangles? (if low tolerance recognizer
