@@ -1,13 +1,14 @@
 # Spanish translations for xournal package
 # This file is distributed under the same license as the xournal package.
 #
-# Álvaro, 2010.
+# Álvaro, 2010
+# proofread and corrected by Borja Barriopedro Perona
 msgid ""
 msgstr ""
 "Project-Id-Version: xournal 0.4.3\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-10-02 16:42-0700\n"
-"PO-Revision-Date: 2010-04-13 17:29+0200\n"
+"PO-Revision-Date: 2010-08-08 17:29+0200\n"
 "Last-Translator: Álvaro\n"
 "Language-Team: Spanish <kde-i18n-doc@kde.org>\n"
 "MIME-Version: 1.0\n"
@@ -972,7 +973,7 @@ msgid ""
 " interface components from top to bottom\n"
 " valid values: drawarea menu main_toolbar pen_toolbar statusbar"
 msgstr ""
-" componentes de la interfaz, de abajo arriba\n"
+" componentes de la interfaz, de arriba a abajo\n"
 " valores válidos: drawarea menu main_toolbar pen_toolbar statusbar\n"
 " que corresponden al área de dibujo, el menú, la barra principal, la"
 " barra de herramientas y la barra de estado respectivamente"
