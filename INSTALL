@@ -35,13 +35,14 @@ Compilation and installation:
 
 Installation in /usr/local:
 
-./configure
+./autogen.sh
 make
 (as root) make install
 (as root) make desktop-install
 
 Installation in $HOME:
 
+./autogen.sh
 ./configure --prefix=$HOME
 make
 make install
