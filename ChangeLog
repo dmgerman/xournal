@@ -5,7 +5,7 @@ This version:
   - Italian translation (Marco Poletti), German translation (Stefan Lembach)
   - Spanish translation (Alvaro), Brazil Portuguese translation (Marco Souza)
   - fix save bug with text boxes containing > 4095 characters
-  - Czech translation (David Kolibac)
+  - Czech translation (David Kolibac), Dutch translation (Timo Kluck)
 
 Version 0.4.5 (Oct 2, 2009):
   - bugfixes for GTK+ 2.16/2.17 issues with xinput events

@@ -1,0 +1,1265 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Xournal-0.4.5\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2009-10-02 16:42-0700\n"
+"PO-Revision-Date: \n"
+"Last-Translator: Timo Kluck <tkluck@gmail.com>\n"
+"Language-Team: \n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: 2\n"
+"X-Poedit-Language: Dutch\n"
+"X-Poedit-Country: NETHERLANDS\n"
+
+#: src/main.c:65
+#, c-format
+msgid ""
+"Invalid command line parameters.\n"
+"Usage: %s [filename.xoj]\n"
+msgstr ""
+"Ongeldige opties in opdrachtregel.\n"
+"Gebruik: %s [bestandsnaam.xoj]\n"
+
+#: src/main.c:291
+#: src/xo-callbacks.c:105
+#: src/xo-callbacks.c:156
+#: src/xo-callbacks.c:3126
+#, c-format
+msgid "Error opening file '%s'"
+msgstr "Fout bij het openen van het bestand '%s'"
+
+#: src/xo-interface.c:350
+#: src/xo-interface.c:2951
+#: src/xo-misc.c:1405
+msgid "Xournal"
+msgstr "Xournal"
+
+#: src/xo-interface.c:360
+msgid "_File"
+msgstr "_Bestand"
+
+#: src/xo-interface.c:371
+msgid "Annotate PD_F"
+msgstr "PD_F annoteren"
+
+#: src/xo-interface.c:396
+msgid "Recent Doc_uments"
+msgstr "Recente doc_umenten"
+
+#: src/xo-interface.c:403
+msgid "0"
+msgstr "0"
+
+#: src/xo-interface.c:407
+msgid "1"
+msgstr "1"
+
+#: src/xo-interface.c:411
+msgid "2"
+msgstr "2"
+
+#: src/xo-interface.c:415
+msgid "3"
+msgstr "3"
+
+#: src/xo-interface.c:419
+msgid "4"
+msgstr "4"
+
+#: src/xo-interface.c:423
+msgid "5"
+msgstr "c"
+
+#: src/xo-interface.c:427
+msgid "6"
+msgstr "c"
+
+#: src/xo-interface.c:431
+msgid "7"
+msgstr " c"
+
+#: src/xo-interface.c:440
+msgid "Print Options"
+msgstr "Afdrukopties"
+
+#: src/xo-interface.c:455
+msgid "_Export to PDF"
+msgstr "_Exporteren als PDF"
+
+#: src/xo-interface.c:471
+msgid "_Edit"
+msgstr "Be_werken"
+
+#: src/xo-interface.c:516
+msgid "_View"
+msgstr "Beel_d"
+
+#: src/xo-interface.c:523
+msgid "_Continuous"
+msgstr "_Doorlopend"
+
+#: src/xo-interface.c:529
+msgid "_One Page"
+msgstr "_Eén pagina"
+
+#: src/xo-interface.c:540
+msgid "Full Screen"
+msgstr "Volledig scherm"
+
+#: src/xo-interface.c:552
+msgid "_Zoom"
+msgstr "In_zoomen"
+
+#: src/xo-interface.c:580
+msgid "Page _Width"
+msgstr "Pagina_breedte"
+
+#: src/xo-interface.c:591
+msgid "_Set Zoom"
+msgstr "Zoom in_stellen"
+
+#: src/xo-interface.c:600
+msgid "_First Page"
+msgstr "Eerste _pagina"
+
+#: src/xo-interface.c:611
+msgid "_Previous Page"
+msgstr "_Vorige pagina"
+
+#: src/xo-interface.c:622
+msgid "_Next Page"
+msgstr "Vo_lgende pagina"
+
+#: src/xo-interface.c:633
+msgid "_Last Page"
+msgstr "_Laatste pagina"
+
+#: src/xo-interface.c:649
+msgid "_Show Layer"
+msgstr "Laag _weergeven"
+
+#: src/xo-interface.c:657
+msgid "_Hide Layer"
+msgstr "_Laag verbergen"
+
+#: src/xo-interface.c:665
+msgid "_Journal"
+msgstr "_Schrift"
+
+#: src/xo-interface.c:672
+msgid "New Page _Before"
+msgstr "Nieuwe _pagina ervoor"
+
+#: src/xo-interface.c:676
+msgid "New Page _After"
+msgstr "Nieuwe pagina er_achter"
+
+#: src/xo-interface.c:680
+msgid "New Page At _End"
+msgstr "Nieuwe pagina aan _einde"
+
+#: src/xo-interface.c:684
+msgid "_Delete Page"
+msgstr "Pagina _verwijderen"
+
+#: src/xo-interface.c:693
+msgid "_New Layer"
+msgstr "_Nieuwe laag"
+
+#: src/xo-interface.c:697
+msgid "Delete La_yer"
+msgstr "Laa_g verwijderen"
+
+#: src/xo-interface.c:701
+msgid "_Flatten"
+msgstr "Lagen _samenvoegen"
+
+#: src/xo-interface.c:710
+msgid "Paper Si_ze"
+msgstr "Papierformaa_t"
+
+#: src/xo-interface.c:714
+msgid "Paper _Color"
+msgstr "Papier_kleur"
+
+#: src/xo-interface.c:721
+msgid "_white paper"
+msgstr "_Wit papier"
+
+#: src/xo-interface.c:727
+msgid "_yellow paper"
+msgstr "_Geel papier"
+
+#: src/xo-interface.c:733
+msgid "_pink paper"
+msgstr "_Roze papier"
+
+#: src/xo-interface.c:739
+msgid "_orange paper"
+msgstr "_Oranje papier"
+
+#: src/xo-interface.c:745
+msgid "_blue paper"
+msgstr "_Blauw papier"
+
+#: src/xo-interface.c:751
+msgid "_green paper"
+msgstr "_Groen papier"
+
+#: src/xo-interface.c:757
+#: src/xo-interface.c:1025
+msgid "other..."
+msgstr "anders..."
+
+#: src/xo-interface.c:761
+#: src/xo-interface.c:797
+#: src/xo-interface.c:1029
+#: src/xo-interface.c:1270
+#: src/xo-interface.c:1346
+msgid "NA"
+msgstr "n.v.t."
+
+#: src/xo-interface.c:766
+msgid "Paper _Style"
+msgstr "Papiersoort"
+
+#: src/xo-interface.c:773
+msgid "_plain"
+msgstr "_Leeg"
+
+#: src/xo-interface.c:779
+msgid "_lined"
+msgstr "_Lijntjes"
+
+#: src/xo-interface.c:785
+msgid "_ruled"
+msgstr "Lijntjes (geen _kantlijn)"
+
+#: src/xo-interface.c:791
+msgid "_graph"
+msgstr "_Ruitjes"
+
+#: src/xo-interface.c:802
+msgid "Apply _To All Pages"
+msgstr "Op alle pagina's _toepassen"
+
+#: src/xo-interface.c:811
+msgid "_Load Background"
+msgstr "Achtergrond _laden"
+
+#: src/xo-interface.c:819
+msgid "Background Screens_hot"
+msgstr "Schermafbeelding van ac_htergrond"
+
+#: src/xo-interface.c:828
+msgid "Default _Paper"
+msgstr "Standaard _papier"
+
+#: src/xo-interface.c:832
+msgid "Set As De_fault"
+msgstr "Instellen als _standaard"
+
+#: src/xo-interface.c:836
+msgid "_Tools"
+msgstr "_Gereedschap"
+
+#: src/xo-interface.c:843
+#: src/xo-interface.c:1206
+#: src/xo-interface.c:1282
+msgid "_Pen"
+msgstr "_Pen"
+
+#: src/xo-interface.c:852
+#: src/xo-interface.c:1212
+#: src/xo-interface.c:1288
+msgid "_Eraser"
+msgstr "_Gum"
+
+#: src/xo-interface.c:861
+#: src/xo-interface.c:1218
+#: src/xo-interface.c:1294
+msgid "_Highlighter"
+msgstr "_Markeerstift"
+
+#: src/xo-interface.c:870
+#: src/xo-interface.c:1224
+#: src/xo-interface.c:1300
+msgid "_Text"
+msgstr "_Tekst"
+
+#: src/xo-interface.c:884
+msgid "_Shape Recognizer"
+msgstr "_Vormenherkenner"
+
+#: src/xo-interface.c:891
+msgid "Ru_ler"
+msgstr "_Lineaal"
+
+#: src/xo-interface.c:903
+#: src/xo-interface.c:1230
+#: src/xo-interface.c:1306
+msgid "Select Re_gion"
+msgstr "_Gebied selecteren"
+
+#: src/xo-interface.c:912
+#: src/xo-interface.c:1236
+#: src/xo-interface.c:1312
+msgid "Select _Rectangle"
+msgstr "_Rechthoek selecteren"
+
+#: src/xo-interface.c:921
+#: src/xo-interface.c:1242
+#: src/xo-interface.c:1318
+msgid "_Vertical Space"
+msgstr "_Verticale ruimte"
+
+#: src/xo-interface.c:930
+#: src/xo-interface.c:1248
+#: src/xo-interface.c:1324
+msgid "H_and Tool"
+msgstr "H_andje"
+
+#: src/xo-interface.c:943
+msgid "_Color"
+msgstr "_Kleur"
+
+#: src/xo-interface.c:954
+msgid "blac_k"
+msgstr "_Zwart"
+
+#: src/xo-interface.c:960
+msgid "_blue"
+msgstr "_Blauw"
+
+#: src/xo-interface.c:966
+msgid "_red"
+msgstr "_Rood"
+
+#: src/xo-interface.c:972
+msgid "_green"
+msgstr "_Groen"
+
+#: src/xo-interface.c:978
+msgid "gr_ay"
+msgstr "Gr_ijs"
+
+#: src/xo-interface.c:989
+msgid "light bl_ue"
+msgstr "Lichtbl_auw"
+
+#: src/xo-interface.c:995
+msgid "light gr_een"
+msgstr "Lichtgro_en"
+
+#: src/xo-interface.c:1001
+msgid "_magenta"
+msgstr "_Magenta"
+
+#: src/xo-interface.c:1007
+msgid "_orange"
+msgstr "_Oranje"
+
+#: src/xo-interface.c:1013
+msgid "_yellow"
+msgstr "Gee_l"
+
+#: src/xo-interface.c:1019
+msgid "_white"
+msgstr "_Wit"
+
+#: src/xo-interface.c:1034
+msgid "Pen _Options"
+msgstr "Pen-_opties"
+
+#: src/xo-interface.c:1041
+msgid "_very fine"
+msgstr "_Zeer dun"
+
+#: src/xo-interface.c:1047
+#: src/xo-interface.c:1078
+#: src/xo-interface.c:1126
+msgid "_fine"
+msgstr "_Dun"
+
+#: src/xo-interface.c:1053
+#: src/xo-interface.c:1084
+#: src/xo-interface.c:1132
+msgid "_medium"
+msgstr "_Normaal"
+
+#: src/xo-interface.c:1059
+#: src/xo-interface.c:1090
+#: src/xo-interface.c:1138
+msgid "_thick"
+msgstr "_Dik"
+
+#: src/xo-interface.c:1065
+msgid "ver_y thick"
+msgstr "_Zeer d_ik"
+
+#: src/xo-interface.c:1071
+msgid "Eraser Optio_ns"
+msgstr "Gu_m-opties"
+
+#: src/xo-interface.c:1101
+msgid "_standard"
+msgstr "_Normaal"
+
+#: src/xo-interface.c:1107
+msgid "_whiteout"
+msgstr "_Tip-ex"
+
+#: src/xo-interface.c:1113
+msgid "_delete strokes"
+msgstr "_Hele lijnen wissen"
+
+#: src/xo-interface.c:1119
+msgid "Highlighter Opt_ions"
+msgstr "Markeerstift-opties"
+
+#: src/xo-interface.c:1144
+msgid "Text _Font..."
+msgstr "Lettertype voor tekst..."
+
+#: src/xo-interface.c:1160
+msgid "_Default Pen"
+msgstr "Pen met standaardopties"
+
+#: src/xo-interface.c:1164
+msgid "Default Eraser"
+msgstr "Gum met standaardopties"
+
+#: src/xo-interface.c:1168
+msgid "Default Highlighter"
+msgstr "Markeerstift met standaardopties"
+
+#: src/xo-interface.c:1172
+msgid "Default Te_xt"
+msgstr "Tekst met standaardopties"
+
+#: src/xo-interface.c:1176
+msgid "Set As Default"
+msgstr "Als standaardopties instellen"
+
+#: src/xo-interface.c:1180
+msgid "_Options"
+msgstr "_Voorkeuren"
+
+#: src/xo-interface.c:1187
+msgid "Use _XInput"
+msgstr "_XInput gebruiken"
+
+#: src/xo-interface.c:1191
+msgid "_Eraser Tip"
+msgstr "Gum-uit_einde gebruiken"
+
+#: src/xo-interface.c:1195
+msgid "_Pressure sensitivity"
+msgstr "_Drukgevoeligheid"
+
+#: src/xo-interface.c:1199
+msgid "Button _2 Mapping"
+msgstr "_Tweede muisknop/penknop"
+
+#: src/xo-interface.c:1258
+#: src/xo-interface.c:1334
+msgid "_Link to Primary Brush"
+msgstr "Eerste _gereedschap"
+
+#: src/xo-interface.c:1264
+#: src/xo-interface.c:1340
+msgid "_Copy of Current Brush"
+msgstr "_Huidige gereedschap"
+
+#: src/xo-interface.c:1275
+msgid "Button _3 Mapping"
+msgstr "De_rde muisknop/penknop"
+
+#: src/xo-interface.c:1351
+msgid "Buttons Switch Mappings"
+msgstr "Muisknoppen/penknoppen verwisselen"
+
+#: src/xo-interface.c:1360
+msgid "_Progressive Backgrounds"
+msgstr ""
+
+#: src/xo-interface.c:1364
+msgid "Print Paper _Ruling"
+msgstr "Lijntjes/ruitjes afd_rukken"
+
+#: src/xo-interface.c:1368
+msgid "Autoload pdf.xoj"
+msgstr "pdf.xoj automatisch laden"
+
+#: src/xo-interface.c:1372
+msgid "Left-Handed Scrollbar"
+msgstr "Scrollbalk aan linkerkant"
+
+#: src/xo-interface.c:1376
+msgid "Shorten _Menus"
+msgstr "_Menu's inkorten"
+
+#: src/xo-interface.c:1385
+msgid "A_uto-Save Preferences"
+msgstr "Voorkeuren a_utomatisch opslaan"
+
+#: src/xo-interface.c:1389
+msgid "_Save Preferences"
+msgstr "Voorkeuren op_slaan"
+
+#: src/xo-interface.c:1393
+msgid "_Help"
+msgstr "_Help"
+
+#: src/xo-interface.c:1404
+msgid "_About"
+msgstr "_Over Xournal"
+
+#: src/xo-interface.c:1417
+msgid "Save"
+msgstr "Opslaan"
+
+#: src/xo-interface.c:1422
+msgid "New"
+msgstr "Nieuw"
+
+#: src/xo-interface.c:1427
+msgid "Open"
+msgstr "Openen"
+
+#: src/xo-interface.c:1440
+msgid "Cut"
+msgstr "Knippen"
+
+#: src/xo-interface.c:1445
+msgid "Copy"
+msgstr "Kopiëren"
+
+#: src/xo-interface.c:1450
+msgid "Paste"
+msgstr "Plakken"
+
+#: src/xo-interface.c:1463
+msgid "Undo"
+msgstr "Ongedaan maken"
+
+#: src/xo-interface.c:1468
+msgid "Redo"
+msgstr "Opnieuw doen"
+
+#: src/xo-interface.c:1481
+msgid "First Page"
+msgstr "Eerste pagina"
+
+#: src/xo-interface.c:1486
+msgid "Previous Page"
+msgstr "Vorige pagina"
+
+#: src/xo-interface.c:1491
+msgid "Next Page"
+msgstr "Volgende pagina"
+
+#: src/xo-interface.c:1496
+msgid "Last Page"
+msgstr "Laatste pagina"
+
+#: src/xo-interface.c:1509
+msgid "Zoom Out"
+msgstr "Uitzoomen"
+
+#: src/xo-interface.c:1514
+#: src/xo-interface.c:3045
+msgid "Page Width"
+msgstr "Paginabreedte"
+
+#: src/xo-interface.c:1520
+msgid "Zoom In"
+msgstr "Inzoomen"
+
+#: src/xo-interface.c:1525
+msgid "Normal Size"
+msgstr "Normale grootte"
+
+#: src/xo-interface.c:1530
+#: src/xo-interface.c:3004
+msgid "Set Zoom"
+msgstr "Zoom instellen"
+
+#: src/xo-interface.c:1539
+msgid "Toggle Fullscreen"
+msgstr "Volledig schermmodus aan/uit"
+
+#: src/xo-interface.c:1548
+msgid "Pencil"
+msgstr "Potlood"
+
+#: src/xo-interface.c:1554
+msgid "Pen"
+msgstr "Pen"
+
+#: src/xo-interface.c:1559
+#: src/xo-interface.c:1565
+msgid "Eraser"
+msgstr "Gum"
+
+#: src/xo-interface.c:1570
+#: src/xo-interface.c:1576
+msgid "Highlighter"
+msgstr "Markeerstift"
+
+#: src/xo-interface.c:1581
+#: src/xo-interface.c:1587
+msgid "Text"
+msgstr "Tekst"
+
+#: src/xo-interface.c:1592
+#: src/xo-interface.c:1598
+msgid "Shape Recognizer"
+msgstr "Vormen herkennen"
+
+#: src/xo-interface.c:1601
+#: src/xo-interface.c:1607
+msgid "Ruler"
+msgstr "Lineaal"
+
+#: src/xo-interface.c:1618
+#: src/xo-interface.c:1624
+msgid "Select Region"
+msgstr "Gebied selecteren"
+
+#: src/xo-interface.c:1629
+#: src/xo-interface.c:1635
+msgid "Select Rectangle"
+msgstr "Rechthoek selecteren"
+
+#: src/xo-interface.c:1640
+#: src/xo-interface.c:1646
+msgid "Vertical Space"
+msgstr "Verticale ruimte"
+
+#: src/xo-interface.c:1651
+msgid "Hand Tool"
+msgstr "Handje"
+
+#: src/xo-interface.c:1670
+#: src/xo-interface.c:1674
+msgid "Default"
+msgstr "Standaard"
+
+#: src/xo-interface.c:1678
+#: src/xo-interface.c:1681
+msgid "Default Pen"
+msgstr "Standaardpen"
+
+#: src/xo-interface.c:1692
+#: src/xo-interface.c:1700
+msgid "Fine"
+msgstr "Dun"
+
+#: src/xo-interface.c:1705
+#: src/xo-interface.c:1713
+msgid "Medium"
+msgstr "Normaal"
+
+#: src/xo-interface.c:1718
+#: src/xo-interface.c:1726
+msgid "Thick"
+msgstr "Dik"
+
+#: src/xo-interface.c:1745
+#: src/xo-interface.c:1752
+msgid "Black"
+msgstr "Zwart"
+
+#: src/xo-interface.c:1757
+#: src/xo-interface.c:1764
+msgid "Blue"
+msgstr "Blauw"
+
+#: src/xo-interface.c:1769
+#: src/xo-interface.c:1776
+msgid "Red"
+msgstr "Rood"
+
+#: src/xo-interface.c:1781
+#: src/xo-interface.c:1788
+msgid "Green"
+msgstr "Groen"
+
+#: src/xo-interface.c:1793
+#: src/xo-interface.c:1800
+msgid "Gray"
+msgstr "Grijs"
+
+#: src/xo-interface.c:1805
+#: src/xo-interface.c:1812
+msgid "Light Blue"
+msgstr "Lichtblauw"
+
+#: src/xo-interface.c:1817
+#: src/xo-interface.c:1824
+msgid "Light Green"
+msgstr "Lichtgroen"
+
+#: src/xo-interface.c:1829
+#: src/xo-interface.c:1836
+msgid "Magenta"
+msgstr "Magenta"
+
+#: src/xo-interface.c:1841
+#: src/xo-interface.c:1848
+msgid "Orange"
+msgstr "Oranje"
+
+#: src/xo-interface.c:1853
+#: src/xo-interface.c:1860
+msgid "Yellow"
+msgstr "GEel"
+
+#: src/xo-interface.c:1865
+#: src/xo-interface.c:1872
+msgid "White"
+msgstr "Wit"
+
+#: src/xo-interface.c:1919
+msgid "  Page  "
+msgstr " Pagina"
+
+#: src/xo-interface.c:1927
+msgid "Set page number"
+msgstr "Paginanummer instellen"
+
+#: src/xo-interface.c:1931
+msgid " of n"
+msgstr " van n"
+
+#: src/xo-interface.c:1939
+msgid "  Layer:  "
+msgstr " Laag;"
+
+#: src/xo-interface.c:2826
+msgid "Set Paper Size"
+msgstr "Papierformaat instellen"
+
+#: src/xo-interface.c:2838
+msgid "Standard paper sizes:"
+msgstr "Standaard papierformaten:"
+
+#: src/xo-interface.c:2846
+msgid "A4"
+msgstr "A4"
+
+#: src/xo-interface.c:2847
+msgid "A4 (landscape)"
+msgstr "A4 (liggend)"
+
+#: src/xo-interface.c:2848
+msgid "US Letter"
+msgstr "US Letter"
+
+#: src/xo-interface.c:2849
+msgid "US Letter (landscape)"
+msgstr "US Letter (liggend)"
+
+#: src/xo-interface.c:2850
+msgid "Custom"
+msgstr "Anders"
+
+#: src/xo-interface.c:2856
+msgid "Width:"
+msgstr "Breedte:"
+
+#: src/xo-interface.c:2865
+msgid "Height:"
+msgstr "Hoogte:"
+
+#: src/xo-interface.c:2877
+msgid "cm"
+msgstr "cm"
+
+#: src/xo-interface.c:2878
+msgid "in"
+msgstr "duim"
+
+#: src/xo-interface.c:2879
+msgid "pixels"
+msgstr "pixels"
+
+#: src/xo-interface.c:2880
+msgid "points"
+msgstr "punten"
+
+#: src/xo-interface.c:2940
+msgid "About Xournal"
+msgstr "Over Xournal"
+
+#: src/xo-interface.c:2956
+msgid ""
+"Written by Denis Auroux\n"
+"and other contributors\n"
+"       http://xournal.sourceforge.net/       "
+msgstr ""
+"Geschreven door Denis Auroux\n"
+"en anderen\n"
+"       http://xournal.sourceforge.net/       "
+
+#: src/xo-interface.c:3020
+msgid "Zoom: "
+msgstr "Zoom:"
+
+#: src/xo-interface.c:3033
+msgid "%"
+msgstr "%"
+
+#: src/xo-interface.c:3038
+msgid "Normal size (100%)"
+msgstr "Normale grootte (100%)"
+
+#: src/xo-interface.c:3052
+msgid "Page Height"
+msgstr "Paginahoogte"
+
+#. user aborted on save confirmation
+#: src/xo-callbacks.c:51
+#: src/xo-file.c:665
+msgid "Open PDF"
+msgstr "PDF openen"
+
+#: src/xo-callbacks.c:59
+#: src/xo-callbacks.c:132
+#: src/xo-callbacks.c:231
+#: src/xo-callbacks.c:385
+#: src/xo-callbacks.c:1444
+#: src/xo-file.c:673
+msgid "All files"
+msgstr "Alle bestanden"
+
+#: src/xo-callbacks.c:62
+#: src/xo-callbacks.c:388
+#: src/xo-file.c:676
+msgid "PDF files"
+msgstr "PDF bestanden"
+
+#: src/xo-callbacks.c:70
+#: src/xo-callbacks.c:1467
+msgid "Attach file to the journal"
+msgstr "Bestand aan schrift toevoegen"
+
+#. user aborted on save confirmation
+#: src/xo-callbacks.c:124
+msgid "Open Journal"
+msgstr "Schrift openen"
+
+#: src/xo-callbacks.c:135
+#: src/xo-callbacks.c:234
+msgid "Xournal files"
+msgstr "Xournal-bestanden"
+
+#: src/xo-callbacks.c:184
+#: src/xo-callbacks.c:279
+#, c-format
+msgid "Error saving file '%s'"
+msgstr "Fout bij het opslaan van het bestand '%s'"
+
+#: src/xo-callbacks.c:203
+msgid "Save Journal"
+msgstr "Schrift opslaan"
+
+#: src/xo-callbacks.c:260
+#: src/xo-callbacks.c:406
+#, c-format
+msgid "Should the file %s be overwritten?"
+msgstr "Wilt u het bestand '%s' overschrijven?"
+
+#: src/xo-callbacks.c:359
+msgid "Export to PDF"
+msgstr "Exporteren als PDF"
+
+#: src/xo-callbacks.c:419
+#, c-format
+msgid "Error creating file '%s'"
+msgstr "Fout bij het aanmaken van het bestand '%s'"
+
+#: src/xo-callbacks.c:1371
+msgid "Pick a Paper Color"
+msgstr "Kies een papierkleur"
+
+#: src/xo-callbacks.c:1436
+msgid "Open Background"
+msgstr "Een achtergrond openen"
+
+#: src/xo-callbacks.c:1452
+msgid "Bitmap files"
+msgstr "Bitmap-bestanden"
+
+#: src/xo-callbacks.c:1460
+msgid "PS/PDF files (as bitmaps)"
+msgstr "PS/PDF-bestanden (als bitmap)"
+
+#: src/xo-callbacks.c:1490
+#, c-format
+msgid "Error opening background '%s'"
+msgstr "Fout bij het openen van de achtergrond '%s'"
+
+#: src/xo-callbacks.c:2036
+msgid "Select Font"
+msgstr "Lettertype kiezen"
+
+#: src/xo-callbacks.c:2434
+msgid ""
+"Drawing is not allowed on the background layer.\n"
+" Switching to Layer 1."
+msgstr ""
+"U kunt niet op de achtergrond-laag tekenen.\n"
+"Laag 1 wordt gekozen."
+
+#: src/xo-support.c:90
+#: src/xo-support.c:114
+#, c-format
+msgid "Couldn't find pixmap file: %s"
+msgstr "Kan het bitmap-bestand '%s' niet vinden"
+
+#: src/xo-file.c:122
+#: src/xo-file.c:154
+#, c-format
+msgid "Could not write background '%s'. Continuing anyway."
+msgstr "Kan achtergrond '%s' niet schrijven."
+
+#: src/xo-file.c:252
+#, c-format
+msgid "Invalid file contents"
+msgstr "Ongeldige bestandsinhoud"
+
+#: src/xo-file.c:402
+#, c-format
+msgid "Could not open background '%s'. Setting background to white."
+msgstr "Kan de achtergrond '%s' niet openen. De achtergrond wordt op wit gezet."
+
+#: src/xo-file.c:660
+#, c-format
+msgid ""
+"Could not open background '%s'.\n"
+"Select another file?"
+msgstr ""
+"Kan de achtergrond '%s' niet openen.\n"
+"Wilt u een ander bestand kiezen?"
+
+#: src/xo-file.c:806
+#, c-format
+msgid "Could not open background '%s'."
+msgstr "Kan de achtergrond '%s' niet openen."
+
+#: src/xo-file.c:1033
+msgid "Unable to render one or more PDF pages."
+msgstr "Kan één of meerdere pdf-pagina's niet tekenen."
+
+#: src/xo-file.c:1439
+msgid " the display resolution, in pixels per inch"
+msgstr ""
+
+#: src/xo-file.c:1442
+msgid " the initial zoom level, in percent"
+msgstr ""
+
+#: src/xo-file.c:1445
+msgid " maximize the window at startup (true/false)"
+msgstr ""
+
+#: src/xo-file.c:1448
+msgid " start in full screen mode (true/false)"
+msgstr ""
+
+#: src/xo-file.c:1451
+msgid " the window width in pixels (when not maximized)"
+msgstr ""
+
+#: src/xo-file.c:1454
+msgid " the window height in pixels"
+msgstr ""
+
+#: src/xo-file.c:1457
+msgid " scrollbar step increment (in pixels)"
+msgstr ""
+
+#: src/xo-file.c:1460
+msgid " the step increment in the zoom dialog box"
+msgstr ""
+
+#: src/xo-file.c:1463
+msgid " the multiplicative factor for zoom in/out"
+msgstr ""
+
+#: src/xo-file.c:1466
+msgid " document view (true = continuous, false = single page)"
+msgstr ""
+
+#: src/xo-file.c:1469
+msgid " use XInput extensions (true/false)"
+msgstr ""
+
+#: src/xo-file.c:1472
+msgid " discard Core Pointer events in XInput mode (true/false)"
+msgstr ""
+
+#: src/xo-file.c:1475
+msgid " always map eraser tip to eraser (true/false)"
+msgstr ""
+
+#: src/xo-file.c:1478
+msgid " buttons 2 and 3 switch mappings instead of drawing (useful for some tablets) (true/false)"
+msgstr ""
+
+#: src/xo-file.c:1481
+msgid " automatically load filename.pdf.xoj instead of filename.pdf (true/false)"
+msgstr ""
+
+#: src/xo-file.c:1484
+msgid " default path for open/save (leave blank for current directory)"
+msgstr ""
+
+#: src/xo-file.c:1487
+msgid " use pressure sensitivity to control pen stroke width (true/false)"
+msgstr ""
+
+#: src/xo-file.c:1490
+msgid " minimum width multiplier"
+msgstr ""
+
+#: src/xo-file.c:1493
+msgid " maximum width multiplier"
+msgstr ""
+
+#: src/xo-file.c:1496
+msgid ""
+" interface components from top to bottom\n"
+" valid values: drawarea menu main_toolbar pen_toolbar statusbar"
+msgstr ""
+
+#: src/xo-file.c:1499
+msgid " interface components in fullscreen mode, from top to bottom"
+msgstr ""
+
+#: src/xo-file.c:1502
+msgid " interface has left-handed scrollbar (true/false)"
+msgstr ""
+
+#: src/xo-file.c:1505
+msgid " hide some unwanted menu or toolbar items (true/false)"
+msgstr ""
+
+#: src/xo-file.c:1508
+msgid ""
+" interface items to hide (customize at your own risk!)\n"
+" see source file xo-interface.c for a list of item names"
+msgstr ""
+
+#: src/xo-file.c:1511
+msgid ""
+" highlighter opacity (0 to 1, default 0.5)\n"
+" warning: opacity level is not saved in xoj files!"
+msgstr ""
+
+#: src/xo-file.c:1514
+msgid " auto-save preferences on exit (true/false)"
+msgstr ""
+
+#: src/xo-file.c:1518
+msgid " the default page width, in points (1/72 in)"
+msgstr ""
+
+#: src/xo-file.c:1521
+msgid " the default page height, in points (1/72 in)"
+msgstr ""
+
+#: src/xo-file.c:1524
+msgid " the default paper color"
+msgstr ""
+
+#: src/xo-file.c:1529
+msgid " the default paper style (plain, lined, ruled, or graph)"
+msgstr ""
+
+#: src/xo-file.c:1532
+msgid " apply paper style changes to all pages (true/false)"
+msgstr ""
+
+#: src/xo-file.c:1535
+msgid " preferred unit (cm, in, px, pt)"
+msgstr ""
+
+#: src/xo-file.c:1538
+msgid " include paper ruling when printing or exporting to PDF (true/false)"
+msgstr ""
+
+#: src/xo-file.c:1541
+msgid " just-in-time update of page backgrounds (true/false)"
+msgstr ""
+
+#: src/xo-file.c:1544
+msgid " bitmap resolution of PS/PDF backgrounds rendered using ghostscript (dpi)"
+msgstr ""
+
+#: src/xo-file.c:1547
+msgid " bitmap resolution of PDF backgrounds when printing with libgnomeprint (dpi)"
+msgstr ""
+
+#: src/xo-file.c:1551
+msgid " selected tool at startup (pen, eraser, highlighter, selectrect, vertspace, hand)"
+msgstr ""
+
+#: src/xo-file.c:1554
+msgid " default pen color"
+msgstr ""
+
+#: src/xo-file.c:1559
+msgid " default pen thickness (fine = 1, medium = 2, thick = 3)"
+msgstr ""
+
+#: src/xo-file.c:1562
+msgid " default pen is in ruler mode (true/false)"
+msgstr ""
+
+#: src/xo-file.c:1565
+msgid " default pen is in shape recognizer mode (true/false)"
+msgstr ""
+
+#: src/xo-file.c:1568
+msgid " default eraser thickness (fine = 1, medium = 2, thick = 3)"
+msgstr ""
+
+#: src/xo-file.c:1571
+msgid " default eraser mode (standard = 0, whiteout = 1, strokes = 2)"
+msgstr ""
+
+#: src/xo-file.c:1574
+msgid " default highlighter color"
+msgstr ""
+
+#: src/xo-file.c:1579
+msgid " default highlighter thickness (fine = 1, medium = 2, thick = 3)"
+msgstr ""
+
+#: src/xo-file.c:1582
+msgid " default highlighter is in ruler mode (true/false)"
+msgstr ""
+
+#: src/xo-file.c:1585
+msgid " default highlighter is in shape recognizer mode (true/false)"
+msgstr ""
+
+#: src/xo-file.c:1588
+msgid " button 2 tool (pen, eraser, highlighter, text, selectrect, vertspace, hand)"
+msgstr ""
+
+#: src/xo-file.c:1591
+msgid " button 2 brush linked to primary brush (true/false) (overrides all other settings)"
+msgstr ""
+
+#: src/xo-file.c:1594
+msgid " button 2 brush color (for pen or highlighter only)"
+msgstr ""
+
+#: src/xo-file.c:1601
+msgid " button 2 brush thickness (pen, eraser, or highlighter only)"
+msgstr ""
+
+#: src/xo-file.c:1605
+msgid " button 2 ruler mode (true/false) (for pen or highlighter only)"
+msgstr ""
+
+#: src/xo-file.c:1609
+msgid " button 2 shape recognizer mode (true/false) (pen or highlighter only)"
+msgstr ""
+
+#: src/xo-file.c:1613
+msgid " button 2 eraser mode (eraser only)"
+msgstr ""
+
+#: src/xo-file.c:1616
+msgid " button 3 tool (pen, eraser, highlighter, text, selectrect, vertspace, hand)"
+msgstr ""
+
+#: src/xo-file.c:1619
+msgid " button 3 brush linked to primary brush (true/false) (overrides all other settings)"
+msgstr ""
+
+#: src/xo-file.c:1622
+msgid " button 3 brush color (for pen or highlighter only)"
+msgstr ""
+
+#: src/xo-file.c:1629
+msgid " button 3 brush thickness (pen, eraser, or highlighter only)"
+msgstr ""
+
+#: src/xo-file.c:1633
+msgid " button 3 ruler mode (true/false) (for pen or highlighter only)"
+msgstr ""
+
+#: src/xo-file.c:1637
+msgid " button 3 shape recognizer mode (true/false) (pen or highlighter only)"
+msgstr ""
+
+#: src/xo-file.c:1641
+msgid " button 3 eraser mode (eraser only)"
+msgstr ""
+
+#: src/xo-file.c:1645
+msgid " thickness of the various pens (in points, 1 pt = 1/72 in)"
+msgstr ""
+
+#: src/xo-file.c:1651
+msgid " thickness of the various erasers (in points, 1 pt = 1/72 in)"
+msgstr ""
+
+#: src/xo-file.c:1656
+msgid " thickness of the various highlighters (in points, 1 pt = 1/72 in)"
+msgstr ""
+
+#: src/xo-file.c:1661
+msgid " name of the default font"
+msgstr ""
+
+#: src/xo-file.c:1664
+msgid " default font size"
+msgstr ""
+
+#: src/xo-file.c:1842
+msgid ""
+" Xournal configuration file.\n"
+" This file is generated automatically upon saving preferences.\n"
+" Use caution when editing this file manually.\n"
+msgstr ""
+
+#: src/xo-misc.c:1274
+#, c-format
+msgid " of %d"
+msgstr "van %d"
+
+#: src/xo-misc.c:1279
+msgid "Background"
+msgstr "Achtergrond"
+
+#: src/xo-misc.c:1287
+#, c-format
+msgid "Layer %d"
+msgstr "Laag %d"
+
+#: src/xo-misc.c:1411
+#, c-format
+msgid "Xournal - %s"
+msgstr "Xournal - %s"
+
+#: src/xo-misc.c:1663
+#, c-format
+msgid "Save changes to '%s'?"
+msgstr ""
+"Het bestand '%s' is gewijzigd.\n"
+"Wilt u de veranderingen opslaan?"
+
+#: src/xo-misc.c:1664
+msgid "Untitled"
+msgstr "Naamloos document"
+
