@@ -2558,11 +2558,15 @@ on_canvas_enter_notify_event           (GtkWidget       *widget,
     /* re-enable input devices after they've been emergency-disabled
        by leave_notify */
   if (!gtk_check_version(2, 17, 0)) {
+    gdk_flush();
+    gdk_error_trap_push();
     for (dev_list = gdk_devices_list(); dev_list != NULL; dev_list = dev_list->next) {
       dev = GDK_DEVICE(dev_list->data);
       gdk_device_set_mode(dev, GDK_MODE_SCREEN);
     }
     ui.is_corestroke = ui.saved_is_corestroke;
+    gdk_flush();
+    gdk_error_trap_pop();
   }
   return FALSE;
 }
@@ -2580,13 +2584,17 @@ on_canvas_leave_notify_event           (GtkWidget       *widget,
 #endif
     /* emergency disable XInput to avoid segfaults (GTK+ 2.17) or 
        interface non-responsiveness (GTK+ 2.18) */
-  if (!gtk_check_version(2, 17, 0)) { 
+  if (!gtk_check_version(2, 17, 0)) {
+    gdk_flush();
+    gdk_error_trap_push();
     for (dev_list = gdk_devices_list(); dev_list != NULL; dev_list = dev_list->next) {
       dev = GDK_DEVICE(dev_list->data);
       gdk_device_set_mode(dev, GDK_MODE_DISABLED);
     }
     ui.saved_is_corestroke = ui.is_corestroke;
     ui.is_corestroke = TRUE;
+    gdk_flush();
+    gdk_error_trap_pop();
   }
   return FALSE;
 }
