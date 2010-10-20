@@ -996,6 +996,8 @@ gboolean bgpdf_scheduler_callback(gpointer data)
   PopplerPage *pdfpage;
   gdouble height, width;
   int scaled_height, scaled_width;
+  GdkPixmap *pixmap;
+  cairo_t *cr;
 
   // if all requests have been cancelled, remove ourselves from main loop
   if (bgpdf.requests == NULL) { bgpdf.pid = 0; return FALSE; }
@@ -1013,11 +1015,26 @@ gboolean bgpdf_scheduler_callback(gpointer data)
     poppler_page_get_size(pdfpage, &width, &height);
     scaled_width = (int) (req->dpi * width/72);
     scaled_height = (int) (req->dpi * height/72);
-    pixbuf = gdk_pixbuf_new(GDK_COLORSPACE_RGB,
-                FALSE, 8, scaled_width, scaled_height);
-    poppler_page_render_to_pixbuf(
+
+    if (ui.poppler_force_cairo) { // poppler -> cairo -> pixmap -> pixbuf
+      pixmap = gdk_pixmap_new(GTK_WIDGET(canvas)->window, scaled_width, scaled_height, -1);
+      cr = gdk_cairo_create(pixmap);
+      cairo_set_source_rgb(cr, 1., 1., 1.);
+      cairo_paint(cr);
+      cairo_scale(cr, scaled_width/width, scaled_height/height);
+      poppler_page_render(pdfpage, cr);
+      cairo_destroy(cr);
+      pixbuf = gdk_pixbuf_get_from_drawable(NULL, GDK_DRAWABLE(pixmap),
+        NULL, 0, 0, 0, 0, scaled_width, scaled_height);
+      g_object_unref(pixmap);
+    }
+    else { // directly poppler -> pixbuf: faster, but bitmap font bug
+      pixbuf = gdk_pixbuf_new(GDK_COLORSPACE_RGB,
+                 FALSE, 8, scaled_width, scaled_height);
+      poppler_page_render_to_pixbuf(
                 pdfpage, 0, 0, scaled_width, scaled_height,
                 req->dpi/72, 0, pixbuf);
+    }
     g_object_unref(pdfpage);
     set_cursor_busy(FALSE);
   }
@@ -1355,6 +1372,7 @@ void init_config_default(void)
   ui.width_maximum_multiplier = 1.25;
   ui.button_switch_mapping = FALSE;
   ui.autoload_pdf_xoj = FALSE;
+  ui.poppler_force_cairo = FALSE;
   
   // the default UI vertical order
   ui.vertical_order[0][0] = 1; 
@@ -1523,6 +1541,9 @@ void save_config_to_file(void)
   update_keyval("general", "autosave_prefs",
     _(" auto-save preferences on exit (true/false)"),
     g_strdup(ui.auto_save_prefs?"true":"false"));
+  update_keyval("general", "poppler_force_cairo",
+    _(" force PDF rendering through cairo (slower but nicer) (true/false)"),
+    g_strdup(ui.poppler_force_cairo?"true":"false"));
 
   update_keyval("paper", "width",
     _(" the default page width, in points (1/72 in)"),
@@ -1887,6 +1908,7 @@ void load_config_from_file(void)
     if (str!=NULL) { g_free(ui.shorten_menu_items); ui.shorten_menu_items = str; }
   parse_keyval_float("general", "highlighter_opacity", &ui.hiliter_opacity, 0., 1.);
   parse_keyval_boolean("general", "autosave_prefs", &ui.auto_save_prefs);
+  parse_keyval_boolean("general", "poppler_force_cairo", &ui.poppler_force_cairo);
   
   parse_keyval_float("paper", "width", &ui.default_page.width, 1., 5000.);
   parse_keyval_float("paper", "height", &ui.default_page.height, 1., 5000.);

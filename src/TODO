@@ -29,6 +29,8 @@ BUGS:
 ** export to PDF should see cropbox size if smaller, and map the
    cropbox -- not the entire page -- to the page area! (2009-11-18 forum)
 
+*** filter out very large coords when loading, not just infinity
+
 WIN32:
 - test further
 - write an installer
@@ -37,6 +39,15 @@ WIN32:
 - bug: printf() sometimes generates stroke coordinates 1.#J -1.#J  (???)
 
 PATCHES TO INCORPORATE:
+
+* filter out very large coords when loading, not just infinity; also filter
+  out 1.#J's
+
+- patch: add Alt-Up/Dn accelerators for show/hide layer. See
+  show_hide_layer.patch
+
+***** my own patch noresize_background_v1.patch  (also in xournal-working/)
+
 ** patch: ortho/snap (revised Apr 13 2009)
    xournal_ortho_snap_patch_4 (by Josef Pavlicek)
 
@@ -54,12 +65,17 @@ PATCHES TO INCORPORATE:
 ** insert images patch (Victor Saase) #2890925
 ** as improved by Simon Guest April 14 2010
 ** modified rev2 May 14, 2010: xournal-0.4.5-sjg-image-rev2.patch.gz 
+** rev6 by now...
 
 ** customize paper ruling (Gautam Iyer e-mail Nov 30 2009 / SF tracker)
 
 ** cairo export to PNG (Man = Paulo Neves, e-mail Feb 3 '10, saved as
   cairo-png-rendering.diff.txt (refactor printing of page to cairo surface
   with the gtk-print code).
+
+- patch by S. Guest
+  shortcut to increase/decrease text font size by 1 point (?) - acts just
+  as if one had clicked font sel box and resized (affects sel text + cur font)
 
 - make default in ok_to_close() box "cancel" rather than "no".
 
@@ -108,6 +124,8 @@ PATCHES TO INCORPORATE:
 - horizontal mode instead of dual-view / multicolumn ?
 ** "new page before/after" on a PDF bg page should ask: same page, other page of
   PDF file, default paper
+** should also have in Journal -> Paper style the option "Pdf page ..."
+  which then lets us change the page number.
 - new recognizer icon (andruk on patches tracker)
 - recognizer: if variable-width, associate average width
 - recognizer should snap to existing recognized geometric shapes
@@ -130,6 +148,7 @@ PATCHES TO INCORPORATE:
 - drag-and-drop, copy-paste text & images directly into xournal
 - proximity detection: eraser proximity switches mapping? 
   proximity out removes cursor until next motionnotify?
+
 
 - render page to bitmap: for export, preview, and copy-paste
     (render using libart, see how gnomecanvas does it?)

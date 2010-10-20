@@ -295,6 +295,7 @@ typedef struct UIData {
 #if GTK_CHECK_VERSION(2,10,0)
   GtkPrintSettings *print_settings;
 #endif
+  gboolean poppler_force_cairo; // force poppler to use cairo
 } UIData;
 
 #define BRUSH_LINKED 0

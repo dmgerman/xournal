@@ -8,6 +8,7 @@ This version:
   - Czech translation (David Kolibac), Dutch translation (Timo Kluck)
   - fix crash upon unplugging input devices
   - change close dialog box default to "save" (patch by Kit Barnes)
+  - option to force PDF background rendering via cairo (slower but nicer)
 
 Version 0.4.5 (Oct 2, 2009):
   - bugfixes for GTK+ 2.16/2.17 issues with xinput events
