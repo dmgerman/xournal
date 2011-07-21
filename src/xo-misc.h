@@ -107,6 +107,15 @@ void unset_flags(GtkWidget *w, gpointer flag);
 gboolean intercept_activate_events(GtkWidget *w, GdkEvent *ev, gpointer data);
 void install_focus_hooks(GtkWidget *w, gpointer data);
 
+// wrapper for a function no longer provided by poppler 0.17+
+void
+wrapper_poppler_page_render_to_pixbuf (PopplerPage *page,
+			       int src_x, int src_y,
+			       int src_width, int src_height,
+			       double scale,
+			       int rotation,
+			       GdkPixbuf *pixbuf);
+
 // defines for paper rulings
 
 #define RULING_MARGIN_COLOR 0xff0080ff

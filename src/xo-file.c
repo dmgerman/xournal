@@ -1031,7 +1031,7 @@ gboolean bgpdf_scheduler_callback(gpointer data)
     else { // directly poppler -> pixbuf: faster, but bitmap font bug
       pixbuf = gdk_pixbuf_new(GDK_COLORSPACE_RGB,
                  FALSE, 8, scaled_width, scaled_height);
-      poppler_page_render_to_pixbuf(
+      wrapper_poppler_page_render_to_pixbuf(
                 pdfpage, 0, 0, scaled_width, scaled_height,
                 req->dpi/72, 0, pixbuf);
     }

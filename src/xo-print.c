@@ -728,7 +728,7 @@ int pdf_draw_bitmap_background(struct Page *pg, GString *str,
     width = (int) (PDFTOPPM_PRINTING_DPI * pgwidth/72.0);
     height = (int) (PDFTOPPM_PRINTING_DPI * pgheight/72.0);
     pix = gdk_pixbuf_new(GDK_COLORSPACE_RGB, FALSE, 8, width, height);
-    poppler_page_render_to_pixbuf(
+    wrapper_poppler_page_render_to_pixbuf(
        pdfpage, 0, 0, width, height, PDFTOPPM_PRINTING_DPI/72.0, 0, pix);
     g_object_unref(pdfpage);
   }
