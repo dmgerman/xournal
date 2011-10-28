@@ -10,6 +10,7 @@ This version:
   - change close dialog box default to "save" (patch by Kit Barnes)
   - option to force PDF background rendering via cairo (slower but nicer)
   - wrapper for missing GdkPixbuf rendering function in newest poppler
+  - disable GTK+ XInput bugfix by default (#3429416)
 
 Version 0.4.5 (Oct 2, 2009):
   - bugfixes for GTK+ 2.16/2.17 issues with xinput events
