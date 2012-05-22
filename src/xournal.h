@@ -8,9 +8,9 @@
    of output (redirect to a file). */
 
 // #define ENABLE_XINPUT_BUGFIX
-/* comment out this line if you are experiencing calibration problems with
-   XInput and want to try things differently. This will probably break
-   on-the-fly display rotation after application startup, though. */
+/* uncomment this line if you are experiencing calibration problems with
+   XInput and want to try things differently. Especially useful on older
+   distributions (up to around 2010). */
 
 #define FILE_DIALOG_SIZE_BUGFIX
 /* ugly, but should help users with versions of GTK+ that suffer from the

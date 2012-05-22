@@ -373,7 +373,7 @@ void fix_xinput_coords(GdkEvent *event)
 
 #ifdef ENABLE_XINPUT_BUGFIX
   // fix broken events with the core pointer's location
-  if (!finite(axes[0]) || !finite(axes[1]) || (axes[0]==0. && axes[1]==0.)) {
+  if (!finite(axes[0]) || !finite(axes[1]) || axes[0]==0. || axes[1]==0.) {
     gdk_window_get_pointer(GTK_WIDGET(canvas)->window, &ix, &iy, NULL);
     *px = ix + sx; 
     *py = iy + sy;
