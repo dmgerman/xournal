@@ -247,7 +247,7 @@ xournal_SOURCES = \
 	xo-shapes.c xo-shapes.h
 
 @WIN32_TRUE@xournal_LDFLAGS = -mwindows
-@WIN32_FALSE@xournal_LDADD = ttsubset/libttsubset.a @PACKAGE_LIBS@ $(INTLLIBS)
+@WIN32_FALSE@xournal_LDADD = ttsubset/libttsubset.a @PACKAGE_LIBS@ $(INTLLIBS) -lX11
 @WIN32_TRUE@xournal_LDADD = win32/xournal.res ttsubset/libttsubset.a @PACKAGE_LIBS@ $(INTLLIBS)
 all: all-recursive
 

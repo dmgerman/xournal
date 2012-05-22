@@ -5539,7 +5539,7 @@ $as_echo "#define STDC_HEADERS 1" >>confdefs.h
 fi
 
 
-LDFLAGS="$LDFLAGS -lz -lX11 -lm"
+LDFLAGS="$LDFLAGS -lz -lm"
 
 pkg_modules="gtk+-2.0 >= 2.10.0 libgnomecanvas-2.0 >= 2.4.0 poppler-glib >= 0.5.4 pangoft2 >= 1.0 x11"
 
@@ -5826,8 +5826,8 @@ IFS=$ac_save_IFS
 case $host_os in *\ *) host_os=`echo "$host_os" | sed 's/ /-/g'`;; esac
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for Win32 environment" >&5
-$as_echo_n "checking for Win32 environment... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for Windows environment" >&5
+$as_echo_n "checking for Windows environment... " >&6; }
 case "$host" in
  *-*-mingw*)
    os_win32=yes;;
