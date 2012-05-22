@@ -1673,6 +1673,10 @@ void process_paperstyle_activate(GtkMenuItem *menuitem, int style)
   if (must_upd) update_page_stuff();
 }
 
+#ifndef GTK_STOCK_DISCARD
+#define GTK_STOCK_DISCARD GTK_STOCK_NO
+#endif
+
 gboolean ok_to_close(void)
 {
   GtkWidget *dialog;
