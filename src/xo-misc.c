@@ -355,6 +355,12 @@ void refstring_unref(struct Refstring *rs)
 
 // some helper functions
 
+int finite_sized(double x) // detect unrealistic coordinate values
+{
+  return (finite(x) && x<1E6 && x>-1E6);
+}
+
+
 void get_pointer_coords(GdkEvent *event, gdouble *ret)
 {
   double x, y;
@@ -388,7 +394,7 @@ void fix_xinput_coords(GdkEvent *event)
 
 #ifdef ENABLE_XINPUT_BUGFIX
   // fix broken events with the core pointer's location
-  if (!finite(axes[0]) || !finite(axes[1]) || axes[0]==0. || axes[1]==0.) {
+  if (!finite_sized(axes[0]) || !finite_sized(axes[1]) || axes[0]==0. || axes[1]==0.) {
     gdk_window_get_pointer(GTK_WIDGET(canvas)->window, &ix, &iy, NULL);
     *px = ix + sx; 
     *py = iy + sy;
@@ -403,7 +409,7 @@ void fix_xinput_coords(GdkEvent *event)
       *py = (axes[1]/axis_width)*ui.screen_height + sy - wy;
   }
 #else
-  if (!finite(*px) || !finite(*py) || (*px==0. && *py==0.)) {
+  if (!finite_sized(*px) || !finite_sized(*py) || *px==0. || *py==0.) {
     gdk_window_get_pointer(GTK_WIDGET(canvas)->window, &ix, &iy, NULL);
     *px = ix + sx; 
     *py = iy + sy;
@@ -445,7 +451,7 @@ double get_pressure_multiplier(GdkEvent *event)
       || device->num_axes <= 2) return 1.0;
 
   rawpressure = axes[2]/(device->axes[2].max - device->axes[2].min);
-  if (!finite(rawpressure)) return 1.0;
+  if (!finite_sized(rawpressure)) return 1.0;
 
   return ((1-rawpressure)*ui.width_minimum_multiplier + rawpressure*ui.width_maximum_multiplier);
 }

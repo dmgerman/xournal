@@ -79,7 +79,7 @@ INSTOBJEXT = @INSTOBJEXT@
 	$(MSGFMT) -o $@ $<
 
 .po.gmo:
-	file=$(srcdir)/`echo $* | sed 's,.*/,,'`.gmo \
+	$(AM_V_GEN) file=$(srcdir)/`echo $* | sed 's,.*/,,'`.gmo \
 	  && rm -f $$file && $(GMSGFMT) $(MSGFMT_OPTS) -o $$file $<
 
 .po.cat:
@@ -93,8 +93,18 @@ all-yes: $(CATALOGS)
 all-no:
 
 $(srcdir)/$(GETTEXT_PACKAGE).pot: $(POTFILES)
-	$(XGETTEXT) --default-domain=$(GETTEXT_PACKAGE) --directory=$(top_srcdir) \
+	$(XGETTEXT) --default-domain=$(GETTEXT_PACKAGE) \
+	  --msgid-bugs-address='http://bugzilla.gnome.org/enter_bug.cgi?product=glib&keywords=I18N+L10N&component=general' \
 	  --add-comments --keyword=_ --keyword=N_ \
+	  --keyword=C_:1c,2 \
+	  --keyword=NC_:1c,2 \
+	  --keyword=g_dcgettext:2 \
+	  --keyword=g_dngettext:2,3 \
+	  --keyword=g_dpgettext2:2c,3 \
+	  --flag=N_:1:pass-c-format \
+	  --flag=C_:2:pass-c-format \
+	  --flag=NC_:2:pass-c-format \
+	  --flag=g_dngettext:2:pass-c-format \
           --flag=g_strdup_printf:1:c-format \
           --flag=g_string_printf:2:c-format \
           --flag=g_string_append_printf:2:c-format \
@@ -110,7 +120,7 @@ $(srcdir)/$(GETTEXT_PACKAGE).pot: $(POTFILES)
           --flag=g_snprintf:3:c-format \
           --flag=g_scanner_error:2:c-format \
           --flag=g_scanner_warn:2:c-format \
-	  --files-from=$(srcdir)/POTFILES.in \
+	  $(POTFILES) \
 	&& test ! -f $(GETTEXT_PACKAGE).po \
 	   || ( rm -f $(srcdir)/$(GETTEXT_PACKAGE).pot \
 		&& mv $(GETTEXT_PACKAGE).po $(srcdir)/$(GETTEXT_PACKAGE).pot )
@@ -209,7 +219,7 @@ maintainer-clean: distclean
 	rm -f $(GMOFILES)
 
 distdir = ../$(GETTEXT_PACKAGE)-$(VERSION)/$(subdir)
-dist distdir: update-po $(DISTFILES)
+dist distdir: $(DISTFILES)
 	dists="$(DISTFILES)"; \
 	for file in $$dists; do \
 	  ln $(srcdir)/$$file $(distdir) 2> /dev/null \

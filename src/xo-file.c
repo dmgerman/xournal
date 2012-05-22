@@ -252,10 +252,16 @@ gboolean close_journal(void)
 }
 
 // sanitize a string containing floats, in case it may have , instead of .
+// also replace Windows-produced 1.#J by inf
 
 void cleanup_numeric(char *s)
 {
-  while (*s!=0) { if (*s==',') *s='.'; s++; }
+  while (*s!=0) { 
+    if (*s==',') *s='.'; 
+    if (*s=='1' && s[1]=='.' && s[2]=='#' && s[3]=='J') 
+      { *s='i'; s[1]='n'; s[2]='f'; s[3]=' '; }
+    s++; 
+  }
 }
 
 // the XML parser functions for open_journal()
@@ -650,7 +656,7 @@ void xoj_parser_text(GMarkupParseContext *context,
       if (ptr == text) break;
       text_len -= (ptr - text);
       text = ptr;
-      if (!finite(ui.cur_path.coords[n])) {
+      if (!finite_sized(ui.cur_path.coords[n])) {
         if (n>=2) ui.cur_path.coords[n] = ui.cur_path.coords[n-2];
         else ui.cur_path.coords[n] = 0;
       }

@@ -34,6 +34,7 @@ void refstring_unref(struct Refstring *rs);
 
 // helper functions
 
+int finite_sized(double x);
 void get_pointer_coords(GdkEvent *event, double *ret);
 double get_pressure_multiplier(GdkEvent *event);
 void fix_xinput_coords(GdkEvent *event);

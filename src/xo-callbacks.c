@@ -2391,7 +2391,7 @@ on_canvas_button_press_event           (GtkWidget       *widget,
   if (!is_core)
     fix_xinput_coords((GdkEvent *)event);
 
-  if (!finite(event->x) || !finite(event->y)) return FALSE; // Xorg 7.3 bug
+  if (!finite_sized(event->x) || !finite_sized(event->y)) return FALSE; // Xorg 7.3 bug
 
   if (ui.cur_item_type == ITEM_TEXT) {
     if (!is_event_within_textview(event)) end_text();
@@ -2702,7 +2702,7 @@ on_canvas_motion_notify_event          (GtkWidget       *widget,
   is_core = (event->device == gdk_device_get_core_pointer());
   if (!ui.use_xinput && !is_core) return FALSE;
   if (!is_core) fix_xinput_coords((GdkEvent *)event);
-  if (!finite(event->x) || !finite(event->y)) return FALSE; // Xorg 7.3 bug
+  if (!finite_sized(event->x) || !finite_sized(event->y)) return FALSE; // Xorg 7.3 bug
 
   if (ui.selection!=NULL && ui.cur_item_type == ITEM_NONE) {
     get_pointer_coords((GdkEvent *)event, pt);

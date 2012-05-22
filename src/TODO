@@ -12,7 +12,7 @@ List of features to be implemented (not in any particular order)
 - cleanup of undo history (keep track of refcounts, delete old undo)
   save-and-clear-undo ?
 
-- RandR / recalibration awareness?
+- RandR / recalibration awareness? - NOT NEEDED ANYMORE?
   (e.g. if xinput events are far away from core events, re-query geometry?)
    or see if removing the GTK bugfix would help? -- e.g. by recalling an
    internal gtk init function?
@@ -21,15 +21,13 @@ List of features to be implemented (not in any particular order)
   to X server to query input device geometry and compensate for GTK.
 
 BUGS:
-** lingering issues with synaptics touchpads? (#2872667)
+- lingering issues with synaptics touchpads? (#2872667)
  (todo) - set device to Absolute mode at startup? (GDK doesn't expose API,
           cf XSetDeviceMode() in /usr/include/X11/extensions/XInput.h)
-** color picker into canvas doesn't work in GTK+ 2.16 (should disable
+- color picker into canvas doesn't work in GTK+ 2.16 (should disable
    xinput first?)
-** export to PDF should see cropbox size if smaller, and map the
+- export to PDF should see cropbox size if smaller, and map the
    cropbox -- not the entire page -- to the page area! (2009-11-18 forum)
-
-*** filter out very large coords when loading, not just infinity
 
 WIN32:
 - test further
@@ -37,16 +35,21 @@ WIN32:
 - bug: opening files with accents in name?
 - bug: cairo-scaled-font in printing? (2009-11-18 bug tracker)
 - bug: printf() sometimes generates stroke coordinates 1.#J -1.#J  (???)
+     (filter out inf, -inf, nan, very large values when saving ???)
 
 PATCHES TO INCORPORATE:
 
-* filter out very large coords when loading, not just infinity; also filter
-  out 1.#J's
+- ezyang e-mail of 11/28/2011: patches in Ubuntu to fix PDF showing up?
+http://archive.ubuntu.com/ubuntu/pool/universe/x/xournal/xournal_0.4.5-3.debian.tar.gz
+actually not necessary anymore? (ezyang 12/2/2011)
+
+- tauu e-mail of 12/1/2011: 8 small patches for win32, uploaded on tracker
+https://sourceforge.net/tracker/index.php?func=detail&aid=3447356&group_id=163434&atid=827735
 
 - patch: add Alt-Up/Dn accelerators for show/hide layer. See
   show_hide_layer.patch
 
-***** my own patch noresize_background_v1.patch  (also in xournal-working/)
+* my own patch noresize_background_v1.patch  (also in xournal-working/)
 
 ** patch: ortho/snap (revised Apr 13 2009)
    xournal_ortho_snap_patch_4 (by Josef Pavlicek)
@@ -76,8 +79,6 @@ PATCHES TO INCORPORATE:
 - patch by S. Guest
   shortcut to increase/decrease text font size by 1 point (?) - acts just
   as if one had clicked font sel box and resized (affects sel text + cur font)
-
-- make default in ok_to_close() box "cancel" rather than "no".
 
 - make line spacing in text objects customizable: to a fixed scaling factor,
   a fixed number of units, or the paper ruling (esp. the latter!!)

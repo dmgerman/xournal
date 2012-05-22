@@ -1,4 +1,4 @@
-This version:
+Version 0.4.6 (May 22, 2012):
   - win32 portability code (contributed by Dirk Gerrits)
   - fix bug in PDF export code on 64-bit systems (patch by Robert Buchholz)
   - fix hand tool bug when exiting canvas (#2905711)
@@ -11,6 +11,9 @@ This version:
   - option to force PDF background rendering via cairo (slower but nicer)
   - wrapper for missing GdkPixbuf rendering function in newest poppler
   - disable GTK+ XInput bugfix by default (#3429416)
+  - fix linker flags (#3208984); evdev coordinate fix (#3244118) (Timo Kluck)
+  - specify license version: GPL v2 or later
+  - fix 1.#J coordinates from win32 xoj files
 
 Version 0.4.5 (Oct 2, 2009):
   - bugfixes for GTK+ 2.16/2.17 issues with xinput events

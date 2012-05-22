@@ -24,7 +24,7 @@
   Xournal User's Manual
 </h2>
 <p style="font-size: 0.95em; text-align: center; color: rgb(0,0,0)">
- Version 0.4.5
+ Version 0.4.6
 </p>
 <hr />
 <p>
@@ -696,21 +696,22 @@ the name and point size of the default text font.</li>
 <h2 class="subtitle">Author information, license, bug-reports</h2>
 <p>
 Xournal is written by Denis Auroux
-(aur<!--despam-->oux<span>&#x40;</span><span>math</span>&#x2e;<span>mit&#x2e;edu,
-aur<!--despam-->oux<span>&#x40;</span><span>math</span>&#x2e;<span>berkeley&#x2e;edu).
+(aur<!--despam-->oux<span>&#x40;</span><span>math</span>&#x2e;<span>berkeley&#x2e;edu).
 </p>
 <p>
 The source code includes contributions by the following people: 
-Eduardo de Barros Lima, Mathieu Bouchard, Ole J&oslash;rgen Br&oslash;nner,
-Vincenzo Ciancia, Luca de Cicco, Michele Codutti, 
-Robert Gerlach, Lukasz Kaiser, Danny Kukawka, Bob McElrath, 
-Andy Neitzke, David Planella, Alex Ray, Jean-Baptiste Rouquier, 
-Mike Ter Louw, Uwe Winter, Lu Zhihe.
+Alvaro, Kit Barnes, Eduardo de Barros Lima, Mathieu Bouchard, 
+Ole J&oslash;rgen Br&oslash;nner, Robert Buchholz, Vincenzo Ciancia, Luca de Cicco, 
+Michele Codutti, Robert Gerlach, Daniel German, Dirk Gerrits,
+Lukasz Kaiser, Timo Kluck, David Kolibac, Danny Kukawka, Stefan Lembach, 
+Bob McElrath,  Andy Neitzke, David Planella, Marco Poletti, Alex Ray, 
+Jean-Baptiste Rouquier, Marco Souza, Mike Ter Louw, Uwe Winter, Lu Zhihe.
 </p>
 <p style="font-size:0.9em">(Let me know if you are missing from this list or
 if your name is mis-spelled)</p>
 <p>
-Xournal is distributed under the GNU General Public License.
+Xournal is distributed under the GNU General Public License (version 2, or
+at your option any later version).
 </p>
 <p style="font-size: 0.9em; font-style: italic">
  <b>Note:</b> most of the code of version 0.4.2.1 
@@ -732,6 +733,27 @@ Bug reports and suggestions can also be submitted on Xournal's
 <hr />
 <a name="changelog"></a>
 <h2 class="subtitle">Version history</h2>
+<p>
+Version 0.4.6 (May 22, 2012):
+<ul>
+     <li>win32 portability code (contributed by Dirk Gerrits)
+</li><li>fix bug in PDF export code on 64-bit systems (patch by Robert Buchholz)
+</li><li>fix hand tool bug when exiting canvas (#2905711)
+</li><li>Italian translation (Marco Poletti), German translation (Stefan Lembach)
+</li><li>Spanish translation (Alvaro), Brazil Portuguese translation (Marco Souza)
+</li><li>fix save bug with text boxes containing &gt; 4095 characters
+</li><li>Czech translation (David Kolibac), Dutch translation (Timo Kluck)
+</li><li>fix crash upon unplugging input devices
+</li><li>change close dialog box default to "save" (patch by Kit Barnes)
+</li><li>option to force PDF background rendering via cairo (slower but nicer)
+</li><li>wrapper for missing GdkPixbuf rendering function in newest poppler
+</li><li>disable GTK+ XInput bugfix by default (#3429416)
+</li><li>fix linker flags (#3208984); evdev coordinate fix (#3244118) (Timo Kluck)
+</li><li>specify license version: GPL v2 or later
+</li><li>fix 1.#J coordinates from win32 xoj files
+</li>
+</ul>
+</p>                             
 <p>
 Version 0.4.5 (Oct 2, 2009):
 <ul>
@@ -1094,7 +1116,7 @@ Download the Xournal distribution tar.gz file, and any needed dependencies.
 <p>
 <b>Compilation and installation in /usr/local:</b>
 <pre>
-./configure
+./autogen.sh
 make
 (as root) make install
 (as root) make desktop-install
@@ -1103,6 +1125,7 @@ make
 <p>
 <b>Compilation and installation in $HOME:</b>
 <pre>
+./autogen.sh
 ./configure --prefix=$HOME
 make
 make install
@@ -1278,15 +1301,12 @@ Options menu), at a price of a severe loss of resolution (and the eraser tip
 won't be detected anymore).
 </p>
 <p>
-I have also had a report that one of the workarounds used by Xournal to
-bypass a calibration bug in GTK+ can actually entirely prevent strokes
-from being drawn. If you are being unsuccessful at drawing in Xournal
-with XInput enabled, try recompiling after commenting out the line
+One of the workarounds used by Xournal to
+bypass a calibration bug in old versions of GTK+ seems to be more harmful
+than helpful with modern distributions. If you miss the old behavior or
+are having XInput issues, try recompiling after uncommenting the line
 <pre>#define ENABLE_XINPUT_BUGFIX</pre>
 near the beginning of <tt>src/xournal.h</tt>.
-If this modification does improve things for you, and if you have a bit
-of spare time to help investigate the causes of this problem, please
-contact me.
 </p>
 <h3 class="subsub">On-the-fly display rotation</h3>
 <p> 
@@ -1307,7 +1327,8 @@ To return to landscape mode:
 </pre>
 <b>Note #1:</b> you should not rotate the display while Xournal is running,
 otherwise the tablet calibration in Xournal may (and most likely will)
-become incorrect.
+become incorrect. (Less likely to occur with modern distributions and
+ENABLE_XINPUT_BUGFIX disabled).
 Exit Xournal and restart it after the display has been rotated.
 </p>
 <p>
