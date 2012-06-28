@@ -140,8 +140,8 @@ msgid "_Hide Layer"
 msgstr "Ebene _verbergen"
 
 #: src/xo-interface.c:666
-msgid "_Journal"
-msgstr ""
+msgid "_Page"
+msgstr "_Seite"
 
 #: src/xo-interface.c:673
 msgid "New Page _Before"

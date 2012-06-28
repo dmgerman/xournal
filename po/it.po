@@ -144,7 +144,7 @@ msgid "_Hide Layer"
 msgstr "_Nascondi livello"
 
 #: src/xo-interface.c:665
-msgid "_Journal"
+msgid "_Page"
 msgstr "_Pagina"
 
 #: src/xo-interface.c:672

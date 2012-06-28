@@ -143,8 +143,8 @@ msgid "_Hide Layer"
 msgstr "S_krýt vrstvu"
 
 #: src/xo-interface.c:665
-msgid "_Journal"
-msgstr "_Deník"
+msgid "_Page"
+msgstr "_Stránka"
 
 #: src/xo-interface.c:672
 msgid "New Page _Before"

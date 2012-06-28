@@ -145,8 +145,8 @@ msgid "_Hide Layer"
 msgstr "_Ocultar la capa"
 
 #: src/xo-interface.c:665
-msgid "_Journal"
-msgstr "_Diario"
+msgid "_Page"
+msgstr "_Página"
 
 #: src/xo-interface.c:672
 msgid "New Page _Before"
