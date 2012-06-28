@@ -38,8 +38,6 @@ void continue_resizesel(GdkEvent *event);
 void finalize_resizesel(void);
 
 void selection_delete(void);
-void selection_to_clip(void);
-void clipboard_paste(void);
 
 void recolor_selection(int color_no, guint color_rgba);
 void rethicken_selection(int val);

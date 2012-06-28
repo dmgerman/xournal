@@ -31,6 +31,7 @@
 #include "xo-file.h"
 #include "xo-paint.h"
 #include "xo-shapes.h"
+#include "xo-image.h"
 
 // some global constants
 
@@ -104,6 +105,31 @@ struct Page *new_page_with_bg(struct Background *bg, double width, double height
   return pg;
 }
 
+// change the current page if necessary for pointer at pt
+void set_current_page(gdouble *pt)
+{
+  gboolean page_change;
+  struct Page *tmppage;
+
+  page_change = FALSE;
+  tmppage = ui.cur_page;
+  while (ui.view_continuous && (pt[1] < - VIEW_CONTINUOUS_SKIP)) {
+    if (ui.pageno == 0) break;
+    page_change = TRUE;
+    ui.pageno--;
+    tmppage = g_list_nth_data(journal.pages, ui.pageno);
+    pt[1] += tmppage->height + VIEW_CONTINUOUS_SKIP;
+  }
+  while (ui.view_continuous && (pt[1] > tmppage->height + VIEW_CONTINUOUS_SKIP)) {
+    if (ui.pageno == journal.npages-1) break;
+    pt[1] -= tmppage->height + VIEW_CONTINUOUS_SKIP;
+    page_change = TRUE;
+    ui.pageno++;
+    tmppage = g_list_nth_data(journal.pages, ui.pageno);
+  }
+  if (page_change) do_switch_page(ui.pageno, FALSE, FALSE);
+}
+
 void realloc_cur_path(int n)
 {
   if (n <= ui.cur_path_storage_alloc) return;
@@ -154,6 +180,11 @@ void clear_redo_stack(void)
     else if (redo->type == ITEM_TEXT) {
       g_free(redo->item->text);
       g_free(redo->item->font_name);
+      g_free(redo->item);
+    }
+    else if (redo->type == ITEM_IMAGE) {
+      g_object_unref(redo->item->image);
+      g_free(redo->item->image_png);
       g_free(redo->item);
     }
     else if (redo->type == ITEM_ERASURE || redo->type == ITEM_RECOGNIZER) {
@@ -232,6 +263,10 @@ void clear_undo_stack(void)
         }
         if (erasure->item->type == ITEM_TEXT)
           { g_free(erasure->item->text); g_free(erasure->item->font_name); }
+        if (erasure->item->type == ITEM_IMAGE) {
+          g_object_unref(erasure->item->image);
+          g_free(erasure->item->image_png);
+        }
         g_free(erasure->item);
         g_list_free(erasure->replacement_items);
         g_free(erasure);
@@ -316,6 +351,10 @@ void delete_layer(struct Layer *l)
     if (item->type == ITEM_TEXT) {
       g_free(item->font_name); g_free(item->text);
     }
+    if (item->type == ITEM_IMAGE) {
+      g_object_unref(item->image);
+      g_free(item->image_png);
+    }
     // don't need to delete the canvas_item, as it's part of the group destroyed below
     g_free(item);
     l->items = g_list_delete_link(l->items, l->items);
@@ -366,6 +405,17 @@ void get_pointer_coords(GdkEvent *event, gdouble *ret)
   double x, y;
   gdk_event_get_coords(event, &x, &y);
   gnome_canvas_window_to_world(canvas, x, y, ret, ret+1);
+  ret[0] -= ui.cur_page->hoffset;
+  ret[1] -= ui.cur_page->voffset;
+}
+
+void get_current_pointer_coords(gdouble *ret)
+{
+  gint wx, wy, sx, sy;
+
+  gtk_widget_get_pointer((GtkWidget *)canvas, &wx, &wy);
+  gnome_canvas_get_scroll_offsets(canvas, &sx, &sy);
+  gnome_canvas_window_to_world(canvas, (double)(wx + sx), (double)(wy + sy), ret, ret+1);
   ret[0] -= ui.cur_page->hoffset;
   ret[1] -= ui.cur_page->voffset;
 }
@@ -532,6 +582,16 @@ void make_canvas_item_one(GnomeCanvasGroup *group, struct Item *item)
           "font-desc", font_desc, "fill-color-rgba", item->brush.color_rgba,
           "text", item->text, NULL);
     update_item_bbox(item);
+  }
+  if (item->type == ITEM_IMAGE) {
+    item->canvas_item = gnome_canvas_item_new(group,
+          gnome_canvas_pixbuf_get_type(),
+          "pixbuf", item->image,
+          "x", item->bbox.left, "y", item->bbox.top,
+          "width", item->bbox.right - item->bbox.left,
+          "height", item->bbox.bottom - item->bbox.top,
+          "width-set", TRUE, "height-set", TRUE,
+          NULL);
   }
 }
 
@@ -881,6 +941,10 @@ void update_tool_buttons(void)
       gtk_toggle_tool_button_set_active(
         GTK_TOGGLE_TOOL_BUTTON(GET_COMPONENT("buttonText")), TRUE);
       break;
+    case TOOL_IMAGE:
+      gtk_toggle_tool_button_set_active(
+        GTK_TOGGLE_TOOL_BUTTON(GET_COMPONENT("buttonImage")), TRUE);
+      break;
     case TOOL_SELECTREGION:
       gtk_toggle_tool_button_set_active(
         GTK_TOGGLE_TOOL_BUTTON(GET_COMPONENT("buttonSelectRegion")), TRUE);
@@ -928,6 +992,10 @@ void update_tool_menu(void)
     case TOOL_TEXT:
       gtk_check_menu_item_set_active(
         GTK_CHECK_MENU_ITEM(GET_COMPONENT("toolsText")), TRUE);
+      break;
+    case TOOL_IMAGE:
+      gtk_check_menu_item_set_active(
+        GTK_CHECK_MENU_ITEM(GET_COMPONENT("toolsImage")), TRUE);
       break;
     case TOOL_SELECTREGION:
       gtk_check_menu_item_set_active(
@@ -1159,6 +1227,10 @@ void update_mappings_menu(void)
       gtk_check_menu_item_set_active(
         GTK_CHECK_MENU_ITEM(GET_COMPONENT("button2Text")), TRUE);
       break;
+    case TOOL_IMAGE:
+      gtk_check_menu_item_set_active(
+        GTK_CHECK_MENU_ITEM(GET_COMPONENT("button2Image")), TRUE);
+      break;
     case TOOL_SELECTREGION:
       gtk_check_menu_item_set_active(
         GTK_CHECK_MENU_ITEM(GET_COMPONENT("button2SelectRegion")), TRUE);
@@ -1188,6 +1260,10 @@ void update_mappings_menu(void)
     case TOOL_TEXT:
       gtk_check_menu_item_set_active(
         GTK_CHECK_MENU_ITEM(GET_COMPONENT("button3Text")), TRUE);
+      break;
+    case TOOL_IMAGE:
+      gtk_check_menu_item_set_active(
+        GTK_CHECK_MENU_ITEM(GET_COMPONENT("button3Image")), TRUE);
       break;
     case TOOL_SELECTREGION:
       gtk_check_menu_item_set_active(
@@ -1743,7 +1819,8 @@ void move_journal_items_by(GList *itemlist, double dx, double dy,
     if (item->type == ITEM_STROKE)
       for (pt=item->path->coords, i=0; i<item->path->num_points; i++, pt+=2)
         { pt[0] += dx; pt[1] += dy; }
-    if (item->type == ITEM_STROKE || item->type == ITEM_TEXT || item->type == ITEM_TEMP_TEXT) {
+    if (item->type == ITEM_STROKE || item->type == ITEM_TEXT || 
+        item->type == ITEM_TEMP_TEXT || item->type == ITEM_IMAGE) {
       item->bbox.left += dx;
       item->bbox.right += dx;
       item->bbox.top += dy;
@@ -1825,6 +1902,22 @@ void resize_journal_items_by(GList *itemlist, double scaling_x, double scaling_y
       item->font_size *= mean_scaling;
       item->bbox.left = item->bbox.left*scaling_x + offset_x;
       item->bbox.top = item->bbox.top*scaling_y + offset_y;
+    }
+    if (item->type == ITEM_IMAGE) {
+      item->bbox.left = item->bbox.left*scaling_x + offset_x;
+      item->bbox.right = item->bbox.right*scaling_x + offset_x;
+      item->bbox.top = item->bbox.top*scaling_y + offset_y;
+      item->bbox.bottom = item->bbox.bottom*scaling_y + offset_y;
+      if (item->bbox.left > item->bbox.right) {
+        temp = item->bbox.left;
+        item->bbox.left = item->bbox.right;
+        item->bbox.right = temp;
+      }
+      if (item->bbox.top > item->bbox.bottom) {
+        temp = item->bbox.top;
+        item->bbox.top = item->bbox.bottom;
+        item->bbox.bottom = temp;
+      }
     }
     // redraw the item
     if (item->canvas_item!=NULL) {

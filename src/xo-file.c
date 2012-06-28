@@ -43,8 +43,9 @@
 #include "xo-misc.h"
 #include "xo-file.h"
 #include "xo-paint.h"
+#include "xo-image.h"
 
-const char *tool_names[NUM_TOOLS] = {"pen", "eraser", "highlighter", "text", "", "selectrect", "vertspace", "hand"};
+const char *tool_names[NUM_TOOLS] = {"pen", "eraser", "highlighter", "text", "", "selectrect", "vertspace", "hand", "image"};
 const char *color_names[COLOR_MAX] = {"black", "blue", "red", "green",
    "gray", "lightblue", "lightgreen", "magenta", "orange", "yellow", "white"};
 const char *bgtype_names[3] = {"solid", "pixmap", "pdf"};
@@ -84,6 +85,47 @@ void chk_attach_names(void)
         bg->filename->s != NULL) continue;
     bg->filename->s = g_strdup_printf("bg_%d.png", ++journal.last_attach_no);
   }
+}
+
+/* Write image to file: returns true on success, false on error.
+   The image is written as a base64 encoded PNG. */
+
+gboolean write_image(gzFile f, Item *item)
+{
+  gchar *base64_str;
+
+  if (item->image_png == NULL) {
+    if (!gdk_pixbuf_save_to_buffer(item->image, &item->image_png, &item->image_png_len, "png", NULL, NULL)) {
+      item->image_png_len = 0;       // failed for some reason, so forget it
+      return FALSE;
+    }
+  }
+
+  base64_str = g_base64_encode(item->image_png, item->image_png_len);
+  gzputs(f, base64_str);
+  g_free(base64_str);
+  return TRUE;
+}
+
+// create pixbuf from base64 encoded PNG, or return NULL on failure
+
+GdkPixbuf *read_pixbuf(const gchar *base64_str, gsize base64_strlen)
+{
+  gchar *base64_str2;
+  gchar *png_buf;
+  gsize png_buflen;
+  GdkPixbuf *pixbuf;
+
+  // We have to copy the string in order to null terminate it, sigh.
+  base64_str2 = g_memdup(base64_str, base64_strlen+1);
+  base64_str2[base64_strlen] = 0;
+  png_buf = g_base64_decode(base64_str2, &png_buflen);
+
+  pixbuf = pixbuf_from_buffer(png_buf, png_buflen);
+
+  g_free(png_buf);
+  g_free(base64_str2);
+  return pixbuf;
 }
 
 // saves the journal to a file: returns true on success, false on error
@@ -218,6 +260,12 @@ gboolean save_journal(const char *filename)
           gzputs(f, tmpstr); // gzprintf() can't handle > 4095 bytes
           gzputs(f, "</text>\n");
           g_free(tmpstr);
+        }
+        if (item->type == ITEM_IMAGE) {
+          gzprintf(f, "<image left=\"%.2f\" top=\"%.2f\" right=\"%.2f\" bottom=\"%.2f\">", 
+            item->bbox.left, item->bbox.top, item->bbox.right, item->bbox.bottom);
+          if (!write_image(f, item)) success = FALSE;
+          gzprintf(f, "</image>\n");
         }
       }
       gzprintf(f, "</layer>\n");
@@ -601,6 +649,56 @@ void xoj_parser_start_element(GMarkupParseContext *context,
     }
     if (has_attr!=31) *error = xoj_invalid();
   }
+  else if (!strcmp(element_name, "image")) { // start of a image item
+    if (tmpLayer == NULL || tmpItem != NULL) {
+      *error = xoj_invalid();
+      return;
+    }
+    tmpItem = (struct Item *)g_malloc0(sizeof(struct Item));
+    tmpItem->type = ITEM_IMAGE;
+    tmpItem->canvas_item = NULL;
+    tmpItem->image=NULL;
+    tmpItem->image_png = NULL;
+    tmpItem->image_png_len = 0;
+    tmpLayer->items = g_list_append(tmpLayer->items, tmpItem);
+    tmpLayer->nitems++;
+    // scan for x, y
+    has_attr = 0;
+    while (*attribute_names!=NULL) {
+      if (!strcmp(*attribute_names, "left")) {
+        if (has_attr & 1) *error = xoj_invalid();
+        cleanup_numeric((gchar *)*attribute_values);
+        tmpItem->bbox.left = g_ascii_strtod(*attribute_values, &ptr);
+        if (ptr == *attribute_values) *error = xoj_invalid();
+        has_attr |= 1;
+      }
+      else if (!strcmp(*attribute_names, "top")) {
+        if (has_attr & 2) *error = xoj_invalid();
+        cleanup_numeric((gchar *)*attribute_values);
+        tmpItem->bbox.top = g_ascii_strtod(*attribute_values, &ptr);
+        if (ptr == *attribute_values) *error = xoj_invalid();
+        has_attr |= 2;
+      }
+      else if (!strcmp(*attribute_names, "right")) {
+        if (has_attr & 4) *error = xoj_invalid();
+        cleanup_numeric((gchar *)*attribute_values);
+        tmpItem->bbox.right = g_ascii_strtod(*attribute_values, &ptr);
+        if (ptr == *attribute_values) *error = xoj_invalid();
+        has_attr |= 4;
+      }
+      else if (!strcmp(*attribute_names, "bottom")) {
+        if (has_attr & 8) *error = xoj_invalid();
+        cleanup_numeric((gchar *)*attribute_values);
+        tmpItem->bbox.bottom = g_ascii_strtod(*attribute_values, &ptr);
+        if (ptr == *attribute_values) *error = xoj_invalid();
+        has_attr |= 8;
+      }
+      else *error = xoj_invalid();
+      attribute_names++;
+      attribute_values++;
+    }
+    if (has_attr!=15) *error = xoj_invalid();
+  }
 }
 
 void xoj_parser_end_element(GMarkupParseContext *context,
@@ -630,6 +728,13 @@ void xoj_parser_end_element(GMarkupParseContext *context,
     tmpItem = NULL;
   }
   if (!strcmp(element_name, "text")) {
+    if (tmpItem == NULL) {
+      *error = xoj_invalid();
+      return;
+    }
+    tmpItem = NULL;
+  }
+  if (!strcmp(element_name, "image")) {
     if (tmpItem == NULL) {
       *error = xoj_invalid();
       return;
@@ -672,6 +777,9 @@ void xoj_parser_text(GMarkupParseContext *context,
     tmpItem->text = g_malloc(text_len+1);
     g_memmove(tmpItem->text, text, text_len);
     tmpItem->text[text_len]=0;
+  }
+  if (!strcmp(element_name, "image")) {
+    tmpItem->image = read_pixbuf(text, text_len);
   }
 }
 
@@ -1386,6 +1494,7 @@ void init_config_default(void)
   ui.print_ruling = TRUE;
   ui.default_unit = UNIT_CM;
   ui.default_path = NULL;
+  ui.default_image = NULL;
   ui.default_font_name = g_strdup(DEFAULT_FONT);
   ui.default_font_size = DEFAULT_FONT_SIZE;
   ui.pressure_sensitivity = FALSE;

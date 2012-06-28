@@ -17,6 +17,7 @@
 
 struct Page *new_page(struct Page *template);
 struct Page *new_page_with_bg(struct Background *bg, double width, double height);
+void set_current_page(gdouble *pt);
 void realloc_cur_path(int n);
 void realloc_cur_widths(int n);
 void clear_redo_stack(void);
@@ -36,6 +37,7 @@ void refstring_unref(struct Refstring *rs);
 
 int finite_sized(double x);
 void get_pointer_coords(GdkEvent *event, double *ret);
+void get_current_pointer_coords(double *ret);
 double get_pressure_multiplier(GdkEvent *event);
 void fix_xinput_coords(GdkEvent *event);
 void update_item_bbox(struct Item *item);

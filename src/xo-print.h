@@ -60,6 +60,15 @@ typedef struct PdfFont {
   int flags;
 } PdfFont;
 
+typedef struct PdfImage {
+  int n_obj;
+  gboolean has_alpha;
+  int n_obj_smask;              /* only if has_alpha */
+  GdkPixbuf *pixbuf;
+  gboolean used_in_this_page;
+} PdfImage;
+
+
 #define PDFTYPE_CST 0    // intval: true=1, false=0, null=-1
 #define PDFTYPE_INT 1    // intval
 #define PDFTYPE_REAL 2   // realval

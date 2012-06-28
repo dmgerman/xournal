@@ -2627,7 +2627,7 @@ fi
 
 # Define the identity of the package.
  PACKAGE=xournal
- VERSION=0.4.6
+ VERSION=0.4.6+image
 
 
 cat >>confdefs.h <<_ACEOF

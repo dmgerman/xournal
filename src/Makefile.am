@@ -18,6 +18,8 @@ xournal_SOURCES = \
 	xo-misc.c xo-misc.h \
 	xo-file.c xo-file.h \
 	xo-paint.c xo-paint.h \
+	xo-clipboard.c xo-clipboard.h \
+	xo-image.c xo-image.h \
 	xo-print.c xo-print.h \
 	xo-support.c xo-support.h \
 	xo-interface.c xo-interface.h \
@@ -26,8 +28,8 @@ xournal_SOURCES = \
 
 if WIN32
   xournal_LDFLAGS = -mwindows
-  xournal_LDADD = win32/xournal.res ttsubset/libttsubset.a @PACKAGE_LIBS@ $(INTLLIBS)
+  xournal_LDADD = win32/xournal.res ttsubset/libttsubset.a @PACKAGE_LIBS@ $(INTLLIBS) -lz
 else
-  xournal_LDADD = ttsubset/libttsubset.a @PACKAGE_LIBS@ $(INTLLIBS) -lX11
+  xournal_LDADD = ttsubset/libttsubset.a @PACKAGE_LIBS@ $(INTLLIBS) -lX11 -lz
 endif
 

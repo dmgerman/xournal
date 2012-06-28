@@ -1,3 +1,7 @@
+This version:
+  - insert image tool (based on patches by Victor Saase and Simon Guest)
+  - renamed "Journal" menu to "Page"
+
 Version 0.4.6 (May 22, 2012):
   - win32 portability code (contributed by Dirk Gerrits)
   - fix bug in PDF export code on 64-bit systems (patch by Robert Buchholz)

@@ -143,6 +143,7 @@ create_winMain (void)
   GtkWidget *toolsEraser;
   GtkWidget *toolsHighlighter;
   GtkWidget *toolsText;
+  GtkWidget *toolsImage;
   GtkWidget *separator15;
   GtkWidget *toolsReco;
   GtkWidget *toolsRuler;
@@ -215,6 +216,7 @@ create_winMain (void)
   GtkWidget *button2Eraser;
   GtkWidget *button2Highlighter;
   GtkWidget *button2Text;
+  GtkWidget *button2Image;
   GtkWidget *button2SelectRegion;
   GtkWidget *button2SelectRectangle;
   GtkWidget *button2VerticalSpace;
@@ -231,6 +233,7 @@ create_winMain (void)
   GtkWidget *button3Eraser;
   GtkWidget *button3Highlighter;
   GtkWidget *button3Text;
+  GtkWidget *button3Image;
   GtkWidget *button3SelectRegion;
   GtkWidget *button3SelectRectangle;
   GtkWidget *button3VerticalSpace;
@@ -289,6 +292,7 @@ create_winMain (void)
   GtkWidget *buttonEraser;
   GtkWidget *buttonHighlighter;
   GtkWidget *buttonText;
+  GtkWidget *buttonImage;
   GtkWidget *buttonReco;
   GtkWidget *buttonRuler;
   GtkWidget *toolitem15;
@@ -662,7 +666,7 @@ create_winMain (void)
   gtk_widget_show (image631);
   gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (viewHideLayer), image631);
 
-  menuJournal = gtk_menu_item_new_with_mnemonic (_("_Journal"));
+  menuJournal = gtk_menu_item_new_with_mnemonic (_("_Page"));
   gtk_widget_show (menuJournal);
   gtk_container_add (GTK_CONTAINER (menubar), menuJournal);
 
@@ -875,6 +879,15 @@ create_winMain (void)
                               GDK_T, (GdkModifierType) GDK_CONTROL_MASK | GDK_SHIFT_MASK,
                               GTK_ACCEL_VISIBLE);
   gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (toolsText), TRUE);
+
+  toolsImage = gtk_radio_menu_item_new_with_mnemonic (toolsPen_group, _("_Image"));
+  toolsPen_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (toolsImage));
+  gtk_widget_show (toolsImage);
+  gtk_container_add (GTK_CONTAINER (menuTools_menu), toolsImage);
+  gtk_widget_add_accelerator (toolsImage, "activate", accel_group,
+                              GDK_I, (GdkModifierType) GDK_CONTROL_MASK | GDK_SHIFT_MASK,
+                              GTK_ACCEL_VISIBLE);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (toolsImage), TRUE);
 
   separator15 = gtk_separator_menu_item_new ();
   gtk_widget_show (separator15);
@@ -1227,6 +1240,12 @@ create_winMain (void)
   gtk_container_add (GTK_CONTAINER (button2_mapping_menu), button2Text);
   gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (button2Text), TRUE);
 
+  button2Image = gtk_radio_menu_item_new_with_mnemonic (button2Pen_group, _("_Image"));
+  button2Pen_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (button2Image));
+  gtk_widget_show (button2Image);
+  gtk_container_add (GTK_CONTAINER (button2_mapping_menu), button2Image);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (button2Image), TRUE);
+
   button2SelectRegion = gtk_radio_menu_item_new_with_mnemonic (button2Pen_group, _("Select Re_gion"));
   button2Pen_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (button2SelectRegion));
   gtk_widget_show (button2SelectRegion);
@@ -1302,6 +1321,12 @@ create_winMain (void)
   gtk_widget_show (button3Text);
   gtk_container_add (GTK_CONTAINER (button3_mapping_menu), button3Text);
   gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (button3Text), TRUE);
+
+  button3Image = gtk_radio_menu_item_new_with_mnemonic (button3Pen_group, _("_Image"));
+  button3Pen_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (button3Image));
+  gtk_widget_show (button3Image);
+  gtk_container_add (GTK_CONTAINER (button3_mapping_menu), button3Image);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (button3Image), TRUE);
 
   button3SelectRegion = gtk_radio_menu_item_new_with_mnemonic (button3Pen_group, _("Select Re_gion"));
   button3Pen_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (button3SelectRegion));
@@ -1587,6 +1612,17 @@ create_winMain (void)
   gtk_tool_item_set_tooltip (GTK_TOOL_ITEM (buttonText), tooltips, _("Text"), NULL);
   gtk_radio_tool_button_set_group (GTK_RADIO_TOOL_BUTTON (buttonText), buttonPen_group);
   buttonPen_group = gtk_radio_tool_button_get_group (GTK_RADIO_TOOL_BUTTON (buttonText));
+
+  buttonImage = (GtkWidget*) gtk_radio_tool_button_new (NULL);
+  gtk_tool_button_set_label (GTK_TOOL_BUTTON (buttonImage), _("Text"));
+  tmp_image = gtk_image_new_from_stock ("gtk-orientation-portrait", tmp_toolbar_icon_size);
+  gtk_widget_show (tmp_image);
+  gtk_tool_button_set_icon_widget (GTK_TOOL_BUTTON (buttonImage), tmp_image);
+  gtk_widget_show (buttonImage);
+  gtk_container_add (GTK_CONTAINER (toolbarPen), buttonImage);
+  gtk_tool_item_set_tooltip (GTK_TOOL_ITEM (buttonImage), tooltips, _("Text"), NULL);
+  gtk_radio_tool_button_set_group (GTK_RADIO_TOOL_BUTTON (buttonImage), buttonPen_group);
+  buttonPen_group = gtk_radio_tool_button_get_group (GTK_RADIO_TOOL_BUTTON (buttonImage));
 
   buttonReco = (GtkWidget*) gtk_toggle_tool_button_new ();
   gtk_tool_button_set_label (GTK_TOOL_BUTTON (buttonReco), _("Shape Recognizer"));
@@ -2147,6 +2183,9 @@ create_winMain (void)
   g_signal_connect ((gpointer) toolsText, "toggled",
                     G_CALLBACK (on_toolsText_activate),
                     NULL);
+  g_signal_connect ((gpointer) toolsImage, "toggled",
+                    G_CALLBACK (on_toolsImage_activate),
+                    NULL);
   g_signal_connect ((gpointer) toolsReco, "toggled",
                     G_CALLBACK (on_toolsReco_activate),
                     NULL);
@@ -2282,6 +2321,9 @@ create_winMain (void)
   g_signal_connect ((gpointer) button2Text, "activate",
                     G_CALLBACK (on_button2Text_activate),
                     NULL);
+  g_signal_connect ((gpointer) button2Image, "activate",
+                    G_CALLBACK (on_button2Image_activate),
+                    NULL);
   g_signal_connect ((gpointer) button2SelectRegion, "activate",
                     G_CALLBACK (on_button2SelectRegion_activate),
                     NULL);
@@ -2311,6 +2353,9 @@ create_winMain (void)
                     NULL);
   g_signal_connect ((gpointer) button3Text, "activate",
                     G_CALLBACK (on_button3Text_activate),
+                    NULL);
+  g_signal_connect ((gpointer) button3Image, "activate",
+                    G_CALLBACK (on_button3Image_activate),
                     NULL);
   g_signal_connect ((gpointer) button3SelectRegion, "activate",
                     G_CALLBACK (on_button3SelectRegion_activate),
@@ -2425,6 +2470,9 @@ create_winMain (void)
                     NULL);
   g_signal_connect ((gpointer) buttonText, "toggled",
                     G_CALLBACK (on_toolsText_activate),
+                    NULL);
+  g_signal_connect ((gpointer) buttonImage, "toggled",
+                    G_CALLBACK (on_toolsImage_activate),
                     NULL);
   g_signal_connect ((gpointer) buttonReco, "toggled",
                     G_CALLBACK (on_toolsReco_activate),
@@ -2616,6 +2664,7 @@ create_winMain (void)
   GLADE_HOOKUP_OBJECT (winMain, toolsEraser, "toolsEraser");
   GLADE_HOOKUP_OBJECT (winMain, toolsHighlighter, "toolsHighlighter");
   GLADE_HOOKUP_OBJECT (winMain, toolsText, "toolsText");
+  GLADE_HOOKUP_OBJECT (winMain, toolsImage, "toolsImage");
   GLADE_HOOKUP_OBJECT (winMain, separator15, "separator15");
   GLADE_HOOKUP_OBJECT (winMain, toolsReco, "toolsReco");
   GLADE_HOOKUP_OBJECT (winMain, toolsRuler, "toolsRuler");
@@ -2682,6 +2731,7 @@ create_winMain (void)
   GLADE_HOOKUP_OBJECT (winMain, button2Eraser, "button2Eraser");
   GLADE_HOOKUP_OBJECT (winMain, button2Highlighter, "button2Highlighter");
   GLADE_HOOKUP_OBJECT (winMain, button2Text, "button2Text");
+  GLADE_HOOKUP_OBJECT (winMain, button2Image, "button2Image");
   GLADE_HOOKUP_OBJECT (winMain, button2SelectRegion, "button2SelectRegion");
   GLADE_HOOKUP_OBJECT (winMain, button2SelectRectangle, "button2SelectRectangle");
   GLADE_HOOKUP_OBJECT (winMain, button2VerticalSpace, "button2VerticalSpace");
@@ -2696,6 +2746,7 @@ create_winMain (void)
   GLADE_HOOKUP_OBJECT (winMain, button3Eraser, "button3Eraser");
   GLADE_HOOKUP_OBJECT (winMain, button3Highlighter, "button3Highlighter");
   GLADE_HOOKUP_OBJECT (winMain, button3Text, "button3Text");
+  GLADE_HOOKUP_OBJECT (winMain, button3Image, "button3Image");
   GLADE_HOOKUP_OBJECT (winMain, button3SelectRegion, "button3SelectRegion");
   GLADE_HOOKUP_OBJECT (winMain, button3SelectRectangle, "button3SelectRectangle");
   GLADE_HOOKUP_OBJECT (winMain, button3VerticalSpace, "button3VerticalSpace");
@@ -2750,6 +2801,7 @@ create_winMain (void)
   GLADE_HOOKUP_OBJECT (winMain, buttonEraser, "buttonEraser");
   GLADE_HOOKUP_OBJECT (winMain, buttonHighlighter, "buttonHighlighter");
   GLADE_HOOKUP_OBJECT (winMain, buttonText, "buttonText");
+  GLADE_HOOKUP_OBJECT (winMain, buttonImage, "buttonImage");
   GLADE_HOOKUP_OBJECT (winMain, buttonReco, "buttonReco");
   GLADE_HOOKUP_OBJECT (winMain, buttonRuler, "buttonRuler");
   GLADE_HOOKUP_OBJECT (winMain, toolitem15, "toolitem15");

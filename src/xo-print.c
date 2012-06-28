@@ -787,6 +787,81 @@ int pdf_draw_bitmap_background(struct Page *pg, GString *str,
   return xref->last;
 }
 
+gboolean pdf_draw_image(PdfImage *image, struct XrefTable *xref, GString *pdfbuf)
+{
+  char *buf, *p1, *p2;
+  int height, width, stride, x, y, chan;
+  GString *zpix;
+
+  if (gdk_pixbuf_get_bits_per_sample(image->pixbuf) != 8 ||
+      gdk_pixbuf_get_colorspace(image->pixbuf) != GDK_COLORSPACE_RGB) {
+    return FALSE;
+  }
+
+  width = gdk_pixbuf_get_width(image->pixbuf);
+  height = gdk_pixbuf_get_height(image->pixbuf);
+  stride = gdk_pixbuf_get_rowstride(image->pixbuf);
+  chan = gdk_pixbuf_get_n_channels(image->pixbuf);
+  if (!((chan==3 && !image->has_alpha) || (chan==4 && image->has_alpha))) {
+    return FALSE;
+  }
+
+  p2 = buf = (char *)g_malloc(3*width*height);
+  for (y=0; y<height; y++) {
+    p1 = (char *)gdk_pixbuf_get_pixels(image->pixbuf)+stride*y;
+    for (x=0; x<width; x++) {
+      *(p2++)=*(p1++); *(p2++)=*(p1++); *(p2++)=*(p1++);
+      if (chan==4) p1++;
+    }
+  }
+  zpix = do_deflate(buf, 3*width*height);
+  g_free(buf);
+
+  xref->data[image->n_obj] = pdfbuf->len;
+  g_string_append_printf(pdfbuf, 
+    "%d 0 obj\n<< /Length %d /Filter /FlateDecode /Type /Xobject "
+    "/Subtype /Image /Width %d /Height %d /ColorSpace /DeviceRGB "
+    "/BitsPerComponent 8 ",
+    image->n_obj, zpix->len, width, height);
+  if (image->has_alpha) {
+    g_string_append_printf(pdfbuf, 
+      "/SMask %d 0 R ",
+      image->n_obj_smask);
+  }
+  g_string_append_printf(pdfbuf, " >> stream\n");
+
+  g_string_append_len(pdfbuf, zpix->str, zpix->len);
+  g_string_free(zpix, TRUE);
+  g_string_append(pdfbuf, "endstream\nendobj\n");
+
+  if (image->has_alpha) {
+    p2 = buf = (char *)g_malloc(width*height);
+    for (y=0; y<height; y++) {
+      p1 = (char *)gdk_pixbuf_get_pixels(image->pixbuf)+stride*y;
+      for (x=0; x<width; x++) {
+        p1+=3;                  /* skip the RGB */
+        *(p2++)=*(p1++);        /* just copy the alpha */
+      }
+    }
+    zpix = do_deflate(buf, width*height);
+    g_free(buf);
+    
+    xref->data[image->n_obj_smask] = pdfbuf->len;
+    g_string_append_printf(pdfbuf, 
+      "%d 0 obj\n<< /Length %d /Filter /FlateDecode /Type /Xobject "
+      "/Subtype /Image /Width %d /Height %d /ColorSpace /DeviceGray "
+      "/BitsPerComponent 8 >> stream\n",
+      image->n_obj_smask, zpix->len, width, height);
+
+    g_string_append_len(pdfbuf, zpix->str, zpix->len);
+    g_string_free(zpix, TRUE);
+    g_string_append(pdfbuf, "endstream\nendobj\n");
+  }
+
+  return TRUE;
+}
+
+
 // manipulate Pdf fonts
 
 struct PdfFont *new_pdffont(struct XrefTable *xref, GList **fonts,
@@ -1023,10 +1098,31 @@ void embed_pdffont(GString *pdfbuf, struct XrefTable *xref, struct PdfFont *font
   g_string_append(pdfbuf, ">> endobj\n");
 }
 
+// Pdf images
+
+struct PdfImage *new_pdfimage(struct XrefTable *xref, GList **images, GdkPixbuf *pixbuf)
+{
+  GList *list;
+  struct PdfImage *image;
+  
+  image = g_malloc(sizeof(struct PdfImage));
+  *images = g_list_append(*images, image);
+  image->n_obj = xref->last+1;
+  make_xref(xref, xref->last+1, 0); // will give it a value later
+  image->has_alpha = gdk_pixbuf_get_has_alpha(pixbuf);
+  if (image->has_alpha) {
+    image->n_obj_smask = xref->last+1;
+    make_xref(xref, xref->last+1, 0); // will give it a value later
+  }
+  image->pixbuf = pixbuf;
+
+  return image;
+}
+
 // draw a page's graphics
 
 void pdf_draw_page(struct Page *pg, GString *str, gboolean *use_hiliter, 
-                  struct XrefTable *xref, GList **pdffonts)
+                   struct XrefTable *xref, GList **pdffonts, GList **pdfimages)
 {
   GList *layerlist, *itemlist, *tmplist;
   struct Layer *l;
@@ -1051,6 +1147,7 @@ void pdf_draw_page(struct Page *pg, GString *str, gboolean *use_hiliter,
   int font_id;
   FT_Face ftface;
   struct PdfFont *cur_font;
+  struct PdfImage *cur_image;
   gboolean in_string;
   
   old_rgba = old_text_rgba = 0x12345678;    // not any values we use, so we'll reset them
@@ -1058,6 +1155,10 @@ void pdf_draw_page(struct Page *pg, GString *str, gboolean *use_hiliter,
   for (tmplist = *pdffonts; tmplist!=NULL; tmplist = tmplist->next) {
     cur_font = (struct PdfFont *)tmplist->data;
     cur_font->used_in_this_page = FALSE;
+  }
+  for (tmplist = *pdfimages; tmplist!=NULL; tmplist = tmplist->next) {
+    cur_image = (struct PdfImage *)tmplist->data;
+    cur_image->used_in_this_page = FALSE;
   }
 
   for (layerlist = pg->layers; layerlist!=NULL; layerlist = layerlist->next) {
@@ -1178,6 +1279,14 @@ void pdf_draw_page(struct Page *pg, GString *str, gboolean *use_hiliter,
         pango_layout_iter_free(iter);
         g_object_unref(layout);
       }
+      else if  (item->type == ITEM_IMAGE) {
+        cur_image = new_pdfimage(xref, pdfimages, item->image);
+	cur_image->used_in_this_page = TRUE;
+        g_string_append_printf(str, "\nq 1 0 0 1 %.2f %.2f cm %.2f 0 0 %.2f 0 %.2f cm /Im%d Do Q ",
+           item->bbox.left, item->bbox.top, // translation
+           item->bbox.right-item->bbox.left, item->bbox.top-item->bbox.bottom, item->bbox.bottom-item->bbox.top, // scaling
+           cur_image->n_obj);
+      }
     }
   }
 }
@@ -1204,8 +1313,9 @@ gboolean print_to_pdf(char *filename)
   gboolean use_hiliter;
   struct PdfInfo pdfinfo;
   struct PdfObj *obj;
-  GList *pdffonts, *list;
+  GList *pdffonts, *pdfimages, *list;
   struct PdfFont *font;
+  struct PdfImage *image;
   char *tmpbuf;
   
   f = fopen(filename, "wb");
@@ -1215,6 +1325,7 @@ gboolean print_to_pdf(char *filename)
   xref.data = NULL;
   uses_pdf = FALSE;
   pdffonts = NULL;
+  pdfimages = NULL;
   for (pglist = journal.pages; pglist!=NULL; pglist = pglist->next) {
     pg = (struct Page *)pglist->data;
     if (pg->bg->type == BG_PDF) uses_pdf = TRUE;
@@ -1284,7 +1395,7 @@ gboolean print_to_pdf(char *filename)
       n_obj_bgpix = pdf_draw_bitmap_background(pg, pgstrm, &xref, pdfbuf);
     // draw the page contents
     use_hiliter = FALSE;
-    pdf_draw_page(pg, pgstrm, &use_hiliter, &xref, &pdffonts);
+    pdf_draw_page(pg, pgstrm, &use_hiliter, &xref, &pdffonts, &pdfimages);
     g_string_append_printf(pgstrm, "Q\n");
     
     // deflate pgstrm and write it
@@ -1340,7 +1451,7 @@ gboolean print_to_pdf(char *filename)
     }
     add_dict_subentry(pdfbuf, &xref,
         obj, "/ProcSet", PDFTYPE_ARRAY, NULL, mk_pdfname("/PDF"));
-    if (n_obj_bgpix>0)
+    if (n_obj_bgpix>0 || pdfimages!=NULL)
       add_dict_subentry(pdfbuf, &xref,
         obj, "/ProcSet", PDFTYPE_ARRAY, NULL, mk_pdfname("/ImageC"));
     if (use_hiliter)
@@ -1360,12 +1471,21 @@ gboolean print_to_pdf(char *filename)
         g_free(tmpbuf);
       }
     }
+    for (list=pdfimages; list!=NULL; list = list->next) {
+      image = (struct PdfImage *)list->data;
+      if (image->used_in_this_page) {
+        tmpbuf = g_strdup_printf("/Im%d", image->n_obj);
+        add_dict_subentry(pdfbuf, &xref,
+          obj, "/XObject", PDFTYPE_DICT, tmpbuf, mk_pdfref(image->n_obj));
+        g_free(tmpbuf);
+      }
+    }
     show_pdfobj(obj, pdfbuf);
     free_pdfobj(obj);
     g_string_append(pdfbuf, " >> endobj\n");
   }
   
-  // after the pages, we insert fonts
+  // after the pages, we insert fonts and images
   for (list = pdffonts; list!=NULL; list = list->next) {
     font = (struct PdfFont *)list->data;
     embed_pdffont(pdfbuf, &xref, font);
@@ -1374,6 +1494,14 @@ gboolean print_to_pdf(char *filename)
     g_free(font);
   }
   g_list_free(pdffonts);
+  for (list = pdfimages; list!=NULL; list = list->next) {
+    image = (struct PdfImage *)list->data;
+    if (!pdf_draw_image(image, &xref, pdfbuf)) {
+      return FALSE;
+    }
+    g_free(image);
+  }
+  g_list_free(pdfimages);
   
   // PDF trailer
   startxref = pdfbuf->len;
@@ -1564,6 +1692,16 @@ void print_job_render_page(GtkPrintOperation *print, GtkPrintContext *context, g
         cairo_move_to(cr, item->bbox.left, item->bbox.top);
         pango_cairo_show_layout(cr, layout);
         g_object_unref(layout);
+      }
+      if (item->type == ITEM_IMAGE) {
+        double scalex = (item->bbox.right-item->bbox.left)/gdk_pixbuf_get_width(item->image);
+        double scaley = (item->bbox.bottom-item->bbox.top)/gdk_pixbuf_get_height(item->image);
+        cairo_scale(cr, scalex, scaley);
+        gdk_cairo_set_source_pixbuf(cr,item->image, item->bbox.left/scalex, item->bbox.top/scaley);
+        cairo_scale(cr, 1/scalex, 1/scaley);
+        cairo_paint(cr);
+        old_rgba = predef_colors_rgba[COLOR_BLACK];
+        cairo_set_source_rgb(cr, 0, 0, 0);
       }
     }
   }

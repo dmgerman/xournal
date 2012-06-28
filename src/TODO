@@ -20,6 +20,12 @@ List of features to be implemented (not in any particular order)
   xournal). (cf #2944459). Recalibration probably requires talking directly 
   to X server to query input device geometry and compensate for GTK.
 
+TODO WITH IMAGE PATCH:
+TODO: paste and selresize don't put rectangle at top
+TODO: select click in image selects it
+TODO: option for image mode to revert to previous tool
+TODO: direct paste text
+
 BUGS:
 - lingering issues with synaptics touchpads? (#2872667)
  (todo) - set device to Absolute mode at startup? (GDK doesn't expose API,
@@ -28,6 +34,11 @@ BUGS:
    xinput first?)
 - export to PDF should see cropbox size if smaller, and map the
    cropbox -- not the entire page -- to the page area! (2009-11-18 forum)
+
+BEHAVIOR TODO:
+- option to have "Save Prefs" save current brushes as settings, not defaults
+- method to map more general devices to specific tools or to Ignore
+  (e.g.: X220T ignore trackpoint; map touchscreen to Hand, eraser to Eraser)
 
 WIN32:
 - test further
@@ -150,10 +161,9 @@ https://sourceforge.net/tracker/index.php?func=detail&aid=3447356&group_id=16343
 - proximity detection: eraser proximity switches mapping? 
   proximity out removes cursor until next motionnotify?
 
-
 - render page to bitmap: for export, preview, and copy-paste
     (render using libart, see how gnomecanvas does it?)
-    NO: render using Cairo !!! then can switch to GtkPrint as well.
+    NO: render using Cairo !!!
     (copy-paste: config option to render only current layer or all below?)
 - cut-and-paste of selection into other apps (as bitmap; as SVG?)
 
@@ -184,10 +194,6 @@ https://sourceforge.net/tracker/index.php?func=detail&aid=3447356&group_id=16343
 - add config option to limit total memory usage for PDF bitmaps
 - ability to select entire page for copy-paste (as bitmap / reorder xournal)
 - copy/paste of an entire page (beware if PDF bg is not compatible!)
-- rewrite printing using GtkPrint + Cairo as GnomePrint replacement
-   (keep GnomePrint option for compatibility with GTK+ <2.10)
-- insert images (screen capture or from file or from clipboard), 
-  not as full-page backgrounds (new ITEM type)
 
 - convert to/from Jarnal format; to/from MS Journal format???
 - export as SVG, as bitmap (use Cairo for this)
