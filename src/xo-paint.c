@@ -608,9 +608,9 @@ void finalize_selectrect(void)
   }
   
   if (ui.selection->items == NULL) {
-    // if we clicked inside a text zone ?  
-    item = click_is_in_text(ui.selection->layer, x1, y1);
-    if (item!=NULL && item==click_is_in_text(ui.selection->layer, x2, y2)) {
+    // if we clicked inside a text zone or image?  
+    item = click_is_in_text_or_image(ui.selection->layer, x1, y1);
+    if (item!=NULL && item==click_is_in_text_or_image(ui.selection->layer, x2, y2)) {
       ui.selection->items = g_list_append(ui.selection->items, item);
       g_memmove(&(ui.selection->bbox), &(item->bbox), sizeof(struct BBox));
       gnome_canvas_item_set(ui.selection->canvas_item,
@@ -1252,6 +1252,22 @@ struct Item *click_is_in_text(struct Layer *layer, double x, double y)
   for (itemlist = layer->items; itemlist!=NULL; itemlist = itemlist->next) {
     item = (struct Item *)itemlist->data;
     if (item->type != ITEM_TEXT) continue;
+    if (x<item->bbox.left || x>item->bbox.right) continue;
+    if (y<item->bbox.top || y>item->bbox.bottom) continue;
+    val = item;
+  }
+  return val;
+}
+
+struct Item *click_is_in_text_or_image(struct Layer *layer, double x, double y)
+{
+  GList *itemlist;
+  struct Item *item, *val;
+  
+  val = NULL;
+  for (itemlist = layer->items; itemlist!=NULL; itemlist = itemlist->next) {
+    item = (struct Item *)itemlist->data;
+    if (item->type != ITEM_TEXT && item->type != ITEM_IMAGE) continue;
     if (x<item->bbox.left || x>item->bbox.right) continue;
     if (y<item->bbox.top || y>item->bbox.bottom) continue;
     val = item;

@@ -1,6 +1,7 @@
 This version:
   - insert image tool (based on patches by Victor Saase and Simon Guest)
   - renamed "Journal" menu to "Page"
+  - paste images and text directly from and to other applications
 
 Version 0.4.6 (May 22, 2012):
   - win32 portability code (contributed by Dirk Gerrits)

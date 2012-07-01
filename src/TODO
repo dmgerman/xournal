@@ -22,9 +22,7 @@ List of features to be implemented (not in any particular order)
 
 TODO WITH IMAGE PATCH:
 TODO: paste and selresize don't put rectangle at top
-TODO: select click in image selects it
 TODO: option for image mode to revert to previous tool
-TODO: direct paste text
 
 BUGS:
 - lingering issues with synaptics touchpads? (#2872667)

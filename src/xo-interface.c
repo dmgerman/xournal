@@ -1614,13 +1614,13 @@ create_winMain (void)
   buttonPen_group = gtk_radio_tool_button_get_group (GTK_RADIO_TOOL_BUTTON (buttonText));
 
   buttonImage = (GtkWidget*) gtk_radio_tool_button_new (NULL);
-  gtk_tool_button_set_label (GTK_TOOL_BUTTON (buttonImage), _("Text"));
+  gtk_tool_button_set_label (GTK_TOOL_BUTTON (buttonImage), _("Image"));
   tmp_image = gtk_image_new_from_stock ("gtk-orientation-portrait", tmp_toolbar_icon_size);
   gtk_widget_show (tmp_image);
   gtk_tool_button_set_icon_widget (GTK_TOOL_BUTTON (buttonImage), tmp_image);
   gtk_widget_show (buttonImage);
   gtk_container_add (GTK_CONTAINER (toolbarPen), buttonImage);
-  gtk_tool_item_set_tooltip (GTK_TOOL_ITEM (buttonImage), tooltips, _("Text"), NULL);
+  gtk_tool_item_set_tooltip (GTK_TOOL_ITEM (buttonImage), tooltips, _("Image"), NULL);
   gtk_radio_tool_button_set_group (GTK_RADIO_TOOL_BUTTON (buttonImage), buttonPen_group);
   buttonPen_group = gtk_radio_tool_button_get_group (GTK_RADIO_TOOL_BUTTON (buttonImage));
 
