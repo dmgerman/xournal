@@ -20,9 +20,11 @@ List of features to be implemented (not in any particular order)
   xournal). (cf #2944459). Recalibration probably requires talking directly 
   to X server to query input device geometry and compensate for GTK.
 
-TODO WITH IMAGE PATCH:
-TODO: paste and selresize don't put rectangle at top
-TODO: option for image mode to revert to previous tool
+
+- image patch related:
+  - paste and selresize don't put rectangle at top
+  - need option for image mode to revert to previous tool?
+  - optimize storage of embedded images by detecting duplicates (D. German)
 
 BUGS:
 - lingering issues with synaptics touchpads? (#2872667)
@@ -74,11 +76,6 @@ https://sourceforge.net/tracker/index.php?func=detail&aid=3447356&group_id=16343
    NB: last modif should be triggered by prepare_new_undo() and undo/redo?
    *** NEW VERSION: with threading, by Man, e-mail 12/10/2009 10:51pm
 
-** insert images patch (Victor Saase) #2890925
-** as improved by Simon Guest April 14 2010
-** modified rev2 May 14, 2010: xournal-0.4.5-sjg-image-rev2.patch.gz 
-** rev6 by now...
-
 ** customize paper ruling (Gautam Iyer e-mail Nov 30 2009 / SF tracker)
 
 ** cairo export to PNG (Man = Paulo Neves, e-mail Feb 3 '10, saved as
@@ -98,7 +95,6 @@ https://sourceforge.net/tracker/index.php?func=detail&aid=3447356&group_id=16343
   to have a different size from the page itself.
 
 - option to map device named "touch" to hand tool? (like "Eraser tip")
-
 
 - roadmap towards SVG support: see 1/25/2010 Mark Edgington email & reply
   (1) export to SVG (using pages and groups for pages and layers; 

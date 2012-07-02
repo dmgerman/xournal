@@ -28,69 +28,62 @@
 #include "xo-paint.h"
 #include "xo-image.h"
 
+// the various formats in which we might present clipboard data
 #define TARGET_XOURNAL 1
 #define TARGET_TEXT    2
 #define TARGET_PIXBUF  3
 #define XOURNAL_TARGET_ATOM "_XOURNAL" 
   /* change when serialized data format changes incompatibly */
 
+typedef struct XojSelectionData {
+  int xo_data_len;
+  char *xo_data;
+  gchar *text_data;
+  GdkPixbuf *image_data;
+} XojSelectionData;
+
+
 void callback_clipboard_get(GtkClipboard *clipboard,
                             GtkSelectionData *selection_data,
                             guint info, gpointer user_data)
 {
-  int length;
-  char *p;
-  gchar *text;
-  GdkPixbuf *pixbuf;
-  
-  g_memmove(&length, user_data, sizeof(int));
-  p = ((char *)user_data) + length;
-  g_memmove(&text, p, sizeof(gchar *)); p+= sizeof(gchar *);
-  g_memmove(&pixbuf, p, sizeof(GdkPixbuf *)); p += sizeof(GdkPixbuf *);
-  
+  struct XojSelectionData *sel = (struct XojSelectionData *)user_data;
+
   switch (info) {
     case TARGET_XOURNAL:
       gtk_selection_data_set(selection_data,
-        gdk_atom_intern(XOURNAL_TARGET_ATOM, FALSE), 8, user_data, length);
+        gdk_atom_intern(XOURNAL_TARGET_ATOM, FALSE), 8, sel->xo_data, sel->xo_data_len);
       break;
     case TARGET_TEXT:
-      if (text!=NULL) 
-        gtk_selection_data_set_text(selection_data, text, -1);
+      if (sel->text_data!=NULL) 
+        gtk_selection_data_set_text(selection_data, sel->text_data, -1);
       break;
     case TARGET_PIXBUF:
-      if (pixbuf!=NULL)
-        gtk_selection_data_set_pixbuf(selection_data, pixbuf);
+      if (sel->image_data!=NULL)
+        gtk_selection_data_set_pixbuf(selection_data, sel->image_data);
       break;
   }
 }
 
 void callback_clipboard_clear(GtkClipboard *clipboard, gpointer user_data)
 {
-  int length;
-  char *p;
-  gchar *text;
-  GdkPixbuf *pixbuf;
+  struct XojSelectionData *sel = (struct XojSelectionData *)user_data;
   
-  g_memmove(&length, user_data, sizeof(int));
-  p = ((char *)user_data) + length;
-  g_memmove(&text, p, sizeof(gchar *)); p+= sizeof(gchar *);
-  g_memmove(&pixbuf, p, sizeof(GdkPixbuf *)); p += sizeof(GdkPixbuf *);
-
-  if (text!=NULL) g_free(text);
-  if (pixbuf!=NULL) gdk_pixbuf_unref(pixbuf);
-  g_free(user_data);
+  if (sel->xo_data!=NULL) g_free(sel->xo_data);
+  if (sel->text_data!=NULL) g_free(sel->text_data);
+  if (sel->image_data!=NULL) gdk_pixbuf_unref(sel->image_data);
+  g_free(sel);
 }
 
 void selection_to_clip(void)
 {
+  struct XojSelectionData *sel;
   int bufsz, nitems, val;
-  char *buf, *p;
+  char *p;
   GList *list;
   struct Item *item;
   GtkTargetList *targetlist;
   GtkTargetEntry *targets;
-  GdkPixbuf *target_pixbuf;
-  gchar *target_text;
   int n_targets;
   
   if (ui.selection == NULL) return;
@@ -132,10 +125,16 @@ void selection_to_clip(void)
     }
     else bufsz+= sizeof(int); // type
   }
-  // allocate buffer; allow space for alternative target representations at the end
-  p = buf = g_malloc(bufsz + sizeof(gchar *) + sizeof(GdkPixbuf *));
-  target_pixbuf = NULL;
-  target_text = NULL;
+
+  // allocate selection data structure and buffer
+  sel = g_malloc(sizeof(struct XojSelectionData));
+  sel->xo_data_len = bufsz;
+  sel->xo_data = g_malloc(bufsz);
+  sel->image_data = NULL;
+  sel->text_data = NULL;
+
+  // fill in the data
+  p = sel->xo_data;
   g_memmove(p, &bufsz, sizeof(int)); p+= sizeof(int);
   g_memmove(p, &nitems, sizeof(int)); p+= sizeof(int);
   g_memmove(p, &ui.selection->bbox, sizeof(struct BBox)); p+= sizeof(struct BBox);
@@ -163,7 +162,7 @@ void selection_to_clip(void)
       g_memmove(p, &val, sizeof(int)); p+= sizeof(int);
       g_memmove(p, item->font_name, val+1); p+= val+1;
       g_memmove(p, &item->font_size, sizeof(double)); p+= sizeof(double);
-      if (nitems==1) target_text = g_strdup(item->text); // single text item
+      if (nitems==1) sel->text_data = g_strdup(item->text); // single text item
     }
     if (item->type == ITEM_IMAGE) {
       g_memmove(p, &item->bbox, sizeof(struct BBox)); p+= sizeof(struct BBox);
@@ -171,34 +170,28 @@ void selection_to_clip(void)
       if (item->image_png_len > 0) {
         g_memmove(p, item->image_png, item->image_png_len); p+= item->image_png_len;
       }
-      if (nitems==1) target_pixbuf = gdk_pixbuf_copy(item->image); // single image
+      if (nitems==1) sel->image_data = gdk_pixbuf_copy(item->image); // single image
     }
   }
-  
-  /* add pointers to alternative representations; 
-     note those are not serialized, but they're only used internally,
-     and not sent along to the GtkSelection */
-  g_memmove(p, &target_text, sizeof(gchar *)); p+= sizeof(gchar *);
-  g_memmove(p, &target_pixbuf, sizeof(GdkPixbuf *)); p += sizeof(GdkPixbuf *);
   
   /* build list of valid targets */
   targetlist = gtk_target_list_new(NULL, 0);
   gtk_target_list_add(targetlist, 
     gdk_atom_intern(XOURNAL_TARGET_ATOM, FALSE), 0, TARGET_XOURNAL);
-  if (target_pixbuf!=NULL)
+  if (sel->image_data!=NULL)
     gtk_target_list_add_image_targets(targetlist, TARGET_PIXBUF, TRUE);
-  if (target_text!=NULL) 
+  if (sel->text_data!=NULL) 
     gtk_target_list_add_text_targets(targetlist, TARGET_TEXT);
   targets = gtk_target_table_new_from_list(targetlist, &n_targets);
   gtk_target_list_unref(targetlist);
   
   gtk_clipboard_set_with_data(gtk_clipboard_get(GDK_SELECTION_CLIPBOARD), 
        targets, n_targets,
-       callback_clipboard_get, callback_clipboard_clear, buf);
+       callback_clipboard_get, callback_clipboard_clear, sel);
   gtk_target_table_free(targets, n_targets);
 }
 
-// local paste within xournal
+// paste xournal native data
 void clipboard_paste_from_xournal(GtkSelectionData *sel_data)
 {
   unsigned char *p;
