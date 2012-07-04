@@ -8,3 +8,6 @@ xournal.res: xournal.rc
 
 distdir:
 	cp -fp xournal.ico xournal.rc Makefile $(distdir)
+
+distclean:
+	rm -f xournal.res
