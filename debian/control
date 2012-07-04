@@ -1,9 +1,11 @@
 Source: xournal
 Section: unknown
 Priority: optional
-Maintainer: unknown <frade@asturlinux.org>
-Build-Depends: debhelper (>= 4.0.0)
-Standards-Version: 3.6.0
+Maintainer: Daniel M German <dmg@uvic.ca>
+Build-Depends: debhelper (>= 7), autoconf, automake, libgtk2.0-dev (>= 2.10),
+     libgnomecanvas2-dev, libpoppler-glib-dev (>= 0.5.4)
+Standards-Version: 3.9.1
+Homepage: http://xournal.sourceforge.net/
 
 Package: xournal
 Architecture: any

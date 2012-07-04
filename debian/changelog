@@ -1,6 +1,102 @@
-xournal (0.2-1) unstable; urgency=low
+xournal (0.4.6+image-1) unstable; urgency=low
+  * New upstream release:
+     - win32 portability code (contributed by Dirk Gerrits)
+     - fix bug in PDF export code on 64-bit systems (patch by Robert Buchholz)
+     - fix hand tool bug when exiting canvas (#2905711)
+     - Italian translation (Marco Poletti), German translation (Stefan Lembach)
+     - Spanish translation (Alvaro), Brazil Portuguese translation (Marco Souza)
+     - fix save bug with text boxes containing > 4095 characters
+     - Czech translation (David Kolibac), Dutch translation (Timo Kluck)
+     - fix crash upon unplugging input devices
+     - change close dialog box default to "save" (patch by Kit Barnes)
+     - option to force PDF background rendering via cairo (slower but nicer)
+     - wrapper for missing GdkPixbuf rendering function in newest poppler
+     - disable GTK+ XInput bugfix by default (#3429416)
+     - fix linker flags (#3208984); evdev coordinate fix (#3244118) (Timo Kluck)
+     - specify license version: GPL v2 or later
+     - fix 1.#J coordinates from win32 xoj files
+  * Removed patches. They have been incorporated upstream.
+  * Changed maintainer.
 
-  * Initial Release.
+ -- Daniel German <dmg@uvic.ca>  Wed, 04 Jul 2012 10:02:52 -0700
 
- -- Ivan Frade et al. <frade@asturlinux.org>  Sun, 19 Mar 2006 14:16:13 +0100
+xournal (0.4.5-3) unstable; urgency=low
 
+  * Add -lz and -X11 to link flags (Closes: #617637, #556718)
+  * Add ${misc:Depends} to debian/control
+  * Upgrade to Standards-Version 3.9.1 (no changes)
+
+ -- Carlo Segre <segre@debian.org> Sat, 26 Mar 2011 14:18:31 -0500
+
+xournal (0.4.5-2) unstable; urgency=low
+
+  * Patch from Gentoo and Ubuntu to xo-print.c (Closes: #552075)
+  * Move html-doc to /usr/share/doc/xournal (Closes: #560076)
+
+ -- Carlo Segre <segre@debian.org> Tue, 08 Dec 2009 15:39:31 -0600
+
+xournal (0.4.5-1) unstable; urgency=low
+
+  * New upstream release - fixes the following bugs:
+    - Change to gtk+ (>= 2.10) eliminating dependencies on libgnomeprint
+      and libgnomeprintui (Closes: #542571, #539128)
+    - Remove dependency on poppler-utils and replace with poppler-glib which
+      eliminates the problem with xpdf-utils and poppler-utils
+      (Closes: #499037)
+    - New option available to autoload *.pdf.xoj files (Closes: #410911)
+  * Upgrade to Standards-Version 3.8.3 (no changes)
+  * Change to section "x11"
+  
+
+ -- Carlo Segre <segre@debian.org> Sat, 03 Oct 2009 00:28:16 -0500
+
+xournal (0.4.2.1-1) unstable; urgency=low
+
+  * Changing Maintainer
+  * Changed dependency from gs to ghostscript-x.
+  * Converted to quilt for source modifications.
+  * Restored UTF support in desktop and mime files.
+  * Modify clean rule to delete leftover configuration files which
+    were making the diff.gz file significantly larger.
+  * Added patch to src/xo-file.c which fixes the problem that PDF files
+    cannot be opened for annotation with libgtk2.0-0 version 2.14.7 on
+    i386 (Closes: #522541).
+  * Install debian/watch from Ubuntu package (Closes: #501323).
+  * Raised debhelper compatibility level to 7.
+  * Upgraded Standards Version to 3.8.1 (no changes).
+  * Acknowledge NMU (Closes: #478540).
+
+ -- Carlo Segre <segre@debian.org> Thu, 09 Apr 2009 00:16:08 -0500
+
+xournal (0.4.2.1-0.1) unstable; urgency=low
+
+  * Non-maintainer upload.
+    + Uploaded directly to unstable, as the maintainer seems inactive
+      (no answer to bug reports, no answer to Philipp Kern's intent
+      to NMU in #478540).
+  * New upstream release (Closes: #478540).
+
+ -- Lucas Nussbaum <lucas@lucas-nussbaum.net> Tue, 03 Jun 2008 11:19:48 +0200
+
+xournal (0.4.1-1) unstable; urgency=low
+
+  * New upstream release (Closes: #410909, #441222, #458684)
+  * Fix FTBFS if build twice in a row (Closes: #442773)
+  * Removed deprecated Encoding key from desktop files
+  * Added Wl,--as-needed as linking options to remove linking to unused
+    libraries
+
+ -- Mathieu Bouchard <mbouchar@bioinfo.ulaval.ca> Sat, 15 Sep 2007 23:18:10 -0400
+
+xournal (0.3.3-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Mathieu Bouchard <mbouchar@bioinfo.ulaval.ca> Wed, 14 Feb 2007 11:49:42 -0500
+
+xournal (0.3.2-1) unstable; urgency=low
+
+  * Initial release (Closes: #406496)
+
+ -- Mathieu Bouchard <mbouchar@bioinfo.ulaval.ca> Wed, 10 Jan 2007
+	15:25:09 -0500
