@@ -1,0 +1,10 @@
+* This is next branch  of Xournal
+
+This repository is to host features of xournal that are considered
+stable enough for further distribution but are not part of the official xournal.
+
+It should *not be used* for code intended for further distribution.
+
+See https://github.com/dmgerman/xournal/blob/master/README.org for an
+explanation of the development model of xournal, and the role of this
+branch
