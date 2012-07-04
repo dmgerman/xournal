@@ -27,21 +27,6 @@ void finalize_erasure(void);
 
 void do_hand(GdkEvent *event);
 
-void start_selectrect(GdkEvent *event);
-void finalize_selectrect(void);
-gboolean start_movesel(GdkEvent *event);
-void start_vertspace(GdkEvent *event);
-void continue_movesel(GdkEvent *event);
-void finalize_movesel(void);
-gboolean start_resizesel(GdkEvent *event);
-void continue_resizesel(GdkEvent *event);
-void finalize_resizesel(void);
-
-void selection_delete(void);
-
-void recolor_selection(int color_no, guint color_rgba);
-void rethicken_selection(int val);
-
 /* text functions */
 
 #define DEFAULT_FONT "Sans"

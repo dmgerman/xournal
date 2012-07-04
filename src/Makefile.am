@@ -18,6 +18,7 @@ xournal_SOURCES = \
 	xo-misc.c xo-misc.h \
 	xo-file.c xo-file.h \
 	xo-paint.c xo-paint.h \
+	xo-selection.c xo-selection.h \
 	xo-clipboard.c xo-clipboard.h \
 	xo-image.c xo-image.h \
 	xo-print.c xo-print.h \
