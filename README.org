@@ -1,0 +1,11 @@
+This is my mirror of the git repository of Xournal
+(http://xournal.sourceforge.net).
+
+Denis Auroux has finally decided to switch to git. For that reason I
+am going to try to synchronize my changes to his, so we can our code
+more easily. If you are looking for the old branches, they will be
+incorporated here soon, in the meantime you can find them in here:
+http://github.com/dmgerman/scholiar
+
+--daniel german
+dmg@uvic.ca
