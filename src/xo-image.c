@@ -20,7 +20,6 @@
 #include <math.h>
 #include <string.h>
 #include <gtk/gtk.h>
-#include <gio/gio.h>
 
 #include "xournal.h"
 #include "xo-support.h"
@@ -29,15 +28,15 @@
 // create pixbuf from buffer, or return NULL on failure
 GdkPixbuf *pixbuf_from_buffer(const gchar *buf, gsize buflen)
 {
-  GInputStream *istream;
+  GdkPixbufLoader *loader;
   GdkPixbuf *pixbuf;
-  GError *error;
 
-  error = NULL;
-
-  istream = g_memory_input_stream_new_from_data (buf, buflen, NULL);
-  pixbuf = gdk_pixbuf_new_from_stream(istream, NULL, &error); 
-  g_input_stream_close(istream, NULL, &error);
+  loader = gdk_pixbuf_loader_new();
+  gdk_pixbuf_loader_write(loader, buf, buflen, NULL);
+  gdk_pixbuf_loader_close(loader, NULL);
+  pixbuf = gdk_pixbuf_loader_get_pixbuf(loader);
+  g_object_ref(pixbuf);
+  g_object_unref(loader);
   return pixbuf;
 }
 
