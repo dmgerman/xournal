@@ -24,7 +24,7 @@
   Xournal User's Manual
 </h2>
 <p style="font-size: 0.95em; text-align: center; color: rgb(0,0,0)">
- Version 0.4.6
+ Version 0.4.7
 </p>
 <hr />
 <p>
@@ -148,6 +148,15 @@ the Tools menu):
   that the typesetting of the text may be slightly different in the
   printout.
 </p>
+<h3 class="subsub"> The image tool</h3>
+<p>
+  To insert a new image (from a file on disk), click at the location 
+  where the upper-left corner is to be located. A file selection dialog
+  box pops up. Alternatively, images can be pasted directly from the
+  clipboard (without having to select the image tool). In both cases,
+  the newly inserted image is selected, and can be easily moved or resized
+  as with any selection.
+</p>
 <h3 class="subsub"><img src="pixmaps/ruler.png"> The ruler</h3>
 <p>
   The ruler is not a tool by itself, but rather a special operating mode
@@ -216,6 +225,13 @@ the Tools menu):
   The selection can be cut, duplicated, etc. (including to a different page
   or to a different journal) using the copy-paste toolbar buttons or the
   corresponding entries of the Edit menu.
+</p>
+<h3 class="subsub"><img src="pixmaps/lasso.png"> Lasso selection</h3>
+<p>
+  This tool lets you select an irregular shaped region of the current layer.
+  All the items which are entirely contained within the given region
+  are selected. As with the rectangle selection tool, the selection can be moved,
+  resized, copied and pasted.
 </p>
 <h3 class="subsub"><img src="pixmaps/stretch.png"> Vertical space</h3>
 <p>
@@ -702,10 +718,11 @@ Xournal is written by Denis Auroux
 The source code includes contributions by the following people: 
 Alvaro, Kit Barnes, Eduardo de Barros Lima, Mathieu Bouchard, 
 Ole J&oslash;rgen Br&oslash;nner, Robert Buchholz, Vincenzo Ciancia, Luca de Cicco, 
-Michele Codutti, Robert Gerlach, Daniel German, Dirk Gerrits,
-Lukasz Kaiser, Timo Kluck, David Kolibac, Danny Kukawka, Stefan Lembach, 
-Bob McElrath,  Andy Neitzke, David Planella, Marco Poletti, Alex Ray, 
-Jean-Baptiste Rouquier, Marco Souza, Mike Ter Louw, Uwe Winter, Lu Zhihe.
+Michele Codutti, Robert Gerlach, Daniel German, Dirk Gerrits, Simon Guest,
+Lukasz Kaiser, Ian Woo Kim, Timo Kluck, David Kolibac, Danny Kukawka, 
+Stefan Lembach, Bob McElrath, Andy Neitzke, David Planella, Marco Poletti, 
+Alex Ray, Jean-Baptiste Rouquier, Victor Saase, Marco Souza, Mike Ter Louw, 
+Uwe Winter, Lu Zhihe.
 </p>
 <p style="font-size:0.9em">(Let me know if you are missing from this list or
 if your name is mis-spelled)</p>
@@ -733,6 +750,15 @@ Bug reports and suggestions can also be submitted on Xournal's
 <hr />
 <a name="changelog"></a>
 <h2 class="subtitle">Version history</h2>
+<p>
+Version 0.4.7 (July 4, 2012):
+<ul>
+     <li>insert image tool (based on patches by Victor Saase and Simon Guest)
+</li><li>renamed "Journal" menu to "Page"
+</li><li>paste images and text directly from and to other applications
+</li><li>lasso tool (based on patch by Ian Woo Kim)
+</ul>
+</p>
 <p>
 Version 0.4.6 (May 22, 2012):
 <ul>
@@ -1080,6 +1106,15 @@ The contents of the text are encoded in UTF-8, with the characters
 no extraneous whitespace should be inserted between the enclosing tags
 and the text itself).
 </p>
+<p>Starting with version 0.4.7, layers can also contain image items.
+The format of an image item is:
+<pre>&lt;image left="..." top="..." right="..." bottom="..."&gt;... data ...&lt;/image&gt;
+</pre>
+The <i>left</i>, <i>top</i>, <i>right</i> and <i>bottom</i> attributes
+specify the bounding box to which the image is scaled, in page coordinates
+(measured in points from the top-left corner). The data is in base64-encoded
+PNG format (though any other base64-encoded format that can be loaded by
+gdk-pixbuf is currently accepted).
 <hr />
 <a name="installation"></a>
 <h2 class="subtitle">Installation issues</h2>

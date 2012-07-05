@@ -2082,8 +2082,8 @@ void allow_all_accels(void)
       "can-activate-accel", G_CALLBACK(can_accel), NULL);
   g_signal_connect((gpointer) GET_COMPONENT("toolsText"),
       "can-activate-accel", G_CALLBACK(can_accel), NULL);
-/*  g_signal_connect((gpointer) GET_COMPONENT("toolsSelectRegion"),
-      "can-activate-accel", G_CALLBACK(can_accel), NULL);  */
+  g_signal_connect((gpointer) GET_COMPONENT("toolsSelectRegion"),
+      "can-activate-accel", G_CALLBACK(can_accel), NULL);
   g_signal_connect((gpointer) GET_COMPONENT("toolsSelectRectangle"),
       "can-activate-accel", G_CALLBACK(can_accel), NULL);
   g_signal_connect((gpointer) GET_COMPONENT("toolsVerticalSpace"),
@@ -2145,10 +2145,6 @@ void hide_unimplemented(void)
 {
   gtk_widget_hide(GET_COMPONENT("filePrintOptions"));
   gtk_widget_hide(GET_COMPONENT("journalFlatten"));  
-  gtk_widget_hide(GET_COMPONENT("toolsSelectRegion"));
-  gtk_widget_hide(GET_COMPONENT("buttonSelectRegion"));
-  gtk_widget_hide(GET_COMPONENT("button2SelectRegion"));
-  gtk_widget_hide(GET_COMPONENT("button3SelectRegion"));
   gtk_widget_hide(GET_COMPONENT("helpIndex")); 
 
   /* config file only works with glib 2.6 and beyond */

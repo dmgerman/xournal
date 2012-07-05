@@ -22,6 +22,8 @@
 #include <gtk/gtk.h>
 #include <libgnomecanvas/libgnomecanvas.h>
 #include <libart_lgpl/art_vpath_dash.h>
+#include <libart_lgpl/art_svp_point.h>
+#include <libart_lgpl/art_svp_vpath.h>
 
 #include "xournal.h"
 #include "xo-callbacks.h"
@@ -74,7 +76,6 @@ void finalize_selectrect(void)
   double x1, x2, y1, y2;
   GList *itemlist;
   struct Item *item;
-
   
   ui.cur_item_type = ITEM_NONE;
 
@@ -119,6 +120,156 @@ void finalize_selectrect(void)
   update_font_button();
 }
 
+
+void start_selectregion(GdkEvent *event)
+{
+  double pt[2];
+  reset_selection();
+  
+  ui.cur_item_type = ITEM_SELECTREGION;
+  ui.selection = g_new(struct Selection, 1);
+  ui.selection->type = ITEM_SELECTREGION;
+  ui.selection->items = NULL;
+  ui.selection->layer = ui.cur_layer;
+
+  get_pointer_coords(event, pt);
+  ui.selection->bbox.left = ui.selection->bbox.right = pt[0];
+  ui.selection->bbox.top = ui.selection->bbox.bottom = pt[1];
+  
+  realloc_cur_path(1);
+  ui.cur_path.num_points = 1;
+  ui.cur_path.coords[0] = ui.cur_path.coords[2] = pt[0];
+  ui.cur_path.coords[1] = ui.cur_path.coords[3] = pt[1];
+ 
+  ui.selection->canvas_item = gnome_canvas_item_new(ui.cur_layer->group,
+      gnome_canvas_polygon_get_type(), "width-pixels", 1, 
+      "outline-color-rgba", 0x000000ff,
+      "fill-color-rgba", 0x80808040,
+      NULL);
+  make_dashed(ui.selection->canvas_item);
+  update_cursor();
+}
+
+void continue_selectregion(GdkEvent *event)
+{
+  double *pt;
+  
+  realloc_cur_path(ui.cur_path.num_points+1);
+  pt = ui.cur_path.coords + 2*ui.cur_path.num_points;
+  get_pointer_coords(event, pt);
+  if (hypot(pt[0]-pt[-2], pt[1]-pt[-1]) < PIXEL_MOTION_THRESHOLD/ui.zoom)
+    return; // not a meaningful motion
+  ui.cur_path.num_points++;
+  if (ui.cur_path.num_points>2)
+    gnome_canvas_item_set(ui.selection->canvas_item, 
+     "points", &ui.cur_path, NULL);
+}
+
+/* check whether a point, resp. an item, is inside a lasso selection */
+
+gboolean hittest_point(ArtSVP *lassosvp, double x, double y)
+{
+  return art_svp_point_wind(lassosvp, x, y)%2;
+}
+
+gboolean hittest_item(ArtSVP *lassosvp, struct Item *item)
+{
+  int i;
+  
+  if (item->type == ITEM_STROKE) {
+    for (i=0; i<item->path->num_points; i++)
+      if (!hittest_point(lassosvp, item->path->coords[2*i], item->path->coords[2*i+1])) 
+        return FALSE;
+    return TRUE;
+  }
+  else 
+    return (hittest_point(lassosvp, item->bbox.left, item->bbox.top) &&
+            hittest_point(lassosvp, item->bbox.right, item->bbox.top) &&
+            hittest_point(lassosvp, item->bbox.left, item->bbox.bottom) &&
+            hittest_point(lassosvp, item->bbox.right, item->bbox.bottom));
+}
+
+void finalize_selectregion(void)
+{
+  GList *itemlist;
+  struct Item *item;
+  ArtVpath *vpath;
+  ArtSVP *lassosvp;
+  int i, n;
+  double *pt;
+  
+  ui.cur_item_type = ITEM_NONE;
+  
+  // build SVP for the lasso path
+  n = ui.cur_path.num_points;
+  vpath = g_malloc((n+2)*sizeof(ArtVpath));
+  for (i=0; i<n; i++) { 
+    vpath[i].x = ui.cur_path.coords[2*i];
+    vpath[i].y = ui.cur_path.coords[2*i+1];
+  }
+  vpath[n].x = vpath[0].x; vpath[n].y = vpath[0].y;
+  vpath[0].code = ART_MOVETO;
+  for (i=1; i<=n; i++) vpath[i].code = ART_LINETO;
+  vpath[n+1].code = ART_END;
+  lassosvp = art_svp_from_vpath(vpath);
+  g_free(vpath);
+
+  // see which items we selected
+  for (itemlist = ui.selection->layer->items; itemlist!=NULL; itemlist = itemlist->next) {
+    item = (struct Item *)itemlist->data;
+    if (hittest_item(lassosvp, item)) {
+      // update the selection bbox
+      if (ui.selection->items==NULL || ui.selection->bbox.left>item->bbox.left)
+        ui.selection->bbox.left = item->bbox.left;
+      if (ui.selection->items==NULL || ui.selection->bbox.right<item->bbox.right)
+        ui.selection->bbox.right = item->bbox.right;
+      if (ui.selection->items==NULL || ui.selection->bbox.top>item->bbox.top)
+        ui.selection->bbox.top = item->bbox.top;
+      if (ui.selection->items==NULL || ui.selection->bbox.bottom<item->bbox.bottom)
+        ui.selection->bbox.bottom = item->bbox.bottom;
+      // add the item
+      ui.selection->items = g_list_append(ui.selection->items, item); 
+    }
+  }
+  art_svp_free(lassosvp);
+  
+  if (ui.selection->items == NULL) {
+    // if we clicked inside a text zone or image?
+    pt = ui.cur_path.coords; 
+    item = click_is_in_text_or_image(ui.selection->layer, pt[0], pt[1]);
+    if (item!=NULL) {
+      for (i=0; i<n; i++, pt+=2) {
+        if (pt[0]<item->bbox.left || pt[0]>item->bbox.right || pt[1]<item->bbox.top || pt[1]>item->bbox.bottom)
+          { item = NULL; break; }
+      }
+    }
+    if (item!=NULL) {
+      ui.selection->items = g_list_append(ui.selection->items, item);
+      g_memmove(&(ui.selection->bbox), &(item->bbox), sizeof(struct BBox));
+    }
+  }
+
+  if (ui.selection->items == NULL) reset_selection();
+  else { // make a selection rectangle instead of the lasso shape
+    gtk_object_destroy(GTK_OBJECT(ui.selection->canvas_item));
+    ui.selection->canvas_item = gnome_canvas_item_new(ui.cur_layer->group,
+      gnome_canvas_rect_get_type(), "width-pixels", 1, 
+      "outline-color-rgba", 0x000000ff,
+      "fill-color-rgba", 0x80808040,
+      "x1", ui.selection->bbox.left, "x2", ui.selection->bbox.right, 
+      "y1", ui.selection->bbox.top, "y2", ui.selection->bbox.bottom, NULL);
+    make_dashed(ui.selection->canvas_item);
+    ui.selection->type = ITEM_SELECTRECT;
+  }
+
+  update_cursor();
+  update_copy_paste_enabled();
+  update_font_button();
+}
+
+
+/*** moving/resizing the selection ***/
+
 gboolean start_movesel(GdkEvent *event)
 {
   double pt[2];
@@ -127,7 +278,7 @@ gboolean start_movesel(GdkEvent *event)
   if (ui.cur_layer != ui.selection->layer) return FALSE;
   
   get_pointer_coords(event, pt);
-  if (ui.selection->type == ITEM_SELECTRECT) {
+  if (ui.selection->type == ITEM_SELECTRECT || ui.selection->type == ITEM_SELECTREGION) {
     if (pt[0]<ui.selection->bbox.left || pt[0]>ui.selection->bbox.right ||
         pt[1]<ui.selection->bbox.top  || pt[1]>ui.selection->bbox.bottom)
       return FALSE;
@@ -154,7 +305,7 @@ gboolean start_resizesel(GdkEvent *event)
 
   get_pointer_coords(event, pt);
 
-  if (ui.selection->type == ITEM_SELECTRECT) {
+  if (ui.selection->type == ITEM_SELECTRECT || ui.selection->type == ITEM_SELECTREGION) {
     resize_margin = RESIZE_MARGIN/ui.zoom;
     hmargin = (ui.selection->bbox.right-ui.selection->bbox.left)*0.3;
     if (hmargin>resize_margin) hmargin = resize_margin;

@@ -33,6 +33,7 @@
 #include "xo-misc.h"
 #include "xo-file.h"
 #include "xo-paint.h"
+#include "xo-selection.h"
 #include "xo-print.h"
 #include "xo-shapes.h"
 
@@ -1807,7 +1808,25 @@ void
 on_toolsSelectRegion_activate          (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-
+  if (GTK_OBJECT_TYPE(menuitem) == GTK_TYPE_RADIO_MENU_ITEM) {
+    if (!gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem)))
+      return;
+  } else {
+    if (!gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON (menuitem)))
+      return;
+  }
+  
+  if (ui.cur_mapping != 0 && !ui.button_switch_mapping) return; // not user-generated
+  if (ui.toolno[ui.cur_mapping] == TOOL_SELECTREGION) return;
+  
+  ui.cur_mapping = 0; // don't use switch_mapping() (refreshes buttons too soon)
+  end_text();
+  ui.toolno[ui.cur_mapping] = TOOL_SELECTREGION;
+  update_mapping_linkings(-1);
+  update_tool_buttons();
+  update_tool_menu();
+  update_color_menu();
+  update_cursor();
 }
 
 
@@ -2520,6 +2539,9 @@ on_canvas_button_press_event           (GtkWidget       *widget,
     do_eraser((GdkEvent *)event, ui.cur_brush->thickness/2,
                ui.cur_brush->tool_options == TOOLOPT_ERASER_STROKES);
   }
+  else if (ui.toolno[mapping] == TOOL_SELECTREGION) {
+    start_selectregion((GdkEvent *)event);
+  }
   else if (ui.toolno[mapping] == TOOL_SELECTRECT) {
     start_selectrect((GdkEvent *)event);
   }
@@ -2563,6 +2585,9 @@ on_canvas_button_release_event         (GtkWidget       *widget,
   }
   else if (ui.cur_item_type == ITEM_ERASURE) {
     finalize_erasure();
+  }
+  else if (ui.cur_item_type == ITEM_SELECTREGION) {
+    finalize_selectregion();
   }
   else if (ui.cur_item_type == ITEM_SELECTRECT) {
     finalize_selectrect();
@@ -2756,6 +2781,9 @@ on_canvas_motion_notify_event          (GtkWidget       *widget,
     else if (ui.cur_item_type == ITEM_ERASURE) {
       finalize_erasure();
     }
+    else if (ui.cur_item_type == ITEM_SELECTREGION) {
+      finalize_selectregion();
+    }
     else if (ui.cur_item_type == ITEM_SELECTRECT) {
       finalize_selectrect();
     }
@@ -2778,6 +2806,9 @@ on_canvas_motion_notify_event          (GtkWidget       *widget,
   else if (ui.cur_item_type == ITEM_ERASURE) {
     do_eraser((GdkEvent *)event, ui.cur_brush->thickness/2,
                ui.cur_brush->tool_options == TOOLOPT_ERASER_STROKES);
+  }
+  else if (ui.cur_item_type == ITEM_SELECTREGION) {
+    continue_selectregion((GdkEvent *)event);
   }
   else if (ui.cur_item_type == ITEM_SELECTRECT) {
     get_pointer_coords((GdkEvent *)event, pt);

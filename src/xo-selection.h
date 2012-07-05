@@ -16,6 +16,9 @@
 
 void start_selectrect(GdkEvent *event);
 void finalize_selectrect(void);
+void start_selectregion(GdkEvent *event);
+void finalize_selectregion(void);
+void continue_selectregion(GdkEvent *event);
 
 gboolean start_movesel(GdkEvent *event);
 void start_vertspace(GdkEvent *event);
