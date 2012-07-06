@@ -287,6 +287,7 @@ typedef struct UIData {
   gboolean in_update_page_stuff; // semaphore to avoid scrollbar retroaction
   struct Selection *selection;
   GdkCursor *cursor;
+  GdkPixbuf *pen_cursor_pix, *hiliter_cursor_pix;
   gboolean progressive_bg; // update PDF bg's one at a time
   char *mrufile, *configfile; // file names for MRU & config
   char *mru[MRU_SIZE]; // MRU data

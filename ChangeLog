@@ -1,3 +1,6 @@
+This version:
+  - generate cursors from pixbufs (fixes a Win32 bug)
+
 Version 0.4.7 (July 4, 2012):
   - insert image tool (based on patches by Victor Saase and Simon Guest)
   - renamed "Journal" menu to "Page"

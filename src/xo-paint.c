@@ -29,92 +29,7 @@
 #include "xo-misc.h"
 #include "xo-paint.h"
 
-/***** Win32 fix for gdk_cursor_new_from_pixmap() by Dirk Gerrits ****/
-
-#ifdef WIN32
-gboolean colors_too_similar(const GdkColor *colora, const GdkColor *colorb)
-{
-  return (abs(colora->red - colorb->red) < 256 &&
-          abs(colora->green - colorb->green) < 256 &&
-          abs(colora->blue - colorb->blue) < 256);
-}
-
-/* gdk_cursor_new_from_pixmap is broken on Windows.
-   this is a workaround using gdk_cursor_new_from_pixbuf. */
-GdkCursor* fixed_gdk_cursor_new_from_pixmap(GdkPixmap *source, GdkPixmap *mask,
-					    const GdkColor *fg, const GdkColor *bg,
-					    gint x, gint y)
-{
-  GdkPixmap *rgb_pixmap;
-  GdkGC *gc;
-  GdkPixbuf *rgb_pixbuf, *rgba_pixbuf;
-  GdkCursor *cursor;
-  int width, height;
-
-  /* HACK!  It seems impossible to work with RGBA pixmaps directly in
-     GDK-Win32.  Instead we pick some third color, different from fg
-     and bg, and use that as the 'transparent color'.  We do this using
-     colors_too_similar (see above) because two colors could be
-     unequal in GdkColor's 16-bit/sample, but equal in GdkPixbuf's
-     8-bit/sample. */
-  GdkColor candidates[3] = {{0,65535,0,0}, {0,0,65535,0}, {0,0,0,65535}};
-  GdkColor *trans = &candidates[0];
-  if (colors_too_similar(trans, fg) || colors_too_similar(trans, bg)) {
-    trans = &candidates[1];
-    if (colors_too_similar(trans, fg) || colors_too_similar(trans, bg)) {
-      trans = &candidates[2];
-    }
-  } /* trans is now guaranteed to be unique from fg and bg */
-
-  /* create an empty pixmap to hold the cursor image */
-  gdk_drawable_get_size(source, &width, &height);
-  rgb_pixmap = gdk_pixmap_new(NULL, width, height, 24);
-
-  /* blit the bitmaps defining the cursor onto a transparent background */
-  gc = gdk_gc_new(rgb_pixmap);
-  gdk_gc_set_fill(gc, GDK_SOLID);
-  gdk_gc_set_rgb_fg_color(gc, trans);
-  gdk_draw_rectangle(rgb_pixmap, gc, TRUE, 0, 0, width, height);
-  gdk_gc_set_fill(gc, GDK_OPAQUE_STIPPLED);
-  gdk_gc_set_stipple(gc, source);
-  gdk_gc_set_clip_mask(gc, mask);
-  gdk_gc_set_rgb_fg_color(gc, fg);
-  gdk_gc_set_rgb_bg_color(gc, bg);
-  gdk_draw_rectangle(rgb_pixmap, gc, TRUE, 0, 0, width, height);
-  gdk_gc_unref(gc);
-
-  /* create a cursor out of the created pixmap */
-  rgb_pixbuf = gdk_pixbuf_get_from_drawable(
-    NULL, rgb_pixmap, gdk_colormap_get_system(), 0, 0, 0, 0, width, height);
-  gdk_pixmap_unref(rgb_pixmap);
-  rgba_pixbuf = gdk_pixbuf_add_alpha(
-    rgb_pixbuf, TRUE, trans->red, trans->green, trans->blue);
-  gdk_pixbuf_unref(rgb_pixbuf);
-  cursor = gdk_cursor_new_from_pixbuf(gdk_display_get_default(), rgba_pixbuf, x, y);
-  gdk_pixbuf_unref(rgba_pixbuf);
-
-  return cursor;
-}
-#define gdk_cursor_new_from_pixmap fixed_gdk_cursor_new_from_pixmap
-#endif
-
-
 /************** drawing nice cursors *********/
-
-static char cursor_pen_bits[] = {
-   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-   0xc0, 0x01, 0xc0, 0x01, 0xc0, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-
-static char cursor_eraser_bits[] = {
-   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xf8, 0x0f, 0x08, 0x08, 0x08, 0x08,
-   0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0xf8, 0x0f,
-   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-
-static char cursor_eraser_mask[] = {
-   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xf8, 0x0f, 0xf8, 0x0f, 0xf8, 0x0f,
-   0xf8, 0x0f, 0xf8, 0x0f, 0xf8, 0x0f, 0xf8, 0x0f, 0xf8, 0x0f, 0xf8, 0x0f,
-   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 void set_cursor_busy(gboolean busy)
 {
@@ -131,6 +46,64 @@ void set_cursor_busy(gboolean busy)
     update_cursor();
   }
   gdk_display_sync(gdk_display_get_default());
+}
+
+#define PEN_CURSOR_RADIUS 1
+#define HILITER_CURSOR_RADIUS 3
+#define HILITER_BORDER_RADIUS 4
+
+GdkCursor *make_pen_cursor(guint color_rgba)
+{
+  int rowstride, x, y;
+  guchar col[4], *pixels;
+  
+  if (ui.pen_cursor_pix == NULL) {
+    ui.pen_cursor_pix = gdk_pixbuf_new(GDK_COLORSPACE_RGB, TRUE, 8, 16, 16);
+    if (ui.pen_cursor_pix == NULL) return NULL; // couldn't create pixbuf
+    gdk_pixbuf_fill(ui.pen_cursor_pix, 0xffffff00); // transparent white
+  }
+  rowstride = gdk_pixbuf_get_rowstride(ui.pen_cursor_pix);
+  pixels = gdk_pixbuf_get_pixels(ui.pen_cursor_pix);
+
+  col[0] = (color_rgba >> 24) & 0xff;
+  col[1] = (color_rgba >> 16) & 0xff;
+  col[2] = (color_rgba >> 8) & 0xff;
+  col[3] = 0xff; // solid
+  for (x = 8-PEN_CURSOR_RADIUS; x <= 8+PEN_CURSOR_RADIUS; x++)
+    for (y = 8-PEN_CURSOR_RADIUS; y <= 8+PEN_CURSOR_RADIUS; y++)
+      g_memmove(pixels + y*rowstride + x*4, col, 4);
+  
+  return gdk_cursor_new_from_pixbuf(gdk_display_get_default(), ui.pen_cursor_pix, 7, 7);
+}
+
+GdkCursor *make_hiliter_cursor(guint color_rgba)
+{
+  int rowstride, x, y;
+  guchar col[4], *pixels;
+  
+  if (ui.hiliter_cursor_pix == NULL) {
+    ui.hiliter_cursor_pix = gdk_pixbuf_new(GDK_COLORSPACE_RGB, TRUE, 8, 16, 16);
+    if (ui.hiliter_cursor_pix == NULL) return NULL; // couldn't create pixbuf
+    gdk_pixbuf_fill(ui.hiliter_cursor_pix, 0xffffff00); // transparent white
+  }
+  rowstride = gdk_pixbuf_get_rowstride(ui.hiliter_cursor_pix);
+  pixels = gdk_pixbuf_get_pixels(ui.hiliter_cursor_pix);
+
+  col[0] = col[1] = col[2] = 0; // black
+  col[3] = 0xff; // solid
+  for (x = 8-HILITER_BORDER_RADIUS; x <= 8+HILITER_BORDER_RADIUS; x++)
+    for (y = 8-HILITER_BORDER_RADIUS; y <= 8+HILITER_BORDER_RADIUS; y++)
+      g_memmove(pixels + y*rowstride + x*4, col, 4);
+
+  col[0] = (color_rgba >> 24) & 0xff;
+  col[1] = (color_rgba >> 16) & 0xff;
+  col[2] = (color_rgba >> 8) & 0xff;
+  col[3] = 0xff; // solid
+  for (x = 8-HILITER_CURSOR_RADIUS; x <= 8+HILITER_CURSOR_RADIUS; x++)
+    for (y = 8-HILITER_CURSOR_RADIUS; y <= 8+HILITER_CURSOR_RADIUS; y++)
+      g_memmove(pixels + y*rowstride + x*4, col, 4);
+  
+  return gdk_cursor_new_from_pixbuf(gdk_display_get_default(), ui.hiliter_cursor_pix, 7, 7);
 }
 
 void update_cursor(void)
@@ -150,29 +123,13 @@ void update_cursor(void)
   else if (ui.cur_item_type == ITEM_MOVESEL)
     ui.cursor = gdk_cursor_new(GDK_FLEUR);
   else if (ui.toolno[ui.cur_mapping] == TOOL_PEN) {
-    fg.red = (ui.cur_brush->color_rgba >> 16) & 0xff00;
-    fg.green = (ui.cur_brush->color_rgba >> 8) & 0xff00;
-    fg.blue = (ui.cur_brush->color_rgba >> 0) & 0xff00;
-    source = gdk_bitmap_create_from_data(NULL, cursor_pen_bits, 16, 16);
-    ui.cursor = gdk_cursor_new_from_pixmap(source, source, &fg, &bg, 7, 7);
-    gdk_bitmap_unref(source);
+    ui.cursor = make_pen_cursor(ui.cur_brush->color_rgba);
   }
   else if (ui.toolno[ui.cur_mapping] == TOOL_ERASER) {
-    source = gdk_bitmap_create_from_data(NULL, cursor_eraser_bits, 16, 16);
-    mask = gdk_bitmap_create_from_data(NULL, cursor_eraser_mask, 16, 16);
-    ui.cursor = gdk_cursor_new_from_pixmap(source, mask, &fg, &bg, 7, 7);
-    gdk_bitmap_unref(source);
-    gdk_bitmap_unref(mask);
+    ui.cursor = make_hiliter_cursor(0xffffffff);
   }
   else if (ui.toolno[ui.cur_mapping] == TOOL_HIGHLIGHTER) {
-    source = gdk_bitmap_create_from_data(NULL, cursor_eraser_bits, 16, 16);
-    mask = gdk_bitmap_create_from_data(NULL, cursor_eraser_mask, 16, 16);
-    bg.red = (ui.cur_brush->color_rgba >> 16) & 0xff00;
-    bg.green = (ui.cur_brush->color_rgba >> 8) & 0xff00;
-    bg.blue = (ui.cur_brush->color_rgba >> 0) & 0xff00;
-    ui.cursor = gdk_cursor_new_from_pixmap(source, mask, &fg, &bg, 7, 7);
-    gdk_bitmap_unref(source);
-    gdk_bitmap_unref(mask);
+    ui.cursor = make_hiliter_cursor(ui.cur_brush->color_rgba);
   }
   else if (ui.cur_item_type == ITEM_SELECTRECT) {
     ui.cursor = gdk_cursor_new(GDK_TCROSS);

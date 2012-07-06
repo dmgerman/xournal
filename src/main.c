@@ -98,6 +98,7 @@ void init_stuff (int argc, char *argv[])
 
   ui.selection = NULL;
   ui.cursor = NULL;
+  ui.pen_cursor_pix = ui.hiliter_cursor_pix = NULL;
 
   ui.cur_brush = &(ui.brushes[0][ui.toolno[0]]);
   for (j=0; j<=NUM_BUTTONS; j++)
