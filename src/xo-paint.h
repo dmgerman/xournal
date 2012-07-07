@@ -29,7 +29,11 @@ void do_hand(GdkEvent *event);
 
 /* text functions */
 
+#ifdef WIN32
+#define DEFAULT_FONT "Arial"
+#else
 #define DEFAULT_FONT "Sans"
+#endif
 #define DEFAULT_FONT_SIZE 12
 
 void start_text(GdkEvent *event, struct Item *item);

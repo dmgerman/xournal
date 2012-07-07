@@ -334,7 +334,7 @@ void clipboard_paste_text(gchar *text)
   ui.cur_layer->items = g_list_append(ui.cur_layer->items, item);
   ui.cur_layer->nitems++;
   item->type = ITEM_TEXT;
-  g_memmove(&(item->brush), ui.cur_brush, sizeof(struct Brush));
+  g_memmove(&(item->brush), &(ui.brushes[ui.cur_mapping][TOOL_PEN]), sizeof(struct Brush));
   item->text = text; // text was newly allocated, we keep it
   item->font_name = g_strdup(ui.font_name);
   item->font_size = ui.font_size;
@@ -401,6 +401,10 @@ void clipboard_paste(void)
   sel_data = gtk_clipboard_wait_for_contents(
       clipboard,
       gdk_atom_intern(XOURNAL_TARGET_ATOM, FALSE));
+#ifdef WIN32 // avoid a win32 bug showing images as xournal data
+  if (gtk_selection_data_get_data_type(sel_data)!=gdk_atom_intern(XOURNAL_TARGET_ATOM, FALSE))
+    { gtk_selection_data_free(sel_data); sel_data = NULL; }
+#endif
   ui.cur_item_type = ITEM_NONE;
   if (sel_data != NULL) { 
     clipboard_paste_from_xournal(sel_data);
