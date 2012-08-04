@@ -8,3 +8,7 @@ src/xo-file.c
 src/xo-misc.c
 src/xo-print.c
 src/xo-paint.c
+src/xo-image.c
+src/xo-clipboard.c
+src/xo-selection.c
+src/xo-shapes.c
