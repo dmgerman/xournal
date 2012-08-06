@@ -1248,3 +1248,16 @@ msgstr "Unbenannt"
 
 #~ msgid "Discard _Core Events"
 #~ msgstr "Mausbewegungen ignorieren"
+
+#: ../src/xo-image.c:109
+msgid "Insert Image"
+msgstr "Grafik einfügen"
+
+#: ../src/xo-image.c:120
+msgid "Image files"
+msgstr "Grafik-Dateien"
+
+#: ../src/xo-image.c:145
+#, c-format
+msgid "Error opening image '%s'"
+msgstr "Fehler beim Öffnen der Grafik '%s'"
