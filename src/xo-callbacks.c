@@ -2457,6 +2457,7 @@ on_canvas_button_press_event           (GtkWidget       *widget,
       ui.cur_path.num_points == 1) { 
       // Xorg 7.3+ sent core event before XInput event: fix initial point 
     ui.is_corestroke = FALSE;
+    ui.stroke_device = event->device;
     get_pointer_coords((GdkEvent *)event, ui.cur_path.coords);
   }
   if (ui.cur_item_type != ITEM_NONE) return FALSE; // we're already doing something
@@ -2573,6 +2574,7 @@ on_canvas_button_release_event         (GtkWidget       *widget,
   is_core = (event->device == gdk_device_get_core_pointer());
   if (!ui.use_xinput && !is_core) return FALSE;
   if (ui.use_xinput && is_core && !ui.is_corestroke) return FALSE;
+  if (ui.ignore_other_devices && ui.stroke_device!=event->device) return FALSE;
   if (!is_core) fix_xinput_coords((GdkEvent *)event);
 
   if (event->button != ui.which_mouse_button && 
@@ -2760,11 +2762,15 @@ on_canvas_motion_notify_event          (GtkWidget       *widget,
   }
 
   if (ui.use_xinput && is_core && !ui.is_corestroke) return FALSE;
-  if (!is_core) ui.is_corestroke = FALSE;
+  if (!is_core && ui.is_corestroke) {
+    ui.is_corestroke = FALSE;
+    ui.stroke_device = event->device;
+  }
+  if (ui.ignore_other_devices && ui.stroke_device!=event->device) return FALSE;
 
 #ifdef INPUT_DEBUG
   printf("DEBUG: MotionNotify (%s) (x,y)=(%.2f,%.2f), modifier %x\n", 
-    is_core?"core":"xinput", event->x, event->y, event->state);
+    event->device->name, event->x, event->y, event->state);
 #endif
   
   looks_wrong = !(event->state & (1<<(7+ui.which_mouse_button)));

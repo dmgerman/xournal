@@ -276,6 +276,7 @@ typedef struct UIData {
   gboolean is_corestroke; // this stroke is painted with core pointer
   gboolean saved_is_corestroke;
   GdkDevice *stroke_device; // who's painting this stroke
+  gboolean ignore_other_devices;
   int screen_width, screen_height; // initial screen size, for XInput events
   double hand_refpt[2];
   int hand_scrollto_cx, hand_scrollto_cy;

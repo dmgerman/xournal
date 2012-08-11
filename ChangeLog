@@ -3,6 +3,7 @@ This version:
   - work around Win32 bug: refuse paste if mismatched format
   - Chinese (simplified) translation (by Mutse)
   - updated German translation (Stefan Holtzhauer)
+  - ignore events from non-drawing devices by default (ignore_other_devices)
 
 Version 0.4.7 (July 4, 2012):
   - insert image tool (based on patches by Victor Saase and Simon Guest)

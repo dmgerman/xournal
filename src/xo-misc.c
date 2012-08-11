@@ -65,7 +65,7 @@ struct Page *new_page(struct Page *template)
   pg->bg = (struct Background *)g_memdup(template->bg, sizeof(struct Background));
   pg->bg->canvas_item = NULL;
   if (pg->bg->type == BG_PIXMAP || pg->bg->type == BG_PDF) {
-    gdk_pixbuf_ref(pg->bg->pixbuf);
+    g_object_ref(pg->bg->pixbuf);
     refstring_ref(pg->bg->filename);
   }
   pg->group = (GnomeCanvasGroup *) gnome_canvas_item_new(
@@ -204,7 +204,7 @@ void clear_redo_stack(void)
     else if (redo->type == ITEM_NEW_BG_ONE || redo->type == ITEM_NEW_BG_RESIZE
           || redo->type == ITEM_NEW_DEFAULT_BG) {
       if (redo->bg->type == BG_PIXMAP || redo->bg->type == BG_PDF) {
-        if (redo->bg->pixbuf!=NULL) gdk_pixbuf_unref(redo->bg->pixbuf);
+        if (redo->bg->pixbuf!=NULL) g_object_unref(redo->bg->pixbuf);
         refstring_unref(redo->bg->filename);
       }
       g_free(redo->bg);
@@ -276,7 +276,7 @@ void clear_undo_stack(void)
     else if (undo->type == ITEM_NEW_BG_ONE || undo->type == ITEM_NEW_BG_RESIZE
           || undo->type == ITEM_NEW_DEFAULT_BG) {
       if (undo->bg->type == BG_PIXMAP || undo->bg->type == BG_PDF) {
-        if (undo->bg->pixbuf!=NULL) gdk_pixbuf_unref(undo->bg->pixbuf);
+        if (undo->bg->pixbuf!=NULL) g_object_unref(undo->bg->pixbuf);
         refstring_unref(undo->bg->filename);
       }
       g_free(undo->bg);
@@ -333,7 +333,7 @@ void delete_page(struct Page *pg)
   if (pg->group!=NULL) gtk_object_destroy(GTK_OBJECT(pg->group));
               // this also destroys the background's canvas items
   if (pg->bg->type == BG_PIXMAP || pg->bg->type == BG_PDF) {
-    if (pg->bg->pixbuf != NULL) gdk_pixbuf_unref(pg->bg->pixbuf);
+    if (pg->bg->pixbuf != NULL) g_object_unref(pg->bg->pixbuf);
     if (pg->bg->filename != NULL) refstring_unref(pg->bg->filename);
   }
   g_free(pg->bg);

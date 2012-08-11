@@ -456,7 +456,7 @@ void xoj_parser_start_element(GMarkupParseContext *context,
             { *error = xoj_invalid(); return; }
           tmpPage->bg->filename = refstring_ref(tmpbg->filename);
           tmpPage->bg->pixbuf = tmpbg->pixbuf;
-          if (tmpbg->pixbuf!=NULL) gdk_pixbuf_ref(tmpbg->pixbuf);
+          if (tmpbg->pixbuf!=NULL) g_object_ref(tmpbg->pixbuf);
           tmpPage->bg->file_domain = tmpbg->file_domain;
         }
         else {
@@ -1033,7 +1033,7 @@ GList *attempt_load_gv_bg(char *filename)
     if (remnlen == 0) { // make a new bg
       pix = gdk_pixbuf_loader_get_pixbuf(loader);
       if (pix == NULL) break;
-      gdk_pixbuf_ref(pix);
+      g_object_ref(pix);
       gdk_pixbuf_loader_close(loader, NULL);
       g_object_unref(loader);
       loader = NULL;
@@ -1177,7 +1177,7 @@ gboolean bgpdf_scheduler_callback(gpointer data)
       bgpdf.npages++;
     }
     bgpg = g_list_nth_data(bgpdf.pages, req->pageno-1);
-    if (bgpg->pixbuf!=NULL) gdk_pixbuf_unref(bgpg->pixbuf);
+    if (bgpg->pixbuf!=NULL) g_object_unref(bgpg->pixbuf);
     bgpg->pixbuf = pixbuf;
     bgpg->dpi = req->dpi;
     bgpg->pixel_height = scaled_height;
@@ -1240,7 +1240,7 @@ void shutdown_bgpdf(void)
   refstring_unref(bgpdf.filename);
   for (list = bgpdf.pages; list != NULL; list = list->next) {
     pdfpg = (struct BgPdfPage *)list->data;
-    if (pdfpg->pixbuf!=NULL) gdk_pixbuf_unref(pdfpg->pixbuf);
+    if (pdfpg->pixbuf!=NULL) g_object_unref(pdfpg->pixbuf);
     g_free(pdfpg);
   }
   g_list_free(bgpdf.pages);
@@ -1358,8 +1358,8 @@ void bgpdf_update_bg(int pageno, struct BgPdfPage *bgpg)
   for (list = journal.pages; list!= NULL; list = list->next) {
     pg = (struct Page *)list->data;
     if (pg->bg->type == BG_PDF && pg->bg->file_page_seq == pageno) {
-      if (pg->bg->pixbuf!=NULL) gdk_pixbuf_unref(pg->bg->pixbuf);
-      pg->bg->pixbuf = gdk_pixbuf_ref(bgpg->pixbuf);
+      if (pg->bg->pixbuf!=NULL) g_object_unref(pg->bg->pixbuf);
+      pg->bg->pixbuf = g_object_ref(bgpg->pixbuf);
       pg->bg->pixel_width = bgpg->pixel_width;
       pg->bg->pixel_height = bgpg->pixel_height;
       update_canvas_bg(pg);
@@ -1477,6 +1477,7 @@ void init_config_default(void)
   ui.view_continuous = TRUE;
   ui.allow_xinput = TRUE;
   ui.discard_corepointer = FALSE;
+  ui.ignore_other_devices = TRUE;
   ui.left_handed = FALSE;
   ui.shorten_menus = FALSE;
   ui.shorten_menu_items = g_strdup(DEFAULT_SHORTEN_MENUS);
@@ -1629,6 +1630,9 @@ void save_config_to_file(void)
   update_keyval("general", "discard_corepointer",
     _(" discard Core Pointer events in XInput mode (true/false)"),
     g_strdup(ui.discard_corepointer?"true":"false"));
+  update_keyval("general", "ignore_other_devices",
+    _(" ignore events from other devices while drawing (true/false)"),
+    g_strdup(ui.ignore_other_devices?"true":"false"));
   update_keyval("general", "use_erasertip",
     _(" always map eraser tip to eraser (true/false)"),
     g_strdup(ui.use_erasertip?"true":"false"));
@@ -2022,6 +2026,7 @@ void load_config_from_file(void)
   parse_keyval_boolean("general", "view_continuous", &ui.view_continuous);
   parse_keyval_boolean("general", "use_xinput", &ui.allow_xinput);
   parse_keyval_boolean("general", "discard_corepointer", &ui.discard_corepointer);
+  parse_keyval_boolean("general", "ignore_other_devices", &ui.ignore_other_devices);
   parse_keyval_boolean("general", "use_erasertip", &ui.use_erasertip);
   parse_keyval_boolean("general", "buttons_switch_mappings", &ui.button_switch_mapping);
   parse_keyval_boolean("general", "autoload_pdf_xoj", &ui.autoload_pdf_xoj);

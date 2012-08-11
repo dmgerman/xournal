@@ -71,7 +71,7 @@ void callback_clipboard_clear(GtkClipboard *clipboard, gpointer user_data)
   
   if (sel->xo_data!=NULL) g_free(sel->xo_data);
   if (sel->text_data!=NULL) g_free(sel->text_data);
-  if (sel->image_data!=NULL) gdk_pixbuf_unref(sel->image_data);
+  if (sel->image_data!=NULL) g_object_unref(sel->image_data);
   g_free(sel);
 }
 
