@@ -4,6 +4,7 @@ This version:
   - Chinese (simplified) translation (by Mutse)
   - updated German translation (Stefan Holtzhauer)
   - ignore events from non-drawing devices by default (ignore_other_devices)
+  - Polish translation (by Mis Uszatek)
 
 Version 0.4.7 (July 4, 2012):
   - insert image tool (based on patches by Victor Saase and Simon Guest)
