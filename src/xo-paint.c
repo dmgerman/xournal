@@ -56,6 +56,10 @@ GdkCursor *make_pen_cursor(guint color_rgba)
 {
   int rowstride, x, y;
   guchar col[4], *pixels;
+
+  if (ui.pen_cursor == TRUE) {  
+    return gdk_cursor_new(GDK_PENCIL);
+  }
   
   if (ui.pen_cursor_pix == NULL) {
     ui.pen_cursor_pix = gdk_pixbuf_new(GDK_COLORSPACE_RGB, TRUE, 8, 16, 16);

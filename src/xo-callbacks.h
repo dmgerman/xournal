@@ -660,3 +660,7 @@ on_button2Image_activate               (GtkMenuItem     *menuitem,
 void
 on_button3Image_activate               (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
+
+void
+on_optionsPenCursor_activate           (GtkCheckMenuItem *checkmenuitem,
+                                        gpointer         user_data);

@@ -289,6 +289,7 @@ typedef struct UIData {
   struct Selection *selection;
   GdkCursor *cursor;
   GdkPixbuf *pen_cursor_pix, *hiliter_cursor_pix;
+  gboolean pen_cursor; // use pencil cursor (default is a dot in current color)
   gboolean progressive_bg; // update PDF bg's one at a time
   char *mrufile, *configfile; // file names for MRU & config
   char *mru[MRU_SIZE]; // MRU data

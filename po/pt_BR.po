@@ -404,6 +404,9 @@ msgstr "_grosso"
 msgid "ver_y thick"
 msgstr "m_uito grosso"
 
+msgid "Pencil Cursor"
+msgstr "Cursor de lápis"
+
 #: src/xo-interface.c:1071
 msgid "Eraser Optio_ns"
 msgstr "Opções da borracha"

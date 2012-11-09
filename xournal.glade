@@ -1929,6 +1929,16 @@
 		  </child>
 
 		  <child>
+		    <widget class="GtkCheckMenuItem" id="optionsPenCursor">
+		      <property name="visible">True</property>
+		      <property name="label" translatable="yes">Pencil Cursor</property>
+		      <property name="use_underline">True</property>
+		      <property name="active">False</property>
+		      <signal name="toggled" handler="on_optionsPenCursor_activate" last_modification_time="Wed, 07 Nov 2012 22:54:39 GMT"/>
+		    </widget>
+		  </child>
+
+		  <child>
 		    <widget class="GtkSeparatorMenuItem" id="separator21">
 		      <property name="visible">True</property>
 		    </widget>

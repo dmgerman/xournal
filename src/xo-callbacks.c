@@ -3683,3 +3683,11 @@ on_optionsButtonsSwitchMappings_activate(GtkMenuItem    *menuitem,
 }
 
 
+
+void
+on_optionsPenCursor_activate           (GtkCheckMenuItem *checkmenuitem,
+                                        gpointer         user_data)
+{
+  ui.pen_cursor = gtk_check_menu_item_get_active(checkmenuitem);
+  update_cursor();
+}
