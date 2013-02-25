@@ -1,0 +1,1202 @@
+# Traditional Chinese Messages for xournal.
+# Copyright (C) 2011 The xournal Project (msgids)
+# This file is distributed under the same license as the xournal package.
+# Wei-Lun Chao <william.chao@ossii.com.tw>, 2011.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xournal 0.4.5\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2009-10-02 16:42-0700\n"
+"PO-Revision-Date: 2011-05-24 12:23+0800\n"
+"Last-Translator: Wei-Lun Chao <william.chao@ossii.com.tw>\n"
+"Language-Team: Chinese (traditional) <zh-l10n@linux.org.tw>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: src/main.c:65
+#, c-format
+msgid ""
+"Invalid command line parameters.\n"
+"Usage: %s [filename.xoj]\n"
+msgstr ""
+"無效的命令列參數。\n"
+"用法：%s [檔名.xoj]\n"
+
+#: src/main.c:291 src/xo-callbacks.c:105 src/xo-callbacks.c:156
+#: src/xo-callbacks.c:3126
+#, c-format
+msgid "Error opening file '%s'"
+msgstr "開啟檔案「%s」時發生錯誤"
+
+#: src/xo-interface.c:350 src/xo-interface.c:2951 src/xo-misc.c:1405
+msgid "Xournal"
+msgstr "Xournal"
+
+#: src/xo-interface.c:360
+msgid "_File"
+msgstr "檔案(_F)"
+
+#: src/xo-interface.c:371
+msgid "Annotate PD_F"
+msgstr "註解 PD_F"
+
+#: src/xo-interface.c:396
+msgid "Recent Doc_uments"
+msgstr "最近使用文件(_U)"
+
+#: src/xo-interface.c:403
+msgid "0"
+msgstr "0"
+
+#: src/xo-interface.c:407
+msgid "1"
+msgstr "1"
+
+#: src/xo-interface.c:411
+msgid "2"
+msgstr "2"
+
+#: src/xo-interface.c:415
+msgid "3"
+msgstr "3"
+
+#: src/xo-interface.c:419
+msgid "4"
+msgstr "4"
+
+#: src/xo-interface.c:423
+msgid "5"
+msgstr "5"
+
+#: src/xo-interface.c:427
+msgid "6"
+msgstr "6"
+
+#: src/xo-interface.c:431
+msgid "7"
+msgstr "7"
+
+#: src/xo-interface.c:440
+msgid "Print Options"
+msgstr "列印選項"
+
+#: src/xo-interface.c:455
+msgid "_Export to PDF"
+msgstr "匯出至 PDF(_E)"
+
+#: src/xo-interface.c:471
+msgid "_Edit"
+msgstr "編輯(_E)"
+
+#: src/xo-interface.c:516
+msgid "_View"
+msgstr "檢視(_V)"
+
+#: src/xo-interface.c:523
+msgid "_Continuous"
+msgstr "連續頁面(_C)"
+
+#: src/xo-interface.c:529
+msgid "_One Page"
+msgstr "單一頁面(_O)"
+
+#: src/xo-interface.c:540
+msgid "Full Screen"
+msgstr "全螢幕"
+
+#: src/xo-interface.c:552
+msgid "_Zoom"
+msgstr "縮放(_Z)"
+
+#: src/xo-interface.c:580
+msgid "Page _Width"
+msgstr "頁面寬度(_W)"
+
+#: src/xo-interface.c:591
+msgid "_Set Zoom"
+msgstr "設定縮放(_S)"
+
+#: src/xo-interface.c:600
+msgid "_First Page"
+msgstr "首頁(_F)"
+
+#: src/xo-interface.c:611
+msgid "_Previous Page"
+msgstr "上頁(_P)"
+
+#: src/xo-interface.c:622
+msgid "_Next Page"
+msgstr "下頁(_N)"
+
+#: src/xo-interface.c:633
+msgid "_Last Page"
+msgstr "末頁(_L)"
+
+#: src/xo-interface.c:649
+msgid "_Show Layer"
+msgstr "顯示圖層(_S)"
+
+#: src/xo-interface.c:657
+msgid "_Hide Layer"
+msgstr "隱藏圖層(_H)"
+
+#: src/xo-interface.c:665
+msgid "_Journal"
+msgstr "日誌(_J)"
+
+#: src/xo-interface.c:672
+msgid "New Page _Before"
+msgstr "新頁面於之前(_B)"
+
+#: src/xo-interface.c:676
+msgid "New Page _After"
+msgstr "新頁面於之後(_A)"
+
+#: src/xo-interface.c:680
+msgid "New Page At _End"
+msgstr "新頁面於結束(_E)"
+
+#: src/xo-interface.c:684
+msgid "_Delete Page"
+msgstr "刪除頁面(_D)"
+
+#: src/xo-interface.c:693
+msgid "_New Layer"
+msgstr "新圖層(_N)"
+
+#: src/xo-interface.c:697
+msgid "Delete La_yer"
+msgstr "刪除圖層(_Y)"
+
+#: src/xo-interface.c:701
+msgid "_Flatten"
+msgstr "平面化(_F)"
+
+#: src/xo-interface.c:710
+msgid "Paper Si_ze"
+msgstr "紙張大小(_Z)"
+
+#: src/xo-interface.c:714
+msgid "Paper _Color"
+msgstr "紙張顏色(_C)"
+
+#: src/xo-interface.c:721
+msgid "_white paper"
+msgstr "白色紙張(_W)"
+
+#: src/xo-interface.c:727
+msgid "_yellow paper"
+msgstr "黃色紙張(_Y)"
+
+#: src/xo-interface.c:733
+msgid "_pink paper"
+msgstr "粉紅紙張(_P)"
+
+#: src/xo-interface.c:739
+msgid "_orange paper"
+msgstr "橙色紙張(_O)"
+
+#: src/xo-interface.c:745
+msgid "_blue paper"
+msgstr "藍色紙張(_B)"
+
+#: src/xo-interface.c:751
+msgid "_green paper"
+msgstr "綠色紙張(_G)"
+
+#: src/xo-interface.c:757 src/xo-interface.c:1025
+msgid "other..."
+msgstr "其他…"
+
+#: src/xo-interface.c:761 src/xo-interface.c:797 src/xo-interface.c:1029
+#: src/xo-interface.c:1270 src/xo-interface.c:1346
+msgid "NA"
+msgstr "無法提供"
+
+#: src/xo-interface.c:766
+msgid "Paper _Style"
+msgstr "紙張樣式(_S)"
+
+#: src/xo-interface.c:773
+msgid "_plain"
+msgstr "普通(_P)"
+
+#: src/xo-interface.c:779
+msgid "_lined"
+msgstr "劃線(_L)"
+
+#: src/xo-interface.c:785
+msgid "_ruled"
+msgstr "刻度(_R)"
+
+#: src/xo-interface.c:791
+msgid "_graph"
+msgstr "座標(_G)"
+
+#: src/xo-interface.c:802
+msgid "Apply _To All Pages"
+msgstr "套用到所有頁面(_T)"
+
+#: src/xo-interface.c:811
+msgid "_Load Background"
+msgstr "載入背景(_L)"
+
+#: src/xo-interface.c:819
+msgid "Background Screens_hot"
+msgstr "背景螢幕快照(_H)"
+
+#: src/xo-interface.c:828
+msgid "Default _Paper"
+msgstr "預設紙張(_P)"
+
+#: src/xo-interface.c:832
+msgid "Set As De_fault"
+msgstr "設成預設值(_F)"
+
+#: src/xo-interface.c:836
+msgid "_Tools"
+msgstr "工具(_T)"
+
+#: src/xo-interface.c:843 src/xo-interface.c:1206 src/xo-interface.c:1282
+msgid "_Pen"
+msgstr "畫筆(_P)"
+
+#: src/xo-interface.c:852 src/xo-interface.c:1212 src/xo-interface.c:1288
+msgid "_Eraser"
+msgstr "橡皮擦(_E)"
+
+#: src/xo-interface.c:861 src/xo-interface.c:1218 src/xo-interface.c:1294
+msgid "_Highlighter"
+msgstr "反白顯示(_H)"
+
+#: src/xo-interface.c:870 src/xo-interface.c:1224 src/xo-interface.c:1300
+msgid "_Text"
+msgstr "文字(_T)"
+
+#: src/xo-interface.c:884
+msgid "_Shape Recognizer"
+msgstr "形狀辨識器(_S)"
+
+#: src/xo-interface.c:891
+msgid "Ru_ler"
+msgstr "直尺(_L)"
+
+#: src/xo-interface.c:903 src/xo-interface.c:1230 src/xo-interface.c:1306
+msgid "Select Re_gion"
+msgstr "選取區域(_G)"
+
+#: src/xo-interface.c:912 src/xo-interface.c:1236 src/xo-interface.c:1312
+msgid "Select _Rectangle"
+msgstr "選取矩形(_R)"
+
+#: src/xo-interface.c:921 src/xo-interface.c:1242 src/xo-interface.c:1318
+msgid "_Vertical Space"
+msgstr "垂直空格(_V)"
+
+#: src/xo-interface.c:930 src/xo-interface.c:1248 src/xo-interface.c:1324
+msgid "H_and Tool"
+msgstr "手工具(_A)"
+
+#: src/xo-interface.c:943
+msgid "_Color"
+msgstr "顏色(_C)"
+
+#: src/xo-interface.c:954
+msgid "blac_k"
+msgstr "黑色(_K)"
+
+#: src/xo-interface.c:960
+msgid "_blue"
+msgstr "藍色(_B)"
+
+#: src/xo-interface.c:966
+msgid "_red"
+msgstr "紅色(_R)"
+
+#: src/xo-interface.c:972
+msgid "_green"
+msgstr "綠色(_G)"
+
+#: src/xo-interface.c:978
+msgid "gr_ay"
+msgstr "灰色(_A)"
+
+#: src/xo-interface.c:989
+msgid "light bl_ue"
+msgstr "淺藍(_U)"
+
+#: src/xo-interface.c:995
+msgid "light gr_een"
+msgstr "淺綠(_E)"
+
+#: src/xo-interface.c:1001
+msgid "_magenta"
+msgstr "洋紅(_M)"
+
+#: src/xo-interface.c:1007
+msgid "_orange"
+msgstr "橙色(_O)"
+
+#: src/xo-interface.c:1013
+msgid "_yellow"
+msgstr "黃色(_Y)"
+
+#: src/xo-interface.c:1019
+msgid "_white"
+msgstr "白色(_W)"
+
+#: src/xo-interface.c:1034
+msgid "Pen _Options"
+msgstr "畫筆選項(_O)"
+
+#: src/xo-interface.c:1041
+msgid "_very fine"
+msgstr "很細(_V)"
+
+#: src/xo-interface.c:1047 src/xo-interface.c:1078 src/xo-interface.c:1126
+msgid "_fine"
+msgstr "細(_F)"
+
+#: src/xo-interface.c:1053 src/xo-interface.c:1084 src/xo-interface.c:1132
+msgid "_medium"
+msgstr "中(_M)"
+
+#: src/xo-interface.c:1059 src/xo-interface.c:1090 src/xo-interface.c:1138
+msgid "_thick"
+msgstr "粗(_T)"
+
+#: src/xo-interface.c:1065
+msgid "ver_y thick"
+msgstr "很粗(_Y)"
+
+#: src/xo-interface.c:1071
+msgid "Eraser Optio_ns"
+msgstr "橡皮擦選項(_N)"
+
+#: src/xo-interface.c:1101
+msgid "_standard"
+msgstr "標準(_S)"
+
+#: src/xo-interface.c:1107
+msgid "_whiteout"
+msgstr "白化(_W)"
+
+#: src/xo-interface.c:1113
+msgid "_delete strokes"
+msgstr "刪除筆畫(_D)"
+
+#: src/xo-interface.c:1119
+msgid "Highlighter Opt_ions"
+msgstr "反白顯示選項(_I)"
+
+#: src/xo-interface.c:1144
+msgid "Text _Font..."
+msgstr "文字字型(_F)…"
+
+#: src/xo-interface.c:1160
+msgid "_Default Pen"
+msgstr "預設畫筆(_D)"
+
+#: src/xo-interface.c:1164
+msgid "Default Eraser"
+msgstr "預設橡皮擦"
+
+#: src/xo-interface.c:1168
+msgid "Default Highlighter"
+msgstr "預設反白顯示"
+
+#: src/xo-interface.c:1172
+msgid "Default Te_xt"
+msgstr "預設文字(_X)"
+
+#: src/xo-interface.c:1176
+msgid "Set As Default"
+msgstr "設成預設值"
+
+#: src/xo-interface.c:1180
+msgid "_Options"
+msgstr "選項(_O)"
+
+#: src/xo-interface.c:1187
+msgid "Use _XInput"
+msgstr "使用 _XInput"
+
+#: src/xo-interface.c:1191
+msgid "_Eraser Tip"
+msgstr "橡皮擦尖端(_E)"
+
+#: src/xo-interface.c:1195
+msgid "_Pressure sensitivity"
+msgstr "壓力靈敏度(_P)"
+
+#: src/xo-interface.c:1199
+msgid "Button _2 Mapping"
+msgstr "按鈕 _2 映射"
+
+#: src/xo-interface.c:1258 src/xo-interface.c:1334
+msgid "_Link to Primary Brush"
+msgstr "連結到主要筆刷(_L)"
+
+#: src/xo-interface.c:1264 src/xo-interface.c:1340
+msgid "_Copy of Current Brush"
+msgstr "複製目前的筆刷(_C)"
+
+#: src/xo-interface.c:1275
+msgid "Button _3 Mapping"
+msgstr "按鈕 _3 映射"
+
+#: src/xo-interface.c:1351
+msgid "Buttons Switch Mappings"
+msgstr "按鈕切換映射"
+
+#: src/xo-interface.c:1360
+msgid "_Progressive Backgrounds"
+msgstr "漸進式背景(_P)"
+
+#: src/xo-interface.c:1364
+msgid "Print Paper _Ruling"
+msgstr "列印紙張劃線(_R)"
+
+#: src/xo-interface.c:1368
+msgid "Autoload pdf.xoj"
+msgstr "自動載入 pdf.xoj"
+
+#: src/xo-interface.c:1372
+msgid "Left-Handed Scrollbar"
+msgstr "慣用左手的捲動軸"
+
+#: src/xo-interface.c:1376
+msgid "Shorten _Menus"
+msgstr "縮短的選單(_M)"
+
+#: src/xo-interface.c:1385
+msgid "A_uto-Save Preferences"
+msgstr "自動儲存偏好設定(_U)"
+
+#: src/xo-interface.c:1389
+msgid "_Save Preferences"
+msgstr "儲存偏好設定(_S)"
+
+#: src/xo-interface.c:1393
+msgid "_Help"
+msgstr "求助(_H)"
+
+#: src/xo-interface.c:1404
+msgid "_About"
+msgstr "關於(_A)"
+
+#: src/xo-interface.c:1417
+msgid "Save"
+msgstr "儲存"
+
+#: src/xo-interface.c:1422
+msgid "New"
+msgstr "新增"
+
+#: src/xo-interface.c:1427
+msgid "Open"
+msgstr "開啟"
+
+#: src/xo-interface.c:1440
+msgid "Cut"
+msgstr "剪下"
+
+#: src/xo-interface.c:1445
+msgid "Copy"
+msgstr "複製"
+
+#: src/xo-interface.c:1450
+msgid "Paste"
+msgstr "貼上"
+
+#: src/xo-interface.c:1463
+msgid "Undo"
+msgstr "復原"
+
+#: src/xo-interface.c:1468
+msgid "Redo"
+msgstr "重做"
+
+#: src/xo-interface.c:1481
+msgid "First Page"
+msgstr "首頁"
+
+#: src/xo-interface.c:1486
+msgid "Previous Page"
+msgstr "上頁"
+
+#: src/xo-interface.c:1491
+msgid "Next Page"
+msgstr "下頁"
+
+#: src/xo-interface.c:1496
+msgid "Last Page"
+msgstr "末頁"
+
+#: src/xo-interface.c:1509
+msgid "Zoom Out"
+msgstr "縮小"
+
+#: src/xo-interface.c:1514 src/xo-interface.c:3045
+msgid "Page Width"
+msgstr "頁面寬度"
+
+#: src/xo-interface.c:1520
+msgid "Zoom In"
+msgstr "放大"
+
+#: src/xo-interface.c:1525
+msgid "Normal Size"
+msgstr "正常大小"
+
+#: src/xo-interface.c:1530 src/xo-interface.c:3004
+msgid "Set Zoom"
+msgstr "設定縮放"
+
+#: src/xo-interface.c:1539
+msgid "Toggle Fullscreen"
+msgstr "切換全螢幕"
+
+#: src/xo-interface.c:1548
+msgid "Pencil"
+msgstr "鉛筆"
+
+#: src/xo-interface.c:1554
+msgid "Pen"
+msgstr "畫筆"
+
+#: src/xo-interface.c:1559 src/xo-interface.c:1565
+msgid "Eraser"
+msgstr "橡皮擦"
+
+#: src/xo-interface.c:1570 src/xo-interface.c:1576
+msgid "Highlighter"
+msgstr "反白顯示"
+
+#: src/xo-interface.c:1581 src/xo-interface.c:1587
+msgid "Text"
+msgstr "文字"
+
+#: src/xo-interface.c:1592 src/xo-interface.c:1598
+msgid "Shape Recognizer"
+msgstr "形狀辨識器"
+
+#: src/xo-interface.c:1601 src/xo-interface.c:1607
+msgid "Ruler"
+msgstr "直尺"
+
+#: src/xo-interface.c:1618 src/xo-interface.c:1624
+msgid "Select Region"
+msgstr "選取區域"
+
+#: src/xo-interface.c:1629 src/xo-interface.c:1635
+msgid "Select Rectangle"
+msgstr "選取矩形"
+
+#: src/xo-interface.c:1640 src/xo-interface.c:1646
+msgid "Vertical Space"
+msgstr "垂直空格"
+
+#: src/xo-interface.c:1651
+msgid "Hand Tool"
+msgstr "手工具"
+
+#: src/xo-interface.c:1670 src/xo-interface.c:1674
+msgid "Default"
+msgstr "預設"
+
+#: src/xo-interface.c:1678 src/xo-interface.c:1681
+msgid "Default Pen"
+msgstr "預設畫筆"
+
+#: src/xo-interface.c:1692 src/xo-interface.c:1700
+msgid "Fine"
+msgstr "細"
+
+#: src/xo-interface.c:1705 src/xo-interface.c:1713
+msgid "Medium"
+msgstr "中"
+
+#: src/xo-interface.c:1718 src/xo-interface.c:1726
+msgid "Thick"
+msgstr "粗"
+
+#: src/xo-interface.c:1745 src/xo-interface.c:1752
+msgid "Black"
+msgstr "黑色"
+
+#: src/xo-interface.c:1757 src/xo-interface.c:1764
+msgid "Blue"
+msgstr "藍色"
+
+#: src/xo-interface.c:1769 src/xo-interface.c:1776
+msgid "Red"
+msgstr "紅色"
+
+#: src/xo-interface.c:1781 src/xo-interface.c:1788
+msgid "Green"
+msgstr "綠色"
+
+#: src/xo-interface.c:1793 src/xo-interface.c:1800
+msgid "Gray"
+msgstr "灰色"
+
+#: src/xo-interface.c:1805 src/xo-interface.c:1812
+msgid "Light Blue"
+msgstr "淺藍"
+
+#: src/xo-interface.c:1817 src/xo-interface.c:1824
+msgid "Light Green"
+msgstr "淺綠"
+
+#: src/xo-interface.c:1829 src/xo-interface.c:1836
+msgid "Magenta"
+msgstr "洋紅"
+
+#: src/xo-interface.c:1841 src/xo-interface.c:1848
+msgid "Orange"
+msgstr "橙色"
+
+#: src/xo-interface.c:1853 src/xo-interface.c:1860
+msgid "Yellow"
+msgstr "黃色"
+
+#: src/xo-interface.c:1865 src/xo-interface.c:1872
+msgid "White"
+msgstr "白色"
+
+#: src/xo-interface.c:1919
+msgid "  Page  "
+msgstr "  頁面  "
+
+#: src/xo-interface.c:1927
+msgid "Set page number"
+msgstr "設定頁碼"
+
+#: src/xo-interface.c:1931
+msgid " of n"
+msgstr " 之於 n"
+
+#: src/xo-interface.c:1939
+msgid "  Layer:  "
+msgstr "  圖層： "
+
+#: src/xo-interface.c:2826
+msgid "Set Paper Size"
+msgstr "設定紙張大小"
+
+#: src/xo-interface.c:2838
+msgid "Standard paper sizes:"
+msgstr "標準紙張大小："
+
+#: src/xo-interface.c:2846
+msgid "A4"
+msgstr "A4"
+
+#: src/xo-interface.c:2847
+msgid "A4 (landscape)"
+msgstr "A4 (橫印)"
+
+#: src/xo-interface.c:2848
+msgid "US Letter"
+msgstr "US Letter"
+
+#: src/xo-interface.c:2849
+msgid "US Letter (landscape)"
+msgstr "US Letter (橫印)"
+
+#: src/xo-interface.c:2850
+msgid "Custom"
+msgstr "自訂"
+
+#: src/xo-interface.c:2856
+msgid "Width:"
+msgstr "寬度："
+
+#: src/xo-interface.c:2865
+msgid "Height:"
+msgstr "高度："
+
+#: src/xo-interface.c:2877
+msgid "cm"
+msgstr "公分"
+
+#: src/xo-interface.c:2878
+msgid "in"
+msgstr "英吋"
+
+#: src/xo-interface.c:2879
+msgid "pixels"
+msgstr "像素"
+
+#: src/xo-interface.c:2880
+msgid "points"
+msgstr "像點"
+
+#: src/xo-interface.c:2940
+msgid "About Xournal"
+msgstr "關於 Xournal"
+
+#: src/xo-interface.c:2956
+msgid ""
+"Written by Denis Auroux\n"
+"and other contributors\n"
+"       http://xournal.sourceforge.net/       "
+msgstr ""
+"由 Denis Auroux 編寫\n"
+"以及其他貢獻者\n"
+"      http://xournal.sourceforge.net/      "
+
+#: src/xo-interface.c:3020
+msgid "Zoom: "
+msgstr "縮放："
+
+#: src/xo-interface.c:3033
+msgid "%"
+msgstr "%"
+
+#: src/xo-interface.c:3038
+msgid "Normal size (100%)"
+msgstr "正常大小 (100%)"
+
+#: src/xo-interface.c:3052
+msgid "Page Height"
+msgstr "頁面高度"
+
+#. user aborted on save confirmation
+#: src/xo-callbacks.c:51 src/xo-file.c:665
+msgid "Open PDF"
+msgstr "開啟 PDF"
+
+#: src/xo-callbacks.c:59 src/xo-callbacks.c:132 src/xo-callbacks.c:231
+#: src/xo-callbacks.c:385 src/xo-callbacks.c:1444 src/xo-file.c:673
+msgid "All files"
+msgstr "所有檔案"
+
+#: src/xo-callbacks.c:62 src/xo-callbacks.c:388 src/xo-file.c:676
+msgid "PDF files"
+msgstr "PDF 檔案"
+
+#: src/xo-callbacks.c:70 src/xo-callbacks.c:1467
+msgid "Attach file to the journal"
+msgstr "附加檔案到日誌"
+
+#. user aborted on save confirmation
+#: src/xo-callbacks.c:124
+msgid "Open Journal"
+msgstr "開啟日誌"
+
+#: src/xo-callbacks.c:135 src/xo-callbacks.c:234
+msgid "Xournal files"
+msgstr "Xournal 檔案"
+
+#: src/xo-callbacks.c:184 src/xo-callbacks.c:279
+#, c-format
+msgid "Error saving file '%s'"
+msgstr "儲存檔案「%s」時發生錯誤"
+
+#: src/xo-callbacks.c:203
+msgid "Save Journal"
+msgstr "儲存日誌"
+
+#: src/xo-callbacks.c:260 src/xo-callbacks.c:406
+#, c-format
+msgid "Should the file %s be overwritten?"
+msgstr "檔案 %s 應該被覆寫？"
+
+#: src/xo-callbacks.c:359
+msgid "Export to PDF"
+msgstr "匯出至 PDF"
+
+#: src/xo-callbacks.c:419
+#, c-format
+msgid "Error creating file '%s'"
+msgstr "建立檔案「%s」時發生錯誤"
+
+#: src/xo-callbacks.c:1371
+msgid "Pick a Paper Color"
+msgstr "揀取紙張顏色"
+
+#: src/xo-callbacks.c:1436
+msgid "Open Background"
+msgstr "開啟背景"
+
+#: src/xo-callbacks.c:1452
+msgid "Bitmap files"
+msgstr "點陣圖檔案"
+
+#: src/xo-callbacks.c:1460
+msgid "PS/PDF files (as bitmaps)"
+msgstr "PS/PDF 檔案 (點陣圖格式)"
+
+#: src/xo-callbacks.c:1490
+#, c-format
+msgid "Error opening background '%s'"
+msgstr "開啟背景「%s」時發生錯誤"
+
+#: src/xo-callbacks.c:2036
+msgid "Select Font"
+msgstr "選取字型"
+
+#: src/xo-callbacks.c:2434
+msgid ""
+"Drawing is not allowed on the background layer.\n"
+" Switching to Layer 1."
+msgstr ""
+"不允許在背景圖層上繪圖。\n"
+"請切換到圖層 1。"
+
+#: src/xo-support.c:90 src/xo-support.c:114
+#, c-format
+msgid "Couldn't find pixmap file: %s"
+msgstr "找不到像素圖檔案：%s"
+
+#: src/xo-file.c:122 src/xo-file.c:154
+#, c-format
+msgid "Could not write background '%s'. Continuing anyway."
+msgstr "無法寫入背景「%s」。無論如何還是繼續。"
+
+#: src/xo-file.c:252
+#, c-format
+msgid "Invalid file contents"
+msgstr "無效的檔案內容"
+
+#: src/xo-file.c:402
+#, c-format
+msgid "Could not open background '%s'. Setting background to white."
+msgstr "無法開啟背景「%s」。設定背景為白色。"
+
+#: src/xo-file.c:660
+#, c-format
+msgid ""
+"Could not open background '%s'.\n"
+"Select another file?"
+msgstr ""
+"無法開啟背景「%s」。\n"
+"選取另一個檔案？"
+
+#: src/xo-file.c:806
+#, c-format
+msgid "Could not open background '%s'."
+msgstr "無法開啟背景「%s」。"
+
+#: src/xo-file.c:1033
+msgid "Unable to render one or more PDF pages."
+msgstr "無法潤算一或多個 PDF 頁面。"
+
+#: src/xo-file.c:1439
+msgid " the display resolution, in pixels per inch"
+msgstr " 顯示解析度，以每英吋的像素計量"
+
+#: src/xo-file.c:1442
+msgid " the initial zoom level, in percent"
+msgstr " 初始縮放等級，以百分比計量"
+
+#: src/xo-file.c:1445
+msgid " maximize the window at startup (true/false)"
+msgstr " 啟動時將視窗放到最大 (真/假)"
+
+#: src/xo-file.c:1448
+msgid " start in full screen mode (true/false)"
+msgstr " 啟動時進入全螢幕模式 (真/假)"
+
+#: src/xo-file.c:1451
+msgid " the window width in pixels (when not maximized)"
+msgstr " 視窗寬度以像素計量 (未放到最大時)"
+
+#: src/xo-file.c:1454
+msgid " the window height in pixels"
+msgstr " 視窗高度以像素計量"
+
+#: src/xo-file.c:1457
+msgid " scrollbar step increment (in pixels)"
+msgstr " 捲動軸逐步遞增 (以像素計量)"
+
+#: src/xo-file.c:1460
+msgid " the step increment in the zoom dialog box"
+msgstr " 在縮放對話方塊中逐步遞增"
+
+#: src/xo-file.c:1463
+msgid " the multiplicative factor for zoom in/out"
+msgstr " 用於放大/縮小的倍數因子"
+
+#: src/xo-file.c:1466
+msgid " document view (true = continuous, false = single page)"
+msgstr " 文件檢視 (真 = 連續頁面，假 = 單一頁面)"
+
+#: src/xo-file.c:1469
+msgid " use XInput extensions (true/false)"
+msgstr " 使用 XInput 延伸功能 (真/假)"
+
+#: src/xo-file.c:1472
+msgid " discard Core Pointer events in XInput mode (true/false)"
+msgstr " 在 XInput 模式中捨棄核心指標事件 (真/假)"
+
+#: src/xo-file.c:1475
+msgid " always map eraser tip to eraser (true/false)"
+msgstr " 自動映射橡皮擦尖端到橡皮擦 (真/假)"
+
+#: src/xo-file.c:1478
+msgid " buttons 2 and 3 switch mappings instead of drawing (useful for some tablets) (true/false)"
+msgstr " 按鈕 2 和 3 切換映射以代替繪圖 (對於某些平板電腦有效) (真/假)"
+
+#: src/xo-file.c:1481
+msgid " automatically load filename.pdf.xoj instead of filename.pdf (true/false)"
+msgstr " 自動載入 filename.pdf.xoj 以代替 filename.pdf (真/假)"
+
+#: src/xo-file.c:1484
+msgid " default path for open/save (leave blank for current directory)"
+msgstr " 預設用於開啟/儲存的路徑 (保留空白表示目前目錄)"
+
+#: src/xo-file.c:1487
+msgid " use pressure sensitivity to control pen stroke width (true/false)"
+msgstr " 使用壓力靈敏度以控制畫筆寬度 (真/假)"
+
+#: src/xo-file.c:1490
+msgid " minimum width multiplier"
+msgstr " 寬度倍增器最小值"
+
+#: src/xo-file.c:1493
+msgid " maximum width multiplier"
+msgstr " 寬度倍增器最大值"
+
+#: src/xo-file.c:1496
+msgid ""
+" interface components from top to bottom\n"
+" valid values: drawarea menu main_toolbar pen_toolbar statusbar"
+msgstr ""
+" 介面組成由上到下\n"
+" 有效值為：繪圖區 選單 主要工具列 畫筆工具列 狀態列"
+
+#: src/xo-file.c:1499
+msgid " interface components in fullscreen mode, from top to bottom"
+msgstr " 全螢幕模式時的介面組成，由上到下"
+
+#: src/xo-file.c:1502
+msgid " interface has left-handed scrollbar (true/false)"
+msgstr " 介面具備慣用左手的捲動軸 (真/假)"
+
+#: src/xo-file.c:1505
+msgid " hide some unwanted menu or toolbar items (true/false)"
+msgstr " 隱藏某些不想要的選單或工具列項目 (真/假)"
+
+#: src/xo-file.c:1508
+msgid ""
+" interface items to hide (customize at your own risk!)\n"
+" see source file xo-interface.c for a list of item names"
+msgstr ""
+" 可隱藏的介面項目 (自訂時風險自負！)\n"
+" 參看原始碼檔案 xo-interface.c 以獲得項目名稱列表"
+
+#: src/xo-file.c:1511
+msgid ""
+" highlighter opacity (0 to 1, default 0.5)\n"
+" warning: opacity level is not saved in xoj files!"
+msgstr ""
+" 反白顯示濁度 (0 到 1，預設為 0.5)\n"
+" 警告：濁度等級未被儲存在 xoj 檔案中！"
+
+#: src/xo-file.c:1514
+msgid " auto-save preferences on exit (true/false)"
+msgstr " 離開時自動儲存偏好設定 (真/假)"
+
+#: src/xo-file.c:1518
+msgid " the default page width, in points (1/72 in)"
+msgstr " 預設頁面寬度，以像點計量 (1/72 英吋)"
+
+#: src/xo-file.c:1521
+msgid " the default page height, in points (1/72 in)"
+msgstr " 預設頁面高度，以像點計量 (1/72 英吋)"
+
+#: src/xo-file.c:1524
+msgid " the default paper color"
+msgstr " 預設紙張顏色"
+
+#: src/xo-file.c:1529
+msgid " the default paper style (plain, lined, ruled, or graph)"
+msgstr " 預設紙張樣式 (普通、劃線、刻度或座標)"
+
+#: src/xo-file.c:1532
+msgid " apply paper style changes to all pages (true/false)"
+msgstr " 套用紙張樣式變更到所有頁面 (真/假)"
+
+#: src/xo-file.c:1535
+msgid " preferred unit (cm, in, px, pt)"
+msgstr " 首選的單位 (公分、英吋、像素、像點)"
+
+#: src/xo-file.c:1538
+msgid " include paper ruling when printing or exporting to PDF (true/false)"
+msgstr " 列印或匯出至 PDF 時包含紙張刻度 (真/假)"
+
+#: src/xo-file.c:1541
+msgid " just-in-time update of page backgrounds (true/false)"
+msgstr " 頁面背景及時更新 (真/假)"
+
+#: src/xo-file.c:1544
+msgid " bitmap resolution of PS/PDF backgrounds rendered using ghostscript (dpi)"
+msgstr " 使用 ghostscript 潤算 PS/PDF 背景的點陣圖解析度 (dpi)"
+
+#: src/xo-file.c:1547
+msgid " bitmap resolution of PDF backgrounds when printing with libgnomeprint (dpi)"
+msgstr " 以 libgnomeprint 列印 PDF 背景時的點陣圖解析度 (dpi)"
+
+#: src/xo-file.c:1551
+msgid " selected tool at startup (pen, eraser, highlighter, selectrect, vertspace, hand)"
+msgstr " 啟動時已選工具 (畫筆、橡皮擦、反白顯示、矩形選取、垂直空格、手動)"
+
+#: src/xo-file.c:1554
+msgid " default pen color"
+msgstr " 預設畫筆顏色"
+
+#: src/xo-file.c:1559
+msgid " default pen thickness (fine = 1, medium = 2, thick = 3)"
+msgstr " 預設畫筆粗細 (細 = 1, 中 = 2, 粗 = 3)"
+
+#: src/xo-file.c:1562
+msgid " default pen is in ruler mode (true/false)"
+msgstr " 預設畫筆於直尺模式 (真/假)"
+
+#: src/xo-file.c:1565
+msgid " default pen is in shape recognizer mode (true/false)"
+msgstr " 預設畫筆於形狀辨識器模式 (真/假)"
+
+#: src/xo-file.c:1568
+msgid " default eraser thickness (fine = 1, medium = 2, thick = 3)"
+msgstr " 預設橡皮擦粗細 (細 = 1, 中 = 2, 粗 = 3)"
+
+#: src/xo-file.c:1571
+msgid " default eraser mode (standard = 0, whiteout = 1, strokes = 2)"
+msgstr " 預設橡皮擦模式 (標準 = 0, 白化 = 1, 筆畫 = 2)"
+
+#: src/xo-file.c:1574
+msgid " default highlighter color"
+msgstr " 預設反白顯示顏色"
+
+#: src/xo-file.c:1579
+msgid " default highlighter thickness (fine = 1, medium = 2, thick = 3)"
+msgstr " 預設反白顯示粗細 (細 = 1, 中 = 2, 粗 = 3)"
+
+#: src/xo-file.c:1582
+msgid " default highlighter is in ruler mode (true/false)"
+msgstr " 預設反白顯示於直尺模式 (真/假)"
+
+#: src/xo-file.c:1585
+msgid " default highlighter is in shape recognizer mode (true/false)"
+msgstr " 預設反白顯示於形狀辨識器模式 (真/假)"
+
+#: src/xo-file.c:1588
+msgid " button 2 tool (pen, eraser, highlighter, text, selectrect, vertspace, hand)"
+msgstr " 按鈕 2 工具 (畫筆、橡皮擦、反白顯示、文字、矩形選取、垂直空格、手動)"
+
+#: src/xo-file.c:1591
+msgid " button 2 brush linked to primary brush (true/false) (overrides all other settings)"
+msgstr " 按鈕 2 筆刷鏈結到主要筆刷 (真/假) (強制變更所有其他設定值)"
+
+#: src/xo-file.c:1594
+msgid " button 2 brush color (for pen or highlighter only)"
+msgstr " 按鈕 2 筆刷顏色 (只用於畫筆或反白顯示)"
+
+#: src/xo-file.c:1601
+msgid " button 2 brush thickness (pen, eraser, or highlighter only)"
+msgstr " 按鈕 2 筆刷粗細 (只限畫筆、橡皮擦或反白顯示)"
+
+#: src/xo-file.c:1605
+msgid " button 2 ruler mode (true/false) (for pen or highlighter only)"
+msgstr " 按鈕 2 直尺模式 (真/假) (只用於畫筆或反白顯示)"
+
+#: src/xo-file.c:1609
+msgid " button 2 shape recognizer mode (true/false) (pen or highlighter only)"
+msgstr " 按鈕 2 形狀辨識器模式 (真/假) (只限畫筆或反白顯示)"
+
+#: src/xo-file.c:1613
+msgid " button 2 eraser mode (eraser only)"
+msgstr " 按鈕 2 橡皮擦模式 (只限橡皮擦)"
+
+#: src/xo-file.c:1616
+msgid " button 3 tool (pen, eraser, highlighter, text, selectrect, vertspace, hand)"
+msgstr " 按鈕 3 工具 (畫筆、橡皮擦、反白顯示、文字、矩形選取、垂直空格、手動)"
+
+#: src/xo-file.c:1619
+msgid " button 3 brush linked to primary brush (true/false) (overrides all other settings)"
+msgstr " 按鈕 3 筆刷鏈結到主要筆刷 (真/假) (強制變更所有其他設定值)"
+
+#: src/xo-file.c:1622
+msgid " button 3 brush color (for pen or highlighter only)"
+msgstr " 按鈕 3 筆刷顏色 (只用於畫筆或反白顯示)"
+
+#: src/xo-file.c:1629
+msgid " button 3 brush thickness (pen, eraser, or highlighter only)"
+msgstr " 按鈕 3 筆刷粗細 (只限畫筆、橡皮擦或反白顯示)"
+
+#: src/xo-file.c:1633
+msgid " button 3 ruler mode (true/false) (for pen or highlighter only)"
+msgstr " 按鈕 3 直尺模式 (真/假) (只用於畫筆或反白顯示)"
+
+#: src/xo-file.c:1637
+msgid " button 3 shape recognizer mode (true/false) (pen or highlighter only)"
+msgstr " 按鈕 3 形狀辨識器模式 (真/假) (只限畫筆或反白顯示)"
+
+#: src/xo-file.c:1641
+msgid " button 3 eraser mode (eraser only)"
+msgstr " 按鈕 3 橡皮擦模式 (只限橡皮擦)"
+
+#: src/xo-file.c:1645
+msgid " thickness of the various pens (in points, 1 pt = 1/72 in)"
+msgstr " 各種畫筆的粗細 (以像點計量，1 像點 = 1/72 英吋)"
+
+#: src/xo-file.c:1651
+msgid " thickness of the various erasers (in points, 1 pt = 1/72 in)"
+msgstr " 各種橡皮擦的粗細 (以像點計量，1 像點 = 1/72 英吋)"
+
+#: src/xo-file.c:1656
+msgid " thickness of the various highlighters (in points, 1 pt = 1/72 in)"
+msgstr " 各種反白顯示的粗細 (以像點計量，1 像點 = 1/72 英吋)"
+
+#: src/xo-file.c:1661
+msgid " name of the default font"
+msgstr " 預設字型的名稱"
+
+#: src/xo-file.c:1664
+msgid " default font size"
+msgstr " 預設的字型大小"
+
+#: src/xo-file.c:1842
+msgid ""
+" Xournal configuration file.\n"
+" This file is generated automatically upon saving preferences.\n"
+" Use caution when editing this file manually.\n"
+msgstr ""
+" Xournal 組態檔案。\n"
+" 儲存偏好設定時就會自動產生這個檔案。\n"
+" 手動編輯這個檔案時請小心。\n"
+
+#: src/xo-misc.c:1274
+#, c-format
+msgid " of %d"
+msgstr " 之於 %d"
+
+#: src/xo-misc.c:1279
+msgid "Background"
+msgstr "背景"
+
+#: src/xo-misc.c:1287
+#, c-format
+msgid "Layer %d"
+msgstr "圖層 %d"
+
+#: src/xo-misc.c:1411
+#, c-format
+msgid "Xournal - %s"
+msgstr "Xournal - %s"
+
+#: src/xo-misc.c:1663
+#, c-format
+msgid "Save changes to '%s'?"
+msgstr "儲存變更為「%s」？"
+
+#: src/xo-misc.c:1664
+msgid "Untitled"
+msgstr "無標題"
