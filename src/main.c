@@ -20,8 +20,8 @@
 #include <sys/stat.h>
 #include <string.h>
 #include <gtk/gtk.h>
-#include <libgnomecanvas/libgnomecanvas.h>
 
+#include "libgnomecanvas/libgnomecanvas.h"
 #include "xournal.h"
 #include "xo-interface.h"
 #include "xo-support.h"

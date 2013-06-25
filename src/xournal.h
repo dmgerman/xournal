@@ -14,8 +14,9 @@
  */
 
 #include <gtk/gtk.h>
-#include <libgnomecanvas/libgnomecanvas.h>
 #include <poppler/glib/poppler.h>
+
+#include "libgnomecanvas/libgnomecanvas.h"
 
 // #define INPUT_DEBUG
 /* uncomment this line if you experience event-processing problems

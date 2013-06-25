@@ -23,7 +23,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <gtk/gtk.h>
-#include <libgnomecanvas/libgnomecanvas.h>
 #include <zlib.h>
 #include <math.h>
 #include <locale.h>
@@ -36,6 +35,7 @@
  #include <X11/Xlib.h>
 #endif
 
+#include "libgnomecanvas/libgnomecanvas.h"
 #include "xournal.h"
 #include "xo-interface.h"
 #include "xo-support.h"

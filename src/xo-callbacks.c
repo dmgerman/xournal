@@ -21,11 +21,11 @@
 #include <math.h>
 #include <string.h>
 #include <gtk/gtk.h>
-#include <libgnomecanvas/libgnomecanvas.h>
 #include <time.h>
 #include <glib/gstdio.h>
 #include <gdk/gdkkeysyms.h>
 
+#include "libgnomecanvas/libgnomecanvas.h"
 #include "xournal.h"
 #include "xo-callbacks.h"
 #include "xo-interface.h"

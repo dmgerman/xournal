@@ -20,7 +20,6 @@
 #define PANGO_ENABLE_BACKEND /* to access PangoFcFont.font_pattern */
 
 #include <gtk/gtk.h>
-#include <libgnomecanvas/libgnomecanvas.h>
 #include <zlib.h>
 #include <string.h>
 #include <locale.h>
@@ -36,6 +35,7 @@
 #define NO_TYPE42
 #include "ttsubset/sft.h"
 
+#include "libgnomecanvas/libgnomecanvas.h"
 #include "xournal.h"
 #include "xo-support.h"
 #include "xo-misc.h"
