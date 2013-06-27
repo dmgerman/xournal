@@ -1,3 +1,12 @@
+xournal (0.4.7) unstable; urgency=low
+  * New upstream release:
+  - insert image tool (based on patches by Victor Saase and Simon Guest)
+  - renamed "Journal" menu to "Page"
+  - paste images and text directly from and to other applications
+  - lasso tool (based on patch by Ian Woo Kim)
+
+ -- Daniel German <dmg@uvic.ca>  Wed, 26 Jun 2013 18:07:14 -0400
+
 xournal (0.4.6+image-1) unstable; urgency=low
   * New upstream release:
      - win32 portability code (contributed by Dirk Gerrits)

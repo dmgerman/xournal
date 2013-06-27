@@ -1,17 +1,13 @@
 #!/usr/bin/make -f
 # -*- makefile -*-
 # Sample debian/rules that uses debhelper.
-# GNU copyright 1997 to 1999 by Joey Hess.
+# This file was originally written by Joey Hess and Craig Small.
+# As a special exception, when this file is copied by dh-make into a
+# dh-make output file, you may use that output file without restriction.
+# This special exception was added by Craig Small in version 0.37 of dh-make.
 
 # Uncomment this to turn on verbose mode.
-export DH_VERBOSE=1
-
-
-# These are used for cross-compiling and for saving the configure script
-# from having to guess our platform (since we know it already)
-DEB_HOST_GNU_TYPE   ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
-DEB_BUILD_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
-
+#export DH_VERBOSE=1
 
 CFLAGS = -Wall -g
 
@@ -20,53 +16,54 @@ ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
 else
 	CFLAGS += -O2
 endif
-ifeq (,$(findstring nostrip,$(DEB_BUILD_OPTIONS)))
-	INSTALL_PROGRAM += -s
-endif
 
-config.status: configure
+configure: configure-stamp
+configure-stamp:
 	dh_testdir
-	# Add here commands to configure the package.
-	CFLAGS="$(CFLAGS)" ./configure --host=$(DEB_HOST_GNU_TYPE) --build=$(DEB_BUILD_GNU_TYPE) --prefix=/usr --mandir=\$${prefix}/share/man --infodir=\$${prefix}/share/info
+	# Configure the package.
+	./autogen.sh --prefix=/usr
 
+	touch configure-stamp
 
-build: build-stamp
-
-build-stamp:  config.status
+build: build-arch build-indep
+build-arch: build-stamp
+build-indep: build-stamp
+build-stamp: configure-stamp 
 	dh_testdir
 
-	# Add here commands to compile the package.
+	# Compile the package.
 	$(MAKE)
-	#/usr/bin/docbook-to-man debian/xournal.sgml > xournal.1
 
 	touch build-stamp
 
-clean:
+clean: 
 	dh_testdir
 	dh_testroot
-	rm -f build-stamp 
 
-	# Add here commands to clean up after the build process.
-	-$(MAKE) distclean
-ifneq "$(wildcard /usr/share/misc/config.sub)" ""
-	cp -f /usr/share/misc/config.sub config.sub
-endif
-ifneq "$(wildcard /usr/share/misc/config.guess)" ""
-	cp -f /usr/share/misc/config.guess config.guess
-endif
+	# Clean up after the build process.
+	if test -f Makefile; then \
+		$(MAKE) distclean; \
+	else \
+		rm -f src/xournal; \
+        fi
 
+	rm -f aclocal.m4 config.h.in Makefile.in src/Makefile.in
+	rm -f configure-stamp build-stamp
+	rm -f depcomp install-sh missing configure
 
 	dh_clean 
 
 install: build
 	dh_testdir
 	dh_testroot
-	dh_clean -k 
+	dh_prep
 	dh_installdirs
 
-	# Add here commands to install the package into debian/xournal.
+	# Install the package into debian/xournal.
 	$(MAKE) install DESTDIR=$(CURDIR)/debian/xournal
-
+	$(MAKE) desktop-install DESTDIR=$(CURDIR)/debian/xournal
+	# Remove HTML manual from /usr/share/xournal/html-doc
+	rm -rf $(CURDIR)/debian/xournal/usr/share/xournal/html-doc
 
 # Build architecture-independent files here.
 binary-indep: build install
@@ -78,25 +75,12 @@ binary-arch: build install
 	dh_testroot
 	dh_installchangelogs ChangeLog
 	dh_installdocs
-	dh_installexamples
-#	dh_install
-#	dh_installmenu
-#	dh_installdebconf	
-#	dh_installlogrotate
-#	dh_installemacsen
-#	dh_installpam
-#	dh_installmime
-#	dh_installinit
-#	dh_installcron
-#	dh_installinfo
-	dh_installman
+	dh_installman debian/xournal.1
+	dh_installmenu
 	dh_link
 	dh_strip
 	dh_compress
 	dh_fixperms
-#	dh_perl
-#	dh_python
-#	dh_makeshlibs
 	dh_installdeb
 	dh_shlibdeps
 	dh_gencontrol
@@ -104,4 +88,4 @@ binary-arch: build install
 	dh_builddeb
 
 binary: binary-indep binary-arch
-.PHONY: build clean binary-indep binary-arch binary install 
+.PHONY: build clean binary-indep binary-arch binary install configure
