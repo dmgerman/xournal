@@ -14,7 +14,6 @@
  */
 
 #include <gtk/gtk.h>
-#include <libgnomecanvas/libgnomecanvas.h>
 #include <poppler/glib/poppler.h>
 
 // #define INPUT_DEBUG
@@ -75,7 +74,7 @@ typedef struct Refstring {
 
 typedef struct Background {
   int type;
-  GnomeCanvasItem *canvas_item;
+  ///  GnomeCanvasItem *canvas_item;
   int color_no;
   guint color_rgba;
   int ruling;
@@ -164,9 +163,9 @@ typedef struct Item {
   int type;
   struct Brush brush; // the brush to use, if ITEM_STROKE
   // 'brush' also contains color info for text items
-  GnomeCanvasPoints *path;
+  ///  GnomeCanvasPoints *path;
   gdouble *widths;
-  GnomeCanvasItem *canvas_item; // the corresponding canvas item, or NULL
+  ///  GnomeCanvasItem *canvas_item; // the corresponding canvas item, or NULL
   struct BBox bbox;
   struct UndoErasureData *erasure; // for temporary use during erasures
   // the following fields for ITEM_TEXT:
@@ -212,7 +211,7 @@ typedef struct Item {
 typedef struct Layer {
   GList *items; // the items on the layer, from bottom to top
   int nitems;
-  GnomeCanvasGroup *group;
+  ///  GnomeCanvasGroup *group;
 } Layer;
 
 typedef struct Page {
@@ -221,7 +220,7 @@ typedef struct Page {
   double height, width;
   double hoffset, voffset; // offsets of canvas group rel. to canvas root
   struct Background *bg;
-  GnomeCanvasGroup *group;
+  ///  GnomeCanvasGroup *group;
 } Page;
 
 typedef struct Journal {
@@ -237,7 +236,7 @@ typedef struct Selection {
   double anchor_x, anchor_y, last_x, last_y; // for selection motion
   gboolean resizing_top, resizing_bottom, resizing_left, resizing_right; // for selection resizing
   double new_x1, new_x2, new_y1, new_y2; // for selection resizing
-  GnomeCanvasItem *canvas_item; // if the selection box is on screen 
+  ///GnomeCanvasItem *canvas_item; // if the selection box is on screen 
   GList *items; // the selected items (a list of struct Item)
   int move_pageno, orig_pageno; // if selection moves to a different page
   struct Layer *move_layer;
@@ -263,7 +262,7 @@ typedef struct UIData {
   int layerbox_length;  // the number of entries registered in the layers combo-box
   struct Item *cur_item; // the item being drawn, or NULL
   int cur_item_type;
-  GnomeCanvasPoints cur_path; // the path being drawn
+  ///GnomeCanvasPoints cur_path; // the path being drawn
   gdouble *cur_widths; // width array for the path being drawn
   int cur_path_storage_alloc;
   int cur_widths_storage_alloc;
@@ -401,7 +400,7 @@ typedef struct BgPdf {
 // the main window and the canvas
 
 extern GtkWidget *winMain;
-extern GnomeCanvas *canvas;
+///extern GnomeCanvas *canvas;
 
 // the data
 

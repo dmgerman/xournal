@@ -13,20 +13,21 @@ INCLUDES = \
 
 bin_PROGRAMS = xournal
 
-xournal_SOURCES = \
-	main.c xournal.h \
-	xo-misc.c xo-misc.h \
-	xo-file.c xo-file.h \
-	xo-paint.c xo-paint.h \
-	xo-selection.c xo-selection.h \
-	xo-clipboard.c xo-clipboard.h \
-	xo-image.c xo-image.h \
-	xo-print.c xo-print.h \
-	xo-support.c xo-support.h \
-	xo-interface.c xo-interface.h \
-	xo-callbacks.c xo-callbacks.h \
-	xo-shapes.c xo-shapes.h
-
+xournal_SOURCES = xournal.c
+##xournal_SOURCES = \
+##	main.c xournal.h \
+##	xo-misc.c xo-misc.h \
+##	xo-file.c xo-file.h \
+##	xo-paint.c xo-paint.h \
+##	xo-selection.c xo-selection.h \
+##	xo-clipboard.c xo-clipboard.h \
+##	xo-image.c xo-image.h \
+##	xo-print.c xo-print.h \
+##	xo-support.c xo-support.h \
+##	xo-interface.c xo-interface.h \
+##	xo-callbacks.c xo-callbacks.h \
+##	xo-shapes.c xo-shapes.h
+##
 if WIN32
   xournal_LDFLAGS = -mwindows
   xournal_LDADD = win32/xournal.res ttsubset/libttsubset.a @PACKAGE_LIBS@ $(INTLLIBS) -lz

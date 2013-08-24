@@ -20,7 +20,6 @@
 #include <sys/stat.h>
 #include <string.h>
 #include <gtk/gtk.h>
-#include <libgnomecanvas/libgnomecanvas.h>
 
 #include "xournal.h"
 #include "xo-interface.h"
@@ -32,7 +31,7 @@
 #include "xo-shapes.h"
 
 GtkWidget *winMain;
-GnomeCanvas *canvas;
+///GnomeCanvas *canvas;
 
 struct Journal journal; // the journal
 struct BgPdf bgpdf;  // the PDF loader stuff
@@ -70,10 +69,10 @@ void init_stuff (int argc, char *argv[])
   ui.hiliter_alpha_mask = 0xffffff00 + (guint)(255*ui.hiliter_opacity);
 
   // we need an empty canvas prior to creating the journal structures
-  canvas = GNOME_CANVAS (gnome_canvas_new_aa ());
+  ///  canvas = GNOME_CANVAS (gnome_canvas_new_aa ());
 
   // initialize data
-  ui.default_page.bg->canvas_item = NULL;
+  ///  ui.default_page.bg->canvas_item = NULL;
   ui.layerbox_length = 0;
 
   if (argc > 2 || (argc == 2 && argv[1][0] == '-')) {
@@ -90,9 +89,9 @@ void init_stuff (int argc, char *argv[])
   
   ui.cur_item_type = ITEM_NONE;
   ui.cur_item = NULL;
-  ui.cur_path.coords = NULL;
-  ui.cur_path_storage_alloc = 0;
-  ui.cur_path.ref_count = 1;
+  ///  ui.cur_path.coords = NULL;
+  ///ui.cur_path_storage_alloc = 0;
+  ///ui.cur_path.ref_count = 1;
   ui.cur_widths = NULL;
   ui.cur_widths_storage_alloc = 0;
 
@@ -147,28 +146,34 @@ void init_stuff (int argc, char *argv[])
   gtk_combo_box_set_focus_on_click(GTK_COMBO_BOX(GET_COMPONENT("comboLayer")), FALSE);
   g_signal_connect(GET_COMPONENT("spinPageNo"), "activate",
           G_CALLBACK(handle_activate_signal), NULL);
+#ifdef dmg
   gtk_container_forall(GTK_CONTAINER(winMain), unset_flags, (gpointer)GTK_CAN_FOCUS);
-  GTK_WIDGET_SET_FLAGS(GTK_WIDGET(canvas), GTK_CAN_FOCUS);
-  GTK_WIDGET_SET_FLAGS(GTK_WIDGET(GET_COMPONENT("spinPageNo")), GTK_CAN_FOCUS);
-  
+#endif
+  ///GTK_WIDGET_SET_FLAGS(GTK_WIDGET(canvas), GTK_CAN_FOCUS);
+
+  gtk_widget_set_can_focus(GTK_WIDGET(GET_COMPONENT("spinPageNo")), TRUE); 
+
   // install hooks on button/key/activation events to make the spinPageNo lose focus
   gtk_container_forall(GTK_CONTAINER(winMain), install_focus_hooks, NULL);
 
   // set up and initialize the canvas
 
-  gtk_widget_show (GTK_WIDGET (canvas));
+  ///  gtk_widget_show (GTK_WIDGET (canvas));
   w = GET_COMPONENT("scrolledwindowMain");
-  gtk_container_add (GTK_CONTAINER (w), GTK_WIDGET (canvas));
+
+  ///gtk_container_add (GTK_CONTAINER (w), GTK_WIDGET (canvas));
+
   gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW (w), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
-  gtk_widget_set_events (GTK_WIDGET (canvas), GDK_EXPOSURE_MASK | GDK_POINTER_MOTION_MASK | GDK_BUTTON_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_KEY_PRESS_MASK | GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK);
-  gnome_canvas_set_pixels_per_unit (canvas, ui.zoom);
-  gnome_canvas_set_center_scroll_region (canvas, TRUE);
-  gtk_layout_get_hadjustment(GTK_LAYOUT (canvas))->step_increment = ui.scrollbar_step_increment;
-  gtk_layout_get_vadjustment(GTK_LAYOUT (canvas))->step_increment = ui.scrollbar_step_increment;
+  ///  gtk_widget_set_events (GTK_WIDGET (canvas), GDK_EXPOSURE_MASK | GDK_POINTER_MOTION_MASK | GDK_BUTTON_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_KEY_PRESS_MASK | GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK);
+  ///  gnome_canvas_set_pixels_per_unit (canvas, ui.zoom);
+  ///  gnome_canvas_set_center_scroll_region (canvas, TRUE);
+  ///  gtk_layout_get_hadjustment(GTK_LAYOUT (canvas))->step_increment = ui.scrollbar_step_increment;
+  ///  gtk_layout_get_vadjustment(GTK_LAYOUT (canvas))->step_increment = ui.scrollbar_step_increment;
 
   // set up the page size and canvas size
   update_page_stuff();
 
+  /*
   g_signal_connect ((gpointer) canvas, "button_press_event",
                     G_CALLBACK (on_canvas_button_press_event),
                     NULL);
@@ -194,23 +199,30 @@ void init_stuff (int argc, char *argv[])
                     "value-changed", G_CALLBACK (on_vscroll_changed),
                     NULL);
   g_object_set_data (G_OBJECT (winMain), "canvas", canvas);
-
+  */
   screen = gtk_widget_get_screen(winMain);
   ui.screen_width = gdk_screen_get_width(screen);
   ui.screen_height = gdk_screen_get_height(screen);
   
   can_xinput = FALSE;
-  dev_list = gdk_devices_list();
+
+
+  dev_list =  gdk_device_manager_list_devices (gdk_display_get_device_manager ( gdk_display_get_default()),
+					       GDK_DEVICE_TYPE_MASTER); /// gdk_devices_list();
+
+
   while (dev_list != NULL) {
     device = (GdkDevice *)dev_list->data;
-    if (device != gdk_device_get_core_pointer() && device->num_axes >= 2) {
+    if (device != gdk_device_get_core_pointer() &&  gdk_device_get_n_axes(device) >= 2) {
       /* get around a GDK bug: map the valuator range CORRECTLY to [0,1] */
 #ifdef ENABLE_XINPUT_BUGFIX
       gdk_device_set_axis_use(device, 0, GDK_AXIS_IGNORE);
       gdk_device_set_axis_use(device, 1, GDK_AXIS_IGNORE);
 #endif
-      gdk_device_set_mode(device, GDK_MODE_SCREEN);
-      if (g_strrstr(device->name, "raser"))
+      gdk_device_set_mode(device, GDK_MODE_SCREEN); // maps the device to the entire screen
+
+      // if device ends with raser, set it as the eraser
+      if (g_strrstr( gdk_device_get_name (device), "raser"))    
         gdk_device_set_source(device, GDK_SOURCE_ERASER);
       can_xinput = TRUE;
     }
@@ -243,8 +255,9 @@ void init_stuff (int argc, char *argv[])
   update_undo_redo_enabled();
   update_copy_paste_enabled();
   update_vbox_order(ui.vertical_order[ui.fullscreen?1:0]);
+  /*
   gtk_widget_grab_focus(GTK_WIDGET(canvas));
-
+  */
   // show everything...
   
   gtk_widget_show (winMain);

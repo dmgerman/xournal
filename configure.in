@@ -13,10 +13,11 @@ AC_HEADER_STDC
 
 LDFLAGS="$LDFLAGS -lz -lm"
 
-pkg_modules="gtk+-2.0 >= 2.10.0 libgnomecanvas-2.0 >= 2.4.0 poppler-glib >= 0.5.4 pangoft2 >= 1.0"
-PKG_CHECK_MODULES(PACKAGE, [$pkg_modules])
-AC_SUBST(PACKAGE_CFLAGS)
-AC_SUBST(PACKAGE_LIBS)
+#pkg_modules="gtk+-2.0 >= 2.10.0 libgnomecanvas-2.0 >= 2.4.0 poppler-glib >= 0.5.4 pangoft2 >= 1.0"
+pkg_modules="gtk+-3.0 poppler-glib >= 0.5.4 pangoft2 >= 1.0"
+
+unix_pkg_modules="gmodule-export-2.0 $pkg_modules"
+win32_pkg_modules="$pkg_modules"
 
 dnl detect Windows environment...
 AC_CANONICAL_HOST
@@ -29,6 +30,14 @@ case "$host" in
 esac
 AC_MSG_RESULT([$os_win32])
 AM_CONDITIONAL(WIN32, test "$os_win32" = "yes")
+
+AM_COND_IF([WIN32],
+  [PKG_CHECK_MODULES(PACKAGE, [$win32_pkg_modules])],
+  [PKG_CHECK_MODULES(PACKAGE, [$unix_pkg_modules])]
+  )
+
+AC_SUBST(PACKAGE_CFLAGS)
+AC_SUBST(PACKAGE_LIBS)
 
 GETTEXT_PACKAGE=xournal
 AC_SUBST(GETTEXT_PACKAGE)

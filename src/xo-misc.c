@@ -20,7 +20,6 @@
 #include <math.h>
 #include <string.h>
 #include <gtk/gtk.h>
-#include <libgnomecanvas/libgnomecanvas.h>
 #include <gdk/gdkkeysyms.h>
 
 #include "xournal.h"
