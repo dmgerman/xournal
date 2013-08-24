@@ -101,6 +101,11 @@ and other contributors
     <property name="can_focus">False</property>
     <property name="pixbuf">pixmaps/blue.png</property>
   </object>
+  <object class="GtkImage" id="medium_icon">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="pixbuf">pixmaps/medium.png</property>
+  </object>
   <object class="GtkImage" id="default_pen_icon">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -171,11 +176,6 @@ and other contributors
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="pixbuf">pixmaps/magenta.png</property>
-  </object>
-  <object class="GtkImage" id="medium_icon">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="pixbuf">pixmaps/medium.png</property>
   </object>
   <object class="GtkImage" id="orange_icon">
     <property name="visible">True</property>
@@ -3193,53 +3193,14 @@ and other contributors
               </packing>
             </child>
             <child>
-              <object class="GtkGrid" id="mainGrid">
+              <object class="GtkScrolledWindow" id="scrolledWindowSplit">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="hscrollbar_policy">always</property>
+                <property name="vscrollbar_policy">always</property>
+                <property name="shadow_type">in</property>
                 <child>
                   <placeholder/>
-                </child>
-                <child>
-                  <object class="GtkScrollbar" id="verScrollbarMainGrid">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="halign">start</property>
-                    <property name="orientation">vertical</property>
-                  </object>
-                  <packing>
-                    <property name="left_attach">0</property>
-                    <property name="top_attach">0</property>
-                    <property name="width">1</property>
-                    <property name="height">1</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkScrollbar" id="horScrollbarMainGrid">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="valign">end</property>
-                  </object>
-                  <packing>
-                    <property name="left_attach">1</property>
-                    <property name="top_attach">1</property>
-                    <property name="width">1</property>
-                    <property name="height">1</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkAlignment" id="alignment1">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <child>
-                      <placeholder/>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="left_attach">0</property>
-                    <property name="top_attach">1</property>
-                    <property name="width">1</property>
-                    <property name="height">1</property>
-                  </packing>
                 </child>
               </object>
               <packing>
