@@ -20,12 +20,13 @@
 
 #include <sys/stat.h>
 #include <string.h>
-#include <gtk/gtk.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
 
-// global declarations
-GtkWidget *winMain;
+#include <gtk/gtk.h>
+#include <clutter/clutter.h>
+#include <clutter-gtk/clutter-gtk.h>
 
 
 gboolean xournal_ok_to_close(void)
@@ -67,6 +68,8 @@ void xournal_init_interface(void)
 {
   GError *err = NULL;
   GtkBuilder *builder;
+  GtkWidget *winMain;
+  GtkGrid   *mainGrid;
 
   builder = gtk_builder_new();
 
@@ -81,7 +84,38 @@ void xournal_init_interface(void)
 
   winMain = (GtkWidget *)gtk_builder_get_object (builder, "winMain");
   gtk_builder_connect_signals (builder, NULL);
+
+  // we need to add the main clutter widget. glade doesn't let us do it
+  // it is attached to mainGrid
+
+  // 1. create embed and attach
+  mainGrid = (GtkGrid *)gtk_builder_get_object (builder, "mainGrid");
+  assert(mainGrid != NULL);
+  GtkWidget *embed = gtk_clutter_embed_new ();
+
+  gtk_grid_attach (mainGrid, embed, 1, 0, 1, 1);
+  gtk_widget_show (embed);
+
+  // 2. init the stage
+  ClutterActor *stage = gtk_clutter_embed_get_stage (GTK_CLUTTER_EMBED (embed));
+  //  clutter_stage_set_color (CLUTTER_STAGE (stage), &stage_color);
+  //  clutter_actor_set_size (stage, 640, 480);
+
+  // 3. Create a viewport actor to be able to scroll actor. This is the main "canvas"
+
+  ClutterActor *canvas =  gtk_clutter_actor_new ();
+  clutter_container_add_actor (CLUTTER_CONTAINER (stage), canvas);
+
+  /// * Load image from first command line argument and add it to viewport: */
+  ClutterActor *texture = clutter_texture_new_from_file ("rip.jpg", NULL);
+  clutter_container_add_actor (CLUTTER_CONTAINER (canvas), texture);
+  clutter_actor_set_position (texture, 0, 0);
+  clutter_actor_set_position (canvas, 0, 0);
+
+  // 4. Now we need to connect the scrollbars
+
   g_object_unref (G_OBJECT (builder));
+
 
   gtk_widget_show (winMain);
 
@@ -108,6 +142,7 @@ int main (int argc, char *argv[])
 #endif
   
   gtk_init (&argc, &argv);
+  clutter_init(&argc, &argv);
 
   xournal_init_interface();
 
