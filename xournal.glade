@@ -101,11 +101,6 @@ and other contributors
     <property name="can_focus">False</property>
     <property name="pixbuf">pixmaps/blue.png</property>
   </object>
-  <object class="GtkImage" id="medium_icon">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="pixbuf">pixmaps/medium.png</property>
-  </object>
   <object class="GtkImage" id="default_pen_icon">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -176,6 +171,11 @@ and other contributors
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="pixbuf">pixmaps/magenta.png</property>
+  </object>
+  <object class="GtkImage" id="medium_icon">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="pixbuf">pixmaps/medium.png</property>
   </object>
   <object class="GtkImage" id="orange_icon">
     <property name="visible">True</property>
@@ -3176,37 +3176,12 @@ and other contributors
           </packing>
         </child>
         <child>
-          <object class="GtkHPaned" id="editingWindows">
+          <object class="GtkScrolledWindow" id="scrolledWindowMain">
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
+            <property name="can_focus">False</property>
+            <property name="shadow_type">in</property>
             <child>
-              <object class="GtkScrolledWindow" id="scrolledwindowMain">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <child>
-                  <placeholder/>
-                </child>
-              </object>
-              <packing>
-                <property name="resize">False</property>
-                <property name="shrink">True</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkScrolledWindow" id="scrolledWindowSplit">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="hscrollbar_policy">always</property>
-                <property name="vscrollbar_policy">always</property>
-                <property name="shadow_type">in</property>
-                <child>
-                  <placeholder/>
-                </child>
-              </object>
-              <packing>
-                <property name="resize">True</property>
-                <property name="shrink">True</property>
-              </packing>
+              <placeholder/>
             </child>
           </object>
           <packing>

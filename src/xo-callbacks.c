@@ -18,6 +18,219 @@
 #  include <config.h>
 #endif
 
+#include <assert.h>
+#include <stdio.h>
+#include <sys/stat.h>
+
+
+#include <gtk/gtk.h>
+#include <glib/gi18n.h>
+
+#include "xournal.h"
+#include "xo-config.h"
+#include "xo-paint.h"
+
+extern xo_defaults    defaults;
+extern GtkWidget  *winMain;
+
+void xo_end_text(void)
+{
+  ;
+}
+
+void
+on_optionsAutoSavePrefs_activate       (GtkMenuItem     *menuitem,  
+                                        gpointer         user_data)
+{
+  xo_end_text();
+  defaults.auto_save_prefs = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem));
+}
+
+void
+on_optionsSavePreferences_activate     (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+  xo_end_text();
+  xo_config_save(&defaults);
+}
+
+void
+on_fileSaveAs_activate                 (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+#ifdef dmg
+
+  GtkWidget *dialog, *warning_dialog;
+  GtkFileFilter *filt_all, *filt_xoj;
+  char *filename;
+  char stime[30];
+  time_t curtime;
+  gboolean warn;
+  struct stat stat_buf;
+  
+  // get the window where this is happening
+  xo_journal *j =  g_object_get_data ((GObject*)winMain, "journal");
+
+  xo_end_text();
+  dialog = gtk_file_chooser_dialog_new(_("Save Journal"), GTK_WINDOW (winMain),
+     GTK_FILE_CHOOSER_ACTION_SAVE, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+     GTK_STOCK_SAVE, GTK_RESPONSE_OK, NULL);
+
+  if (j->filename!=NULL) {
+    gtk_file_chooser_set_filename(GTK_FILE_CHOOSER (dialog), j->filename);
+    gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (dialog), g_path_get_basename(j->filename));
+  } else if (bgpdf.status!=STATUS_NOT_INIT && bgpdf.file_domain == DOMAIN_ABSOLUTE 
+      && bgpdf.filename != NULL) {
+    filename = g_strdup_printf("%s.xoj", bgpdf.filename->s);
+    gtk_file_chooser_set_filename(GTK_FILE_CHOOSER (dialog), filename);
+    gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (dialog), g_path_get_basename(filename));
+    g_free(filename); 
+  } else {
+    curtime = time(NULL);
+    strftime(stime, 30, "%Y-%m-%d-Note-%H-%M.xoj", localtime(&curtime));
+    if (defaults.default_path!=NULL)
+      gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (dialog), defaults.default_path);
+    gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (dialog), stime);
+  }
+     
+  filt_all = gtk_file_filter_new();
+  gtk_file_filter_set_name(filt_all, _("All files"));
+  gtk_file_filter_add_pattern(filt_all, "*");
+  filt_xoj = gtk_file_filter_new();
+  gtk_file_filter_set_name(filt_xoj, _("Xournal files"));
+  gtk_file_filter_add_pattern(filt_xoj, "*.xoj");
+  gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (dialog), filt_xoj);
+  gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (dialog), filt_all);
+  
+  // somehow this doesn't seem to be set by default
+  gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_OK);
+
+  do {
+    if (gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_OK) {
+      gtk_widget_destroy(dialog);
+      return;
+    }
+    filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
+    warn = g_file_test (filename, G_FILE_TEST_EXISTS);
+    if (warn) { // ok to overwrite an empty file
+      if (!g_stat(filename, &stat_buf))
+        if (stat_buf.st_size == 0) warn=FALSE;
+    }
+    if (warn && j->filename!=NULL) { // ok to overwrite oneself
+      if (j->filename[0]=='/' && !strcmp(j->filename, filename)) warn=FALSE;
+      if (j->filename[0]!='/' && g_str_has_suffix(filename, j->filename)) warn=FALSE;
+    }
+    if (warn) {
+      warning_dialog = gtk_message_dialog_new(GTK_WINDOW(winMain), 
+        GTK_DIALOG_MODAL, GTK_MESSAGE_QUESTION, GTK_BUTTONS_YES_NO,
+        _("Should the file %s be overwritten?"), filename);
+      if (gtk_dialog_run(GTK_DIALOG(warning_dialog)) == GTK_RESPONSE_YES)
+        warn = FALSE;
+      gtk_widget_destroy(warning_dialog);
+    }
+  } while (warn);
+
+  gtk_widget_destroy(dialog);
+
+  set_cursor_busy(TRUE);
+  if (save_journal(filename)) { // success
+    j->saved = TRUE;
+    set_cursor_busy(FALSE);
+    update_file_name(filename);
+    return;
+  }
+  set_cursor_busy(FALSE);
+  /* save failed */
+  dialog = gtk_message_dialog_new(GTK_WINDOW (winMain), GTK_DIALOG_DESTROY_WITH_PARENT,
+    GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, _("Error saving file '%s'"), filename);
+  gtk_dialog_run(GTK_DIALOG(dialog));
+  gtk_widget_destroy(dialog);
+  g_free(filename);
+#endif
+}
+
+gboolean xo_journal_save(xo_journal *j)
+{  
+    printf(">>>>>>>>To implemenet xo_journal_save\n");
+    return TRUE;
+}
+
+void
+on_fileSave_activate                   (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+  GtkWidget *dialog;
+  
+  // get the window where this is happening
+  xo_journal *j =  g_object_get_data ((GObject*)winMain, "journal");
+
+  xo_end_text();
+  if (j->filename == NULL) {
+    on_fileSaveAs_activate(menuitem, user_data);
+    return;
+  }
+  xo_cursor_set_busy(TRUE);
+  if (xo_journal_save(j)) { // success
+    xo_cursor_set_busy(FALSE);
+    j->saved = TRUE;
+    return;
+  }
+  set_cursor_busy(FALSE);
+  /* save failed */
+  dialog = gtk_message_dialog_new(GTK_WINDOW (winMain), GTK_DIALOG_DESTROY_WITH_PARENT,
+    GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, _("Error saving file '%s'"), j->filename);
+  gtk_dialog_run(GTK_DIALOG(dialog));
+  gtk_widget_destroy(dialog);
+}
+
+
+
+gboolean xo_ok_to_close(xo_journal* j)
+{
+  GtkWidget *dialog;
+  GtkResponseType response;
+
+  if (j->saved) return TRUE;
+  dialog = gtk_message_dialog_new(GTK_WINDOW (winMain), GTK_DIALOG_DESTROY_WITH_PARENT,
+    GTK_MESSAGE_WARNING, GTK_BUTTONS_NONE, _("Save changes to '%s'?"),
+    (j->filename!=NULL) ? j->filename:_("Untitled"));
+  gtk_dialog_add_button(GTK_DIALOG (dialog), GTK_STOCK_DISCARD, GTK_RESPONSE_NO);
+  gtk_dialog_add_button(GTK_DIALOG (dialog), GTK_STOCK_SAVE, GTK_RESPONSE_YES);
+  gtk_dialog_add_button(GTK_DIALOG (dialog), GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL);
+  gtk_dialog_set_default_response(GTK_DIALOG (dialog), GTK_RESPONSE_YES);
+  response = gtk_dialog_run(GTK_DIALOG (dialog));
+  gtk_widget_destroy(dialog);
+  if (response == GTK_RESPONSE_CANCEL || response == GTK_RESPONSE_DELETE_EVENT) 
+    return FALSE; // aborted
+  if (response == GTK_RESPONSE_YES) {
+    on_fileSave_activate(NULL, NULL);
+    if (!j->saved) return FALSE; // if save failed, then we abort
+  }
+
+  return TRUE;
+}
+
+
+void
+on_fileQuit_activate                   (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+#ifdef dmg
+  end_text();
+#endif
+
+  // get the window where this is happening
+  xo_journal *j =  g_object_get_data ((GObject*)winMain, "journal");
+
+  printf("Is this a journal\n");
+  printf("%x\n", j->magic);
+
+  if (xo_ok_to_close(j)) 
+    gtk_main_quit ();
+}
+
+#ifdef adfasdfsadff
+
 #include <math.h>
 #include <string.h>
 #include <gtk/gtk.h>
@@ -178,126 +391,7 @@ on_fileOpen_activate                   (GtkMenuItem     *menuitem,
 }
 
 
-void
-on_fileSave_activate                   (GtkMenuItem     *menuitem,
-                                        gpointer         user_data)
-{
-  GtkWidget *dialog;
-  
-  end_text();
-  if (ui.filename == NULL) {
-    on_fileSaveAs_activate(menuitem, user_data);
-    return;
-  }
-  set_cursor_busy(TRUE);
-  if (save_journal(ui.filename)) { // success
-    set_cursor_busy(FALSE);
-    ui.saved = TRUE;
-    return;
-  }
-  set_cursor_busy(FALSE);
-  /* save failed */
-  dialog = gtk_message_dialog_new(GTK_WINDOW (winMain), GTK_DIALOG_DESTROY_WITH_PARENT,
-    GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, _("Error saving file '%s'"), ui.filename);
-  gtk_dialog_run(GTK_DIALOG(dialog));
-  gtk_widget_destroy(dialog);
-}
 
-
-void
-on_fileSaveAs_activate                 (GtkMenuItem     *menuitem,
-                                        gpointer         user_data)
-{
-  GtkWidget *dialog, *warning_dialog;
-  GtkFileFilter *filt_all, *filt_xoj;
-  char *filename;
-  char stime[30];
-  time_t curtime;
-  gboolean warn;
-  struct stat stat_buf;
-  
-  end_text();
-  dialog = gtk_file_chooser_dialog_new(_("Save Journal"), GTK_WINDOW (winMain),
-     GTK_FILE_CHOOSER_ACTION_SAVE, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-     GTK_STOCK_SAVE, GTK_RESPONSE_OK, NULL);
-#ifdef FILE_DIALOG_SIZE_BUGFIX
-  gtk_window_set_default_size(GTK_WINDOW(dialog), 500, 400);
-#endif
-     
-  if (ui.filename!=NULL) {
-    gtk_file_chooser_set_filename(GTK_FILE_CHOOSER (dialog), ui.filename);
-    gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (dialog), g_basename(ui.filename));
-  } 
-  else
-  if (bgpdf.status!=STATUS_NOT_INIT && bgpdf.file_domain == DOMAIN_ABSOLUTE 
-      && bgpdf.filename != NULL) {
-    filename = g_strdup_printf("%s.xoj", bgpdf.filename->s);
-    gtk_file_chooser_set_filename(GTK_FILE_CHOOSER (dialog), filename);
-    gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (dialog), g_basename(filename));
-    g_free(filename); 
-  }
-  else {
-    curtime = time(NULL);
-    strftime(stime, 30, "%Y-%m-%d-Note-%H-%M.xoj", localtime(&curtime));
-    if (ui.default_path!=NULL)
-      gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (dialog), ui.default_path);
-    gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (dialog), stime);
-  }
-     
-  filt_all = gtk_file_filter_new();
-  gtk_file_filter_set_name(filt_all, _("All files"));
-  gtk_file_filter_add_pattern(filt_all, "*");
-  filt_xoj = gtk_file_filter_new();
-  gtk_file_filter_set_name(filt_xoj, _("Xournal files"));
-  gtk_file_filter_add_pattern(filt_xoj, "*.xoj");
-  gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (dialog), filt_xoj);
-  gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (dialog), filt_all);
-  
-  // somehow this doesn't seem to be set by default
-  gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_OK);
-
-  do {
-    if (gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_OK) {
-      gtk_widget_destroy(dialog);
-      return;
-    }
-    filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
-    warn = g_file_test (filename, G_FILE_TEST_EXISTS);
-    if (warn) { // ok to overwrite an empty file
-      if (!g_stat(filename, &stat_buf))
-        if (stat_buf.st_size == 0) warn=FALSE;
-    }
-    if (warn && ui.filename!=NULL) { // ok to overwrite oneself
-      if (ui.filename[0]=='/' && !strcmp(ui.filename, filename)) warn=FALSE;
-      if (ui.filename[0]!='/' && g_str_has_suffix(filename, ui.filename)) warn=FALSE;
-    }
-    if (warn) {
-      warning_dialog = gtk_message_dialog_new(GTK_WINDOW(winMain), 
-        GTK_DIALOG_MODAL, GTK_MESSAGE_QUESTION, GTK_BUTTONS_YES_NO,
-        _("Should the file %s be overwritten?"), filename);
-      if (gtk_dialog_run(GTK_DIALOG(warning_dialog)) == GTK_RESPONSE_YES)
-        warn = FALSE;
-      gtk_widget_destroy(warning_dialog);
-    }
-  } while (warn);
-
-  gtk_widget_destroy(dialog);
-
-  set_cursor_busy(TRUE);
-  if (save_journal(filename)) { // success
-    ui.saved = TRUE;
-    set_cursor_busy(FALSE);
-    update_file_name(filename);
-    return;
-  }
-  set_cursor_busy(FALSE);
-  /* save failed */
-  dialog = gtk_message_dialog_new(GTK_WINDOW (winMain), GTK_DIALOG_DESTROY_WITH_PARENT,
-    GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, _("Error saving file '%s'"), filename);
-  gtk_dialog_run(GTK_DIALOG(dialog));
-  gtk_widget_destroy(dialog);
-  g_free(filename);
-}
 
 
 void
@@ -441,14 +535,6 @@ on_filePrintPDF_activate               (GtkMenuItem     *menuitem,
   g_free(filename);
 }
 
-
-void
-on_fileQuit_activate                   (GtkMenuItem     *menuitem,
-                                        gpointer         user_data)
-{
-  end_text();
-  if (ok_to_close()) gtk_main_quit ();
-}
 
 
 void
@@ -2304,14 +2390,6 @@ on_toolsReco_activate                  (GtkMenuItem *menuitem,
 }
 
 
-void
-on_optionsSavePreferences_activate     (GtkMenuItem     *menuitem,
-                                        gpointer         user_data)
-{
-  end_text();
-  save_config_to_file();
-}
-
 
 void
 on_helpIndex_activate                  (GtkMenuItem     *menuitem,
@@ -3639,14 +3717,6 @@ on_optionsShortenMenus_activate        (GtkMenuItem     *menuitem,
 }
 
 void
-on_optionsAutoSavePrefs_activate       (GtkMenuItem     *menuitem,  
-                                        gpointer         user_data)
-{
-  end_text();
-  ui.auto_save_prefs = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem));
-}
-
-void
 on_optionsPressureSensitive_activate   (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -3691,3 +3761,4 @@ on_optionsPenCursor_activate           (GtkCheckMenuItem *checkmenuitem,
   ui.pen_cursor = gtk_check_menu_item_get_active(checkmenuitem);
   update_cursor();
 }
+#endif

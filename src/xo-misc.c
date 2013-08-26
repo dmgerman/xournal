@@ -1752,30 +1752,6 @@ void process_paperstyle_activate(GtkMenuItem *menuitem, int style)
 #define GTK_STOCK_DISCARD GTK_STOCK_NO
 #endif
 
-gboolean ok_to_close(void)
-{
-  GtkWidget *dialog;
-  GtkResponseType response;
-
-  if (ui.saved) return TRUE;
-  dialog = gtk_message_dialog_new(GTK_WINDOW (winMain), GTK_DIALOG_DESTROY_WITH_PARENT,
-    GTK_MESSAGE_WARNING, GTK_BUTTONS_NONE, _("Save changes to '%s'?"),
-    (ui.filename!=NULL) ? ui.filename:_("Untitled"));
-  gtk_dialog_add_button(GTK_DIALOG (dialog), GTK_STOCK_DISCARD, GTK_RESPONSE_NO);
-  gtk_dialog_add_button(GTK_DIALOG (dialog), GTK_STOCK_SAVE, GTK_RESPONSE_YES);
-  gtk_dialog_add_button(GTK_DIALOG (dialog), GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL);
-  gtk_dialog_set_default_response(GTK_DIALOG (dialog), GTK_RESPONSE_YES);
-  response = gtk_dialog_run(GTK_DIALOG (dialog));
-  gtk_widget_destroy(dialog);
-  if (response == GTK_RESPONSE_CANCEL || response == GTK_RESPONSE_DELETE_EVENT) 
-    return FALSE; // aborted
-  if (response == GTK_RESPONSE_YES) {
-    on_fileSave_activate(NULL, NULL);
-    if (!ui.saved) return FALSE; // if save failed, then we abort
-  }
-  return TRUE;
-}
-
 // send the focus back to the appropriate widget
 
 void reset_focus(void)

@@ -15,6 +15,7 @@
 
 
 #include <gtk/gtk.h>
+#ifdef adfasfdf
 
 void
 on_fileNew_activate                    (GtkMenuItem     *menuitem,
@@ -664,3 +665,4 @@ on_button3Image_activate               (GtkMenuItem     *menuitem,
 void
 on_optionsPenCursor_activate           (GtkCheckMenuItem *checkmenuitem,
                                         gpointer         user_data);
+#endif

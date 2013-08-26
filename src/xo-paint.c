@@ -17,6 +17,84 @@
 #  include <config.h>
 #endif
 
+#include <gtk/gtk.h>
+
+
+/************** drawing nice cursors *********/
+
+extern GtkWidget *winMain;
+
+void xo_cursor_update(void)
+{
+#ifdef dmg
+  GdkPixmap *source, *mask;
+  GdkColor fg = {0, 0, 0, 0}, bg = {0, 65535, 65535, 65535};
+
+  ui.is_sel_cursor = FALSE;
+  if (GTK_WIDGET(canvas)->window == NULL) return;
+  
+  if (ui.cursor!=NULL) { 
+    gdk_cursor_unref(ui.cursor);
+    ui.cursor = NULL;
+  }
+  if (ui.cur_item_type == ITEM_MOVESEL_VERT)
+    ui.cursor = gdk_cursor_new(GDK_SB_V_DOUBLE_ARROW);
+  else if (ui.cur_item_type == ITEM_MOVESEL)
+    ui.cursor = gdk_cursor_new(GDK_FLEUR);
+  else if (ui.toolno[ui.cur_mapping] == TOOL_PEN) {
+    ui.cursor = make_pen_cursor(ui.cur_brush->color_rgba);
+  }
+  else if (ui.toolno[ui.cur_mapping] == TOOL_ERASER) {
+    ui.cursor = make_hiliter_cursor(0xffffffff);
+  }
+  else if (ui.toolno[ui.cur_mapping] == TOOL_HIGHLIGHTER) {
+    ui.cursor = make_hiliter_cursor(ui.cur_brush->color_rgba);
+  }
+  else if (ui.cur_item_type == ITEM_SELECTRECT) {
+    ui.cursor = gdk_cursor_new(GDK_TCROSS);
+  }
+  else if (ui.toolno[ui.cur_mapping] == TOOL_HAND) {
+    ui.cursor = gdk_cursor_new(GDK_HAND1);
+  }
+  else if (ui.toolno[ui.cur_mapping] == TOOL_TEXT) {
+    ui.cursor = gdk_cursor_new(GDK_XTERM);
+  }
+  
+  gdk_window_set_cursor(GTK_WIDGET(canvas)->window, ui.cursor);
+#endif
+}
+
+void xo_cursor_set_busy(gboolean busy)
+{
+  GdkCursor *cursor;
+  
+  GdkWindow *w = gtk_widget_get_parent_window(winMain);
+
+  if (busy) {
+    cursor = gdk_cursor_new(GDK_WATCH);
+    gdk_window_set_cursor(w, cursor);
+#ifdef dmg
+    gdk_window_set_cursor(GTK_WIDGET(canvas)->window, cursor);
+#endif
+    g_object_unref(cursor);
+  }
+  else {
+    gdk_window_set_cursor(w, NULL);
+    xo_cursor_update();
+  }
+  gdk_display_sync(gdk_display_get_default());
+}
+
+
+
+#ifdef adsfasdff
+
+
+
+
+
+
+
 #include <math.h>
 #include <string.h>
 #include <gtk/gtk.h>
@@ -29,24 +107,6 @@
 #include "xo-misc.h"
 #include "xo-paint.h"
 
-/************** drawing nice cursors *********/
-
-void set_cursor_busy(gboolean busy)
-{
-  GdkCursor *cursor;
-  
-  if (busy) {
-    cursor = gdk_cursor_new(GDK_WATCH);
-    gdk_window_set_cursor(GTK_WIDGET(winMain)->window, cursor);
-    gdk_window_set_cursor(GTK_WIDGET(canvas)->window, cursor);
-    gdk_cursor_unref(cursor);
-  }
-  else {
-    gdk_window_set_cursor(GTK_WIDGET(winMain)->window, NULL);
-    update_cursor();
-  }
-  gdk_display_sync(gdk_display_get_default());
-}
 
 #define PEN_CURSOR_RADIUS 1
 #define HILITER_CURSOR_RADIUS 3
@@ -108,44 +168,6 @@ GdkCursor *make_hiliter_cursor(guint color_rgba)
       g_memmove(pixels + y*rowstride + x*4, col, 4);
   
   return gdk_cursor_new_from_pixbuf(gdk_display_get_default(), ui.hiliter_cursor_pix, 7, 7);
-}
-
-void update_cursor(void)
-{
-  GdkPixmap *source, *mask;
-  GdkColor fg = {0, 0, 0, 0}, bg = {0, 65535, 65535, 65535};
-
-  ui.is_sel_cursor = FALSE;
-  if (GTK_WIDGET(canvas)->window == NULL) return;
-  
-  if (ui.cursor!=NULL) { 
-    gdk_cursor_unref(ui.cursor);
-    ui.cursor = NULL;
-  }
-  if (ui.cur_item_type == ITEM_MOVESEL_VERT)
-    ui.cursor = gdk_cursor_new(GDK_SB_V_DOUBLE_ARROW);
-  else if (ui.cur_item_type == ITEM_MOVESEL)
-    ui.cursor = gdk_cursor_new(GDK_FLEUR);
-  else if (ui.toolno[ui.cur_mapping] == TOOL_PEN) {
-    ui.cursor = make_pen_cursor(ui.cur_brush->color_rgba);
-  }
-  else if (ui.toolno[ui.cur_mapping] == TOOL_ERASER) {
-    ui.cursor = make_hiliter_cursor(0xffffffff);
-  }
-  else if (ui.toolno[ui.cur_mapping] == TOOL_HIGHLIGHTER) {
-    ui.cursor = make_hiliter_cursor(ui.cur_brush->color_rgba);
-  }
-  else if (ui.cur_item_type == ITEM_SELECTRECT) {
-    ui.cursor = gdk_cursor_new(GDK_TCROSS);
-  }
-  else if (ui.toolno[ui.cur_mapping] == TOOL_HAND) {
-    ui.cursor = gdk_cursor_new(GDK_HAND1);
-  }
-  else if (ui.toolno[ui.cur_mapping] == TOOL_TEXT) {
-    ui.cursor = gdk_cursor_new(GDK_XTERM);
-  }
-  
-  gdk_window_set_cursor(GTK_WIDGET(canvas)->window, ui.cursor);
 }
 
 /* adjust the cursor shape if it hovers near a selection box */
@@ -787,3 +809,4 @@ void process_font_sel(gchar *str)
     }  
   update_font_button();
 }
+#endif

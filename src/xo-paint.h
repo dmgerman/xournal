@@ -13,6 +13,16 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef XO_PAINT_H
+
+#define XO_PAINT_H
+
+void xo_cursor_set_busy(gboolean busy);
+  
+#endif
+
+
+#ifdef dafdsff
 
 void set_cursor_busy(gboolean busy);
 void update_cursor(void);
@@ -44,3 +54,4 @@ struct Item *click_is_in_text(struct Layer *layer, double x, double y);
 struct Item *click_is_in_text_or_image(struct Layer *layer, double x, double y);
 void refont_text_item(struct Item *item, gchar *font_name, double font_size);
 void process_font_sel(gchar *str);
+#endif

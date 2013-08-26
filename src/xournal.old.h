@@ -13,355 +13,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __XOURNAL_H
-
-#define __XOURNAL_H
-
 #include <gtk/gtk.h>
 #include <poppler/glib/poppler.h>
-#include <goocanvas.h>
-
-#define XO_BG_SOLID 0
-#define XO_BG_PIXMAP 1
-#define XO_BG_PDF 2      // not implemented yet
-
-#define XO_RU_FILE "recent-files"
-
-#define XO_RULING_NONE 0
-#define XO_RULING_LINED 1
-#define XO_RULING_RULED 2
-#define XO_RULING_GRAPH 3
-
-typedef struct xo_layer {
-  GList *items; // the items on the layer, from bottom to top
-  int nitems;
-  GooCanvasGroup *groupItems;
-} xo_layer;
-
-
-
-/* a string (+ aux data) that maintains a refcount */
-
-typedef struct Refstring {
-  int nref;
-  char *s;
-  gpointer aux;
-} Refstring;
-
-
-typedef struct xo_background {
-    int type;
-    int    ruling;
-    int        color_no;
-    guint32    color_rgba;
-    Refstring *filename;
-    int        file_domain;
-    int        file_page_seq;
-    double     pixbuf_scale; // for PIXMAP, this is the *current* zoom value
-                           // for PDF, this is the *requested* zoom value
-    int        pixel_height;
-    int        pixel_width;   // PDF only: pixel size of current pixbuf
-    GdkPixbuf *pixbuf;
-    GooCanvasItem *canvas_item;
-} xo_background;
-
-typedef struct xo_page {
-    GList *layers; // the layers on the page
-    int    nlayers;
-    double height;
-    double width;
-    double hoffset; // offsets of canvas group rel. to canvas root
-    double voffset; 
-    xo_background *bg;
-    ///  GnomeCanvasGroup *group;
-    GooCanvasItemModel *rootAnnot;
-} xo_page;
-
-typedef struct xo_journal {
-  int   magic;   // just to check it is what it is
-  GList *pages;  // the pages in the journal
-  int npages;
-  xo_page   *templatePage;
-
-  int canvasRefCount;
-  
-  GtkWidget *uiMainWindow;
-  
-  gchar* fontName;
-  gdouble font_size;
-  
-  gboolean  saved;
-  gchar    *filename;
-} xo_journal;
-
-// multiple canvas can hold the same journal
-typedef struct xo_canvas {
-  xo_journal journal;
-  xo_page   *currentPage;
-  xo_layer  *currentLayer;
-  GtkWidget *mainWindow;
-} xo_canvas;
-
-
-#define XO_DEFAULT_SHORTEN_MENUS \
-  "optionsProgressiveBG optionsLeftHanded optionsButtonSwitchMapping"
-
-#define XO_GS_CMDLINE \
-  "gs -sDEVICE=bmp16m -r%f -q -sOutputFile=- " \
-  "-dNOPAUSE -dBATCH -dEPSCrop -dTextAlphaBits=4 -dGraphicsAlphaBits=4 %s"
-
-
-#define XO_CONFIG_DIR ".xournal"
-#define XO_CONFIG_FILE "config2"
-
-#define XO_THICKNESS_VERYFINE  0
-#define XO_THICKNESS_FINE      1
-#define XO_THICKNESS_MEDIUM    2
-#define XO_THICKNESS_THICK     3
-#define XO_THICKNESS_VERYTHICK 4
-#define XO_THICKNESS_MAX       5
-
-#define XO_TOOL_PEN          0
-#define XO_TOOL_ERASER       1
-#define XO_TOOL_HIGHLIGHTER  2
-#define XO_TOOL_TEXT         3
-#define XO_TOOL_SELECTREGION 4
-#define XO_TOOL_SELECTRECT   5
-#define XO_TOOL_VERTSPACE    6
-#define XO_TOOL_HAND         7
-#define XO_TOOL_IMAGE        8
-#define XO_NUM_STROKE_TOOLS  3
-#define XO_NUM_TOOLS         9
-#define XO_NUM_BUTTONS       3
-
-#define XO_TOOLOPT_ERASER_STANDARD     0
-#define XO_TOOLOPT_ERASER_WHITEOUT     1
-#define XO_TOOLOPT_ERASER_STROKES      2
-
-#define XO_VBOX_MAIN_NITEMS 5 // number of interface items in vboxMain
-
-
-
-#define XO_DOMAIN_ABSOLUTE 0
-#define XO_DOMAIN_ATTACH 1
-#define XO_DOMAIN_CLONE 2  // only while loading file
-
-
-#define XO_COLOR_BLACK      0
-#define XO_COLOR_BLUE       1
-#define XO_COLOR_RED        2
-#define XO_COLOR_GREEN      3
-#define XO_COLOR_GRAY       4
-#define XO_COLOR_LIGHTBLUE  5
-#define XO_COLOR_LIGHTGREEN 6
-#define XO_COLOR_MAGENTA    7
-#define XO_COLOR_ORANGE     8
-#define XO_COLOR_YELLOW     9
-#define XO_COLOR_WHITE     10
-#define XO_COLOR_OTHER     -1
-#define XO_COLOR_MAX       11
-
-#define XO_DISPLAY_DPI_DEFAULT 96.0
-
-#define XO_UNIT_CM 0
-#define XO_UNIT_IN 1
-#define XO_UNIT_PX 2
-#define XO_UNIT_PT 3
-
-#define XO_BRUSH_LINKED 0
-#define XO_BRUSH_COPIED 1
-#define XO_BRUSH_STATIC 2
-
-#define XO_THICKNESS_VERYFINE  0
-#define XO_THICKNESS_FINE      1
-#define XO_THICKNESS_MEDIUM    2
-#define XO_THICKNESS_THICK     3
-#define XO_THICKNESS_VERYTHICK 4
-#define XO_THICKNESS_MAX       5
-
-
-
-#ifdef WIN32
-#define XO_FONT_DEFAULT     "Arial"
-#else
-#define XO_FONT_DEFAULT     "Sans"
-#endif
-#define XO_FONT_DEFAULT_SIZE 12
-
-#define XO_PIXEL_MOTION_THRESHOLD 0.3
-#define XO_MAX_AXES 12
-#define XO_EPSILON 1E-7
-#define XO_MAX_ZOOM 20.0
-#define XO_MIN_ZOOM 0.2
-#define XO_RESIZE_MARGIN 6.0
-#define XO_MAX_SAFE_RENDER_DPI 720 // max dpi at which PDF bg's get rendered
-
-#define XO_VBOX_MAIN_NITEMS 5 // number of interface items in vboxMain
-
-typedef struct xo_brush {
-  int tool_type;
-  int color_no;
-  guint color_rgba;
-  int thickness_no;
-  double thickness;
-  int tool_options;
-  gboolean ruler, recognizer, variable_width;
-} xo_brush;
-
-typedef struct xo_defaults {
-
-  gboolean maximize_at_start;
-  gboolean fullscreen;
-  int window_default_width;
-  int window_default_height;
-  int scrollbar_step_increment;
-  int zoom_step_increment; // the increment in the zoom dialog box
-  double zoom_step_factor; // the multiplicative factor in zoom in/out
-  gboolean view_continuous;
-  gboolean allow_xinput; // allow use of xinput ?
-  gboolean discard_corepointer; // discard core pointer events in XInput mode
-  gboolean ignore_other_devices;
-  gboolean use_erasertip;
-
-  gboolean button_switch_mapping; // button clicks switch button 1 mappings
-  gboolean autoload_pdf_xoj;
-  gchar *default_path; // default path for new notes
-  gboolean pressure_sensitivity; // use pen pressure to control stroke width?
-
-  double width_minimum_multiplier;
-  double width_maximum_multiplier; // calibration for pressure sensitivity
-  int vertical_order[2][XO_VBOX_MAIN_NITEMS]; // the order of interface components
-  gboolean left_handed; // left-handed mode?
-
-  int default_unit; // the default unit for paper sizes
-  int startuptool; // the default tool at startup
-  xo_brush default_brushes[XO_NUM_STROKE_TOOLS]; // the default ones
-  gchar *default_image; // path for previous image
-
-  gboolean shorten_menus; // shorten menus ?
-  gchar *shorten_menu_items; // which items to hide
-
-  gdouble hiliter_opacity;
-  gboolean auto_save_prefs; // auto-save preferences ?
-  gboolean poppler_force_cairo; // force poppler to use cairo
-
-  double default_zoom;
-  double startup_zoom;
-
-  gchar *default_font_name;
-  gdouble default_font_size;
-
-  char *ruFileName;      
-  char *configFileName;   
-
-  gboolean bg_apply_all_pages;
-  int   pdftoppm_printing_dpi;
-  int   gs_bitmap_dpi;
-
-  double zoom; // zoom factor, in pixels per pt
-
-  gboolean progressive_bg; // update PDF bg's one at a time
-  gboolean print_ruling; // print the paper ruling ?
-  gboolean pen_cursor; // use pencil cursor (default is a dot in current color)
-
-  // page defaults
-  double page_height;
-  double page_width;
-  int    page_bg_type;
-  int    page_bg_color_no;  
-  guint32 page_bg_color_rgba;
-  int    page_bg_ruling;
-
-
-
-  int toolno[XO_NUM_BUTTONS+1];  // the number of the currently selected tool
-
-  xo_brush brushes[XO_NUM_BUTTONS+1][XO_NUM_STROKE_TOOLS]; // the current pen, eraser, hiliter
-  int linked_brush[XO_NUM_BUTTONS+1]; // whether brushes are linked across buttons
-
-} xo_defaults;
-
-
-guint xo_predef_bg_colors_rgba[XO_COLOR_MAX];
-guint xo_predef_colors_rgba[XO_COLOR_MAX];
-
-
-#ifdef asdfdda
-----------------------------------------------------------------------
-typedef struct xo_ui_data {
-  xo_page default_page;  // the model for the default page
-
-  int pageno;
-  int layerno; // the current page and layer
-  struct Page *cur_page;
-  struct Layer *cur_layer;
-  gboolean saved; // is file saved ?
-
-  xo_brush *cur_brush;  // the brush in use (one of brushes[...])
-
-  int cur_mapping; // the current button number for mappings
-
-
-
-  int which_mouse_button; // the mouse button drawing the current path
-  int which_unswitch_button; // if button_switch_mapping, the mouse button that switched the mapping
-  int layerbox_length;  // the number of entries registered in the layers combo-box
-
-  struct Item *cur_item; // the item being drawn, or NULL
-  int cur_item_type;
-  ///GnomeCanvasPoints cur_path; // the path being drawn
-  gdouble *cur_widths; // width array for the path being drawn
-  int cur_path_storage_alloc;
-  int cur_widths_storage_alloc;
-  gboolean use_xinput; // use input devices instead of core pointer
-
-  gboolean is_corestroke; // this stroke is painted with core pointer
-  gboolean saved_is_corestroke;
-  GdkDevice *stroke_device; // who's painting this stroke
-
-  int screen_width; // initial screen size, for XInput events
-  int screen_height; 
-  double hand_refpt[2];
-  int hand_scrollto_cx;
-  int hand_scrollto_cy;
-  gboolean hand_scrollto_pending;
-  char *filename;
-  gboolean view_continuous;
-  gboolean fullscreen;
-  gboolean maximize_at_start;
-  gboolean in_update_page_stuff; // semaphore to avoid scrollbar retroaction
-  struct Selection *selection;
-  GdkCursor *cursor;
-  GdkPixbuf *pen_cursor_pix;
-  GdkPixbuf *hiliter_cursor_pix;
-  gboolean pen_cursor; // use pencil cursor (default is a dot in current color)
-
-  char *recentlyUsed[XO_RU_SIZE]; // 
-  GtkWidget *recentlyUsedMenu[XO_RU_SIZE];
-
-  gboolean print_ruling; // print the paper ruling ?
-#if GLIB_CHECK_VERSION(2,6,0)
-  GKeyFile *config_data;
-#endif
-  gulong resize_signal_handler;
-  guint hiliter_alpha_mask;
-
-  gboolean is_sel_cursor; // displaying a selection-related cursor
-  gint pre_fullscreen_width, pre_fullscreen_height; // for win32 fullscreen
-#if GTK_CHECK_VERSION(2,10,0)
-  GtkPrintSettings *print_settings;
-#endif
-
-
-} xo_ui_data;
-#endif
-
-
-
-
-
-
-#ifdef adfasdff
 
 // #define INPUT_DEBUG
 /* uncomment this line if you experience event-processing problems
@@ -399,11 +52,20 @@ typedef struct xo_ui_data {
 #define MAX_AXES 12
 #define EPSILON 1E-7
 #define MAX_ZOOM 20.0
+#define DISPLAY_DPI_DEFAULT 96.0
 #define MIN_ZOOM 0.2
 #define RESIZE_MARGIN 6.0
 #define MAX_SAFE_RENDER_DPI 720 // max dpi at which PDF bg's get rendered
 
 #define VBOX_MAIN_NITEMS 5 // number of interface items in vboxMain
+
+/* a string (+ aux data) that maintains a refcount */
+
+typedef struct Refstring {
+  int nref;
+  char *s;
+  gpointer aux;
+} Refstring;
 
 
 /* The journal is mostly a list of pages. Each page is a list of layers,
@@ -412,6 +74,7 @@ typedef struct xo_ui_data {
 
 typedef struct Background {
   int type;
+  ///  GnomeCanvasItem *canvas_item;
   int color_no;
   guint color_rgba;
   int ruling;
@@ -422,9 +85,6 @@ typedef struct Background {
   double pixbuf_scale; // for PIXMAP, this is the *current* zoom value
                        // for PDF, this is the *requested* zoom value
   int pixel_height, pixel_width; // PDF only: pixel size of current pixbuf
-
-  GooCanvasItem *canvas_item;
-
 } Background;
 
 #define BG_SOLID 0
@@ -440,6 +100,15 @@ typedef struct Background {
 #define DOMAIN_ATTACH 1
 #define DOMAIN_CLONE 2  // only while loading file
 
+typedef struct Brush {
+  int tool_type;
+  int color_no;
+  guint color_rgba;
+  int thickness_no;
+  double thickness;
+  int tool_options;
+  gboolean ruler, recognizer, variable_width;
+} Brush;
 
 #define COLOR_BLACK      0
 #define COLOR_BLUE       1
@@ -458,6 +127,12 @@ typedef struct Background {
 extern guint predef_colors_rgba[COLOR_MAX];
 extern guint predef_bgcolors_rgba[COLOR_MAX];
 
+#define THICKNESS_VERYFINE  0
+#define THICKNESS_FINE      1
+#define THICKNESS_MEDIUM    2
+#define THICKNESS_THICK     3
+#define THICKNESS_VERYTHICK 4
+#define THICKNESS_MAX       5
 
 #define TOOL_PEN          0
 #define TOOL_ERASER       1
@@ -615,8 +290,7 @@ typedef struct UIData {
   GdkPixbuf *pen_cursor_pix, *hiliter_cursor_pix;
   gboolean pen_cursor; // use pencil cursor (default is a dot in current color)
   gboolean progressive_bg; // update PDF bg's one at a time
-  char *mrufile;
-  char *configfile; // file names for MRU & config
+  char *mrufile, *configfile; // file names for MRU & config
   char *mru[MRU_SIZE]; // MRU data
   GtkWidget *mrumenu[MRU_SIZE];
   gboolean bg_apply_all_pages;
@@ -648,6 +322,10 @@ typedef struct UIData {
 #endif
   gboolean poppler_force_cairo; // force poppler to use cairo
 } UIData;
+
+#define BRUSH_LINKED 0
+#define BRUSH_COPIED 1
+#define BRUSH_STATIC 2
 
 typedef struct UndoErasureData {
   struct Item *item; // the item that got erased
@@ -731,9 +409,9 @@ extern struct UIData ui;
 extern struct BgPdf bgpdf;
 extern struct UndoItem *undo, *redo;
 
+extern double DEFAULT_ZOOM;
 
-
-#endif
-
-#endif
-
+#define UNIT_CM 0
+#define UNIT_IN 1
+#define UNIT_PX 2
+#define UNIT_PT 3

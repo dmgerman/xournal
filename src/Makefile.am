@@ -13,7 +13,11 @@ INCLUDES = \
 
 bin_PROGRAMS = xournal
 
-xournal_SOURCES = xournal.c
+xournal_SOURCES = xournal.c xo-config.c xo-config.h \
+	xo-callbacks.c \
+	xo-gtk.h \
+	xo-recently-used.c xo-recently-used.h \
+	xo-paint.c xo-paint.h
 ##xournal_SOURCES = \
 ##	main.c xournal.h \
 ##	xo-misc.c xo-misc.h \
