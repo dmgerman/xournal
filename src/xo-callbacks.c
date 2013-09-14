@@ -2522,6 +2522,9 @@ on_canvas_button_press_event           (GtkWidget       *widget,
   gboolean is_core;
   struct Item *item;
   GdkEvent scroll_event;
+  
+  WARN;
+  return TRUE;
 
 #ifdef ABC
 
@@ -2820,6 +2823,9 @@ on_canvas_key_press_event              (GtkWidget       *widget,
                                         GdkEventKey     *event,
                                         gpointer         user_data)
 {
+
+  WARN;
+  return TRUE;
 
 #ifdef ABC
 

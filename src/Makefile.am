@@ -3,11 +3,7 @@
 if WIN32
   SUBDIRS = ttsubset win32
 else
-<<<<<<< HEAD
   SUBDIRS = ttsubset 
-=======
-  SUBDIRS = ttsubset
->>>>>>> parent of 5ac3c56... Include local copy of libgnomecanvas
 endif
 
 INCLUDES = \

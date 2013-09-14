@@ -23,7 +23,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <gtk/gtk.h>
-#include <libgnomecanvas/libgnomecanvas.h>
 #include <zlib.h>
 #include <math.h>
 #include <locale.h>
