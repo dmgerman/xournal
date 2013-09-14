@@ -19,9 +19,13 @@
 
 #include <sys/stat.h>
 #include <string.h>
+#include <stdlib.h>
+#include <gdk/gdk.h> 
 #include <gtk/gtk.h>
+#include <goocanvas.h>
 
-#include "libgnomecanvas/libgnomecanvas.h"
+#include<libgrip/grip.h>
+
 #include "xournal.h"
 #include "xo-interface.h"
 #include "xo-support.h"
@@ -31,8 +35,10 @@
 #include "xo-paint.h"
 #include "xo-shapes.h"
 
+
+
 GtkWidget *winMain;
-GnomeCanvas *canvas;
+GooCanvas *canvas;
 
 struct Journal journal; // the journal
 struct BgPdf bgpdf;  // the PDF loader stuff
@@ -40,6 +46,29 @@ struct UIData ui;   // the user interface data
 struct UndoItem *undo, *redo; // the undo and redo stacks
 
 double DEFAULT_ZOOM;
+
+void
+xo_subscribe_gestures(GtkWidget *window, GtkWidget *scroller) {
+    GripGestureManager *manager = grip_gesture_manager_get();
+    grip_gesture_manager_register_window (manager,
+            window,
+            GRIP_GESTURE_PINCH,
+            GRIP_DEVICE_ALL,
+            2,
+            xo_gesture_callback,
+            scroller, NULL);
+
+    grip_gesture_manager_register_window (manager,
+            window,
+            GRIP_GESTURE_DRAG,
+            GRIP_DEVICE_TOUCHSCREEN,
+            1,
+            xo_gesture_callback,
+            scroller, NULL);
+}
+
+
+
 
 void init_stuff (int argc, char *argv[])
 {
@@ -53,7 +82,7 @@ void init_stuff (int argc, char *argv[])
   gchar *tmppath, *tmpfn;
 
   // create some data structures needed to populate the preferences
-  ui.default_page.bg = g_new(struct Background, 1);
+  ui.default_page.bg = g_new0(struct Background, 1);
 
   // initialize config file names
   tmppath = g_build_filename(g_get_home_dir(), CONFIG_DIR, NULL);
@@ -70,16 +99,16 @@ void init_stuff (int argc, char *argv[])
   ui.hiliter_alpha_mask = 0xffffff00 + (guint)(255*ui.hiliter_opacity);
 
   // we need an empty canvas prior to creating the journal structures
-  canvas = GNOME_CANVAS (gnome_canvas_new_aa ());
+  canvas = (GooCanvas*)goo_canvas_new();
 
   // initialize data
-  ui.default_page.bg->canvas_item = NULL;
+  ui.default_page.bg->canvas_group = NULL;
   ui.layerbox_length = 0;
 
   if (argc > 2 || (argc == 2 && argv[1][0] == '-')) {
     printf(_("Invalid command line parameters.\n"
            "Usage: %s [filename.xoj]\n"), argv[0]);
-    gtk_exit(0);
+    exit(0);
   }
    
   undo = NULL; redo = NULL;
@@ -147,10 +176,12 @@ void init_stuff (int argc, char *argv[])
   gtk_combo_box_set_focus_on_click(GTK_COMBO_BOX(GET_COMPONENT("comboLayer")), FALSE);
   g_signal_connect(GET_COMPONENT("spinPageNo"), "activate",
           G_CALLBACK(handle_activate_signal), NULL);
-  gtk_container_forall(GTK_CONTAINER(winMain), unset_flags, (gpointer)GTK_CAN_FOCUS);
-  GTK_WIDGET_SET_FLAGS(GTK_WIDGET(canvas), GTK_CAN_FOCUS);
-  GTK_WIDGET_SET_FLAGS(GTK_WIDGET(GET_COMPONENT("spinPageNo")), GTK_CAN_FOCUS);
-  
+  gtk_container_forall(GTK_CONTAINER(winMain), xo_unset_focus, NULL);
+  gtk_widget_set_can_focus(GTK_WIDGET(canvas), TRUE);
+  //  GTK_WIDGET_SET_FLAGS(GTK_WIDGET(canvas), GTK_CAN_FOCUS);
+  gtk_widget_set_can_focus(GET_COMPONENT("spinPageNo"), TRUE);
+  //GTK_WIDGET_SET_FLAGS(GTK_WIDGET(GET_COMPONENT("spinPageNo")), GTK_CAN_FOCUS);
+
   // install hooks on button/key/activation events to make the spinPageNo lose focus
   gtk_container_forall(GTK_CONTAINER(winMain), install_focus_hooks, NULL);
 
@@ -161,10 +192,23 @@ void init_stuff (int argc, char *argv[])
   gtk_container_add (GTK_CONTAINER (w), GTK_WIDGET (canvas));
   gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW (w), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
   gtk_widget_set_events (GTK_WIDGET (canvas), GDK_EXPOSURE_MASK | GDK_POINTER_MOTION_MASK | GDK_BUTTON_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_KEY_PRESS_MASK | GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK);
-  gnome_canvas_set_pixels_per_unit (canvas, ui.zoom);
-  gnome_canvas_set_center_scroll_region (canvas, TRUE);
-  gtk_layout_get_hadjustment(GTK_LAYOUT (canvas))->step_increment = ui.scrollbar_step_increment;
-  gtk_layout_get_vadjustment(GTK_LAYOUT (canvas))->step_increment = ui.scrollbar_step_increment;
+#ifdef ABC
+  gnome_canvas_set_pixels_per_unit (canvas, ui.zoom);    
+  gnome_canvas_set_center_scroll_region (canvas, TRUE);  // if the canvas is too small, it simply puts it in the middle... not that important
+
+  gtk_widget_set_size_request (canvas, 600, 450);
+  goo_canvas_set_bounds (GOO_CANVAS (canvas), 0, 0, 1000, 1000);
+
+THIS NEEDS TO BE REDO XXXXXXXXXXXXXXXXXXX
+  gtk_scrollable_set_hadjustment(GTK_SCROLLABLE (canvas), ui.scrollbar_step_increment);
+  //  gtk_layout_get_hadjustment(GTK_LAYOUT (canvas))->step_increment = ui.scrollbar_step_increment;
+  gtk_scrollable_get_vadjustment(canvas, ui.scrollbar_step_increment);
+    //gtk_layout_set_vadjustment(GTK_LAYOUT (canvas))->step_increment = ui.scrollbar_step_increment;
+#endif
+
+
+  xo_subscribe_gestures(GTK_WIDGET(winMain), GTK_WIDGET(canvas));
+
 
   // set up the page size and canvas size
   update_page_stuff();
@@ -190,9 +234,11 @@ void init_stuff (int argc, char *argv[])
   g_signal_connect ((gpointer) canvas, "motion_notify_event",
                     G_CALLBACK (on_canvas_motion_notify_event),
                     NULL);
+#ifdef ABC
   g_signal_connect ((gpointer) gtk_layout_get_vadjustment(GTK_LAYOUT(canvas)),
                     "value-changed", G_CALLBACK (on_vscroll_changed),
                     NULL);
+#endif
   g_object_set_data (G_OBJECT (winMain), "canvas", canvas);
 
   screen = gtk_widget_get_screen(winMain);
@@ -200,18 +246,23 @@ void init_stuff (int argc, char *argv[])
   ui.screen_height = gdk_screen_get_height(screen);
   
   can_xinput = FALSE;
-  dev_list = gdk_devices_list();
+   dev_list = xo_devices_list(NULL);
   while (dev_list != NULL) {
     device = (GdkDevice *)dev_list->data;
-    if (device != gdk_device_get_core_pointer() && device->num_axes >= 2) {
+    //    if (device != gdk_device_manager_get_client_pointer(xo_device_manager_get() && device->num_axes >= 2) {
+    if ( !xo_gtkwidget_device_is_core(NULL, device)  && gdk_device_get_n_axes(device) >= 2) {
       /* get around a GDK bug: map the valuator range CORRECTLY to [0,1] */
 #ifdef ENABLE_XINPUT_BUGFIX
       gdk_device_set_axis_use(device, 0, GDK_AXIS_IGNORE);
       gdk_device_set_axis_use(device, 1, GDK_AXIS_IGNORE);
 #endif
       gdk_device_set_mode(device, GDK_MODE_SCREEN);
-      if (g_strrstr(device->name, "raser"))
+      if (g_strrstr(gdk_device_get_name(device), "raser"))
+#ifdef ABC
         gdk_device_set_source(device, GDK_SOURCE_ERASER);
+#else
+      WARN;
+#endif
       can_xinput = TRUE;
     }
     dev_list = dev_list->next;
@@ -312,7 +363,6 @@ void init_stuff (int argc, char *argv[])
   }
 }
 
-
 int
 main (int argc, char *argv[])
 {
@@ -324,7 +374,7 @@ main (int argc, char *argv[])
   textdomain (GETTEXT_PACKAGE);
 #endif
   
-  gtk_set_locale ();
+  setlocale (LC_ALL, "");
   gtk_init (&argc, &argv);
 
   add_pixmap_directory (PACKAGE_DATA_DIR "/" PACKAGE "/pixmaps");

@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdio.h>
+#include <assert.h>
 
 #include <gtk/gtk.h>
 
@@ -20,6 +21,7 @@ GtkWidget*
 lookup_widget                          (GtkWidget       *widget,
                                         const gchar     *widget_name)
 {
+#ifdef ABC
   GtkWidget *parent, *found_widget;
 
   for (;;)
@@ -40,6 +42,9 @@ lookup_widget                          (GtkWidget       *widget,
   if (!found_widget)
     g_warning ("Widget not found: %s", widget_name);
   return found_widget;
+#else
+  assert(0);
+#endif
 }
 
 static GList *pixmaps_directories = NULL;

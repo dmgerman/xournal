@@ -20,11 +20,11 @@
 #include <math.h>
 #include <string.h>
 #include <gtk/gtk.h>
-#include <libart_lgpl/art_vpath_dash.h>
-#include <libart_lgpl/art_svp_point.h>
-#include <libart_lgpl/art_svp_vpath.h>
+#include <assert.h>
+//#include <libart_lgpl/art_vpath_dash.h>
+//#include <libart_lgpl/art_svp_point.h>
+//#include <libart_lgpl/art_svp_vpath.h>
 
-#include "libgnomecanvas/libgnomecanvas.h"
 #include "xournal.h"
 #include "xo-callbacks.h"
 #include "xo-interface.h"
@@ -35,8 +35,10 @@
 
 /************ selection tools ***********/
 
-void make_dashed(GnomeCanvasItem *item)
+
+void make_dashed(GooCanvasItem *item)
 {
+#ifdef ABC
   double dashlen[2];
   ArtVpathDash dash;
   
@@ -45,11 +47,15 @@ void make_dashed(GnomeCanvasItem *item)
   dash.dash = dashlen;
   dashlen[0] = dashlen[1] = 6.0;
   gnome_canvas_item_set(item, "dash", &dash, NULL);
-}
+#else
+  assert(0);
+#endif
 
+}
 
 void start_selectrect(GdkEvent *event)
 {
+#ifdef ABC
   double pt[2];
   reset_selection();
   
@@ -69,10 +75,15 @@ void start_selectrect(GdkEvent *event)
       "fill-color-rgba", 0x80808040,
       "x1", pt[0], "x2", pt[0], "y1", pt[1], "y2", pt[1], NULL);
   update_cursor();
+#else
+  assert(0);
+#endif
+
 }
 
 void finalize_selectrect(void)
 {
+#ifdef ABC
   double x1, x2, y1, y2;
   GList *itemlist;
   struct Item *item;
@@ -118,11 +129,15 @@ void finalize_selectrect(void)
   update_cursor();
   update_copy_paste_enabled();
   update_font_button();
+#else
+  assert(0);
+#endif
 }
 
 
 void start_selectregion(GdkEvent *event)
 {
+#ifdef ABC
   double pt[2];
   reset_selection();
   
@@ -148,10 +163,16 @@ void start_selectregion(GdkEvent *event)
       NULL);
   make_dashed(ui.selection->canvas_item);
   update_cursor();
+#else
+  assert(0);
+#endif
+
 }
 
 void continue_selectregion(GdkEvent *event)
 {
+#ifdef ABC
+
   double *pt;
   
   realloc_cur_path(ui.cur_path.num_points+1);
@@ -163,10 +184,17 @@ void continue_selectregion(GdkEvent *event)
   if (ui.cur_path.num_points>2)
     gnome_canvas_item_set(ui.selection->canvas_item, 
      "points", &ui.cur_path, NULL);
+
+
+#else
+  assert(0);
+#endif
+
 }
 
 /* check whether a point, resp. an item, is inside a lasso selection */
 
+#ifdef ABC
 gboolean hittest_point(ArtSVP *lassosvp, double x, double y)
 {
   return art_svp_point_wind(lassosvp, x, y)%2;
@@ -188,9 +216,10 @@ gboolean hittest_item(ArtSVP *lassosvp, struct Item *item)
             hittest_point(lassosvp, item->bbox.left, item->bbox.bottom) &&
             hittest_point(lassosvp, item->bbox.right, item->bbox.bottom));
 }
-
+#endif
 void finalize_selectregion(void)
 {
+#ifdef ABC
   GList *itemlist;
   struct Item *item;
   ArtVpath *vpath;
@@ -251,7 +280,7 @@ void finalize_selectregion(void)
 
   if (ui.selection->items == NULL) reset_selection();
   else { // make a selection rectangle instead of the lasso shape
-    gtk_object_destroy(GTK_OBJECT(ui.selection->canvas_item));
+    g_object_run_dispose(GTK_OBJECT(ui.selection->canvas_item));
     ui.selection->canvas_item = gnome_canvas_item_new(ui.cur_layer->group,
       gnome_canvas_rect_get_type(), "width-pixels", 1, 
       "outline-color-rgba", 0x000000ff,
@@ -265,6 +294,9 @@ void finalize_selectregion(void)
   update_cursor();
   update_copy_paste_enabled();
   update_font_button();
+#else
+  assert(0);
+#endif
 }
 
 
@@ -272,6 +304,8 @@ void finalize_selectregion(void)
 
 gboolean start_movesel(GdkEvent *event)
 {
+#ifdef ABC
+
   double pt[2];
   
   if (ui.selection==NULL) return FALSE;
@@ -294,6 +328,11 @@ gboolean start_movesel(GdkEvent *event)
     return TRUE;
   }
   return FALSE;
+#else
+  assert(0);
+#endif
+
+
 }
 
 gboolean start_resizesel(GdkEvent *event)
@@ -336,7 +375,11 @@ gboolean start_resizesel(GdkEvent *event)
     ui.selection->new_y2 = ui.selection->bbox.bottom;
     ui.selection->new_x1 = ui.selection->bbox.left;
     ui.selection->new_x2 = ui.selection->bbox.right;
+#ifdef ABC
     gnome_canvas_item_set(ui.selection->canvas_item, "dash", NULL, NULL);
+#else
+    WARN;
+#endif
     update_cursor_for_resize(pt);
     return TRUE;
   }
@@ -346,6 +389,7 @@ gboolean start_resizesel(GdkEvent *event)
 
 void start_vertspace(GdkEvent *event)
 {
+#ifdef ABC
   double pt[2];
   GList *itemlist;
   struct Item *item;
@@ -380,10 +424,16 @@ void start_vertspace(GdkEvent *event)
       "fill-color-rgba", 0x80808040,
       "x1", -100.0, "x2", ui.cur_page->width+100, "y1", pt[1], "y2", pt[1], NULL);
   update_cursor();
+#else
+  assert(0);
+#endif
+
 }
 
 void continue_movesel(GdkEvent *event)
 {
+#ifdef ABC
+
   double pt[2], dx, dy, upmargin;
   GList *list;
   struct Item *item;
@@ -456,10 +506,17 @@ void continue_movesel(GdkEvent *event)
     if (item->canvas_item != NULL)
       gnome_canvas_item_move(item->canvas_item, dx, dy);
   }
+
+
+#else
+  assert(0);
+#endif
+
 }
 
 void continue_resizesel(GdkEvent *event)
 {
+#ifdef ABC
   double pt[2];
 
   get_pointer_coords(event, pt);
@@ -472,10 +529,14 @@ void continue_resizesel(GdkEvent *event)
   gnome_canvas_item_set(ui.selection->canvas_item, 
     "x1", ui.selection->new_x1, "x2", ui.selection->new_x2,
     "y1", ui.selection->new_y1, "y2", ui.selection->new_y2, NULL);
+#else
+  assert(0);
+#endif
 }
 
 void finalize_movesel(void)
 {
+#ifdef ABC
   GList *list, *link;
   
   if (ui.selection->items != NULL) {
@@ -520,6 +581,11 @@ void finalize_movesel(void)
   }
   ui.cur_item_type = ITEM_NONE;
   update_cursor();
+
+
+#else
+  assert(0);
+#endif
 }
 
 #define SCALING_EPSILON 0.001
@@ -590,7 +656,7 @@ void selection_delete(void)
   for (itemlist = ui.selection->items; itemlist!=NULL; itemlist = itemlist->next) {
     item = (struct Item *)itemlist->data;
     if (item->canvas_item!=NULL)
-      gtk_object_destroy(GTK_OBJECT(item->canvas_item));
+      g_object_run_dispose(G_OBJECT(item->canvas_item));
     erasure = g_new(struct UndoErasureData, 1);
     erasure->item = item;
     erasure->npos = g_list_index(ui.selection->layer->items, item);
@@ -612,6 +678,7 @@ void selection_delete(void)
 
 void recolor_selection(int color_no, guint color_rgba)
 {
+#ifdef ABC
   GList *itemlist;
   struct Item *item;
   struct Brush *brush;
@@ -640,15 +707,19 @@ void recolor_selection(int color_no, guint color_rgba)
            "fill-color-rgba", item->brush.color_rgba, NULL);
       else {
         group = (GnomeCanvasGroup *) item->canvas_item->parent;
-        gtk_object_destroy(GTK_OBJECT(item->canvas_item));
+        g_object_run_dispose(GTK_OBJECT(item->canvas_item));
         make_canvas_item_one(group, item);
       }
     }
   }
+#else
+  assert(0);
+#endif
 }
 
 void rethicken_selection(int val)
 {
+#ifdef ABC
   GList *itemlist;
   struct Item *item;
   struct Brush *brush;
@@ -676,11 +747,14 @@ void rethicken_selection(int val)
            "width-units", item->brush.thickness, NULL);
       else {
         group = (GnomeCanvasGroup *) item->canvas_item->parent;
-        gtk_object_destroy(GTK_OBJECT(item->canvas_item));
+        g_object_run_dispose(GTK_OBJECT(item->canvas_item));
         item->brush.variable_width = FALSE;
         make_canvas_item_one(group, item);
       }
     }
   }
+#else
+  assert(0);
+#endif
 }
 

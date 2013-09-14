@@ -20,6 +20,8 @@
 #include <math.h>
 #include <string.h>
 #include <gtk/gtk.h>
+#include <assert.h>
+
 
 #include "xournal.h"
 #include "xo-support.h"
@@ -42,6 +44,7 @@ GdkPixbuf *pixbuf_from_buffer(const gchar *buf, gsize buflen)
 
 void create_image_from_pixbuf(GdkPixbuf *pixbuf, double *pt)
 {
+#ifdef ABC
   double scale;
   struct Item *item;
 
@@ -91,10 +94,14 @@ void create_image_from_pixbuf(GdkPixbuf *pixbuf, double *pt)
       "y1", ui.selection->bbox.top, "y2", ui.selection->bbox.bottom, NULL);
   make_dashed(ui.selection->canvas_item);
   update_copy_paste_enabled();
+#else
+  assert(0);
+#endif
 }
 
 void insert_image(GdkEvent *event)
 {
+#ifdef ABC
   GtkTextBuffer *buffer;
   GnomeCanvasItem *canvas_item;
   GdkColor color;
@@ -157,6 +164,10 @@ void insert_image(GdkEvent *event)
   set_current_page(pt);  
 
   create_image_from_pixbuf(pixbuf, pt);
+#else
+  assert(0);
+#endif
+
 }
 
 void rescale_images(void)

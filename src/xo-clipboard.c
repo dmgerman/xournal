@@ -19,6 +19,7 @@
 
 #include <string.h>
 #include <gtk/gtk.h>
+#include <assert.h>
 
 #include "xournal.h"
 #include "xo-callbacks.h"
@@ -194,6 +195,8 @@ void selection_to_clip(void)
 // paste xournal native data
 void clipboard_paste_from_xournal(GtkSelectionData *sel_data)
 {
+#ifdef ABC
+
   unsigned char *p;
   int nitems, npts, i, len;
   struct Item *item;
@@ -312,11 +315,20 @@ void clipboard_paste_from_xournal(GtkSelectionData *sel_data)
   update_color_buttons();
   update_font_button();  
   update_cursor(); // FIXME: can't know if pointer is within selection!
+#else
+  assert(0);
+#endif
+
+
 }
 
 // paste external text
 void clipboard_paste_text(gchar *text)
 {
+#ifdef ABC
+
+
+
   struct Item *item;
   double pt[2];
 
@@ -370,6 +382,10 @@ void clipboard_paste_text(gchar *text)
   update_color_buttons();
   update_font_button();  
   update_cursor(); // FIXME: can't know if pointer is within selection!
+#else
+  assert(0);
+#endif
+
 }
 
 // paste an external image
@@ -388,6 +404,9 @@ void clipboard_paste_image(GdkPixbuf *pixbuf)
 // work out what format the clipboard data is in, and paste accordingly
 void clipboard_paste(void)
 {
+#ifdef ABC
+
+
   GtkSelectionData *sel_data;
   GtkClipboard *clipboard;
   GdkPixbuf *pixbuf;
@@ -422,4 +441,8 @@ void clipboard_paste(void)
     clipboard_paste_text(text);
     return;
   }
+#else
+  assert(0);
+#endif
+
 }

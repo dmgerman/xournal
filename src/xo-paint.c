@@ -20,8 +20,8 @@
 #include <math.h>
 #include <string.h>
 #include <gtk/gtk.h>
+#include <assert.h>
 
-#include "libgnomecanvas/libgnomecanvas.h"
 #include "xournal.h"
 #include "xo-callbacks.h"
 #include "xo-interface.h"
@@ -35,9 +35,17 @@ void set_cursor_busy(gboolean busy)
 {
   GdkCursor *cursor;
   
+#ifdef ABC
   if (busy) {
     cursor = gdk_cursor_new(GDK_WATCH);
     gdk_window_set_cursor(GTK_WIDGET(winMain)->window, cursor);
+    /// gtk_widget_get_toplevel (widget);
+    // GtkWidget *toplevel = gtk_widget_get_toplevel (widget);
+    //   if (gtk_widget_is_toplevel (toplevel))
+    //     {
+    //       /* Perform action on toplevel. */
+    //     }
+
     gdk_window_set_cursor(GTK_WIDGET(canvas)->window, cursor);
     gdk_cursor_unref(cursor);
   }
@@ -45,6 +53,10 @@ void set_cursor_busy(gboolean busy)
     gdk_window_set_cursor(GTK_WIDGET(winMain)->window, NULL);
     update_cursor();
   }
+#else 
+  WARN
+#endif
+
   gdk_display_sync(gdk_display_get_default());
 }
 
@@ -112,14 +124,18 @@ GdkCursor *make_hiliter_cursor(guint color_rgba)
 
 void update_cursor(void)
 {
-  GdkPixmap *source, *mask;
   GdkColor fg = {0, 0, 0, 0}, bg = {0, 65535, 65535, 65535};
+  GdkWindow *window;
 
   ui.is_sel_cursor = FALSE;
-  if (GTK_WIDGET(canvas)->window == NULL) return;
+
+
+  window = gtk_widget_get_parent_window(GTK_WIDGET(canvas));
+
+  if (window == NULL) return;
   
   if (ui.cursor!=NULL) { 
-    gdk_cursor_unref(ui.cursor);
+    g_object_unref(ui.cursor);
     ui.cursor = NULL;
   }
   if (ui.cur_item_type == ITEM_MOVESEL_VERT)
@@ -145,7 +161,7 @@ void update_cursor(void)
     ui.cursor = gdk_cursor_new(GDK_XTERM);
   }
   
-  gdk_window_set_cursor(GTK_WIDGET(canvas)->window, ui.cursor);
+  gdk_window_set_cursor(window, ui.cursor);
 }
 
 /* adjust the cursor shape if it hovers near a selection box */
@@ -186,10 +202,18 @@ void update_cursor_for_resize(double *pt)
   else if (can_resize_bottom) newcursor = GDK_BOTTOM_SIDE;
   else newcursor = GDK_FLEUR;
 
-  if (ui.cursor!=NULL && ui.cursor->type == newcursor) return;
-  if (ui.cursor!=NULL) gdk_cursor_unref(ui.cursor);
+  if (ui.cursor!=NULL && gdk_cursor_get_cursor_type(ui.cursor) == newcursor) return;
+
+  if (ui.cursor!=NULL) g_object_unref(ui.cursor);
+  //if (ui.cursor!=NULL) gdk_cursor_unref(ui.cursor);
+
   ui.cursor = gdk_cursor_new(newcursor);
+#ifdef ABC
   gdk_window_set_cursor(GTK_WIDGET(canvas)->window, ui.cursor);
+#else
+  WARN
+#endif
+
 }
 
 /************** painting strokes *************/
@@ -232,6 +256,7 @@ void create_new_stroke(GdkEvent *event)
   realloc_cur_path(2);
   ui.cur_path.num_points = 1;
   get_pointer_coords(event, ui.cur_path.coords);
+#ifdef ABC
   
   if (ui.cur_brush->ruler) {
     ui.cur_item->canvas_item = gnome_canvas_item_new(ui.cur_layer->group,
@@ -243,12 +268,17 @@ void create_new_stroke(GdkEvent *event)
   } else
     ui.cur_item->canvas_item = gnome_canvas_item_new(
       ui.cur_layer->group, gnome_canvas_group_get_type(), NULL);
+#else
+  assert(0);
+#endif
 }
 
 void continue_stroke(GdkEvent *event)
 {
+#ifdef ABC
   GnomeCanvasPoints seg;
   double *pt, current_width;
+
 
   if (ui.cur_brush->ruler) {
     pt = ui.cur_path.coords;
@@ -290,10 +320,14 @@ void continue_stroke(GdkEvent *event)
        "cap-style", GDK_CAP_ROUND, "join-style", GDK_JOIN_ROUND,
        "fill-color-rgba", ui.cur_item->brush.color_rgba,
        "width-units", current_width, NULL);
+#else
+  assert(0);
+#endif
 }
 
 void finalize_stroke(void)
 {
+#ifdef ABC
   if (ui.cur_path.num_points == 1) { // GnomeCanvas doesn't like num_points=1
     ui.cur_path.coords[2] = ui.cur_path.coords[0]+0.1;
     ui.cur_path.coords[3] = ui.cur_path.coords[1];
@@ -332,6 +366,10 @@ void finalize_stroke(void)
   ui.cur_layer->nitems++;
   ui.cur_item = NULL;
   ui.cur_item_type = ITEM_NONE;
+#else
+  assert(0);
+#endif
+
 }
 
 /************** eraser tool *************/
@@ -339,6 +377,7 @@ void finalize_stroke(void)
 void erase_stroke_portions(struct Item *item, double x, double y, double radius,
                    gboolean whole_strokes, struct UndoErasureData *erasure)
 {
+#ifdef ABC
   int i;
   double *pt;
   struct Item *newhead, *newtail;
@@ -425,11 +464,18 @@ void erase_stroke_portions(struct Item *item, double x, double y, double radius,
   make_canvas_item_one(ui.cur_layer->group, item);
   lower_canvas_item_to(ui.cur_layer->group, item->canvas_item, 
                                       erasure->item->canvas_item);
+
+#else
+  assert(0);
+#endif
+
+
 }
 
 
 void do_eraser(GdkEvent *event, double radius, gboolean whole_strokes)
 {
+#ifdef ABC
   struct Item *item, *repl;
   GList *itemlist, *repllist;
   double pos[2];
@@ -456,10 +502,16 @@ void do_eraser(GdkEvent *event, double radius, gboolean whole_strokes)
       }
     }
   }
+
+#else
+  assert(0);
+#endif
+
 }
 
 void finalize_erasure(void)
 {
+#ifdef ABC
   GList *itemlist, *partlist;
   struct Item *item;
   
@@ -495,18 +547,31 @@ void finalize_erasure(void)
      this guarantees that, upon undo, the erasure->npos fields give the
      correct position where each item should be reinserted as the list
      is traversed in the forward direction */
+
+#else
+  assert(0);
+#endif
+
+
 }
 
 
 gboolean do_hand_scrollto(gpointer data)
 {
+#ifdef ABC
   ui.hand_scrollto_pending = FALSE;
   gnome_canvas_scroll_to(canvas, ui.hand_scrollto_cx, ui.hand_scrollto_cy);
   return FALSE;
+
+#else
+  assert(0);
+#endif
+
 }
 
 void do_hand(GdkEvent *event)
 {
+#ifdef ABC
   double pt[2];
   int cx, cy;
   
@@ -518,6 +583,11 @@ void do_hand(GdkEvent *event)
   ui.hand_scrollto_cy = cy - (pt[1]-ui.hand_refpt[1])*ui.zoom;
   if (!ui.hand_scrollto_pending) g_idle_add(do_hand_scrollto, NULL);
   ui.hand_scrollto_pending = TRUE;
+
+#else
+  assert(0);
+#endif
+
 }
 
 /************ TEXT FUNCTIONS **************/
@@ -527,6 +597,8 @@ void do_hand(GdkEvent *event)
 
 void resize_textview(gpointer *toplevel, gpointer *data)
 {
+#ifdef ABC
+
   GtkTextView *w;
   int width, height;
   
@@ -540,10 +612,16 @@ void resize_textview(gpointer *toplevel, gpointer *data)
     "width", (gdouble)width, "height", (gdouble)height, NULL);
   ui.cur_item->bbox.right = ui.cur_item->bbox.left + width/ui.zoom;
   ui.cur_item->bbox.bottom = ui.cur_item->bbox.top + height/ui.zoom;
+
+#else
+  assert(0);
+#endif
+
 }
 
 void start_text(GdkEvent *event, struct Item *item)
 {
+#ifdef ABC
   double pt[2];
   GtkTextBuffer *buffer;
   GnomeCanvasItem *canvas_item;
@@ -605,6 +683,11 @@ void start_text(GdkEvent *event, struct Item *item)
   gtk_widget_set_sensitive(GET_COMPONENT("editPaste"), FALSE);
   gtk_widget_set_sensitive(GET_COMPONENT("buttonPaste"), FALSE);
   gtk_widget_grab_focus(item->widget); 
+
+#else
+  assert(0);
+#endif
+
 }
 
 void end_text(void)
@@ -613,7 +696,7 @@ void end_text(void)
   GtkTextIter start, end;
   gchar *new_text;
   struct UndoErasureData *erasure;
-  GnomeCanvasItem *tmpitem;
+  GooCanvasItem *tmpitem;
 
   if (ui.cur_item_type!=ITEM_TEXT) return; // nothing for us to do!
 
@@ -629,7 +712,7 @@ void end_text(void)
   if (strlen(new_text)==0) { // erase object and cancel
     g_free(new_text);
     g_signal_handler_disconnect(winMain, ui.resize_signal_handler);
-    gtk_object_destroy(GTK_OBJECT(ui.cur_item->canvas_item));
+    g_object_unref(G_OBJECT(ui.cur_item->canvas_item));
     ui.cur_item->canvas_item = NULL;
     if (ui.cur_item->text == NULL) // nothing happened
       g_free(ui.cur_item->font_name);
@@ -667,14 +750,25 @@ void end_text(void)
   tmpitem = ui.cur_item->canvas_item;
   make_canvas_item_one(ui.cur_layer->group, ui.cur_item);
   update_item_bbox(ui.cur_item);
-  lower_canvas_item_to(ui.cur_layer->group, ui.cur_item->canvas_item, tmpitem);
-  gtk_object_destroy(GTK_OBJECT(tmpitem));
+  //lower_canvas_item_to(ui.cur_layer->group, ui.cur_item->canvas_item, tmpitem);
+  goo_canvas_item_lower(ui.cur_item->canvas_item, tmpitem);
+  g_object_unref(G_OBJECT(tmpitem));
+
+#ifdef ABC
+
+#else
+  assert(0);
+#endif
 }
+
 
 /* update the items in the canvas so they're of the right font size */
 
 void update_text_item_displayfont(struct Item *item)
 {
+#ifdef ABC
+
+
   PangoFontDescription *font_desc;
 
   if (item->type != ITEM_TEXT && item->type != ITEM_TEMP_TEXT) return;
@@ -689,6 +783,10 @@ void update_text_item_displayfont(struct Item *item)
     update_item_bbox(item);
   }
   pango_font_description_free(font_desc);
+#else
+  assert(0);
+#endif
+
 }
 
 void rescale_text_items(void)
@@ -699,6 +797,8 @@ void rescale_text_items(void)
     for (layerlist = ((struct Page *)pagelist->data)->layers; layerlist!=NULL; layerlist = layerlist->next)
       for (itemlist = ((struct Layer *)layerlist->data)->items; itemlist!=NULL; itemlist = itemlist->next)
         update_text_item_displayfont((struct Item *)itemlist->data);
+
+
 }
 
 struct Item *click_is_in_text(struct Layer *layer, double x, double y)

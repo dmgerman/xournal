@@ -15,6 +15,9 @@
 
 // data manipulation misc functions
 
+#ifndef __XO_MISC_H__
+#define __XO_MISC_H__
+
 struct Page *new_page(struct Page *template);
 struct Page *new_page_with_bg(struct Background *bg, double width, double height);
 void set_current_page(gdouble *pt);
@@ -43,13 +46,13 @@ void fix_xinput_coords(GdkEvent *event);
 void update_item_bbox(struct Item *item);
 void make_page_clipbox(struct Page *pg);
 void make_canvas_items(void);
-void make_canvas_item_one(GnomeCanvasGroup *group, struct Item *item);
+void make_canvas_item_one(GooCanvasItem *group, struct Item *item);
 void update_canvas_bg(struct Page *pg);
 gboolean is_visible(struct Page *pg);
 void rescale_bg_pixmaps(void);
 
 gboolean have_intersect(struct BBox *a, struct BBox *b);
-void lower_canvas_item_to(GnomeCanvasGroup *g, GnomeCanvasItem *item, GnomeCanvasItem *after);
+void lower_canvas_item_to(GooCanvasItem *g, GooCanvasItem *item, GooCanvasItem *after);
 
 void rgb_to_gdkcolor(guint rgba, GdkColor *color);
 guint32 gdkcolor_to_rgba(GdkColor gdkcolor, guint16 alpha);
@@ -116,7 +119,7 @@ void hide_unimplemented(void);
 void do_fullscreen(gboolean active);
 
 // fix GTK+ 2.16/2.17 issues with XInput events
-gboolean filter_extended_events(GtkWidget *widget, GdkEvent *event, gpointer user_data);
+gboolean filter_extended_events(GtkWidget *widget, GdkEventMotion *event, gpointer user_data);
 // gboolean fix_extended_events(GtkWidget *widget, GdkEvent *event, gpointer user_data);
 
 // help with focus
@@ -138,9 +141,28 @@ wrapper_poppler_page_render_to_pixbuf (PopplerPage *page,
 
 #define RULING_MARGIN_COLOR 0xff0080ff
 #define RULING_COLOR 0x40a0ffff
+#define RULING_COLOR_STR "0x40a0ffff"
 #define RULING_THICKNESS 0.5
+#define RULING_THICKNESS_STR "0.5"
 #define RULING_LEFTMARGIN 72.0
 #define RULING_TOPMARGIN 80.0
 #define RULING_SPACING 24.0
 #define RULING_BOTTOMMARGIN RULING_SPACING
 #define RULING_GRAPHSPACING 14.17
+
+void xo_unset_focus(GtkWidget *w, gpointer unused);
+
+GdkDeviceManager *xo_device_manager_get(GdkWindow *window);
+GList *xo_devices_list(GtkWidget *w);
+GList *xo_gdkwindow_devices_list(GdkWindow *window);
+gboolean xo_event_motion_device_is_core(GdkEventMotion  *event);
+gboolean xo_event_button__device_is_core(GdkEventButton  *event);
+gboolean xo_gtkwidget_device_is_core(GtkWidget *w, GdkDevice* device);
+
+void xo_goo_canvas_item_show(GooCanvasItem *item);
+void xo_goo_canvas_item_hide(GooCanvasItem *item);
+void xo_goo_canvas_item_reposition(GooCanvasItem *item, gdouble x, gdouble y);
+
+
+
+#endif

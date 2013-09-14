@@ -20,12 +20,17 @@
 
 #include <math.h>
 #include <string.h>
-#include <gtk/gtk.h>
 #include <time.h>
 #include <glib/gstdio.h>
+#include <gdk/gdk.h>
 #include <gdk/gdkkeysyms.h>
+#include <gdk/gdkkeysyms-compat.h>
+#include <gtk/gtk.h>
 
-#include "libgnomecanvas/libgnomecanvas.h"
+#include <libgrip/grip.h>
+#include <goocanvas.h>
+#include <assert.h>
+
 #include "xournal.h"
 #include "xo-callbacks.h"
 #include "xo-interface.h"
@@ -37,6 +42,16 @@
 #include "xo-print.h"
 #include "xo-shapes.h"
 
+void xo_canvas_set_pixels_per_unit(void)
+{
+#ifdef ABC
+    gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
+
+#else
+     WARN;
+#endif
+}
+
 void
 on_fileNew_activate                    (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
@@ -46,8 +61,13 @@ on_fileNew_activate                    (GtkMenuItem     *menuitem,
     new_journal();
     ui.zoom = ui.startup_zoom;
     update_page_stuff();
+
+#ifdef ABC
     gtk_adjustment_set_value(gtk_layout_get_vadjustment(GTK_LAYOUT(canvas)), 0);
-    gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
+#else
+     WARN;
+#endif
+     xo_canvas_set_pixels_per_unit();
   }
 }
 
@@ -108,7 +128,11 @@ on_fileNewBackground_activate          (GtkMenuItem     *menuitem,
   }
   new_journal();
   ui.zoom = ui.startup_zoom;
-  gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
+#ifdef ABC
+  xo_canvas_set_pixels_per_unit_per_unit();
+#else
+  WARN;
+#endif
   update_page_stuff();
   success = init_bgpdf(filename, TRUE, file_domain);
   set_cursor_busy(FALSE);
@@ -226,14 +250,14 @@ on_fileSaveAs_activate                 (GtkMenuItem     *menuitem,
      
   if (ui.filename!=NULL) {
     gtk_file_chooser_set_filename(GTK_FILE_CHOOSER (dialog), ui.filename);
-    gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (dialog), g_basename(ui.filename));
+    gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (dialog), g_path_get_basename(ui.filename));
   } 
   else
   if (bgpdf.status!=STATUS_NOT_INIT && bgpdf.file_domain == DOMAIN_ABSOLUTE 
       && bgpdf.filename != NULL) {
     filename = g_strdup_printf("%s.xoj", bgpdf.filename->s);
     gtk_file_chooser_set_filename(GTK_FILE_CHOOSER (dialog), filename);
-    gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (dialog), g_basename(filename));
+    gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (dialog), g_path_get_basename(filename));
     g_free(filename); 
   }
   else {
@@ -388,7 +412,7 @@ on_filePrintPDF_activate               (GtkMenuItem     *menuitem,
     else
       in_fn = g_strdup_printf("%s.pdf", ui.filename);
     gtk_file_chooser_set_filename(GTK_FILE_CHOOSER (dialog), in_fn);
-    gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (dialog), g_basename(in_fn));
+    gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (dialog), g_path_get_basename(in_fn));
   } else {
     curtime = time(NULL);
     strftime(stime, 30, "%Y-%m-%d-Note-%H-%M.pdf", localtime(&curtime));
@@ -455,6 +479,7 @@ void
 on_editUndo_activate                   (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
+#ifdef ABC
   struct UndoItem *u;
   GList *list, *itemlist;
   struct UndoErasureData *erasure;
@@ -471,7 +496,7 @@ on_editUndo_activate                   (GtkMenuItem     *menuitem,
   reset_recognizer(); // safer
   if (undo->type == ITEM_STROKE || undo->type == ITEM_TEXT || undo->type == ITEM_IMAGE) {
     // we're keeping the stroke info, but deleting the canvas item
-    gtk_object_destroy(GTK_OBJECT(undo->item->canvas_item));
+    g_object_run_dispose(GTK_OBJECT(undo->item->canvas_item));
     undo->item->canvas_item = NULL;
     // we also remove the object from its layer!
     undo->layer->items = g_list_remove(undo->layer->items, undo->item);
@@ -483,7 +508,7 @@ on_editUndo_activate                   (GtkMenuItem     *menuitem,
       // delete all the created items
       for (itemlist = erasure->replacement_items; itemlist!=NULL; itemlist = itemlist->next) {
         it = (struct Item *)itemlist->data;
-        gtk_object_destroy(GTK_OBJECT(it->canvas_item));
+        g_object_run_dispose(GTK_OBJECT(it->canvas_item));
         it->canvas_item = NULL;
         undo->layer->items = g_list_remove(undo->layer->items, it);
         undo->layer->nitems--;
@@ -536,7 +561,7 @@ on_editUndo_activate                   (GtkMenuItem     *menuitem,
   }
   else if (undo->type == ITEM_NEW_PAGE) {
     // unmap the page; keep the page & its empty layer in memory
-    if (undo->page->group!=NULL) gtk_object_destroy(GTK_OBJECT(undo->page->group));
+    if (undo->page->group!=NULL) g_object_run_dispose(GTK_OBJECT(undo->page->group));
       // also destroys the background and layer's canvas items
     undo->page->group = NULL;
     undo->page->bg->canvas_item = NULL;
@@ -574,7 +599,7 @@ on_editUndo_activate                   (GtkMenuItem     *menuitem,
   else if (undo->type == ITEM_PASTE) {
     for (itemlist = undo->itemlist; itemlist != NULL; itemlist = itemlist->next) {
       it = (struct Item *)itemlist->data;
-      gtk_object_destroy(GTK_OBJECT(it->canvas_item));
+      g_object_run_dispose(GTK_OBJECT(it->canvas_item));
       it->canvas_item = NULL;
       undo->layer->items = g_list_remove(undo->layer->items, it);
       undo->layer->nitems--;
@@ -582,7 +607,7 @@ on_editUndo_activate                   (GtkMenuItem     *menuitem,
   }
   else if (undo->type == ITEM_NEW_LAYER) {
     // unmap the layer; keep the empty layer in memory
-    if (undo->layer->group!=NULL) gtk_object_destroy(GTK_OBJECT(undo->layer->group));
+    if (undo->layer->group!=NULL) g_object_run_dispose(GTK_OBJECT(undo->layer->group));
     undo->layer->group = NULL;
     undo->page->layers = g_list_remove(undo->page->layers, undo->layer);
     undo->page->nlayers--;
@@ -591,7 +616,7 @@ on_editUndo_activate                   (GtkMenuItem     *menuitem,
   else if (undo->type == ITEM_DELETE_LAYER) {
     // special case of -1: deleted the last layer, created a new one
     if (undo->val == -1) {
-      if (undo->layer2->group!=NULL) gtk_object_destroy(GTK_OBJECT(undo->layer2->group));
+      if (undo->layer2->group!=NULL) g_object_run_dispose(GTK_OBJECT(undo->layer2->group));
       undo->layer2->group = NULL;
       undo->page->layers = g_list_remove(undo->page->layers, undo->layer2);
       undo->page->nlayers--;
@@ -622,7 +647,7 @@ on_editUndo_activate                   (GtkMenuItem     *menuitem,
       if (it->type == ITEM_STROKE && it->canvas_item != NULL) {
         // remark: a variable-width item might have lost its variable-width
         group = (GnomeCanvasGroup *) it->canvas_item->parent;
-        gtk_object_destroy(GTK_OBJECT(it->canvas_item));
+        g_object_run_dispose(GTK_OBJECT(it->canvas_item));
         make_canvas_item_one(group, it);
       }
       if (it->type == ITEM_TEXT && it->canvas_item != NULL)
@@ -661,6 +686,10 @@ on_editUndo_activate                   (GtkMenuItem     *menuitem,
   ui.saved = FALSE;
   update_undo_redo_enabled();
   if (u->multiop & MULTIOP_CONT_UNDO) on_editUndo_activate(NULL,NULL); // loop
+
+#else
+  assert(0);
+#endif
 }
 
 
@@ -668,6 +697,9 @@ void
 on_editRedo_activate                   (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
+#ifdef ABC
+
+
   struct UndoItem *u;
   GList *list, *itemlist, *target;
   struct UndoErasureData *erasure;
@@ -703,7 +735,7 @@ on_editRedo_activate                   (GtkMenuItem     *menuitem,
         lower_canvas_item_to(redo->layer->group, it->canvas_item, erasure->item->canvas_item);
       }
       // re-delete the deleted one
-      gtk_object_destroy(GTK_OBJECT(erasure->item->canvas_item));
+      g_object_run_dispose(GTK_OBJECT(erasure->item->canvas_item));
       erasure->item->canvas_item = NULL;
       redo->layer->items = g_list_delete_link(redo->layer->items, target);
       redo->layer->nitems--;
@@ -759,7 +791,7 @@ on_editRedo_activate                   (GtkMenuItem     *menuitem,
   }
   else if (redo->type == ITEM_DELETE_PAGE) {
     // unmap all the canvas items
-    gtk_object_destroy(GTK_OBJECT(redo->page->group));
+    g_object_run_dispose(GTK_OBJECT(redo->page->group));
     redo->page->group = NULL;
     redo->page->bg->canvas_item = NULL;
     for (list = redo->page->layers; list!=NULL; list = list->next) {
@@ -811,7 +843,7 @@ on_editRedo_activate                   (GtkMenuItem     *menuitem,
     do_switch_page(ui.pageno, FALSE, FALSE);
   }
   else if (redo->type == ITEM_DELETE_LAYER) {
-    gtk_object_destroy(GTK_OBJECT(redo->layer->group));
+    g_object_run_dispose(GTK_OBJECT(redo->layer->group));
     redo->layer->group = NULL;
     for (list=redo->layer->items; list!=NULL; list=list->next)
       ((struct Item *)list->data)->canvas_item = NULL;
@@ -835,7 +867,7 @@ on_editRedo_activate                   (GtkMenuItem     *menuitem,
       if (it->type == ITEM_STROKE && it->canvas_item != NULL) {
         // remark: a variable-width item might have lost its variable-width
         group = (GnomeCanvasGroup *) it->canvas_item->parent;
-        gtk_object_destroy(GTK_OBJECT(it->canvas_item));
+        g_object_run_dispose(GTK_OBJECT(it->canvas_item));
         make_canvas_item_one(group, it);
       }
       if (it->type == ITEM_TEXT && it->canvas_item != NULL)
@@ -844,7 +876,7 @@ on_editRedo_activate                   (GtkMenuItem     *menuitem,
       if (it->type == ITEM_IMAGE && it->canvas_item != NULL) {
         // remark: a variable-width item might have lost its variable-width
         group = (GnomeCanvasGroup *) it->canvas_item->parent;
-        gtk_object_destroy(GTK_OBJECT(it->canvas_item));
+        g_object_run_dispose(GTK_OBJECT(it->canvas_item));
         make_canvas_item_one(group, it);
       }
     }
@@ -880,7 +912,14 @@ on_editRedo_activate                   (GtkMenuItem     *menuitem,
   ui.saved = FALSE;
   update_undo_redo_enabled();
   if (u->multiop & MULTIOP_CONT_REDO) on_editRedo_activate(NULL,NULL); // loop
+
+#else
+  assert(0);
+#endif
+
+
 }
+
 
 
 void
@@ -924,6 +963,7 @@ void
 on_viewContinuous_activate             (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
+
   GtkAdjustment *v_adj;
   double yscroll;
   struct Page *pg;
@@ -931,13 +971,26 @@ on_viewContinuous_activate             (GtkMenuItem     *menuitem,
   if (!gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem))) return;
   if (ui.view_continuous) return;
   ui.view_continuous = TRUE;
-  v_adj = gtk_layout_get_vadjustment(GTK_LAYOUT(canvas));
+
   pg = ui.cur_page;
+
+#ifdef ABC
+  v_adj = gtk_layout_get_vadjustment(GTK_LAYOUT(canvas));
   yscroll = gtk_adjustment_get_value(v_adj) - pg->voffset*ui.zoom;
+#else
+  WARN;
+#endif
+
   update_page_stuff();
+
+#ifdef ABC
   gtk_adjustment_set_value(v_adj, yscroll + pg->voffset*ui.zoom);
+#else
+  WARN;
+#endif
+
   // force a refresh
-  gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
+  xo_canvas_set_pixels_per_unit();
 }
 
 
@@ -956,7 +1009,8 @@ on_viewOnePage_activate                (GtkMenuItem     *menuitem,
   update_page_stuff();
   gtk_adjustment_set_value(v_adj, yscroll + ui.cur_page->voffset*ui.zoom);
   // force a refresh
-  gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
+  xo_canvas_set_pixels_per_unit();
+
 }
 
 
@@ -966,7 +1020,7 @@ on_viewZoomIn_activate                 (GtkMenuItem     *menuitem,
 {
   if (ui.zoom > MAX_ZOOM) return;
   ui.zoom *= ui.zoom_step_factor;
-  gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
+  xo_canvas_set_pixels_per_unit();
   rescale_text_items();
   rescale_bg_pixmaps();
   rescale_images();
@@ -978,8 +1032,10 @@ on_viewZoomOut_activate                (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
   if (ui.zoom < MIN_ZOOM) return;
+
   ui.zoom /= ui.zoom_step_factor;
-  gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
+  xo_canvas_set_pixels_per_unit();
+
   rescale_text_items();
   rescale_bg_pixmaps();
   rescale_images();
@@ -991,7 +1047,7 @@ on_viewNormalSize_activate             (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
   ui.zoom = DEFAULT_ZOOM;
-  gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
+  xo_canvas_set_pixels_per_unit();
   rescale_text_items();
   rescale_bg_pixmaps();
   rescale_images();
@@ -1002,11 +1058,17 @@ void
 on_viewPageWidth_activate              (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
+#ifdef ABC
+
   ui.zoom = (GTK_WIDGET(canvas))->allocation.width/ui.cur_page->width;
   gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
   rescale_text_items();
   rescale_bg_pixmaps();
   rescale_images();
+#else
+  assert(0);
+#endif
+
 }
 
 
@@ -1060,7 +1122,13 @@ on_viewShowLayer_activate              (GtkMenuItem     *menuitem,
   reset_selection();
   ui.layerno++;
   ui.cur_layer = g_list_nth_data(ui.cur_page->layers, ui.layerno);
+
+#ifdef ABC
   gnome_canvas_item_show(GNOME_CANVAS_ITEM(ui.cur_layer->group));
+#else
+  WARN;
+#endif
+
   update_page_stuff();
 }
 
@@ -1072,7 +1140,11 @@ on_viewHideLayer_activate              (GtkMenuItem     *menuitem,
   end_text();
   if (ui.layerno == -1) return;
   reset_selection();
+#ifdef ABC
   gnome_canvas_item_hide(GNOME_CANVAS_ITEM(ui.cur_layer->group));
+#else
+  assert(0);
+#endif
   ui.layerno--;
   if (ui.layerno<0) ui.cur_layer = NULL;
   else ui.cur_layer = g_list_nth_data(ui.cur_page->layers, ui.layerno);
@@ -1157,9 +1229,9 @@ on_journalDeletePage_activate          (GtkMenuItem     *menuitem,
   undo->page = ui.cur_page;
 
   // unmap all the canvas items  
-  gtk_object_destroy(GTK_OBJECT(ui.cur_page->group));
+  g_object_run_dispose(G_OBJECT(ui.cur_page->group));
   ui.cur_page->group = NULL;
-  ui.cur_page->bg->canvas_item = NULL;
+  ui.cur_page->bg->canvas_group = NULL;
   for (layerlist = ui.cur_page->layers; layerlist!=NULL; layerlist = layerlist->next) {
     l = (struct Layer *)layerlist->data;
     for (itemlist = l->items; itemlist!=NULL; itemlist = itemlist->next)
@@ -1180,6 +1252,8 @@ void
 on_journalNewLayer_activate            (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
+#ifdef ABC
+
   struct Layer *l;
   
   end_text();
@@ -1202,6 +1276,13 @@ on_journalNewLayer_activate            (GtkMenuItem     *menuitem,
   undo->val = ui.layerno;
   undo->layer = l;
   undo->page = ui.cur_page;  
+
+#else
+  assert(0);
+#endif
+
+
+
 }
 
 
@@ -1209,6 +1290,9 @@ void
 on_journalDeleteLayer_activate         (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
+
+#ifdef ABC
+
   GList *list;
   
   end_text();
@@ -1222,7 +1306,7 @@ on_journalDeleteLayer_activate         (GtkMenuItem     *menuitem,
   undo->layer2 = NULL;
   undo->page = ui.cur_page;
   // delete all the canvas items
-  gtk_object_destroy(GTK_OBJECT(ui.cur_layer->group));
+  g_object_run_dispose(GTK_OBJECT(ui.cur_layer->group));
   ui.cur_layer->group = NULL;
   for (list=ui.cur_layer->items; list!=NULL; list=list->next)
     ((struct Item *)list->data)->canvas_item = NULL;
@@ -1247,6 +1331,13 @@ on_journalDeleteLayer_activate         (GtkMenuItem     *menuitem,
   }
 
   update_page_stuff();
+
+#else
+  assert(0);
+#endif
+
+
+
 }
 
 
@@ -1394,8 +1485,11 @@ on_papercolorOther_activate            (GtkMenuItem     *menuitem,
   guint rgba;
   GdkColor gdkcolor;
   
+#ifdef ABC
+
   end_text();
-  dialog = gtk_color_selection_dialog_new(_("Pick a Paper Color"));
+  dialog = gtk_color_chooser_dialog_new(_("Pick a Paper Color"));
+  //  dialog = gtk_color_selection_dialog_new(_("Pick a Paper Color"));
   colorsel = GTK_COLOR_SELECTION(GTK_COLOR_SELECTION_DIALOG(dialog)->colorsel);
   if (ui.cur_page->bg->type == BG_SOLID) rgba = ui.cur_page->bg->color_rgba;
   else rgba = ui.default_page.bg->color_rgba;
@@ -1407,6 +1501,10 @@ on_papercolorOther_activate            (GtkMenuItem     *menuitem,
     process_papercolor_activate(menuitem, COLOR_OTHER, gdkcolor_to_rgba(gdkcolor, 0xffff));
   }
   gtk_widget_destroy(dialog);
+#else
+  assert(0);
+#endif
+
 }
 
 
@@ -1450,6 +1548,7 @@ void
 on_journalLoadBackground_activate      (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
+#ifdef ABC
   GtkWidget *dialog, *attach_opt;
   struct Background *bg;
   struct Page *pg;
@@ -1569,12 +1668,22 @@ on_journalLoadBackground_activate      (GtkMenuItem     *menuitem,
     rescale_images();
   }
   do_switch_page(ui.pageno, TRUE, TRUE);
+
+#else
+  assert(0);
+#endif
+
+
+
 }
 
 void
 on_journalScreenshot_activate          (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
+#ifdef ABC
+
+
   struct Background *bg;
   
   end_text();
@@ -1616,6 +1725,11 @@ on_journalScreenshot_activate          (GtkMenuItem     *menuitem,
     rescale_images();
   }
   do_switch_page(ui.pageno, TRUE, TRUE);
+
+#else
+  assert(0);
+#endif
+
 }
 
 
@@ -1666,7 +1780,7 @@ void
 on_toolsPen_activate                   (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  if (GTK_OBJECT_TYPE(menuitem) == GTK_TYPE_RADIO_MENU_ITEM) {
+  if (G_OBJECT_TYPE(menuitem) == GTK_TYPE_RADIO_MENU_ITEM) {
     if (!gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem)))
       return;
   } else {
@@ -1696,7 +1810,7 @@ void
 on_toolsEraser_activate                (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  if (GTK_OBJECT_TYPE(menuitem) == GTK_TYPE_RADIO_MENU_ITEM) {
+  if (G_OBJECT_TYPE(menuitem) == GTK_TYPE_RADIO_MENU_ITEM) {
     if (!gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem)))
       return;
   } else {
@@ -1724,7 +1838,7 @@ void
 on_toolsHighlighter_activate           (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  if (GTK_OBJECT_TYPE(menuitem) == GTK_TYPE_RADIO_MENU_ITEM) {
+  if (G_OBJECT_TYPE(menuitem) == GTK_TYPE_RADIO_MENU_ITEM) {
     if (!gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem)))
       return;
   } else {
@@ -1754,7 +1868,7 @@ void
 on_toolsText_activate                  (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  if (GTK_OBJECT_TYPE(menuitem) == GTK_TYPE_RADIO_MENU_ITEM) {
+  if (G_OBJECT_TYPE(menuitem) == GTK_TYPE_RADIO_MENU_ITEM) {
     if (!gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem)))
       return;
   } else {
@@ -1781,7 +1895,7 @@ void
 on_toolsImage_activate                 (GtkMenuItem *menuitem,
                                         gpointer         user_data)
 {
-  if (GTK_OBJECT_TYPE(menuitem) == GTK_TYPE_RADIO_MENU_ITEM) {
+  if (G_OBJECT_TYPE(menuitem) == GTK_TYPE_RADIO_MENU_ITEM) {
     if (!gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem)))
       return;
   } else {
@@ -1808,7 +1922,7 @@ void
 on_toolsSelectRegion_activate          (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  if (GTK_OBJECT_TYPE(menuitem) == GTK_TYPE_RADIO_MENU_ITEM) {
+  if (G_OBJECT_TYPE(menuitem) == GTK_TYPE_RADIO_MENU_ITEM) {
     if (!gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem)))
       return;
   } else {
@@ -1834,7 +1948,7 @@ void
 on_toolsSelectRectangle_activate       (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  if (GTK_OBJECT_TYPE(menuitem) == GTK_TYPE_RADIO_MENU_ITEM) {
+  if (G_OBJECT_TYPE(menuitem) == GTK_TYPE_RADIO_MENU_ITEM) {
     if (!gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem)))
       return;
   } else {
@@ -1860,7 +1974,7 @@ void
 on_toolsVerticalSpace_activate         (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  if (GTK_OBJECT_TYPE(menuitem) == GTK_TYPE_RADIO_MENU_ITEM) {
+  if (G_OBJECT_TYPE(menuitem) == GTK_TYPE_RADIO_MENU_ITEM) {
     if (!gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem)))
       return;
   } else {
@@ -2107,6 +2221,8 @@ on_toolsTextFont_activate              (GtkMenuItem     *menuitem,
   GtkWidget *dialog;
   gchar *str;
   
+#ifdef ABC
+
   dialog = gtk_font_selection_dialog_new(_("Select Font"));
   str = make_cur_font_name();
   gtk_font_selection_dialog_set_font_name(GTK_FONT_SELECTION_DIALOG(dialog), str);
@@ -2118,6 +2234,12 @@ on_toolsTextFont_activate              (GtkMenuItem     *menuitem,
   str = gtk_font_selection_dialog_get_font_name(GTK_FONT_SELECTION_DIALOG(dialog));
   gtk_widget_destroy(dialog);
   process_font_sel(str);
+
+#else
+  assert(0);
+#endif
+
+
 }    
 
 void
@@ -2239,7 +2361,7 @@ on_toolsRuler_activate                 (GtkMenuItem     *menuitem,
 {
   gboolean active, current;
   
-  if (GTK_OBJECT_TYPE(menuitem) == GTK_TYPE_CHECK_MENU_ITEM)
+  if (G_OBJECT_TYPE(menuitem) == GTK_TYPE_CHECK_MENU_ITEM)
     active = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem));
   else
     active = gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON (menuitem));
@@ -2273,7 +2395,7 @@ on_toolsReco_activate                  (GtkMenuItem *menuitem,
 {
   gboolean active, current;
   
-  if (GTK_OBJECT_TYPE(menuitem) == GTK_TYPE_CHECK_MENU_ITEM)
+  if (G_OBJECT_TYPE(menuitem) == GTK_TYPE_CHECK_MENU_ITEM)
     active = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem));
   else
     active = gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON (menuitem));
@@ -2400,6 +2522,9 @@ on_canvas_button_press_event           (GtkWidget       *widget,
   gboolean is_core;
   struct Item *item;
   GdkEvent scroll_event;
+
+#ifdef ABC
+
 
 #ifdef INPUT_DEBUG
   printf("DEBUG: ButtonPress (%s) (x,y)=(%.2f,%.2f), button %d, modifier %x\n", 
@@ -2556,6 +2681,11 @@ on_canvas_button_press_event           (GtkWidget       *widget,
     insert_image((GdkEvent *)event);
   }
   return FALSE;
+#else
+  assert(0);
+#endif
+
+
 }
 
 
@@ -2571,7 +2701,9 @@ on_canvas_button_release_event         (GtkWidget       *widget,
       event->device->name, event->x, event->y, event->button, event->state);
 #endif
 
-  is_core = (event->device == gdk_device_get_core_pointer());
+  is_core = xo_event_button_device_is_core(event);
+//(event->device == xo_device_get_core_pointer());
+
   if (!ui.use_xinput && !is_core) return FALSE;
   if (ui.use_xinput && is_core && !ui.is_corestroke) return FALSE;
   if (ui.ignore_other_devices && ui.stroke_device!=event->device) return FALSE;
@@ -2627,13 +2759,16 @@ on_canvas_enter_notify_event           (GtkWidget       *widget,
   if (!gtk_check_version(2, 17, 0)) {
     gdk_flush();
     gdk_error_trap_push();
-    for (dev_list = gdk_devices_list(); dev_list != NULL; dev_list = dev_list->next) {
+    for (dev_list = xo_gdkwindow_devices_list(event->window); dev_list != NULL; dev_list = dev_list->next) {
       dev = GDK_DEVICE(dev_list->data);
       gdk_device_set_mode(dev, GDK_MODE_SCREEN);
     }
     ui.is_corestroke = ui.saved_is_corestroke;
     gdk_flush();
-    gdk_error_trap_pop();
+    if (gdk_error_trap_pop() != 0) {
+      WARN;
+      printf("gdk_error_trap_pop() returned != 0\n");
+    }
   }
   return FALSE;
 }
@@ -2654,14 +2789,17 @@ on_canvas_leave_notify_event           (GtkWidget       *widget,
   if (!gtk_check_version(2, 17, 0)) {
     gdk_flush();
     gdk_error_trap_push();
-    for (dev_list = gdk_devices_list(); dev_list != NULL; dev_list = dev_list->next) {
+    for (dev_list = xo_gdkwindow_devices_list(event->window); dev_list != NULL; dev_list = dev_list->next) {
       dev = GDK_DEVICE(dev_list->data);
       gdk_device_set_mode(dev, GDK_MODE_DISABLED);
     }
     ui.saved_is_corestroke = ui.is_corestroke;
     ui.is_corestroke = TRUE;
     gdk_flush();
-    gdk_error_trap_pop();
+    if (gdk_error_trap_pop() != 0) {
+      WARN;
+      printf("gdk_error_trap_pop() returned != 0\n");
+    }
   }
   return FALSE;
 }
@@ -2682,8 +2820,15 @@ on_canvas_key_press_event              (GtkWidget       *widget,
                                         GdkEventKey     *event,
                                         gpointer         user_data)
 {
+
+#ifdef ABC
+
+
+
   GtkAdjustment *adj;
   gint pgheight;
+
+
 
   // Esc leaves text edition, or leaves fullscreen mode
   if (event->keyval == GDK_Escape) {
@@ -2732,6 +2877,12 @@ on_canvas_key_press_event              (GtkWidget       *widget,
   }
 
   return FALSE;
+
+#else
+  assert(0);
+#endif
+
+
 }
 
 
@@ -2750,7 +2901,8 @@ on_canvas_motion_notify_event          (GtkWidget       *widget,
   if (ui.cur_item_type == ITEM_NONE && ui.selection==NULL) return FALSE;
   if (ui.cur_item_type == ITEM_TEXT || ui.cur_item_type == ITEM_IMAGE) return FALSE;
 
-  is_core = (event->device == gdk_device_get_core_pointer());
+  is_core = xo_event_motion_device_is_core(event);
+
   if (!ui.use_xinput && !is_core) return FALSE;
   if (!is_core) fix_xinput_coords((GdkEvent *)event);
   if (!finite_sized(event->x) || !finite_sized(event->y)) return FALSE; // Xorg 7.3 bug
@@ -2820,8 +2972,12 @@ on_canvas_motion_notify_event          (GtkWidget       *widget,
     get_pointer_coords((GdkEvent *)event, pt);
     ui.selection->bbox.right = pt[0];
     ui.selection->bbox.bottom = pt[1];
+#ifdef ABC
     gnome_canvas_item_set(ui.selection->canvas_item,
                                "x2", pt[0], "y2", pt[1], NULL);
+#else
+    assert(0);
+#endif
   }
   else if (ui.cur_item_type == ITEM_MOVESEL || ui.cur_item_type == ITEM_MOVESEL_VERT) {
     continue_movesel((GdkEvent *)event);
@@ -2840,6 +2996,7 @@ void
 on_comboLayer_changed                  (GtkComboBox     *combobox,
                                         gpointer         user_data)
 {
+
   int val;
 
   if (ui.in_update_page_stuff) return; // avoid a bad retroaction
@@ -2855,16 +3012,19 @@ on_comboLayer_changed                  (GtkComboBox     *combobox,
   while (val>ui.layerno) {
     ui.layerno++;
     ui.cur_layer = g_list_nth_data(ui.cur_page->layers, ui.layerno);
-    gnome_canvas_item_show(GNOME_CANVAS_ITEM(ui.cur_layer->group));
+    xo_goo_canvas_item_show(ui.cur_layer->group);
   }
   while (val<ui.layerno) {
-    gnome_canvas_item_hide(GNOME_CANVAS_ITEM(ui.cur_layer->group));
+    xo_goo_canvas_item_hide(ui.cur_layer->group);
     ui.layerno--;
     if (ui.layerno<0) ui.cur_layer = NULL;
     else ui.cur_layer = g_list_nth_data(ui.cur_page->layers, ui.layerno);
   }
   update_page_stuff();
+
 }
+
+
 
 
 gboolean
@@ -2907,6 +3067,10 @@ on_optionsUseXInput_activate           (GtkMenuItem     *menuitem,
    non-responsive). 
 */
 
+
+#ifdef ABC
+
+
 #ifndef WIN32
   if (!gtk_check_version(2, 17, 0)) {
 #endif
@@ -2929,6 +3093,11 @@ on_optionsUseXInput_activate           (GtkMenuItem     *menuitem,
 #ifndef WIN32
   }
 #endif
+
+#else
+  printf("This really looks deprecated... find out how to do it\n");
+  WARN;
+#endif
   
   update_mappings_menu();
 }
@@ -2937,6 +3106,9 @@ void
 on_vscroll_changed                     (GtkAdjustment   *adjustment,
                                         gpointer         user_data)
 {
+#ifdef ABC
+
+
   gboolean need_update;
   double viewport_top, viewport_bottom;
   struct Page *tmppage;
@@ -2965,6 +3137,10 @@ on_vscroll_changed                     (GtkAdjustment   *adjustment,
     do_switch_page(ui.pageno, FALSE, FALSE);
   }
   return;
+#else
+  assert(0);
+#endif
+
 }
 
 void
@@ -2978,7 +3154,7 @@ on_spinPageNo_value_changed            (GtkSpinButton   *spinbutton,
   /* in preparation for end_text(), send focus to the canvas if it's not ours.
      (avoid issues with Gtk trying to send focus to the dead text widget) */
 
-  if (!GTK_WIDGET_HAS_FOCUS(spinbutton))
+  if (!gtk_widget_has_focus(GTK_WIDGET(spinbutton)))
     gtk_widget_grab_focus(GTK_WIDGET(canvas));
   end_text();
 
@@ -3022,8 +3198,8 @@ on_journalDefaultBackground_activate   (GtkMenuItem     *menuitem,
     pg->bg = (struct Background *)g_memdup(ui.default_page.bg, sizeof(struct Background));
     pg->width = ui.default_page.width;
     pg->height = ui.default_page.height;
-    pg->bg->canvas_item = undo->bg->canvas_item;
-    undo->bg->canvas_item = NULL;
+    pg->bg->canvas_group = undo->bg->canvas_group;
+    undo->bg->canvas_group = NULL;
   
     make_page_clipbox(pg);
     update_canvas_bg(pg);
@@ -3049,7 +3225,7 @@ on_journalSetAsDefault_activate        (GtkMenuItem     *menuitem,
   ui.default_page.width = ui.cur_page->width;
   ui.default_page.height = ui.cur_page->height;
   ui.default_page.bg = (struct Background *)g_memdup(ui.cur_page->bg, sizeof(struct Background));
-  ui.default_page.bg->canvas_item = NULL;
+  ui.default_page.bg->canvas_group = NULL;
 }
 
 
@@ -3167,7 +3343,7 @@ on_viewFullscreen_activate             (GtkMenuItem     *menuitem,
 {
   gboolean active;
   
-  if (GTK_OBJECT_TYPE(menuitem) == GTK_TYPE_CHECK_MENU_ITEM)
+  if (G_OBJECT_TYPE(menuitem) == GTK_TYPE_CHECK_MENU_ITEM)
     active = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem));
   else
     active = gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON (menuitem));
@@ -3430,6 +3606,9 @@ on_viewSetZoom_activate                (GtkMenuItem     *menuitem,
   double test_w, test_h;
   GtkSpinButton *spinZoom;
   
+#ifdef ABC
+
+
   end_text();
   zoom_dialog = create_zoomDialog();
   zoom_percent = 100*ui.zoom / DEFAULT_ZOOM;
@@ -3463,6 +3642,10 @@ on_viewSetZoom_activate                (GtkMenuItem     *menuitem,
   } while (response == GTK_RESPONSE_APPLY);
   
   gtk_widget_destroy(zoom_dialog);
+#else
+  assert(0);
+#endif
+
 }
 
 
@@ -3507,10 +3690,16 @@ void
 on_radioZoomWidth_toggled              (GtkToggleButton *togglebutton,
                                         gpointer         user_data)
 {
+#ifdef ABC
+
   if (!gtk_toggle_button_get_active(togglebutton)) return;
   zoom_percent = 100*(GTK_WIDGET(canvas))->allocation.width/ui.cur_page->width/DEFAULT_ZOOM;
   gtk_spin_button_set_value(GTK_SPIN_BUTTON(g_object_get_data(
         G_OBJECT(zoom_dialog), "spinZoom")), zoom_percent);
+#else
+  assert(0);
+#endif
+
 }
 
 
@@ -3518,10 +3707,16 @@ void
 on_radioZoomHeight_toggled             (GtkToggleButton *togglebutton,
                                         gpointer         user_data)
 {
+#ifdef ABC
+
   if (!gtk_toggle_button_get_active(togglebutton)) return;
   zoom_percent = 100*(GTK_WIDGET(canvas))->allocation.height/ui.cur_page->height/DEFAULT_ZOOM;
   gtk_spin_button_set_value(GTK_SPIN_BUTTON(g_object_get_data(
         G_OBJECT(zoom_dialog), "spinZoom")), zoom_percent);
+#else
+  assert(0);
+#endif
+
 }
 
 
@@ -3529,7 +3724,7 @@ void
 on_toolsHand_activate                  (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  if (GTK_OBJECT_TYPE(menuitem) == GTK_TYPE_RADIO_MENU_ITEM) {
+  if (G_OBJECT_TYPE(menuitem) == GTK_TYPE_RADIO_MENU_ITEM) {
     if (!gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem)))
       return;
   } else {
@@ -3667,9 +3862,14 @@ on_buttonColorChooser_set              (GtkColorButton  *colorbutton,
   GdkColor gdkcolor;
   guint16 alpha;
   
+#ifdef ABC
   gtk_color_button_get_color(colorbutton, &gdkcolor);
   alpha = gtk_color_button_get_alpha(colorbutton);
   process_color_activate((GtkMenuItem*)colorbutton, COLOR_OTHER, gdkcolor_to_rgba(gdkcolor, alpha));
+#else
+  WARN;
+#endif
+
 }
 
 
@@ -3690,4 +3890,24 @@ on_optionsPenCursor_activate           (GtkCheckMenuItem *checkmenuitem,
 {
   ui.pen_cursor = gtk_check_menu_item_get_active(checkmenuitem);
   update_cursor();
+}
+
+void
+xo_gesture_callback (GtkWidget        *widget,
+                    GripTimeType      time_type,
+                    GripGestureEvent  *event,
+                    gpointer           user_data) {
+
+    GripEventGestureDrag *ev;
+    GtkAdjustment *hadj;
+    GtkAdjustment *vadj;
+    GtkScrolledWindow *scroll = GTK_SCROLLED_WINDOW(user_data);
+    double old_x, old_y;
+    double delta_x, delta_y;
+
+    if(event->type != GRIP_GESTURE_PINCH)
+        return;
+
+    printf("We are pinching, we are pinching\n");
+
 }

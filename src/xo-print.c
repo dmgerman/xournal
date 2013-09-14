@@ -35,7 +35,6 @@
 #define NO_TYPE42
 #include "ttsubset/sft.h"
 
-#include "libgnomecanvas/libgnomecanvas.h"
 #include "xournal.h"
 #include "xo-support.h"
 #include "xo-misc.h"

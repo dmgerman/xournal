@@ -13,10 +13,12 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef __XOURNAL_H__
+#define __XOURNAL_H__
 #include <gtk/gtk.h>
+#include <goocanvas.h>
 #include <poppler/glib/poppler.h>
 
-#include "libgnomecanvas/libgnomecanvas.h"
 
 // #define INPUT_DEBUG
 /* uncomment this line if you experience event-processing problems
@@ -76,7 +78,7 @@ typedef struct Refstring {
 
 typedef struct Background {
   int type;
-  GnomeCanvasItem *canvas_item;
+  GooCanvasItem *canvas_group; // replaced canvas_item
   int color_no;
   guint color_rgba;
   int ruling;
@@ -165,9 +167,9 @@ typedef struct Item {
   int type;
   struct Brush brush; // the brush to use, if ITEM_STROKE
   // 'brush' also contains color info for text items
-  GnomeCanvasPoints *path;
+  GooCanvasPoints *path;
   gdouble *widths;
-  GnomeCanvasItem *canvas_item; // the corresponding canvas item, or NULL
+  GooCanvasItem *canvas_item; // the corresponding canvas item, or NULL
   struct BBox bbox;
   struct UndoErasureData *erasure; // for temporary use during erasures
   // the following fields for ITEM_TEXT:
@@ -213,7 +215,7 @@ typedef struct Item {
 typedef struct Layer {
   GList *items; // the items on the layer, from bottom to top
   int nitems;
-  GnomeCanvasGroup *group;
+  GooCanvasItem *group;
 } Layer;
 
 typedef struct Page {
@@ -222,7 +224,7 @@ typedef struct Page {
   double height, width;
   double hoffset, voffset; // offsets of canvas group rel. to canvas root
   struct Background *bg;
-  GnomeCanvasGroup *group;
+  GooCanvasItem *group;
 } Page;
 
 typedef struct Journal {
@@ -238,7 +240,7 @@ typedef struct Selection {
   double anchor_x, anchor_y, last_x, last_y; // for selection motion
   gboolean resizing_top, resizing_bottom, resizing_left, resizing_right; // for selection resizing
   double new_x1, new_x2, new_y1, new_y2; // for selection resizing
-  GnomeCanvasItem *canvas_item; // if the selection box is on screen 
+  GooCanvasItem *canvas_item; // if the selection box is on screen 
   GList *items; // the selected items (a list of struct Item)
   int move_pageno, orig_pageno; // if selection moves to a different page
   struct Layer *move_layer;
@@ -264,7 +266,7 @@ typedef struct UIData {
   int layerbox_length;  // the number of entries registered in the layers combo-box
   struct Item *cur_item; // the item being drawn, or NULL
   int cur_item_type;
-  GnomeCanvasPoints cur_path; // the path being drawn
+  GooCanvasPoints cur_path; // the path being drawn
   gdouble *cur_widths; // width array for the path being drawn
   int cur_path_storage_alloc;
   int cur_widths_storage_alloc;
@@ -402,7 +404,7 @@ typedef struct BgPdf {
 // the main window and the canvas
 
 extern GtkWidget *winMain;
-extern GnomeCanvas *canvas;
+extern GooCanvas *canvas;
 
 // the data
 
@@ -417,3 +419,11 @@ extern double DEFAULT_ZOOM;
 #define UNIT_IN 1
 #define UNIT_PX 2
 #define UNIT_PT 3
+
+#define WARN printf(">>>>>>>>Warning, warning Mr Robinson --- [%s]:[%s]:[%d]\n", __FILE__, __func__, __LINE__);
+
+#define TRACE printf("> IN [%s]:[%s]:[%d]\n", __FILE__, __func__, __LINE__);
+#define TRACE_1(a) printf("> IN [%s]:[%s]:[%d]--- [%s]\n", __FILE__, __func__, __LINE__,a);
+#define TRACE_2(a,b) printf("> IN [%s]:[%s]:[%d]---" a, __FILE__, __func__, __LINE__,b);
+
+#endif

@@ -20,8 +20,8 @@
 #include <math.h>
 #include <string.h>
 #include <gtk/gtk.h>
+#include <assert.h>
 
-#include "libgnomecanvas/libgnomecanvas.h"
 #include "xournal.h"
 #include "xo-shapes.h"
 #include "xo-paint.h"
@@ -311,7 +311,7 @@ void remove_recognized_strokes(struct RecoSegment *rs, int num_old_items)
     erasure->replacement_items = NULL;
     undo->erasurelist = g_list_append(undo->erasurelist, erasure);
     if (old_item->canvas_item != NULL)
-      gtk_object_destroy(GTK_OBJECT(old_item->canvas_item));
+      g_object_run_dispose(G_OBJECT(old_item->canvas_item));
     ui.cur_layer->items = g_list_remove(ui.cur_layer->items, old_item);
     ui.cur_layer->nitems--;
   }
@@ -329,7 +329,11 @@ struct Item *insert_recognized_curpath(void)
   g_memmove(&(item->brush), &(erasure->item->brush), sizeof(struct Brush));
   item->brush.variable_width = FALSE;
   subdivide_cur_path();
+#ifdef ABC
   item->path = gnome_canvas_points_new(ui.cur_path.num_points);
+#else
+  assert(0);
+#endif
   g_memmove(item->path->coords, ui.cur_path.coords, 2*ui.cur_path.num_points*sizeof(double));
   item->widths = NULL;
   update_item_bbox(item);

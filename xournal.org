@@ -1,0 +1,108 @@
+* Where I left
+
+<2013-09-14 Sat>
+
+- Compiles
+- Loads a default page background
+- Creates an empty background for pDFs
+
+
+* Example of a port
+
+http://www.gtkforums.com/viewtopic.php?p=9858
+
+
+
+* Current issue I am tring to solve
+
+- GTK includes are forced during compilation. why?
+
+
+
+* Porting to goocanvas
+
+
+** Strategy
+
+- The API is going to be different
+- First get the canvas drawn with the background
+- ifdef everything else
+
+** to be done
+
+https://developer.gnome.org/libgnomecanvas/stable/GnomeCanvas.htm
+http://www.gnu.org/software/guile-gnome/docs/libgnomecanvas/html/Function-Index.html#Function-Index
+
+These are all the instances of functions used by gnomecanvas that must be replaced
+
+
+gnome_canvas_get_scroll_offsets
+gnome_canvas_group_get_type
+
+https://developer.gnome.org/goocanvas/unstable/GooCanvasItem.html
+
+http://www.gnu.org/software/guile-gnome/docs/libgnomecanvas/html/GnomeCanvasItem.html#GnomeCanvasItem
+
+
+  To convert between world and item coordinate systems call
+  gnome-canvas-item-w2i, and to convert in the other direction call
+  gnome-canvas-item-i2w. To get the transform for converting from item
+  to world coordinates use gnome-canvas-item-i2w-affine or for
+  converting item to canvas coordinates, gnome-canvas-item-i2c-affine.
+
+
+| gnomecanvas                       | goo                  |                                                                                    |
+|-----------------------------------+----------------------+------------------------------------------------------------------------------------|
+| gnome_canvas_item_affine_absolute | goo_canvas_get_scale | https://developer.gnome.org/goocanvas/unstable/GooCanvas.html#goo-canvas-get-scale |
+| gnome_canvas_item_hide            |                      |                                                                                    |
+| gnome_canvas_item_lower           |                      |                                                                                    |
+| gnome_canvas_item_move            |                      |                                                                                    |
+| gnome_canvas_item_new             |                      |                                                                                    |
+| gnome_canvas_item_raise           |                      |                                                                                    |
+| gnome_canvas_item_reparent        |                      |                                                                                    |
+| gnome_canvas_item_set             |                      |                                                                                    |
+| gnome_canvas_item_show            |                      |                                                                                    |
+
+
+|                            |   |                               |
+| gnome_canvas_line_get_type |   |                               |
+| gnome_canvas_new_aa        |   | creates new antialized canvas |
+|                            |   |                               |
+
+https://developer.gnome.org/goocanvas/unstable/GooCanvasPath.html
+g
+nome_canvas_path_def_closepath
+gnome_canvas_path_def_lineto
+gnome_canvas_path_def_moveto
+gnome_canvas_path_def_new_sized
+gnome_canvas_path_def_unref
+
+
+
+gnome_canvas_pixbuf_get_type
+gnome_canvas_points_free
+gnome_canvas_points_new
+gnome_canvas_polygon_get_type
+gnome_canvas_rect_get_type
+gnome_canvas_root
+gnome_canvas_scroll_to
+
+gnome_canvas_set_center_scroll_region 
+
+
+
+| gnome_canvas_set_pixels_per_unit |                       |      |
+| gnome_canvas_set_pixels_per_unit |                       |      |
+| gnome_canvas_set_scroll_region   | goo_canvas_set_bounds | Done |
+
+gnome_canvas_text_get_type
+
+
+gnome_canvas_widget_get_type
+gnome_canvas_window_to_world
+
+** On units
+
+Apparently the units are handled by just setting the type of unit. No conversion is needed.
+
+https://developer.gnome.org/goocanvas/unstable/GooCanvas.html#GooCanvas--units

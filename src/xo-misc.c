@@ -21,8 +21,9 @@
 #include <string.h>
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
+#include <gdk/gdkkeysyms-compat.h>
+#include <assert.h>
 
-#include "libgnomecanvas/libgnomecanvas.h"
 #include "xournal.h"
 #include "xo-interface.h"
 #include "xo-support.h"
@@ -55,28 +56,73 @@ double predef_thickness[NUM_STROKE_TOOLS][THICKNESS_MAX] =
 
 struct Page *new_page(struct Page *template)
 {
+
   struct Page *pg = (struct Page *) g_memdup(template, sizeof(struct Page));
   struct Layer *l = g_new(struct Layer, 1);
+  GooCanvasItem *root;
   
   l->items = NULL;
   l->nitems = 0;
   pg->layers = g_list_append(NULL, l);
   pg->nlayers = 1;
   pg->bg = (struct Background *)g_memdup(template->bg, sizeof(struct Background));
-  pg->bg->canvas_item = NULL;
+  pg->bg->canvas_group = NULL;
   if (pg->bg->type == BG_PIXMAP || pg->bg->type == BG_PDF) {
     g_object_ref(pg->bg->pixbuf);
     refstring_ref(pg->bg->filename);
   }
-  pg->group = (GnomeCanvasGroup *) gnome_canvas_item_new(
+
+#ifdef ABC
+  pg->group = (GooCanvasGroup*) gnome_canvas_item_new(
       gnome_canvas_root(canvas), gnome_canvas_clipgroup_get_type(), NULL);
+#else
+  root = goo_canvas_get_root_item(canvas);
+  TRACE_2("Root [%x]\n", root);
+  pg->group =  goo_canvas_group_new (root, NULL);
+#endif
+
   make_page_clipbox(pg);
   update_canvas_bg(pg);
-  l->group = (GnomeCanvasGroup *) gnome_canvas_item_new(
-      pg->group, gnome_canvas_group_get_type(), NULL);
-  
+
+  //l->group = (GooCanvasGroup *) gnome_canvas_item_new(
+  //    pg->group, gnome_canvas_group_get_type(), NULL);
+
+  l->group = goo_canvas_group_new ((GooCanvasItem*)pg->group, NULL);
   return pg;
 }
+
+
+void xo_goo_canvas_item_show(GooCanvasItem *item)
+{
+  g_object_set (item,
+		"visibility", GOO_CANVAS_ITEM_VISIBLE,
+		NULL);
+}
+
+void xo_goo_canvas_item_hide(GooCanvasItem *item)
+{
+  g_object_set (item,
+		"visibility", GOO_CANVAS_ITEM_INVISIBLE,
+		NULL);
+}
+
+void xo_goo_canvas_item_reposition(GooCanvasItem *item, gdouble x, gdouble y)
+{
+  g_object_set(G_OBJECT(item), "x",x,"y",y, NULL);
+}
+
+void xo_goo_canvas_item_pixbuf_set(GooCanvasItem *item,  GdkPixbuf *pix)
+{
+  g_object_set(G_OBJECT(item), "pixbuf" , pix, NULL);
+}
+
+GdkPixbuf  *xo_goo_canvas_item_pixbuf_get(GooCanvasItem *item)
+{
+  GdkPixbuf *pix;
+  g_object_get(G_OBJECT(item), "pixbuf" , &pix, NULL);
+  return (pix);
+}
+
 
 /* Create a page from a background. 
    Note: bg should be an UNREFERENCED background.
@@ -84,6 +130,7 @@ struct Page *new_page(struct Page *template)
 */
 struct Page *new_page_with_bg(struct Background *bg, double width, double height)
 {
+
   struct Page *pg = g_new(struct Page, 1);
   struct Layer *l = g_new(struct Layer, 1);
   
@@ -92,17 +139,29 @@ struct Page *new_page_with_bg(struct Background *bg, double width, double height
   pg->layers = g_list_append(NULL, l);
   pg->nlayers = 1;
   pg->bg = bg;
-  pg->bg->canvas_item = NULL;
+  printf("<<<Bg type [%d]\n", pg->bg->type);
+  printf("<<<Bg type [%x]\n", pg->bg->pixbuf);
+
+  pg->bg->canvas_group = NULL;
   pg->height = height;
   pg->width = width;
-  pg->group = (GnomeCanvasGroup *) gnome_canvas_item_new(
-      gnome_canvas_root(canvas), gnome_canvas_clipgroup_get_type(), NULL);
+
+
+  GooCanvasItem *root;
+  root = goo_canvas_get_root_item(canvas);
+  pg->group =  goo_canvas_group_new (root, NULL);
+
+  //pg->group = (GooCanvasGroup *) gnome_canvas_item_new(
+  //    gnome_canvas_root(canvas), gnome_canvas_clipgroup_get_type(), NULL);
   make_page_clipbox(pg);
   update_canvas_bg(pg);
-  l->group = (GnomeCanvasGroup *) gnome_canvas_item_new(
-      pg->group, gnome_canvas_group_get_type(), NULL);
+  
+  l->group = goo_canvas_group_new ((GooCanvasItem*)pg->group, NULL);
+  //l->group = (GooCanvasGroup *) gnome_canvas_item_new(
+  //    pg->group, gnome_canvas_group_get_type(), NULL);
   
   return pg;
+
 }
 
 // change the current page if necessary for pointer at pt
@@ -160,6 +219,11 @@ void prepare_new_undo(void)
 
 void clear_redo_stack(void)
 {
+  WARN;
+  return ;
+#ifdef ABC
+
+
   struct UndoItem *u;  
   GList *list, *repl;
   struct UndoErasureData *erasure;
@@ -243,10 +307,21 @@ void clear_redo_stack(void)
     g_free(u);
   }
   update_undo_redo_enabled();
+
+#else
+  assert(0);
+#endif
+
+
 }
 
 void clear_undo_stack(void)
 {
+  WARN;
+  return ;
+
+#ifdef ABC
+
   struct UndoItem *u;
   GList *list;
   struct UndoErasureData *erasure;
@@ -308,6 +383,10 @@ void clear_undo_stack(void)
     g_free(u);
   }
   update_undo_redo_enabled();
+#else
+  assert(0);
+#endif
+
 }
 
 // free data structures 
@@ -323,6 +402,8 @@ void delete_journal(struct Journal *j)
 void delete_page(struct Page *pg)
 {
   struct Layer *l;
+
+  TRACE_1("entering");
   
   while (pg->layers!=NULL) {
     l = (struct Layer *)pg->layers->data;
@@ -330,7 +411,10 @@ void delete_page(struct Page *pg)
     delete_layer(l);
     pg->layers = g_list_delete_link(pg->layers, pg->layers);
   }
-  if (pg->group!=NULL) gtk_object_destroy(GTK_OBJECT(pg->group));
+  if (pg->group!=NULL) {
+    goo_canvas_item_remove(pg->group);
+    g_object_unref(G_OBJECT(pg->group));
+  }
               // this also destroys the background's canvas items
   if (pg->bg->type == BG_PIXMAP || pg->bg->type == BG_PDF) {
     if (pg->bg->pixbuf != NULL) g_object_unref(pg->bg->pixbuf);
@@ -342,12 +426,18 @@ void delete_page(struct Page *pg)
 
 void delete_layer(struct Layer *l)
 {
+
   struct Item *item;
   
   while (l->items!=NULL) {
+    printf("Deleting...\n");
+
     item = (struct Item *)l->items->data;
+
+#ifdef ABC
     if (item->type == ITEM_STROKE && item->path != NULL) 
       gnome_canvas_points_free(item->path);
+
     if (item->type == ITEM_TEXT) {
       g_free(item->font_name); g_free(item->text);
     }
@@ -355,11 +445,15 @@ void delete_layer(struct Layer *l)
       g_object_unref(item->image);
       g_free(item->image_png);
     }
+#else
+  assert(0);
+#endif
     // don't need to delete the canvas_item, as it's part of the group destroyed below
     g_free(item);
     l->items = g_list_delete_link(l->items, l->items);
   }
-  if (l->group!= NULL) gtk_object_destroy(GTK_OBJECT(l->group));
+  if (l->group!= NULL)
+    g_object_unref(G_OBJECT(l->group));
   g_free(l);
 }
 
@@ -402,22 +496,31 @@ int finite_sized(double x) // detect unrealistic coordinate values
 
 void get_pointer_coords(GdkEvent *event, gdouble *ret)
 {
+#ifdef ABC
+
+
   double x, y;
   gdk_event_get_coords(event, &x, &y);
   gnome_canvas_window_to_world(canvas, x, y, ret, ret+1);
   ret[0] -= ui.cur_page->hoffset;
   ret[1] -= ui.cur_page->voffset;
+#else
+  assert(0);
+#endif
+
 }
 
 void get_current_pointer_coords(gdouble *ret)
 {
   gint wx, wy, sx, sy;
+#ifdef ABC
 
   gtk_widget_get_pointer((GtkWidget *)canvas, &wx, &wy);
   gnome_canvas_get_scroll_offsets(canvas, &sx, &sy);
   gnome_canvas_window_to_world(canvas, (double)(wx + sx), (double)(wy + sy), ret, ret+1);
   ret[0] -= ui.cur_page->hoffset;
   ret[1] -= ui.cur_page->voffset;
+#endif
 }
 
 void fix_xinput_coords(GdkEvent *event)
@@ -426,6 +529,7 @@ void fix_xinput_coords(GdkEvent *event)
   GdkDevice *device;
   int wx, wy, sx, sy, ix, iy;
 
+#ifdef ABC
   if (event->type == GDK_BUTTON_PRESS || event->type == GDK_BUTTON_RELEASE) {
     axes = event->button.axes;
     px = &(event->button.x);
@@ -480,6 +584,10 @@ void fix_xinput_coords(GdkEvent *event)
     }
   }
 #endif
+
+#endif
+
+
 }
 
 double get_pressure_multiplier(GdkEvent *event)
@@ -488,6 +596,7 @@ double get_pressure_multiplier(GdkEvent *event)
   double rawpressure;
   GdkDevice *device;
 
+#ifdef ABC
   if (event->type == GDK_MOTION_NOTIFY) {
     axes = event->motion.axes;
     device = event->motion.device;
@@ -498,12 +607,17 @@ double get_pressure_multiplier(GdkEvent *event)
   }
   
   if (device == gdk_device_get_core_pointer()
-      || device->num_axes <= 2) return 1.0;
+      || gdk_device_get_n_axes (device) <= 2) return 1.0;
 
   rawpressure = axes[2]/(device->axes[2].max - device->axes[2].min);
   if (!finite_sized(rawpressure)) return 1.0;
 
   return ((1-rawpressure)*ui.width_minimum_multiplier + rawpressure*ui.width_maximum_multiplier);
+
+#else
+  assert(0);
+#endif
+
 }
 
 void update_item_bbox(struct Item *item)
@@ -532,7 +646,10 @@ void update_item_bbox(struct Item *item)
 
 void make_page_clipbox(struct Page *pg)
 {
-  GnomeCanvasPathDef *pg_clip;
+
+
+#ifdef ABC
+  GooCanvasPathDef *pg_clip;
   
   pg_clip = gnome_canvas_path_def_new_sized(4);
   gnome_canvas_path_def_moveto(pg_clip, 0., 0.);
@@ -542,14 +659,20 @@ void make_page_clipbox(struct Page *pg)
   gnome_canvas_path_def_closepath(pg_clip);
   gnome_canvas_item_set(GNOME_CANVAS_ITEM(pg->group), "path", pg_clip, NULL);
   gnome_canvas_path_def_unref(pg_clip);
+#else
+  TRACE_1("usikng a rectangle... what about this?, used for resizing");
+  goo_canvas_rect_new(pg->group, 0, 0, pg->width, pg->height, NULL);
+#endif
+
 }
 
-void make_canvas_item_one(GnomeCanvasGroup *group, struct Item *item)
+void make_canvas_item_one(GooCanvasItem *group, struct Item *item)
 {
   PangoFontDescription *font_desc;
-  GnomeCanvasPoints points;
+  GooCanvasPoints points;
   int j;
 
+#ifdef ABC
   if (item->type == ITEM_STROKE) {
     if (!item->brush.variable_width)
       item->canvas_item = gnome_canvas_item_new(group,
@@ -564,7 +687,7 @@ void make_canvas_item_one(GnomeCanvasGroup *group, struct Item *item)
       points.ref_count = 1;
       for (j = 0; j < item->path->num_points-1; j++) {
         points.coords = item->path->coords+2*j;
-        gnome_canvas_item_new((GnomeCanvasGroup *) item->canvas_item,
+        gnome_canvas_item_new((GooCanvasGroup *) item->canvas_item,
               gnome_canvas_line_get_type(), "points", &points, 
               "cap-style", GDK_CAP_ROUND, "join-style", GDK_JOIN_ROUND, 
               "fill-color-rgba", item->brush.color_rgba,
@@ -593,10 +716,15 @@ void make_canvas_item_one(GnomeCanvasGroup *group, struct Item *item)
           "width-set", TRUE, "height-set", TRUE,
           NULL);
   }
+#else
+  assert(0);
+#endif
 }
 
 void make_canvas_items(void)
 {
+#ifdef ABC
+
   struct Page *pg;
   struct Layer *l;
   struct Item *item;
@@ -605,7 +733,7 @@ void make_canvas_items(void)
   for (pagelist = journal.pages; pagelist!=NULL; pagelist = pagelist->next) {
     pg = (struct Page *)pagelist->data;
     if (pg->group == NULL) {
-      pg->group = (GnomeCanvasGroup *) gnome_canvas_item_new(
+      pg->group = (GooCanvasGroup *) gnome_canvas_item_new(
          gnome_canvas_root(canvas), gnome_canvas_clipgroup_get_type(), NULL);
       make_page_clipbox(pg);
     }
@@ -613,7 +741,7 @@ void make_canvas_items(void)
     for (layerlist = pg->layers; layerlist!=NULL; layerlist = layerlist->next) {
       l = (struct Layer *)layerlist->data;
       if (l->group == NULL)
-        l->group = (GnomeCanvasGroup *) gnome_canvas_item_new(
+        l->group = (GooCanvasGroup *) gnome_canvas_item_new(
            pg->group, gnome_canvas_group_get_type(), NULL);
       for (itemlist = l->items; itemlist!=NULL; itemlist = itemlist->next) {
         item = (struct Item *)itemlist->data;
@@ -622,35 +750,99 @@ void make_canvas_items(void)
       }
     }
   }
+#else
+  assert(0);
+#endif
 }
 
 void update_canvas_bg(struct Page *pg)
 {
-  GnomeCanvasGroup *group;
-  GnomeCanvasPoints *seg;
+  GooCanvasItem *group;
+  GooCanvasPoints *seg;
   GdkPixbuf *scaled_pix;
   double *pt;
   double x, y;
   int w, h;
   gboolean is_well_scaled;
+
+  TRACE;
+
+  printf("<<<Bg type  [%d]\n", pg->bg->type);
+  printf("<<<Bg pixbuf [%x]\n", pg->bg->pixbuf);
+  printf("<<<Bg canvas group [%x]\n", pg->bg->canvas_group);
+  printf("<<<Bg pg group [%x]\n",    pg->group);
   
-  if (pg->bg->canvas_item != NULL)
-    gtk_object_destroy(GTK_OBJECT(pg->bg->canvas_item));
-  pg->bg->canvas_item = NULL;
+  if (pg->bg->canvas_group != NULL) {
+    goo_canvas_item_remove(pg->bg->canvas_group);
+    g_object_unref(G_OBJECT(pg->bg->canvas_group));
+    printf("deleting it...\n");
+  }
+
+  pg->bg->canvas_group = NULL;
   
   if (pg->bg->type == BG_SOLID)
   {
-    pg->bg->canvas_item = gnome_canvas_item_new(pg->group,
-                               gnome_canvas_group_get_type(), NULL);
+    printf(">>>> It is a SOLID\n");
+#ifdef ABC
+
+
+  pg->bg->canvas_item = gnome_canvas_item_new(pg->group,
+					      gnome_canvas_group_get_type(), NULL);
+
+
     group = GNOME_CANVAS_GROUP(pg->bg->canvas_item);
     lower_canvas_item_to(pg->group, pg->bg->canvas_item, NULL);
+#else
+
+  printf("<<<Bg canvas group [%x]\n", pg->bg->canvas_group);
+  printf("<<<Bg pg group [%x]\n",    pg->group);
+
+    pg->bg->canvas_group = goo_canvas_group_new (pg->group, NULL);
+
+  TRACE_2("<<<Bg canvas group [%x]\n", pg->bg->canvas_group);
+  TRACE_2("<<<Bg pg group [%x]\n",    pg->group);
+
+    group = pg->bg->canvas_group;
+
+  TRACE_2("<<<Bg canvas group [%x]\n", pg->bg->canvas_group);
+  TRACE_2("<<<Bg pg group [%x]\n",    pg->group);
+
+    goo_canvas_item_lower(pg->bg->canvas_group, NULL);
+
+  TRACE_2("<<<Bg canvas group [%x]\n", pg->bg->canvas_group);
+  TRACE_2("<<<Bg pg group [%x]\n",    pg->group);
+
+#endif
+
+    TRACE_1("Here");
+
+    // we have to specify we want a rectangle
+
+#ifdef ABC
     gnome_canvas_item_new(group, gnome_canvas_rect_get_type(),
       "x1", 0., "x2", pg->width, "y1", 0., "y2", pg->height,
       "fill-color-rgba", pg->bg->color_rgba, NULL);
-    if (pg->bg->ruling == RULING_NONE) return;
+#else
+    goo_canvas_rect_new(group, 0, 0, pg->width, pg->height, "fill-color-rgba", pg->bg->color_rgba, NULL);
+#endif
+
+    if (pg->bg->ruling == RULING_NONE) {
+      TRACE_1("Exit");
+      return;
+    }
+
+#ifdef ABC
     seg = gnome_canvas_points_new(2);
     pt = seg->coords;
+#else
+
+#endif
+
+    TRACE_1("Middle");
+
+
     if (pg->bg->ruling == RULING_GRAPH) {
+#ifdef ABC
       pt[1] = 0; pt[3] = pg->height;
       for (x=RULING_GRAPHSPACING; x<pg->width-1; x+=RULING_GRAPHSPACING) {
         pt[0] = pt[2] = x;
@@ -658,6 +850,7 @@ void update_canvas_bg(struct Page *pg)
            "points", seg, "fill-color-rgba", RULING_COLOR,
            "width-units", RULING_THICKNESS, NULL);
       }      
+
       pt[0] = 0; pt[2] = pg->width;
       for (y=RULING_GRAPHSPACING; y<pg->height-1; y+=RULING_GRAPHSPACING) {
         pt[1] = pt[3] = y;
@@ -666,57 +859,134 @@ void update_canvas_bg(struct Page *pg)
            "width-units", RULING_THICKNESS, NULL);
       }      
       gnome_canvas_points_free(seg);
+
+
+#else
+
+      for (x=RULING_GRAPHSPACING; x<pg->width-1; x+=RULING_GRAPHSPACING) {
+	goo_canvas_polyline_new_line(group, 
+				     x, 0, x, pg->height, 
+				     "stroke-color", "red",
+				     "line-width", RULING_THICKNESS,
+				     "fill-color-rgba", RULING_COLOR, 
+				     NULL);
+      }
+      for (y=RULING_GRAPHSPACING; y<pg->height-1; y+=RULING_GRAPHSPACING) {
+	goo_canvas_polyline_new_line(group, 
+				     0, y, pg->width, y,
+				     "stroke-color", "red",
+				     "line-width", RULING_THICKNESS,
+				     "fill-color-rgba", RULING_COLOR, 
+				     NULL);
+      }
+#endif
+      TRACE_1("End in graphed Ruling");
       return;
     }
+    TRACE_1("After Ruling");
+
     pt[0] = 0; pt[2] = pg->width;
     for (y=RULING_TOPMARGIN; y<pg->height-1; y+=RULING_SPACING) {
       pt[1] = pt[3] = y;
+
+#ifdef ABC
+
       gnome_canvas_item_new(group, gnome_canvas_line_get_type(),
          "points", seg, "fill-color-rgba", RULING_COLOR,
          "width-units", RULING_THICKNESS, NULL);
+#else
+    assert(0);
+#endif
     }      
+    printf("Bg type [%d]\n", pg->bg->type);
+
     if (pg->bg->ruling == RULING_LINED) {
       pt[0] = pt[2] = RULING_LEFTMARGIN;
       pt[1] = 0; pt[3] = pg->height;
+
+#ifdef ABC
+
       gnome_canvas_item_new(group, gnome_canvas_line_get_type(),
          "points", seg, "fill-color-rgba", RULING_MARGIN_COLOR,
          "width-units", RULING_THICKNESS, NULL);
+#else
+    assert(0);
+#endif
+
+
     }
+
+#ifdef ABC
     gnome_canvas_points_free(seg);
+#else
+    WARN;
+#endif
+
     return;
   }
   
+  printf("Bg type [%d]\n", pg->bg->type);
+
   if (pg->bg->type == BG_PIXMAP)
   {
     pg->bg->pixbuf_scale = 0;
+    assert(pg->bg->pixbuf != NULL);
+    pg->bg->canvas_group = goo_canvas_image_new(pg->group,
+						pg->bg->pixbuf,
+						0, 0);
+
+    /*
     pg->bg->canvas_item = gnome_canvas_item_new(pg->group, 
         gnome_canvas_pixbuf_get_type(), 
         "pixbuf", pg->bg->pixbuf,
         "width", pg->width, "height", pg->height, 
         "width-set", TRUE, "height-set", TRUE, 
         NULL);
-    lower_canvas_item_to(pg->group, pg->bg->canvas_item, NULL);
+    */
+    WARN; // we might have to set the dimensions
+    lower_canvas_item_to(pg->group, pg->bg->canvas_group, NULL);
   }
+
+  printf("Bg type [%d]\n", pg->bg->type);
+  printf("Bg type [%x]\n", pg->bg->pixbuf);
 
   if (pg->bg->type == BG_PDF)
   {
     if (pg->bg->pixbuf == NULL) return;
     is_well_scaled = (fabs(pg->bg->pixel_width - pg->width*ui.zoom) < 2.
                    && fabs(pg->bg->pixel_height - pg->height*ui.zoom) < 2.);
-    if (is_well_scaled)
+
+    if (is_well_scaled) {
+
+      pg->bg->canvas_group = goo_canvas_image_new(pg->group,
+					     pg->bg->pixbuf,
+					     0, 0);
+    /*
       pg->bg->canvas_item = gnome_canvas_item_new(pg->group, 
           gnome_canvas_pixbuf_get_type(), 
           "pixbuf", pg->bg->pixbuf,
           "width-in-pixels", TRUE, "height-in-pixels", TRUE, 
           NULL);
-    else
+    */ 
+      WARN;
+    }
+    else {
+      pg->bg->canvas_group = goo_canvas_image_new(pg->group,
+					     pg->bg->pixbuf,
+					     0, 0);
+
+      WARN;
+      /*
       pg->bg->canvas_item = gnome_canvas_item_new(pg->group, 
           gnome_canvas_pixbuf_get_type(), 
           "pixbuf", pg->bg->pixbuf,
           "width", pg->width, "height", pg->height, 
           "width-set", TRUE, "height-set", TRUE, 
           NULL);
-    lower_canvas_item_to(pg->group, pg->bg->canvas_item, NULL);
+
+      */
+    }
+    lower_canvas_item_to(pg->group, GOO_CANVAS_ITEM(pg->bg->canvas_group), NULL);
   }
 }
 
@@ -726,10 +996,12 @@ gboolean is_visible(struct Page *pg)
   double ytop, ybot;
   
   if (!ui.view_continuous) return (pg == ui.cur_page);
-  v_adj = gtk_layout_get_vadjustment(GTK_LAYOUT(canvas));
-  ytop = v_adj->value/ui.zoom;
-  ybot = (v_adj->value + v_adj->page_size) / ui.zoom;
+  v_adj = gtk_scrollable_get_vadjustment(GTK_SCROLLABLE(canvas));
+  ytop = gtk_adjustment_get_value(v_adj)/ui.zoom;
+  ybot = (gtk_adjustment_get_value(v_adj) + gtk_adjustment_get_page_size(v_adj)) / ui.zoom;
+
   return (MAX(ytop, pg->voffset) < MIN(ybot, pg->voffset+pg->height));
+
 }
 
 void rescale_bg_pixmaps(void)
@@ -745,24 +1017,32 @@ void rescale_bg_pixmaps(void)
     // in progressive mode we scale only visible pages
     if (ui.progressive_bg && !is_visible(pg)) continue;
 
-    if (pg->bg->type == BG_PIXMAP && pg->bg->canvas_item!=NULL) {
-      g_object_get(G_OBJECT(pg->bg->canvas_item), "pixbuf", &pix, NULL);
+    if (pg->bg->type == BG_PIXMAP && pg->bg->canvas_group!=NULL) {
+      pix = xo_goo_canvas_item_pixbuf_get(pg->bg->canvas_group);
+    //    g_object_get(G_OBJECT(pg->bg->canvas_group), "pixbuf", &pix, NULL);
       if (pix!=pg->bg->pixbuf)
-        gnome_canvas_item_set(pg->bg->canvas_item, "pixbuf", pg->bg->pixbuf, NULL);
+	//        gnome_canvas_item_set(pg->bg->canvas_group, "pixbuf", pg->bg->pixbuf, NULL);
+	xo_goo_canvas_item_pixbuf_set(pg->bg->canvas_group, pg->bg->pixbuf);
       pg->bg->pixbuf_scale = 0;
     }
     if (pg->bg->type == BG_PDF) { 
       // make pixmap scale to correct size if current one is wrong
       is_well_scaled = (fabs(pg->bg->pixel_width - pg->width*ui.zoom) < 2.
                      && fabs(pg->bg->pixel_height - pg->height*ui.zoom) < 2.);
-      if (pg->bg->canvas_item != NULL && !is_well_scaled) {
-        g_object_get(pg->bg->canvas_item, "width-in-pixels", &is_well_scaled, NULL);
+      if (pg->bg->canvas_group != NULL && !is_well_scaled) {
+#ifdef ABC
+
+        g_object_get(pg->bg->canvas_group, "width-in-pixels", &is_well_scaled, NULL);
         if (is_well_scaled)
-          gnome_canvas_item_set(pg->bg->canvas_item,
+
+          gnome_canvas_item_set(pg->bg->canvas_group,
             "width", pg->width, "height", pg->height, 
             "width-in-pixels", FALSE, "height-in-pixels", FALSE, 
             "width-set", TRUE, "height-set", TRUE, 
             NULL);
+#else
+	WARN;
+#endif
       }
       // request an asynchronous update to a better pixmap if needed
       zoom_to_request = MIN(ui.zoom, MAX_SAFE_RENDER_DPI/72.0);
@@ -783,9 +1063,12 @@ gboolean have_intersect(struct BBox *a, struct BBox *b)
    correctly the end of the group's item list. We try to work around this.
    DON'T USE gnome_canvas_item_raise/lower directly !! */
 
-void lower_canvas_item_to(GnomeCanvasGroup *g, GnomeCanvasItem *item, GnomeCanvasItem *after)
+void lower_canvas_item_to(GooCanvasItem *g, GooCanvasItem *item, GooCanvasItem *after)
 {
+
+#ifdef ABC
   int i1, i2;
+
   
   i1 = g_list_index(g->item_list, item);
   if (i1 == -1) return;
@@ -793,11 +1076,19 @@ void lower_canvas_item_to(GnomeCanvasGroup *g, GnomeCanvasItem *item, GnomeCanva
   if (after == NULL) i2 = -1;
   else i2 = g_list_index(g->item_list, after);
 
+
   if (i1 < i2) gnome_canvas_item_raise(item, i2-i1);
   if (i1 > i2+1) gnome_canvas_item_lower(item, i1-i2-1);
-  
   // BUGFIX for libgnomecanvas
   g->item_list_end = g_list_last(g->item_list);
+
+#else
+  
+  goo_canvas_item_lower(item, after);
+
+#endif
+
+
 }
 
 void rgb_to_gdkcolor(guint rgba, GdkColor *color)
@@ -911,6 +1202,7 @@ void update_color_buttons(void)
        ui.toolno[ui.cur_mapping] != TOOL_TEXT))
     gdkcolor.red = gdkcolor.blue = gdkcolor.green = 0;
   else rgb_to_gdkcolor(ui.cur_brush->color_rgba, &gdkcolor);
+#ifdef ABC
   gtk_color_button_set_color(colorbutton, &gdkcolor);
   if (ui.toolno[ui.cur_mapping] == TOOL_HIGHLIGHTER) {
     gtk_color_button_set_alpha(colorbutton,
@@ -920,6 +1212,10 @@ void update_color_buttons(void)
     gtk_color_button_set_alpha(colorbutton, 0xffff);
     gtk_color_button_set_use_alpha(colorbutton, FALSE);
   }
+#else
+  WARN;
+#endif
+
 }
 
 void update_tool_buttons(void)
@@ -1283,6 +1579,10 @@ void update_mappings_menu(void)
 
 void do_switch_page(int pg, gboolean rescroll, gboolean refresh_all)
 {
+
+#ifdef ABC
+
+
   int i, cx, cy;
   struct Layer *layer;
   GList *list;
@@ -1316,48 +1616,72 @@ void do_switch_page(int pg, gboolean rescroll, gboolean refresh_all)
     else if (!ui.view_continuous)
       gnome_canvas_item_move(GNOME_CANVAS_ITEM(ui.cur_page->group), 0., 0.);
   }
+
+#else
+  assert(0);
+#endif
+
+
 }
+
+
 
 void update_page_stuff(void)
 {
   gchar tmp[10];
-  GtkComboBox *layerbox;
+  GtkComboBoxText *layerbox;
   int i;
   GList *pglist;
   GtkSpinButton *spin;
   struct Page *pg;
   double vertpos, maxwidth;
+  
+  TRACE_1("Starting...");
 
   // move the page groups to their rightful locations or hide them
   if (ui.view_continuous) {
+
     vertpos = 0.; 
     maxwidth = 0.;
     for (i=0, pglist = journal.pages; pglist!=NULL; i++, pglist = pglist->next) {
       pg = (struct Page *)pglist->data;
       if (pg->group!=NULL) {
         pg->hoffset = 0.; pg->voffset = vertpos;
-        gnome_canvas_item_set(GNOME_CANVAS_ITEM(pg->group), 
-            "x", pg->hoffset, "y", pg->voffset, NULL);
-        gnome_canvas_item_show(GNOME_CANVAS_ITEM(pg->group));
+
+	xo_goo_canvas_item_reposition(pg->group, pg->hoffset, pg->voffset);
+
+//        gnome_canvas_item_set(GNOME_CANVAS_ITEM(pg->group), 
+//            "x", pg->hoffset, "y", pg->voffset, NULL);
+        xo_goo_canvas_item_show(pg->group);
       }
       vertpos += pg->height + VIEW_CONTINUOUS_SKIP;
       if (pg->width > maxwidth) maxwidth = pg->width;
     }
     vertpos -= VIEW_CONTINUOUS_SKIP;
-    gnome_canvas_set_scroll_region(canvas, 0, 0, maxwidth, vertpos);
+#ifdef ABC
+    //    gnome_canvas_set_scroll_region(canvas, 0, 0, maxwidth, vertpos);
+#else
+    goo_canvas_set_bounds(canvas, 0, 0, maxwidth, vertpos);
+#endif
+
   } else {
     for (pglist = journal.pages; pglist!=NULL; pglist = pglist->next) {
       pg = (struct Page *)pglist->data;
       if (pg == ui.cur_page && pg->group!=NULL) {
         pg->hoffset = 0.; pg->voffset = 0.;
-        gnome_canvas_item_set(GNOME_CANVAS_ITEM(pg->group), 
-            "x", pg->hoffset, "y", pg->voffset, NULL);
-        gnome_canvas_item_show(GNOME_CANVAS_ITEM(pg->group));
+	xo_goo_canvas_item_reposition(pg->group, pg->hoffset, pg->voffset);
+	//        gnome_canvas_item_set(GNOME_CANVAS_ITEM(pg->group), 
+	//            "x", pg->hoffset, "y", pg->voffset, NULL);
+        xo_goo_canvas_item_show(pg->group);
       } else {
-        if (pg->group!=NULL) gnome_canvas_item_hide(GNOME_CANVAS_ITEM(pg->group));
+#ifdef adfdasf
+I AM NOT SURE ABOUT THE NEED FOR THIS	
+        if (pg->group!=NULL) goo_canvas_item_hide(pg->group);
+#endif
       }
     }
-    gnome_canvas_set_scroll_region(canvas, 0, 0, ui.cur_page->width, ui.cur_page->height);
+    //gnome_canvas_set_scroll_region(canvas, 0, 0, ui.cur_page->width, ui.cur_page->height);
+    goo_canvas_set_bounds(canvas, 0, 0, ui.cur_page->width, ui.cur_page->height);
   }
 
   // update the page / layer info at bottom of screen
@@ -1370,23 +1694,23 @@ void update_page_stuff(void)
   g_snprintf(tmp, 10, _(" of %d"), journal.npages);
   gtk_label_set_text(GTK_LABEL(GET_COMPONENT("labelNumpages")), tmp);
 
-  layerbox = GTK_COMBO_BOX(GET_COMPONENT("comboLayer"));
+  layerbox = GTK_COMBO_BOX_TEXT(GET_COMPONENT("comboLayer"));
   if (ui.layerbox_length == 0) {
-    gtk_combo_box_prepend_text(layerbox, _("Background"));
+    gtk_combo_box_text_prepend_text(layerbox, _("Background"));
     ui.layerbox_length++;
   }
   while (ui.layerbox_length > ui.cur_page->nlayers+1) {
-    gtk_combo_box_remove_text(layerbox, 0);
+    gtk_combo_box_text_remove(layerbox, 0);
     ui.layerbox_length--;
   }
   while (ui.layerbox_length < ui.cur_page->nlayers+1) {
     g_snprintf(tmp, 10, _("Layer %d"), ui.layerbox_length++);
-    gtk_combo_box_prepend_text(layerbox, tmp);
+    gtk_combo_box_text_prepend_text(layerbox, tmp);
   }
-  gtk_combo_box_set_active(layerbox, ui.cur_page->nlayers-1-ui.layerno);
+  gtk_combo_box_set_active(GTK_COMBO_BOX(layerbox), ui.cur_page->nlayers-1-ui.layerno);
   ui.in_update_page_stuff = FALSE;
   
-  gtk_container_forall(GTK_CONTAINER(layerbox), unset_flags, (gpointer)GTK_CAN_FOCUS);
+  gtk_container_forall(GTK_CONTAINER(layerbox), xo_unset_focus, NULL);
   
   // update the paper-style menu radio buttons
   
@@ -1589,11 +1913,11 @@ void recolor_temp_text(int color_no, guint color_rgba)
 
 void process_color_activate(GtkMenuItem *menuitem, int color_no, guint color_rgba)
 {
-  if (GTK_OBJECT_TYPE(menuitem) == GTK_TYPE_RADIO_MENU_ITEM) {
+  if (G_OBJECT_TYPE(menuitem) == GTK_TYPE_RADIO_MENU_ITEM) {
     if (!gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem)))
       return;
   } 
-  else if (GTK_OBJECT_TYPE(menuitem) == GTK_TYPE_RADIO_TOOL_BUTTON) {
+  else if (G_OBJECT_TYPE(menuitem) == GTK_TYPE_RADIO_TOOL_BUTTON) {
     if (!gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON (menuitem)))
       return;
   }
@@ -1630,7 +1954,7 @@ void process_thickness_activate(GtkMenuItem *menuitem, int tool, int val)
 {
   int which_mapping;
   
-  if (GTK_OBJECT_TYPE(menuitem) == GTK_TYPE_RADIO_MENU_ITEM) {
+  if (G_OBJECT_TYPE(menuitem) == GTK_TYPE_RADIO_MENU_ITEM) {
     if (!gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem)))
       return;
   } else {
@@ -1640,7 +1964,7 @@ void process_thickness_activate(GtkMenuItem *menuitem, int tool, int val)
 
   if (ui.cur_mapping != 0 && !ui.button_switch_mapping) return; // not user-generated
 
-  if (ui.selection != NULL && GTK_OBJECT_TYPE(menuitem) != GTK_TYPE_RADIO_MENU_ITEM) {
+  if (ui.selection != NULL && G_OBJECT_TYPE(menuitem) != GTK_TYPE_RADIO_MENU_ITEM) {
     rethicken_selection(val);
     update_thickness_buttons();
   }
@@ -1672,7 +1996,7 @@ void process_papercolor_activate(GtkMenuItem *menuitem, int color, guint rgba)
   GList *pglist;
   gboolean hasdone;
 
-  if (GTK_OBJECT_TYPE(menuitem) == GTK_TYPE_RADIO_MENU_ITEM) {
+  if (G_OBJECT_TYPE(menuitem) == GTK_TYPE_RADIO_MENU_ITEM) {
     if (!gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem)))
       return;
   }
@@ -1693,7 +2017,7 @@ void process_papercolor_activate(GtkMenuItem *menuitem, int color, guint rgba)
       undo->type = ITEM_NEW_BG_ONE;
       undo->page = pg;
       undo->bg = (struct Background *)g_memdup(pg->bg, sizeof(struct Background));
-      undo->bg->canvas_item = NULL;
+      undo->bg->canvas_group = NULL;
 
       pg->bg->color_no = color;
       pg->bg->color_rgba = rgba;
@@ -1730,7 +2054,7 @@ void process_paperstyle_activate(GtkMenuItem *menuitem, int style)
       hasdone = TRUE;
       undo->page = pg;
       undo->bg = (struct Background *)g_memdup(pg->bg, sizeof(struct Background));
-      undo->bg->canvas_item = NULL;
+      undo->bg->canvas_group = NULL;
 
       if (pg->bg->type != BG_SOLID) {
         pg->bg->type = BG_SOLID;
@@ -1793,7 +2117,7 @@ void reset_selection(void)
 {
   if (ui.selection == NULL) return;
   if (ui.selection->canvas_item != NULL) 
-    gtk_object_destroy(GTK_OBJECT(ui.selection->canvas_item));
+    g_object_unref(G_OBJECT(ui.selection->canvas_item));
   g_list_free(ui.selection->items);
   g_free(ui.selection);
   ui.selection = NULL;
@@ -1809,7 +2133,7 @@ void move_journal_items_by(GList *itemlist, double dx, double dy,
                               struct Layer *l1, struct Layer *l2, GList *depths)
 {
   struct Item *item;
-  GnomeCanvasItem *refitem;
+  GooCanvasItem *refitem;
   GList *link;
   int i;
   double *pt;
@@ -1846,7 +2170,7 @@ void move_journal_items_by(GList *itemlist, double dx, double dy,
         else link = g_list_find(l2->items, depths->data);
         if (link != NULL) refitem = ((struct Item *)(link->data))->canvas_item;
         else refitem = NULL;
-        lower_canvas_item_to(l2->group, item->canvas_item, refitem);
+        goo_canvas_item_lower(item->canvas_item, refitem);
       }
       depths = depths->next;
     }
@@ -1861,8 +2185,11 @@ void resize_journal_items_by(GList *itemlist, double scaling_x, double scaling_y
   GList *list;
   double mean_scaling, temp;
   double *pt, *wid;
-  GnomeCanvasGroup *group;
+  GooCanvasGroup *group;
   int i; 
+
+#ifdef ABC
+
   
   /* geometric mean of x and y scalings = rescaling for stroke widths
      and for text font sizes */
@@ -1921,11 +2248,14 @@ void resize_journal_items_by(GList *itemlist, double scaling_x, double scaling_y
     }
     // redraw the item
     if (item->canvas_item!=NULL) {
-      group = (GnomeCanvasGroup *) item->canvas_item->parent;
-      gtk_object_destroy(GTK_OBJECT(item->canvas_item));
+      group = (GooCanvasGroup *) item->canvas_item->parent;
+      g_object_unref(G_OBJECT(item->canvas_item));
       make_canvas_item_one(group, item);
     }
   }
+#else
+  assert(0);
+#endif
 }
 
 // Switch between button mappings
@@ -2018,7 +2348,7 @@ void update_font_button(void)
 
 gboolean can_accel(GtkWidget *widget, guint id, gpointer data)
 {
-  return GTK_WIDGET_SENSITIVE(widget);
+  return  gtk_widget_get_sensitive(widget);
 }
 
 gboolean can_accel_except_text(GtkWidget *widget, guint id, gpointer data)
@@ -2027,7 +2357,7 @@ gboolean can_accel_except_text(GtkWidget *widget, guint id, gpointer data)
     g_signal_stop_emission_by_name(widget, "can-activate-accel");
     return FALSE;
   }
-  return GTK_WIDGET_SENSITIVE(widget);
+  return  gtk_widget_get_sensitive(widget);
 }
 
 void allow_all_accels(void)
@@ -2198,15 +2528,19 @@ void do_fullscreen(gboolean active)
 
 // prevent interface items from getting bogus XInput events
 
-gboolean filter_extended_events (GtkWidget *widget, GdkEvent *event,
+gboolean filter_extended_events (GtkWidget *widget, GdkEventMotion *event,
                                    gpointer user_data)
 {
+  gboolean eventIsCore = xo_event_motion_device_is_core(event);
+
   if (event->type == GDK_MOTION_NOTIFY &&
-      event->motion.device != gdk_device_get_core_pointer())
+      //      event->motion.device != gdk_device_get_core_pointer())
+      ! eventIsCore)
     return TRUE;
   if ((event->type == GDK_BUTTON_PRESS || event->type == GDK_2BUTTON_PRESS ||
       event->type == GDK_3BUTTON_PRESS || event->type == GDK_BUTTON_RELEASE) &&
-      event->button.device != gdk_device_get_core_pointer())
+      //      event->button.device != gdk_device_get_core_pointer())
+      ! eventIsCore)
     return TRUE;
   return FALSE;
 }
@@ -2266,11 +2600,23 @@ gboolean handle_activate_signal(GtkWidget *widget, gpointer user_data)
 
 /* recursively unset widget flags */
 
+void xo_unset_focus(GtkWidget *w, gpointer unused)
+{
+  gtk_widget_set_can_focus (w, FALSE);
+  if(GTK_IS_CONTAINER(w))
+    gtk_container_forall(GTK_CONTAINER(w), xo_unset_focus, NULL);
+}
+
+/* recursively unset widget flags */
+
 void unset_flags(GtkWidget *w, gpointer flag)
 {
+#ifdef ABC
   GTK_WIDGET_UNSET_FLAGS(w, (GtkWidgetFlags)flag);
   if(GTK_IS_CONTAINER(w))
     gtk_container_forall(GTK_CONTAINER(w), unset_flags, flag);
+#endif
+  assert(0);
 }
 
 /* reset focus when a key or button press event reaches someone, or when the
@@ -2400,4 +2746,58 @@ wrapper_poppler_page_render_to_pixbuf (PopplerPage *page,
 
   wrapper_copy_cairo_surface_to_pixbuf (surface, pixbuf);
   cairo_surface_destroy (surface);
+}
+
+
+GdkDeviceManager *xo_device_manager_get(GdkWindow *window)
+{
+  GdkDeviceManager *manager;
+  assert(window != NULL);
+  manager = gdk_display_get_device_manager(gdk_window_get_display(window));
+  return manager;
+}
+
+GList *xo_gdkwindow_devices_list(GdkWindow *window)
+{
+  assert(window != NULL);
+  return gdk_device_manager_list_devices(xo_device_manager_get(window), GDK_DEVICE_TYPE_MASTER);
+}
+
+GList *xo_devices_list(GtkWidget *w)
+{
+  GdkWindow *window;
+  if (w == NULL) 
+    window = gdk_get_default_root_window ();
+  else
+    window = gtk_widget_get_window(w);
+
+  assert(window != NULL);
+  return gdk_device_manager_list_devices(xo_device_manager_get(window), GDK_DEVICE_TYPE_MASTER);
+}
+
+
+
+gboolean xo_gtkwidget_device_is_core(GtkWidget *w, GdkDevice *device)
+{
+  GdkWindow *window;
+
+  if (w == NULL)
+    window = gdk_get_default_root_window ();
+  else
+    window = gtk_widget_get_parent_window(w);
+  assert(window != NULL);
+
+  return gdk_device_manager_get_client_pointer(xo_device_manager_get(window)) != device;
+}
+
+gboolean xo_event_motion_device_is_core(GdkEventMotion  *event)
+{
+  return event->device == 
+    gdk_device_manager_get_client_pointer(xo_device_manager_get(event->window));
+}
+
+gboolean xo_event_button_device_is_core(GdkEventButton  *event)
+{
+  return event->device == 
+    gdk_device_manager_get_client_pointer(xo_device_manager_get(event->window));
 }

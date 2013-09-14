@@ -30,12 +30,14 @@
 #include <glib/gstdio.h>
 #include <poppler/glib/poppler.h>
 
+#include <assert.h>
+
 #ifndef WIN32
  #include <gdk/gdkx.h>
+ #include <gdk/gdk.h>
  #include <X11/Xlib.h>
 #endif
 
-#include "libgnomecanvas/libgnomecanvas.h"
 #include "xournal.h"
 #include "xo-interface.h"
 #include "xo-support.h"
@@ -70,6 +72,7 @@ void new_journal(void)
   ui.saved = TRUE;
   ui.filename = NULL;
   update_file_name(NULL);
+  TRACE_1("\n\nend---------\n\n");
 }
 
 // check attachment names
@@ -355,7 +358,7 @@ void xoj_parser_start_element(GMarkupParseContext *context,
     tmpPage->group = NULL;
     tmpPage->bg = g_new(struct Background, 1);
     tmpPage->bg->type = -1;
-    tmpPage->bg->canvas_item = NULL;
+    tmpPage->bg->canvas_group = NULL;
     tmpPage->bg->pixbuf = NULL;
     tmpPage->bg->filename = NULL;
     tmpJournal.pages = g_list_append(tmpJournal.pages, tmpPage);
@@ -748,6 +751,8 @@ void xoj_parser_text(GMarkupParseContext *context,
 {
   const gchar *element_name, *ptr;
   int n;
+
+#ifdef ABC
   
   element_name = g_markup_parse_context_get_element(context);
   if (element_name == NULL) return;
@@ -781,6 +786,9 @@ void xoj_parser_text(GMarkupParseContext *context,
   if (!strcmp(element_name, "image")) {
     tmpItem->image = read_pixbuf(text, text_len);
   }
+#else 
+  assert(0);
+#endif
 }
 
 gboolean user_wants_second_chance(char **filename)
@@ -892,7 +900,11 @@ gboolean open_journal(char *filename)
     while (bgpdf.status != STATUS_NOT_INIT) gtk_main_iteration();
     new_journal();
     ui.zoom = ui.startup_zoom;
+#ifdef ABC
     gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
+#else
+    WARN;
+#endif
     update_page_stuff();
     return init_bgpdf(filename, TRUE, DOMAIN_ABSOLUTE);
   }
@@ -952,11 +964,19 @@ gboolean open_journal(char *filename)
   ui.saved = TRUE;
   ui.zoom = ui.startup_zoom;
   update_file_name(g_strdup(filename));
+#ifdef ABC
   gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
+#else
+  WARN;
+#endif
   make_canvas_items();
   update_page_stuff();
   rescale_bg_pixmaps(); // this requests the PDF pages if need be
+#ifdef ABC
   gtk_adjustment_set_value(gtk_layout_get_vadjustment(GTK_LAYOUT(canvas)), 0);
+#else
+  WARN
+#endif
   return TRUE;
 }
 
@@ -972,7 +992,7 @@ struct Background *attempt_load_pix_bg(char *filename, gboolean attach)
   
   bg = g_new(struct Background, 1);
   bg->type = BG_PIXMAP;
-  bg->canvas_item = NULL;
+  bg->canvas_group = NULL;
   bg->pixbuf = pix;
   bg->pixbuf_scale = DEFAULT_ZOOM;
   if (attach) {
@@ -1038,7 +1058,7 @@ GList *attempt_load_gv_bg(char *filename)
       g_object_unref(loader);
       loader = NULL;
       bg = g_new(struct Background, 1);
-      bg->canvas_item = NULL;
+      bg->canvas_group = NULL;
       bg->pixbuf = pix;
       bg->pixbuf_scale = (GS_BITMAP_DPI/72.0);
       bg->type = BG_PIXMAP;
@@ -1063,20 +1083,22 @@ struct Background *attempt_screenshot_bg(void)
   GdkWindow *window;
   int x,y,w,h;
   Window x_root, x_win;
+  Display* xDisplay = gdk_x11_display_get_xdisplay(gdk_display_get_default());
 
   x_root = gdk_x11_get_default_root_xwindow();
   
-  if (!XGrabButton(GDK_DISPLAY(), AnyButton, AnyModifier, x_root, 
+  if (!XGrabButton(xDisplay, AnyButton, AnyModifier, x_root, 
       False, ButtonReleaseMask, GrabModeAsync, GrabModeSync, None, None))
     return NULL;
 
-  XWindowEvent (GDK_DISPLAY(), x_root, ButtonReleaseMask, &x_event);
-  XUngrabButton(GDK_DISPLAY(), AnyButton, AnyModifier, x_root);
+  XWindowEvent (xDisplay, x_root, ButtonReleaseMask, &x_event);
+  XUngrabButton(xDisplay, AnyButton, AnyModifier, x_root);
 
   x_win = x_event.xbutton.subwindow;
   if (x_win == None) x_win = x_root;
 
-  window = gdk_window_foreign_new_for_display(gdk_display_get_default(), x_win);
+#ifdef ABC
+  window = gdk_window_foreign_new_for_display(xDisplay, x_win);
     
   gdk_window_get_geometry(window, &x, &y, &w, &h, NULL);
   
@@ -1093,6 +1115,10 @@ struct Background *attempt_screenshot_bg(void)
   bg->filename = new_refstring(NULL);
   bg->file_domain = DOMAIN_ATTACH;
   return bg;
+#else
+  assert(0);
+#endif
+
 #else
   // not implemented under WIN32
   return FALSE;
@@ -1125,6 +1151,10 @@ gboolean bgpdf_scheduler_callback(gpointer data)
   PopplerPage *pdfpage;
   gdouble height, width;
   int scaled_height, scaled_width;
+
+#ifdef ABC
+
+
   GdkPixmap *pixmap;
   cairo_t *cr;
 
@@ -1197,6 +1227,9 @@ gboolean bgpdf_scheduler_callback(gpointer data)
   if (bgpdf.requests != NULL) return TRUE; // remain in the idle loop
   bgpdf.pid = 0;
   return FALSE; // we're done
+#else
+  WARN;
+#endif
 }
 
 /* make a request */
@@ -1308,6 +1341,7 @@ gboolean init_bgpdf(char *pdfname, gboolean create_pages, int file_domain)
     if (ui.default_path!=NULL) g_free(ui.default_path);
     ui.default_path = g_path_get_dirname(pdfname);
   }
+  printf(">>>>>>>>>>>>>>>>> pages created with bg\n");
 
   if (!create_pages) return TRUE; // we're done
   
@@ -1318,12 +1352,13 @@ gboolean init_bgpdf(char *pdfname, gboolean create_pages, int file_domain)
     if (!pdfpage) continue;
     if (journal.npages < i) {
       bg = g_new(struct Background, 1);
-      bg->canvas_item = NULL;
+      bg->canvas_group = NULL;
       pg = NULL;
     } else {
       pg = (struct Page *)g_list_nth_data(journal.pages, i-1);
       bg = pg->bg;
     }
+    printf(">>>>>>>>>>>>>>>>> page being created with bg\n");
     bg->type = BG_PDF;
     bg->filename = refstring_ref(bgpdf.filename);
     bg->file_domain = bgpdf.file_domain;
@@ -1342,7 +1377,10 @@ gboolean init_bgpdf(char *pdfname, gboolean create_pages, int file_domain)
       make_page_clipbox(pg);
       update_canvas_bg(pg);
     }
+    //    assert(pg->bg->pixbuf!= 0);
   }
+  printf(">>>>>>>>>>>>>>>>> pages created with bg 2\n");
+
   update_page_stuff();
   rescale_bg_pixmaps(); // this actually requests the pages !!
   return TRUE;
@@ -1411,7 +1449,7 @@ void update_mru_menu(void)
   for (i=0; i<MRU_SIZE; i++) {
     if (ui.mru[i]!=NULL) {
       tmp = g_strdup_printf("_%d %s", i+1,
-               g_strjoinv("__", g_strsplit_set(g_basename(ui.mru[i]),"_",-1)));
+               g_strjoinv("__", g_strsplit_set(g_path_get_basename(ui.mru[i]),"_",-1)));
       gtk_label_set_text_with_mnemonic(GTK_LABEL(gtk_bin_get_child(GTK_BIN(ui.mrumenu[i]))),
           tmp);
       g_free(tmp);
@@ -1590,10 +1628,15 @@ void save_config_to_file(void)
   if (glib_minor_version<6) return; 
 
   // save some data...
+#ifdef ABC
   ui.maximize_at_start = (gdk_window_get_state(winMain->window) & GDK_WINDOW_STATE_MAXIMIZED);
+
   if (!ui.maximize_at_start && !ui.fullscreen)
     gdk_drawable_get_size(winMain->window, 
       &ui.window_default_width, &ui.window_default_height);
+#else
+  WARN
+#endif
 
   update_keyval("general", "display_dpi",
     _(" the display resolution, in pixels per inch"),

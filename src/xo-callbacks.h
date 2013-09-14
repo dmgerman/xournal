@@ -15,6 +15,7 @@
 
 
 #include <gtk/gtk.h>
+#include<libgrip/grip.h>
 
 void
 on_fileNew_activate                    (GtkMenuItem     *menuitem,
@@ -664,3 +665,6 @@ on_button3Image_activate               (GtkMenuItem     *menuitem,
 void
 on_optionsPenCursor_activate           (GtkCheckMenuItem *checkmenuitem,
                                         gpointer         user_data);
+
+void 
+xo_gesture_callback (GtkWidget        *widget, GripTimeType time_type, GripGestureEvent  *event, gpointer           user_data);
