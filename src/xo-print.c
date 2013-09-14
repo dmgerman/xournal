@@ -20,6 +20,7 @@
 #define PANGO_ENABLE_BACKEND /* to access PangoFcFont.font_pattern */
 
 #include <gtk/gtk.h>
+#include <libgnomecanvas/libgnomecanvas.h>
 #include <zlib.h>
 #include <string.h>
 #include <locale.h>

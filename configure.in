@@ -15,11 +15,10 @@ LDFLAGS="$LDFLAGS -lz -lm"
 
 #pkg_modules="gail >= 1.9.0 libart-2.0 >= 2.3.21 gtk+-3.0 >= 3.0.0 poppler-glib >= 0.5.4 pangoft2 >= 1.0 libgrip" 
 pkg_modules="gtk+-3.0 >= 3.0.0 poppler-glib >= 0.5.4 pangoft2 >= 1.0 libgrip goocanvas-2.0" 
+
 PKG_CHECK_MODULES(PACKAGE, [$pkg_modules])
 AC_SUBST(PACKAGE_CFLAGS)
 AC_SUBST(PACKAGE_LIBS)
-
-AC_PATH_PROG(GLIB_GENMARSHAL, glib-genmarshal)
 
 dnl detect Windows environment...
 AC_CANONICAL_HOST

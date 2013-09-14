@@ -3,7 +3,11 @@
 if WIN32
   SUBDIRS = ttsubset win32
 else
+<<<<<<< HEAD
   SUBDIRS = ttsubset 
+=======
+  SUBDIRS = ttsubset
+>>>>>>> parent of 5ac3c56... Include local copy of libgnomecanvas
 endif
 
 INCLUDES = \
@@ -29,7 +33,7 @@ xournal_SOURCES = \
 
 if WIN32
   xournal_LDFLAGS = -mwindows
-  xournal_LDADD = win32/xournal.res ttsubset/libttsubset.a  @PACKAGE_LIBS@ $(INTLLIBS) -lz
+  xournal_LDADD = win32/xournal.res ttsubset/libttsubset.a @PACKAGE_LIBS@ $(INTLLIBS) -lz
 else
   xournal_LDADD = ttsubset/libttsubset.a @PACKAGE_LIBS@ $(INTLLIBS) -lX11 -lz -lm
 endif

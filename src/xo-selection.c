@@ -21,9 +21,6 @@
 #include <string.h>
 #include <gtk/gtk.h>
 #include <assert.h>
-//#include <libart_lgpl/art_vpath_dash.h>
-//#include <libart_lgpl/art_svp_point.h>
-//#include <libart_lgpl/art_svp_vpath.h>
 
 #include "xournal.h"
 #include "xo-callbacks.h"

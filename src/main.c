@@ -23,7 +23,6 @@
 #include <gdk/gdk.h> 
 #include <gtk/gtk.h>
 #include <goocanvas.h>
-
 #include<libgrip/grip.h>
 
 #include "xournal.h"
