@@ -747,15 +747,17 @@ void xoj_parser_end_element(GMarkupParseContext *context,
 }
 
 void xoj_parser_text(GMarkupParseContext *context,
-   const gchar *text, gsize text_len, gpointer user_data, GError **error)
+		     const gchar *text, 
+		     gsize text_len, 
+		     gpointer user_data, GError **error)
 {
   const gchar *element_name, *ptr;
   int n;
 
-#ifdef ABC
   
   element_name = g_markup_parse_context_get_element(context);
-  if (element_name == NULL) return;
+  if (element_name == NULL) 
+    return;
   if (!strcmp(element_name, "stroke")) {
     cleanup_numeric((gchar *)text);
     ptr = text;
@@ -763,6 +765,7 @@ void xoj_parser_text(GMarkupParseContext *context,
     while (text_len > 0) {
       realloc_cur_path(n/2 + 1);
       ui.cur_path.coords[n] = g_ascii_strtod(text, (char **)(&ptr));
+      TRACE_3("read n [%d] [%f]\n", n, ui.cur_path.coords[n]);
       if (ptr == text) break;
       text_len -= (ptr - text);
       text = ptr;
@@ -773,10 +776,17 @@ void xoj_parser_text(GMarkupParseContext *context,
       n++;
     }
     if (n<4 || n&1 || 
-        (tmpItem->brush.variable_width && (n!=2*ui.cur_path.num_points))) 
-      { *error = xoj_invalid(); return; } // wrong number of points
-    tmpItem->path = gnome_canvas_points_new(n/2);
-    g_memmove(tmpItem->path->coords, ui.cur_path.coords, n*sizeof(double));
+        (tmpItem->brush.variable_width && (n!=2*ui.cur_path.num_points))) { 
+      *error = xoj_invalid(); 
+      return; 
+    } // wrong number of points
+
+    /////XXXXXXXXXXXXXXX
+    tmpItem->path = goo_canvas_points_new(n/2);
+    //    tmpItem->path = gnome_canvas_points_new(n/2);
+
+    // copy the old ones into the new ones
+    g_memmove(tmpItem->path->coords, ui.cur_path.coords, n*sizeof(tmpItem->path->coords[0]));
   }
   if (!strcmp(element_name, "text")) {
     tmpItem->text = g_malloc(text_len+1);
@@ -786,9 +796,7 @@ void xoj_parser_text(GMarkupParseContext *context,
   if (!strcmp(element_name, "image")) {
     tmpItem->image = read_pixbuf(text, text_len);
   }
-#else 
-  assert(0);
-#endif
+
 }
 
 gboolean user_wants_second_chance(char **filename)

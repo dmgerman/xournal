@@ -420,9 +420,11 @@ extern double DEFAULT_ZOOM;
 #define UNIT_PT 3
 
 #define WARN printf(">>>>>>>>Warning, warning Mr Robinson --- [%s]:[%s]:[%d]\n", __FILE__, __func__, __LINE__);
+#define WARN1(a) printf(">>>>>>>>Warning, warning Mr Robinson --- [%s]:[%s]:[%d]---[%s]\n", __FILE__, __func__, __LINE__, a);
 
 #define TRACE printf("> IN [%s]:[%s]:[%d]\n", __FILE__, __func__, __LINE__);
 #define TRACE_1(a) printf("> IN [%s]:[%s]:[%d]--- [%s]\n", __FILE__, __func__, __LINE__,a);
 #define TRACE_2(a,b) printf("> IN [%s]:[%s]:[%d]---" a, __FILE__, __func__, __LINE__,b);
+#define TRACE_3(a,b,c) printf("> IN [%s]:[%s]:[%d]---" a, __FILE__, __func__, __LINE__,b,c);
 
 #endif

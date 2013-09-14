@@ -349,13 +349,6 @@ create_winMain (void)
   GtkWidget *statusbar;
   GtkAccelGroup *accel_group;
 
-#ifdef ABC
-  // no, no longer needed
-  GtkTooltips *tooltips;
-
-  tooltips = gtk_tooltips_new ();
-#endif
-
   accel_group = gtk_accel_group_new ();
 
   winMain = gtk_window_new (GTK_WINDOW_TOPLEVEL);
@@ -2046,11 +2039,9 @@ create_winMain (void)
   statusbar = gtk_statusbar_new ();
   gtk_widget_show (statusbar);
   gtk_box_pack_start (GTK_BOX (hbox1), statusbar, TRUE, TRUE, 0);
-#ifdef ABC
-  gtk_statusbar_set_has_resize_grip (GTK_STATUSBAR (statusbar), FALSE);
-#else
-  WARN;
-#endif
+
+  // No longer needed in gtk3
+  //gtk_statusbar_set_has_resize_grip (GTK_STATUSBAR (statusbar), FALSE);
 
   g_signal_connect ((gpointer) winMain, "delete_event",
                     G_CALLBACK (on_winMain_delete_event),
@@ -2920,9 +2911,7 @@ create_winMain (void)
   GLADE_HOOKUP_OBJECT (winMain, labelLayer, "labelLayer");
   GLADE_HOOKUP_OBJECT (winMain, comboLayer, "comboLayer");
   GLADE_HOOKUP_OBJECT (winMain, statusbar, "statusbar");
-#ifdef ABC
-  GLADE_HOOKUP_OBJECT_NO_REF (winMain, tooltips, "tooltips");
-#endif
+
   gtk_window_add_accel_group (GTK_WINDOW (winMain), accel_group);
 
   return winMain;

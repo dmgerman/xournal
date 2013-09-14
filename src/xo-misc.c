@@ -54,6 +54,23 @@ double predef_thickness[NUM_STROKE_TOOLS][THICKNESS_MAX] =
 
 // some manipulation functions
 
+void xo_page_canvas_group_new(Page *pg)
+{
+  GooCanvasItem *root;
+  assert(pg != NULL);
+  assert(canvas != NULL);
+
+  root = goo_canvas_get_root_item(canvas);
+  assert(root != NULL);
+
+  pg->group =  goo_canvas_group_new (root, NULL);
+  assert(pg->group != NULL);
+  make_page_clipbox(pg);
+
+}
+
+
+
 struct Page *new_page(struct Page *template)
 {
 
@@ -72,22 +89,11 @@ struct Page *new_page(struct Page *template)
     refstring_ref(pg->bg->filename);
   }
 
-#ifdef ABC
-  pg->group = (GooCanvasGroup*) gnome_canvas_item_new(
-      gnome_canvas_root(canvas), gnome_canvas_clipgroup_get_type(), NULL);
-#else
-  root = goo_canvas_get_root_item(canvas);
-  TRACE_2("Root [%x]\n", root);
-  pg->group =  goo_canvas_group_new (root, NULL);
-#endif
-
-  make_page_clipbox(pg);
+  xo_page_canvas_group_new(pg);
   update_canvas_bg(pg);
 
-  //l->group = (GooCanvasGroup *) gnome_canvas_item_new(
-  //    pg->group, gnome_canvas_group_get_type(), NULL);
-
   l->group = goo_canvas_group_new ((GooCanvasItem*)pg->group, NULL);
+
   return pg;
 }
 
@@ -147,15 +153,9 @@ struct Page *new_page_with_bg(struct Background *bg, double width, double height
   pg->width = width;
 
 
-  GooCanvasItem *root;
-  root = goo_canvas_get_root_item(canvas);
-  pg->group =  goo_canvas_group_new (root, NULL);
-
-  //pg->group = (GooCanvasGroup *) gnome_canvas_item_new(
-  //    gnome_canvas_root(canvas), gnome_canvas_clipgroup_get_type(), NULL);
-  make_page_clipbox(pg);
+  xo_page_canvas_group_new(pg);
   update_canvas_bg(pg);
-  
+
   l->group = goo_canvas_group_new ((GooCanvasItem*)pg->group, NULL);
   //l->group = (GooCanvasGroup *) gnome_canvas_item_new(
   //    pg->group, gnome_canvas_group_get_type(), NULL);
@@ -660,7 +660,8 @@ void make_page_clipbox(struct Page *pg)
   gnome_canvas_item_set(GNOME_CANVAS_ITEM(pg->group), "path", pg_clip, NULL);
   gnome_canvas_path_def_unref(pg_clip);
 #else
-  TRACE_1("usikng a rectangle... what about this?, used for resizing");
+  WARN1("see GooCanvasBounds");
+  TRACE_1("usikng a rectangle... what about this?, used for resizing... I think I have to use ");
   goo_canvas_rect_new(pg->group, 0, 0, pg->width, pg->height, NULL);
 #endif
 
@@ -672,30 +673,58 @@ void make_canvas_item_one(GooCanvasItem *group, struct Item *item)
   GooCanvasPoints points;
   int j;
 
-#ifdef ABC
   if (item->type == ITEM_STROKE) {
     if (!item->brush.variable_width)
+
+      /*
       item->canvas_item = gnome_canvas_item_new(group,
             gnome_canvas_line_get_type(), "points", item->path,   
             "cap-style", GDK_CAP_ROUND, "join-style", GDK_JOIN_ROUND,
             "fill-color-rgba", item->brush.color_rgba,  
             "width-units", item->brush.thickness, NULL);
+      */
+      item->canvas_item = goo_canvas_polyline_new(group, FALSE, 0,
+						  "points", item->path,
+						  "line-cap", CAIRO_LINE_CAP_SQUARE, 
+						  "line-join", CAIRO_LINE_JOIN_ROUND,
+						  "fill-color-rgba", item->brush.color_rgba,  
+						  "line-width", item->brush.thickness, 
+						  NULL);
     else {
+      /*
       item->canvas_item = gnome_canvas_item_new(group,
             gnome_canvas_group_get_type(), NULL);
+      */
+      item->canvas_item = goo_canvas_group_new(group, NULL);
       points.num_points = 2;
       points.ref_count = 1;
+
+      TRACE_2("Coords have [%d] points\n", item->path->num_points);
+
       for (j = 0; j < item->path->num_points-1; j++) {
         points.coords = item->path->coords+2*j;
+	TRACE_3("Coor  [%f][%f]\n", points.coords[0], points.coords[1]);
+	/*/
         gnome_canvas_item_new((GooCanvasGroup *) item->canvas_item,
               gnome_canvas_line_get_type(), "points", &points, 
               "cap-style", GDK_CAP_ROUND, "join-style", GDK_JOIN_ROUND, 
               "fill-color-rgba", item->brush.color_rgba,
               "width-units", item->widths[j], NULL);
+	*/
+	goo_canvas_polyline_new(item->canvas_item, FALSE, 0,
+				"points", &points,
+				"line-cap", CAIRO_LINE_CAP_SQUARE, 
+				"line-join", CAIRO_LINE_JOIN_ROUND,
+				//"fill-color-rgba", item->brush.color_rgba,  
+				"stroke-color-rgba", item->brush.color_rgba,  
+				"line-width", item->brush.thickness, 
+				NULL);
+
       }
     }
   }
   if (item->type == ITEM_TEXT) {
+#ifdef ABC
     font_desc = pango_font_description_from_string(item->font_name);
     pango_font_description_set_absolute_size(font_desc, 
             item->font_size*ui.zoom*PANGO_SCALE);
@@ -705,8 +734,12 @@ void make_canvas_item_one(GooCanvasItem *group, struct Item *item)
           "font-desc", font_desc, "fill-color-rgba", item->brush.color_rgba,
           "text", item->text, NULL);
     update_item_bbox(item);
+#else
+  assert(0);
+#endif
   }
   if (item->type == ITEM_IMAGE) {
+#ifdef ABC
     item->canvas_item = gnome_canvas_item_new(group,
           gnome_canvas_pixbuf_get_type(),
           "pixbuf", item->image,
@@ -715,15 +748,14 @@ void make_canvas_item_one(GooCanvasItem *group, struct Item *item)
           "height", item->bbox.bottom - item->bbox.top,
           "width-set", TRUE, "height-set", TRUE,
           NULL);
-  }
 #else
   assert(0);
 #endif
+  }
 }
 
 void make_canvas_items(void)
 {
-#ifdef ABC
 
   struct Page *pg;
   struct Layer *l;
@@ -733,16 +765,17 @@ void make_canvas_items(void)
   for (pagelist = journal.pages; pagelist!=NULL; pagelist = pagelist->next) {
     pg = (struct Page *)pagelist->data;
     if (pg->group == NULL) {
-      pg->group = (GooCanvasGroup *) gnome_canvas_item_new(
-         gnome_canvas_root(canvas), gnome_canvas_clipgroup_get_type(), NULL);
-      make_page_clipbox(pg);
+      xo_page_canvas_group_new(pg);
     }
-    if (pg->bg->canvas_item == NULL) update_canvas_bg(pg);
+    if (pg->bg->canvas_group == NULL) 
+      update_canvas_bg(pg);
+    
     for (layerlist = pg->layers; layerlist!=NULL; layerlist = layerlist->next) {
+
       l = (struct Layer *)layerlist->data;
       if (l->group == NULL)
-        l->group = (GooCanvasGroup *) gnome_canvas_item_new(
-           pg->group, gnome_canvas_group_get_type(), NULL);
+	l->group = goo_canvas_group_new ((GooCanvasItem*)pg->group, NULL);
+
       for (itemlist = l->items; itemlist!=NULL; itemlist = itemlist->next) {
         item = (struct Item *)itemlist->data;
         if (item->canvas_item == NULL)
@@ -750,9 +783,6 @@ void make_canvas_items(void)
       }
     }
   }
-#else
-  assert(0);
-#endif
 }
 
 void update_canvas_bg(struct Page *pg)
