@@ -29,6 +29,7 @@
 #include <glib.h>
 #include <glib/gstdio.h>
 #include <poppler/glib/poppler.h>
+#include <gdk/gdk.h>
 
 #include <assert.h>
 
@@ -765,7 +766,6 @@ void xoj_parser_text(GMarkupParseContext *context,
     while (text_len > 0) {
       realloc_cur_path(n/2 + 1);
       ui.cur_path.coords[n] = g_ascii_strtod(text, (char **)(&ptr));
-      TRACE_3("read n [%d] [%f]\n", n, ui.cur_path.coords[n]);
       if (ptr == text) break;
       text_len -= (ptr - text);
       text = ptr;
@@ -781,9 +781,7 @@ void xoj_parser_text(GMarkupParseContext *context,
       return; 
     } // wrong number of points
 
-    /////XXXXXXXXXXXXXXX
     tmpItem->path = goo_canvas_points_new(n/2);
-    //    tmpItem->path = gnome_canvas_points_new(n/2);
 
     // copy the old ones into the new ones
     g_memmove(tmpItem->path->coords, ui.cur_path.coords, n*sizeof(tmpItem->path->coords[0]));
@@ -1159,17 +1157,24 @@ gboolean bgpdf_scheduler_callback(gpointer data)
   PopplerPage *pdfpage;
   gdouble height, width;
   int scaled_height, scaled_width;
-
 #ifdef ABC
-
-
   GdkPixmap *pixmap;
+#else
+  cairo_surface_t *surface;
+#endif
   cairo_t *cr;
 
+  TRACE;
   // if all requests have been cancelled, remove ourselves from main loop
-  if (bgpdf.requests == NULL) { bgpdf.pid = 0; return FALSE; }
-  if (bgpdf.status == STATUS_NOT_INIT)
-    { printf("DEBUG: BGPDF not initialized??\n"); bgpdf.pid = 0; return FALSE; }
+  if (bgpdf.requests == NULL) { 
+    bgpdf.pid = 0; 
+    return FALSE; 
+  }
+  if (bgpdf.status == STATUS_NOT_INIT) { 
+    printf("DEBUG: BGPDF not initialized??\n"); 
+    bgpdf.pid = 0; 
+    return FALSE; 
+  }
 
   req = (struct BgPdfRequest *)bgpdf.requests->data;
 
@@ -1177,30 +1182,60 @@ gboolean bgpdf_scheduler_callback(gpointer data)
   pixbuf = NULL;
   pdfpage = poppler_document_get_page(bgpdf.document, req->pageno-1);
   if (pdfpage) {
-//    printf("DEBUG: Processing request for page %d at %f dpi\n", req->pageno, req->dpi);
+    printf("DEBUG: Processing request for page %d at %f dpi\n", req->pageno, req->dpi);
     set_cursor_busy(TRUE);
     poppler_page_get_size(pdfpage, &width, &height);
     scaled_width = (int) (req->dpi * width/72);
     scaled_height = (int) (req->dpi * height/72);
 
-    if (ui.poppler_force_cairo) { // poppler -> cairo -> pixmap -> pixbuf
+    if (ui.poppler_force_cairo) { // poppler -> cairo -> pixbuf
+
+      TRACE_1("----------------With cairo");
+#ifdef ABC
       pixmap = gdk_pixmap_new(GTK_WIDGET(canvas)->window, scaled_width, scaled_height, -1);
+
       cr = gdk_cairo_create(pixmap);
       cairo_set_source_rgb(cr, 1., 1., 1.);
       cairo_paint(cr);
       cairo_scale(cr, scaled_width/width, scaled_height/height);
+      //  render the PDF page  in the pixbuf pdfpage struct
+#else
+      // this is the way it is done in pdf2png test case from cairo
+      surface = cairo_image_surface_create (CAIRO_FORMAT_RGB24, scaled_width, scaled_height);
+      cr = cairo_create (surface);
+      cairo_surface_destroy (surface);
+      cairo_set_source_rgb(cr, 1., 1., 1.);
+      cairo_paint(cr);
+      cairo_scale(cr, scaled_width/width, scaled_height/height);
+#endif
+      //  render the PDF page  in the pixbuf pdfpage struct
       poppler_page_render(pdfpage, cr);
+
+#ifdef ABC
       cairo_destroy(cr);
       pixbuf = gdk_pixbuf_get_from_drawable(NULL, GDK_DRAWABLE(pixmap),
         NULL, 0, 0, 0, 0, scaled_width, scaled_height);
+
       g_object_unref(pixmap);
+#else
+      pixbuf = gdk_pixbuf_get_from_surface(cairo_get_target (cr), 
+					   0, 0, scaled_width, scaled_height);
+      cairo_destroy(cr);
+#endif
     }
     else { // directly poppler -> pixbuf: faster, but bitmap font bug
       pixbuf = gdk_pixbuf_new(GDK_COLORSPACE_RGB,
                  FALSE, 8, scaled_width, scaled_height);
+#ifdef ABC
       wrapper_poppler_page_render_to_pixbuf(
                 pdfpage, 0, 0, scaled_width, scaled_height,
                 req->dpi/72, 0, pixbuf);
+#else
+      xo_wrapper_poppler_page_render_to_pixbuf(
+				     pdfpage, 0, 0, scaled_width, scaled_height,
+				     req->dpi/72, 0, 
+				     pixbuf);
+#endif
     }
     g_object_unref(pdfpage);
     set_cursor_busy(FALSE);
@@ -1209,13 +1244,21 @@ gboolean bgpdf_scheduler_callback(gpointer data)
   // process the generated pixbuf...
   if (pixbuf != NULL) { // success
     while (req->pageno > bgpdf.npages) {
+      TRACE_2("Doing this [%d] for xournal pages beyond PDF", bgpdf.npages);
       bgpg = g_new(struct BgPdfPage, 1);
       bgpg->pixbuf = NULL;
       bgpdf.pages = g_list_append(bgpdf.pages, bgpg);
       bgpdf.npages++;
     }
+
     bgpg = g_list_nth_data(bgpdf.pages, req->pageno-1);
-    if (bgpg->pixbuf!=NULL) g_object_unref(bgpg->pixbuf);
+
+    // Release memory
+    if (bgpg->pixbuf!=NULL) 
+      g_object_unref(bgpg->pixbuf);
+
+    assert(pixbuf != NULL);
+
     bgpg->pixbuf = pixbuf;
     bgpg->dpi = req->dpi;
     bgpg->pixel_height = scaled_height;
@@ -1235,9 +1278,6 @@ gboolean bgpdf_scheduler_callback(gpointer data)
   if (bgpdf.requests != NULL) return TRUE; // remain in the idle loop
   bgpdf.pid = 0;
   return FALSE; // we're done
-#else
-  WARN;
-#endif
 }
 
 /* make a request */
@@ -1401,13 +1441,22 @@ void bgpdf_update_bg(int pageno, struct BgPdfPage *bgpg)
   GList *list;
   struct Page *pg;
   
+  TRACE_2("With pageno [%d]", pageno);
   for (list = journal.pages; list!= NULL; list = list->next) {
     pg = (struct Page *)list->data;
-    if (pg->bg->type == BG_PDF && pg->bg->file_page_seq == pageno) {
-      if (pg->bg->pixbuf!=NULL) g_object_unref(pg->bg->pixbuf);
+
+    if (pg->bg->type == BG_PDF && pg->bg->file_page_seq == pageno){
+
+      if (pg->bg->pixbuf!=NULL) 
+	g_object_unref(pg->bg->pixbuf);
+
       pg->bg->pixbuf = g_object_ref(bgpg->pixbuf);
+
       pg->bg->pixel_width = bgpg->pixel_width;
       pg->bg->pixel_height = bgpg->pixel_height;
+        
+      TRACE_3("    Width Height [%d][%d]", bgpg->pixel_width, bgpg->pixel_height);
+
       update_canvas_bg(pg);
     }
   }

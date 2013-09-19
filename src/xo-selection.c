@@ -301,7 +301,6 @@ void finalize_selectregion(void)
 
 gboolean start_movesel(GdkEvent *event)
 {
-#ifdef ABC
 
   double pt[2];
   
@@ -320,15 +319,15 @@ gboolean start_movesel(GdkEvent *event)
     ui.selection->move_pageno = ui.pageno;
     ui.selection->move_layer = ui.selection->layer;
     ui.selection->move_pagedelta = 0.;
+#ifdef ABC
     gnome_canvas_item_set(ui.selection->canvas_item, "dash", NULL, NULL);
+#else
+    WARN1("We need to set the dash of the selection");
+#endif
     update_cursor();
     return TRUE;
   }
   return FALSE;
-#else
-  assert(0);
-#endif
-
 
 }
 

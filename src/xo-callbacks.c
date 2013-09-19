@@ -46,9 +46,9 @@ void xo_canvas_set_pixels_per_unit(void)
 {
 #ifdef ABC
     gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
-
 #else
-     WARN;
+    goo_canvas_set_scale(canvas, ui.zoom);
+    //     WARN;
 #endif
 }
 
@@ -62,12 +62,9 @@ on_fileNew_activate                    (GtkMenuItem     *menuitem,
     ui.zoom = ui.startup_zoom;
     update_page_stuff();
 
-#ifdef ABC
-    gtk_adjustment_set_value(gtk_layout_get_vadjustment(GTK_LAYOUT(canvas)), 0);
-#else
-     WARN;
-#endif
-     xo_canvas_set_pixels_per_unit();
+    gtk_adjustment_set_value(gtk_scrollable_get_vadjustment(GTK_SCROLLABLE(canvas)), 0);
+    WARN;
+    xo_canvas_set_pixels_per_unit();
   }
 }
 
@@ -128,11 +125,10 @@ on_fileNewBackground_activate          (GtkMenuItem     *menuitem,
   }
   new_journal();
   ui.zoom = ui.startup_zoom;
-#ifdef ABC
-  xo_canvas_set_pixels_per_unit_per_unit();
-#else
+
+  xo_canvas_set_pixels_per_unit();
   WARN;
-#endif
+
   update_page_stuff();
   success = init_bgpdf(filename, TRUE, file_domain);
   set_cursor_busy(FALSE);
@@ -978,7 +974,8 @@ on_viewContinuous_activate             (GtkMenuItem     *menuitem,
   v_adj = gtk_layout_get_vadjustment(GTK_LAYOUT(canvas));
   yscroll = gtk_adjustment_get_value(v_adj) - pg->voffset*ui.zoom;
 #else
-  WARN;
+  v_adj = gtk_scrollable_get_vadjustment(GTK_SCROLLABLE(canvas));
+  yscroll = gtk_adjustment_get_value(v_adj) - pg->voffset*ui.zoom;
 #endif
 
   update_page_stuff();
@@ -986,6 +983,7 @@ on_viewContinuous_activate             (GtkMenuItem     *menuitem,
 #ifdef ABC
   gtk_adjustment_set_value(v_adj, yscroll + pg->voffset*ui.zoom);
 #else
+  gtk_adjustment_set_value(v_adj, yscroll + pg->voffset*ui.zoom);
   WARN;
 #endif
 
@@ -1004,7 +1002,7 @@ on_viewOnePage_activate                (GtkMenuItem     *menuitem,
   if (!gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem))) return;
   if (!ui.view_continuous) return;
   ui.view_continuous = FALSE;
-  v_adj = gtk_layout_get_vadjustment(GTK_LAYOUT(canvas));
+  v_adj = gtk_scrollable_get_vadjustment(GTK_SCROLLABLE(canvas));
   yscroll = gtk_adjustment_get_value(v_adj) - ui.cur_page->voffset*ui.zoom;
   update_page_stuff();
   gtk_adjustment_set_value(v_adj, yscroll + ui.cur_page->voffset*ui.zoom);
@@ -1018,7 +1016,8 @@ void
 on_viewZoomIn_activate                 (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  if (ui.zoom > MAX_ZOOM) return;
+  if (ui.zoom > MAX_ZOOM) 
+    return;
   ui.zoom *= ui.zoom_step_factor;
   xo_canvas_set_pixels_per_unit();
   rescale_text_items();
@@ -1058,16 +1057,13 @@ void
 on_viewPageWidth_activate              (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-#ifdef ABC
 
-  ui.zoom = (GTK_WIDGET(canvas))->allocation.width/ui.cur_page->width;
-  gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
+  ui.zoom =  gtk_widget_get_allocated_width(GTK_WIDGET(canvas))/ui.cur_page->width;
+    
+  xo_canvas_set_pixels_per_unit();
   rescale_text_items();
   rescale_bg_pixmaps();
   rescale_images();
-#else
-  assert(0);
-#endif
 
 }
 
@@ -2523,12 +2519,6 @@ on_canvas_button_press_event           (GtkWidget       *widget,
   struct Item *item;
   GdkEvent scroll_event;
   
-  WARN;
-  return TRUE;
-
-#ifdef ABC
-
-
 #ifdef INPUT_DEBUG
   printf("DEBUG: ButtonPress (%s) (x,y)=(%.2f,%.2f), button %d, modifier %x\n", 
     event->device->name, event->x, event->y, event->button, event->state);
@@ -2538,7 +2528,9 @@ on_canvas_button_press_event           (GtkWidget       *widget,
   gtk_spin_button_set_value(GTK_SPIN_BUTTON(GET_COMPONENT("spinPageNo")), ui.pageno+1);
   reset_focus();
     
-  is_core = (event->device == gdk_device_get_core_pointer());
+  //  is_core = (event->device == gdk_device_get_core_pointer());
+  is_core = xo_event_button_device_is_core(event);
+
   if (!ui.use_xinput && !is_core) return FALSE;
   if (ui.use_xinput && is_core && ui.discard_corepointer) return FALSE;
   if (event->type != GDK_BUTTON_PRESS) return FALSE; 
@@ -2600,7 +2592,7 @@ on_canvas_button_press_event           (GtkWidget       *widget,
   ui.is_corestroke = is_core;
   ui.stroke_device = event->device;
 
-  if (ui.use_erasertip && event->device->source == GDK_SOURCE_ERASER)
+  if (ui.use_erasertip && gdk_device_get_source(event->device) == GDK_SOURCE_ERASER)
     mapping = NUM_BUTTONS;
   else if (ui.button_switch_mapping) {
     mapping = ui.cur_mapping;
@@ -2684,9 +2676,6 @@ on_canvas_button_press_event           (GtkWidget       *widget,
     insert_image((GdkEvent *)event);
   }
   return FALSE;
-#else
-  assert(0);
-#endif
 
 
 }
@@ -2824,17 +2813,8 @@ on_canvas_key_press_event              (GtkWidget       *widget,
                                         gpointer         user_data)
 {
 
-  WARN;
-  return TRUE;
-
-#ifdef ABC
-
-
-
   GtkAdjustment *adj;
   gint pgheight;
-
-
 
   // Esc leaves text edition, or leaves fullscreen mode
   if (event->keyval == GDK_Escape) {
@@ -2851,42 +2831,46 @@ on_canvas_key_press_event              (GtkWidget       *widget,
   
   /* In single page mode, switch pages with PgUp/PgDn (or Up/Dn) 
      when there's nowhere else to go. */
-  pgheight = GTK_WIDGET(canvas)->allocation.height;
+  //  pgheight = GTK_WIDGET(canvas)->allocation.height;
+  pgheight = gtk_widget_get_allocated_height(GTK_WIDGET(canvas));
+
   adj = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(GET_COMPONENT("scrolledwindowMain")));
+
+#define SOME_CONDITION  (gtk_adjustment_get_value(adj) == gtk_adjustment_get_upper(adj)-pgheight)
 
   if (event->keyval == GDK_Page_Down || event->keyval == GDK_Down) {
     if (!ui.view_continuous && 
          (0.96 * ui.zoom * ui.cur_page->height < pgheight ||
-          adj->value == adj->upper-pgheight)) 
+          SOME_CONDITION)) 
     {
       end_text();
       if (ui.pageno < journal.npages-1)
         do_switch_page(ui.pageno+1, TRUE, FALSE);
       return TRUE;
     }
-    if (adj->value == adj->upper-pgheight) return TRUE; // don't send focus away
+    if (SOME_CONDITION) return TRUE; // don't send focus away
   }
+#undef SOME_CONDITION
+
+#define SOME_CONDITION2  (gtk_adjustment_get_value(adj) == gtk_adjustment_get_lower(adj))
 
   if (event->keyval == GDK_Page_Up || event->keyval == GDK_Up) {
     if (!ui.view_continuous && 
          (0.96 * ui.zoom * ui.cur_page->height < pgheight ||
-          adj->value == adj->lower))
-    {
+          SOME_CONDITION2)) {
       end_text();
       if (ui.pageno != 0) {
         do_switch_page(ui.pageno-1, TRUE, FALSE);
-        gtk_adjustment_set_value(adj, adj->upper-pgheight);
+        gtk_adjustment_set_value(adj, gtk_adjustment_get_upper(adj)-pgheight);
       }
       return TRUE;
     }
-    if (adj->value == adj->lower) return TRUE; // don't send focus away
+    if (SOME_CONDITION2) 
+      return TRUE; // don't send focus away
   }
+#undef SOME_CONDITION2
 
   return FALSE;
-
-#else
-  assert(0);
-#endif
 
 
 }

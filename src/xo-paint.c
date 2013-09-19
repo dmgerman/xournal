@@ -558,35 +558,42 @@ void finalize_erasure(void)
 
 gboolean do_hand_scrollto(gpointer data)
 {
-#ifdef ABC
   ui.hand_scrollto_pending = FALSE;
-  gnome_canvas_scroll_to(canvas, ui.hand_scrollto_cx, ui.hand_scrollto_cy);
+  goo_canvas_scroll_to(canvas, ui.hand_scrollto_cx, ui.hand_scrollto_cy);
   return FALSE;
-
-#else
-  assert(0);
-#endif
-
 }
 
 void do_hand(GdkEvent *event)
 {
-#ifdef ABC
+
   double pt[2];
   int cx, cy;
+  GtkAdjustment *v_adj, *h_adj;
   
   get_pointer_coords(event, pt);
+
+  //gnome_canvas_get_scroll_offsets(canvas, &cx, &cy);
   pt[0] += ui.cur_page->hoffset;
   pt[1] += ui.cur_page->voffset;
-  gnome_canvas_get_scroll_offsets(canvas, &cx, &cy);
+
+  //dmg: i think the adjustments gives me the offset, in pixels...
+  /*
+  goo_canvas_convert_from_pixels(canvas, &x, &y);
+
+  */
+  v_adj = gtk_scrollable_get_vadjustment(GTK_SCROLLABLE(canvas));
+  h_adj = gtk_scrollable_get_hadjustment(GTK_SCROLLABLE(canvas));
+
+  printf("The offset coordinates of the corner in world are  vadj [%f] vhor[%f]\n", 
+	 gtk_adjustment_get_value(v_adj), gtk_adjustment_get_value(h_adj));
+
+  cx = gtk_adjustment_get_value(h_adj);
+  cy = gtk_adjustment_get_value(v_adj);
+
   ui.hand_scrollto_cx = cx - (pt[0]-ui.hand_refpt[0])*ui.zoom;
   ui.hand_scrollto_cy = cy - (pt[1]-ui.hand_refpt[1])*ui.zoom;
   if (!ui.hand_scrollto_pending) g_idle_add(do_hand_scrollto, NULL);
   ui.hand_scrollto_pending = TRUE;
-
-#else
-  assert(0);
-#endif
 
 }
 
@@ -766,6 +773,10 @@ void end_text(void)
 
 void update_text_item_displayfont(struct Item *item)
 {
+  //   WARN1("I don't think we need this any more");
+   return;
+ 
+
 #ifdef ABC
 
 

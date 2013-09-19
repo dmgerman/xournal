@@ -191,8 +191,10 @@ void init_stuff (int argc, char *argv[])
   gtk_container_add (GTK_CONTAINER (w), GTK_WIDGET (canvas));
   gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW (w), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
   gtk_widget_set_events (GTK_WIDGET (canvas), GDK_EXPOSURE_MASK | GDK_POINTER_MOTION_MASK | GDK_BUTTON_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_KEY_PRESS_MASK | GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK);
+
+  xo_canvas_set_pixels_per_unit();
+
 #ifdef ABC
-  gnome_canvas_set_pixels_per_unit (canvas, ui.zoom);    
   gnome_canvas_set_center_scroll_region (canvas, TRUE);  // if the canvas is too small, it simply puts it in the middle... not that important
 
   gtk_widget_set_size_request (canvas, 600, 450);
@@ -224,9 +226,13 @@ THIS NEEDS TO BE REDO XXXXXXXXXXXXXXXXXXX
   g_signal_connect ((gpointer) canvas, "leave_notify_event",
                     G_CALLBACK (on_canvas_leave_notify_event),
                     NULL);
+#ifdef ABC
   g_signal_connect ((gpointer) canvas, "expose_event",
                     G_CALLBACK (on_canvas_expose_event),
                     NULL);
+#else
+  WARN("This is supposed to be invalid [expose_event]");
+#endif
   g_signal_connect ((gpointer) canvas, "key_press_event",
                     G_CALLBACK (on_canvas_key_press_event),
                     NULL);

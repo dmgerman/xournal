@@ -735,15 +735,25 @@ int pdf_draw_bitmap_background(struct Page *pg, GString *str,
   double pgheight, pgwidth;
   
   if (pg->bg->type == BG_PDF) {
-    if (!bgpdf.document) return -1;
+    if (!bgpdf.document)
+      return -1;
+
     pdfpage = poppler_document_get_page(bgpdf.document, pg->bg->file_page_seq-1);
-    if (!pdfpage) return -1;
+    if (!pdfpage) 
+      return -1;
+
     poppler_page_get_size(pdfpage, &pgwidth, &pgheight);
     width = (int) (PDFTOPPM_PRINTING_DPI * pgwidth/72.0);
     height = (int) (PDFTOPPM_PRINTING_DPI * pgheight/72.0);
     pix = gdk_pixbuf_new(GDK_COLORSPACE_RGB, FALSE, 8, width, height);
+#ifdef ABC
     wrapper_poppler_page_render_to_pixbuf(
        pdfpage, 0, 0, width, height, PDFTOPPM_PRINTING_DPI/72.0, 0, pix);
+#else
+    xo_wrapper_poppler_page_render_to_pixbuf(pdfpage, 0, 0, 
+					     width, height, PDFTOPPM_PRINTING_DPI/72.0, 0,
+					     pix);
+#endif
     g_object_unref(pdfpage);
   }
   else pix = g_object_ref(pg->bg->pixbuf);

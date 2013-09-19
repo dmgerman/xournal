@@ -52,6 +52,20 @@ double predef_thickness[NUM_STROKE_TOOLS][THICKNESS_MAX] =
     { 2.83, 2.83, 8.50, 19.84, 19.84 }, // highlighter thicknesses = 1, 3, 7 mm
   };
 
+
+void xo_canvas_scroll_to_y_pixels(gdouble y)
+{
+  // we need to convert the y to real dimentions
+  gdouble x;
+  gdouble top, bottom, left, right;
+
+  goo_canvas_get_bounds(canvas, &left, &top, &right, &bottom);
+
+  goo_canvas_scroll_to(canvas, x, y);
+
+}
+
+
 // some manipulation functions
 
 void xo_page_canvas_group_new(Page *pg)
@@ -146,7 +160,7 @@ struct Page *new_page_with_bg(struct Background *bg, double width, double height
   pg->nlayers = 1;
   pg->bg = bg;
   printf("<<<Bg type [%d]\n", pg->bg->type);
-  printf("<<<Bg type [%x]\n", pg->bg->pixbuf);
+  printf("<<<Bg type [%x]\n", (unsigned int)pg->bg->pixbuf);
 
   pg->bg->canvas_group = NULL;
   pg->height = height;
@@ -496,17 +510,14 @@ int finite_sized(double x) // detect unrealistic coordinate values
 
 void get_pointer_coords(GdkEvent *event, gdouble *ret)
 {
-#ifdef ABC
-
-
   double x, y;
   gdk_event_get_coords(event, &x, &y);
-  gnome_canvas_window_to_world(canvas, x, y, ret, ret+1);
-  ret[0] -= ui.cur_page->hoffset;
-  ret[1] -= ui.cur_page->voffset;
-#else
-  assert(0);
-#endif
+  
+  //  gnome_canvas_window_to_world(canvas, x, y, ret, ret+1);
+  goo_canvas_convert_from_pixels(canvas, &x, &y);
+
+  ret[0] = x - ui.cur_page->hoffset;
+  ret[1] = y - ui.cur_page->voffset;
 
 }
 
@@ -520,6 +531,8 @@ void get_current_pointer_coords(gdouble *ret)
   gnome_canvas_window_to_world(canvas, (double)(wx + sx), (double)(wy + sy), ret, ret+1);
   ret[0] -= ui.cur_page->hoffset;
   ret[1] -= ui.cur_page->voffset;
+#else
+  WARN;
 #endif
 }
 
@@ -674,7 +687,7 @@ void make_canvas_item_one(GooCanvasItem *group, struct Item *item)
   int j;
 
   if (item->type == ITEM_STROKE) {
-    if (!item->brush.variable_width)
+    if (!item->brush.variable_width) {
 
       /*
       item->canvas_item = gnome_canvas_item_new(group,
@@ -685,12 +698,12 @@ void make_canvas_item_one(GooCanvasItem *group, struct Item *item)
       */
       item->canvas_item = goo_canvas_polyline_new(group, FALSE, 0,
 						  "points", item->path,
-						  "line-cap", CAIRO_LINE_CAP_SQUARE, 
+						  "line-cap", CAIRO_LINE_CAP_ROUND, 
 						  "line-join", CAIRO_LINE_JOIN_ROUND,
 						  "fill-color-rgba", item->brush.color_rgba,  
 						  "line-width", item->brush.thickness, 
 						  NULL);
-    else {
+    } else {
       /*
       item->canvas_item = gnome_canvas_item_new(group,
             gnome_canvas_group_get_type(), NULL);
@@ -699,11 +712,11 @@ void make_canvas_item_one(GooCanvasItem *group, struct Item *item)
       points.num_points = 2;
       points.ref_count = 1;
 
-      TRACE_2("Coords have [%d] points\n", item->path->num_points);
+      //      TRACE_2("Coords have [%d] points\n", item->path->num_points);
 
       for (j = 0; j < item->path->num_points-1; j++) {
         points.coords = item->path->coords+2*j;
-	TRACE_3("Coor  [%f][%f]\n", points.coords[0], points.coords[1]);
+	//	TRACE_3("Coor  [%f][%f]\n", points.coords[0], points.coords[1]);
 	/*/
         gnome_canvas_item_new((GooCanvasGroup *) item->canvas_item,
               gnome_canvas_line_get_type(), "points", &points, 
@@ -713,19 +726,25 @@ void make_canvas_item_one(GooCanvasItem *group, struct Item *item)
 	*/
 	goo_canvas_polyline_new(item->canvas_item, FALSE, 0,
 				"points", &points,
-				"line-cap", CAIRO_LINE_CAP_SQUARE, 
+				"line-cap", CAIRO_LINE_CAP_ROUND, 
 				"line-join", CAIRO_LINE_JOIN_ROUND,
 				//"fill-color-rgba", item->brush.color_rgba,  
 				"stroke-color-rgba", item->brush.color_rgba,  
-				"line-width", item->brush.thickness, 
+				"line-width", item->widths[j],
 				NULL);
 
       }
     }
   }
   if (item->type == ITEM_TEXT) {
-#ifdef ABC
+
+				 
+    
+    /*
+      goocanvas does not seem to need pango any more, at least for this
+
     font_desc = pango_font_description_from_string(item->font_name);
+
     pango_font_description_set_absolute_size(font_desc, 
             item->font_size*ui.zoom*PANGO_SCALE);
     item->canvas_item = gnome_canvas_item_new(group,
@@ -733,10 +752,24 @@ void make_canvas_item_one(GooCanvasItem *group, struct Item *item)
           "x", item->bbox.left, "y", item->bbox.top, "anchor", GTK_ANCHOR_NW,
           "font-desc", font_desc, "fill-color-rgba", item->brush.color_rgba,
           "text", item->text, NULL);
+    */
+
+    // goocanvas needs the name of the font followed by its size
+
+    char *font = g_strdup_printf("%s %f", item->font_name, item->font_size);
+
+    item->canvas_item = goo_canvas_text_new(group, item->text,
+					    item->bbox.left, 
+					    item->bbox.top, 
+					    item->bbox.right - item->bbox.left,
+					    GOO_CANVAS_ANCHOR_NORTH_WEST,
+					    "font", font, 
+					    "fill-color-rgba", item->brush.color_rgba,
+					    NULL);
+    g_free(font);
+
     update_item_bbox(item);
-#else
-  assert(0);
-#endif
+
   }
   if (item->type == ITEM_IMAGE) {
 #ifdef ABC
@@ -797,15 +830,15 @@ void update_canvas_bg(struct Page *pg)
 
   TRACE;
 
-  printf("<<<Bg type  [%d]\n", pg->bg->type);
-  printf("<<<Bg pixbuf [%x]\n", pg->bg->pixbuf);
-  printf("<<<Bg canvas group [%x]\n", pg->bg->canvas_group);
-  printf("<<<Bg pg group [%x]\n",    pg->group);
+  //  printf("<<<Bg type  [%d]\n", pg->bg->type);
+  //  printf("<<<Bg pixbuf [%x]\n", pg->bg->pixbuf);
+  //  printf("<<<Bg canvas group [%x]\n", pg->bg->canvas_group);
+  //  printf("<<<Bg pg group [%x]\n",    pg->group);
   
   if (pg->bg->canvas_group != NULL) {
     goo_canvas_item_remove(pg->bg->canvas_group);
     g_object_unref(G_OBJECT(pg->bg->canvas_group));
-    printf("deleting it...\n");
+    //    printf("deleting it...\n");
   }
 
   pg->bg->canvas_group = NULL;
@@ -813,6 +846,7 @@ void update_canvas_bg(struct Page *pg)
   if (pg->bg->type == BG_SOLID)
   {
     printf(">>>> It is a SOLID\n");
+
 #ifdef ABC
 
 
@@ -824,27 +858,11 @@ void update_canvas_bg(struct Page *pg)
     lower_canvas_item_to(pg->group, pg->bg->canvas_item, NULL);
 #else
 
-  printf("<<<Bg canvas group [%x]\n", pg->bg->canvas_group);
-  printf("<<<Bg pg group [%x]\n",    pg->group);
-
     pg->bg->canvas_group = goo_canvas_group_new (pg->group, NULL);
-
-  TRACE_2("<<<Bg canvas group [%x]\n", pg->bg->canvas_group);
-  TRACE_2("<<<Bg pg group [%x]\n",    pg->group);
-
     group = pg->bg->canvas_group;
-
-  TRACE_2("<<<Bg canvas group [%x]\n", pg->bg->canvas_group);
-  TRACE_2("<<<Bg pg group [%x]\n",    pg->group);
-
     goo_canvas_item_lower(pg->bg->canvas_group, NULL);
 
-  TRACE_2("<<<Bg canvas group [%x]\n", pg->bg->canvas_group);
-  TRACE_2("<<<Bg pg group [%x]\n",    pg->group);
-
 #endif
-
-    TRACE_1("Here");
 
     // we have to specify we want a rectangle
 
@@ -867,8 +885,6 @@ void update_canvas_bg(struct Page *pg)
 #else
 
 #endif
-
-    TRACE_1("Middle");
 
 
     if (pg->bg->ruling == RULING_GRAPH) {
@@ -896,7 +912,7 @@ void update_canvas_bg(struct Page *pg)
       for (x=RULING_GRAPHSPACING; x<pg->width-1; x+=RULING_GRAPHSPACING) {
 	goo_canvas_polyline_new_line(group, 
 				     x, 0, x, pg->height, 
-				     "stroke-color", "red",
+				     "stroke-color", "grey",
 				     "line-width", RULING_THICKNESS,
 				     "fill-color-rgba", RULING_COLOR, 
 				     NULL);
@@ -904,7 +920,7 @@ void update_canvas_bg(struct Page *pg)
       for (y=RULING_GRAPHSPACING; y<pg->height-1; y+=RULING_GRAPHSPACING) {
 	goo_canvas_polyline_new_line(group, 
 				     0, y, pg->width, y,
-				     "stroke-color", "red",
+				     "stroke-color", "grey",
 				     "line-width", RULING_THICKNESS,
 				     "fill-color-rgba", RULING_COLOR, 
 				     NULL);
@@ -978,19 +994,24 @@ void update_canvas_bg(struct Page *pg)
   }
 
   printf("Bg type [%d]\n", pg->bg->type);
-  printf("Bg type [%x]\n", pg->bg->pixbuf);
+  printf("Bg type [%x]\n", (unsigned int)pg->bg->pixbuf);
 
-  if (pg->bg->type == BG_PDF)
-  {
-    if (pg->bg->pixbuf == NULL) return;
+  if (pg->bg->type == BG_PDF) {
+
+    TRACE_2("------------In bgpdf [%x]\n", (guint) pg->bg->pixbuf);
+    if (pg->bg->pixbuf == NULL) 
+      return;
+
     is_well_scaled = (fabs(pg->bg->pixel_width - pg->width*ui.zoom) < 2.
-                   && fabs(pg->bg->pixel_height - pg->height*ui.zoom) < 2.);
+		      && fabs(pg->bg->pixel_height - pg->height*ui.zoom) < 2.);
+
+    TRACE_2("In bgpdf well scaled? [%d]\n", is_well_scaled);
 
     if (is_well_scaled) {
 
       pg->bg->canvas_group = goo_canvas_image_new(pg->group,
-					     pg->bg->pixbuf,
-					     0, 0);
+						  pg->bg->pixbuf,
+						  0, 0);
     /*
       pg->bg->canvas_item = gnome_canvas_item_new(pg->group, 
           gnome_canvas_pixbuf_get_type(), 
@@ -1025,7 +1046,8 @@ gboolean is_visible(struct Page *pg)
   GtkAdjustment *v_adj;
   double ytop, ybot;
   
-  if (!ui.view_continuous) return (pg == ui.cur_page);
+  if (!ui.view_continuous) 
+    return (pg == ui.cur_page);
   v_adj = gtk_scrollable_get_vadjustment(GTK_SCROLLABLE(canvas));
   ytop = gtk_adjustment_get_value(v_adj)/ui.zoom;
   ybot = (gtk_adjustment_get_value(v_adj) + gtk_adjustment_get_page_size(v_adj)) / ui.zoom;
@@ -1610,8 +1632,6 @@ void update_mappings_menu(void)
 void do_switch_page(int pg, gboolean rescroll, gboolean refresh_all)
 {
 
-#ifdef ABC
-
 
   int i, cx, cy;
   struct Layer *layer;
@@ -1624,34 +1644,40 @@ void do_switch_page(int pg, gboolean rescroll, gboolean refresh_all)
     for (i=0, list = ui.cur_page->layers; list!=NULL; i++, list = list->next) {
       layer = (struct Layer *)list->data;
       if (layer->group!=NULL)
-        gnome_canvas_item_show(GNOME_CANVAS_ITEM(layer->group));
+        xo_goo_canvas_item_show(layer->group);
     }
   
   ui.cur_page = g_list_nth_data(journal.pages, ui.pageno);
   ui.layerno = ui.cur_page->nlayers-1;
   ui.cur_layer = (struct Layer *)(g_list_last(ui.cur_page->layers)->data);
   update_page_stuff();
-  if (ui.progressive_bg) rescale_bg_pixmaps();
+
+  if (ui.progressive_bg) {
+    rescale_bg_pixmaps();
+  }
  
   if (rescroll) { // scroll and force a refresh
 /* -- this seems to cause some display bugs ??
     gtk_adjustment_set_value(gtk_layout_get_vadjustment(GTK_LAYOUT(canvas)),
       ui.cur_page->voffset*ui.zoom);  */
+
+#ifdef ABC    
     gnome_canvas_get_scroll_offsets(canvas, &cx, &cy);
     cy = ui.cur_page->voffset*ui.zoom;
     gnome_canvas_scroll_to(canvas, cx, cy);
-    
-    if (refresh_all) 
-      gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
-    else if (!ui.view_continuous)
-      gnome_canvas_item_move(GNOME_CANVAS_ITEM(ui.cur_page->group), 0., 0.);
-  }
-
 #else
-  assert(0);
+    xo_canvas_scroll_to_y_pixels(ui.cur_page->voffset*ui.zoom);
 #endif
+    
+    if (refresh_all)  {
+      //gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
+      xo_canvas_set_pixels_per_unit(canvas, ui.zoom);
+    } else if (!ui.view_continuous) {
+      //      gnome_canvas_item_move(GNOME_CANVAS_ITEM(ui.cur_page->group), 0., 0.);
+      xo_goo_canvas_item_reposition(ui.cur_page->group, 0.0, 0.0);
+    }
 
-
+  }
 }
 
 
@@ -2691,8 +2717,8 @@ void install_focus_hooks(GtkWidget *w, gpointer data)
 // wrapper for missing poppler functions (defunct poppler-gdk api)
 
 static void
-wrapper_copy_cairo_surface_to_pixbuf (cairo_surface_t *surface,
-			      GdkPixbuf       *pixbuf)
+xo_wrapper_copy_cairo_surface_to_pixbuf (cairo_surface_t *surface,
+					 GdkPixbuf       *pixbuf)
 {
   int cairo_width, cairo_height, cairo_rowstride;
   unsigned char *pixbuf_data, *dst, *cairo_data;
@@ -2731,12 +2757,12 @@ wrapper_copy_cairo_surface_to_pixbuf (cairo_surface_t *surface,
 }	
 
 void
-wrapper_poppler_page_render_to_pixbuf (PopplerPage *page,
-			       int src_x, int src_y,
-			       int src_width, int src_height,
-			       double scale,
-			       int rotation,
-			       GdkPixbuf *pixbuf)
+xo_wrapper_poppler_page_render_to_pixbuf (PopplerPage *page,
+					  int src_x, int src_y,
+					  int src_width, int src_height,
+					  double scale,
+					  int rotation,
+					  GdkPixbuf *pixbuf)
 {
   cairo_t *cr;
   cairo_surface_t *surface;
@@ -2774,7 +2800,8 @@ wrapper_poppler_page_render_to_pixbuf (PopplerPage *page,
 
   cairo_destroy (cr);
 
-  wrapper_copy_cairo_surface_to_pixbuf (surface, pixbuf);
+  xo_wrapper_copy_cairo_surface_to_pixbuf (surface, pixbuf);
+
   cairo_surface_destroy (surface);
 }
 

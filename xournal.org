@@ -2,10 +2,12 @@
 
 <2013-09-14 Sat>
 
-- Compiles
-- Loads a default page background
-- Creates an empty background for pDFs
+- First zoom is not working
+- Draws lines
+- Scroll is not working
 
+
+Currently working on scrolling..
 
 * Example of a port
 
