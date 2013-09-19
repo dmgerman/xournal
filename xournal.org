@@ -1,27 +1,30 @@
-* Where I left
+* Moving Xournal to gtk3
 
-<2013-09-14 Sat>
+** Currently working
 
-- First zoom is not working
-- Draws lines
-- Scroll is not working
+- Loads files, one of multiple pages
+
+- Draws
+  - Text
+  - paths
+
+- Scrolling (including hand)
+
+** What is broken
+
+- the first pdf displayed is larger than it should be!!!
+- lots of assertions (that means it has not been ported)
+- Any ">>>>>>>>Warning, warning Mr Robinson --- " means that it has code that hasn't been ported, but it is probably not critical
 
 
-Currently working on scrolling..
 
-* Example of a port
+
+* Other notes
+
+** Example of a port
 
 http://www.gtkforums.com/viewtopic.php?p=9858
 
-
-
-* Current issue I am tring to solve
-
-- GTK includes are forced during compilation. why?
-
-
-
-* Porting to goocanvas
 
 
 ** Strategy

@@ -44,11 +44,13 @@
 
 void xo_canvas_set_pixels_per_unit(void)
 {
+
 #ifdef ABC
-    gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
+  gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
 #else
-    goo_canvas_set_scale(canvas, ui.zoom);
-    //     WARN;
+  TRACE_2("============================Setting zooom to %f \n", ui.zoom);
+  goo_canvas_set_scale(canvas, ui.zoom);
+  //     WARN;
 #endif
 }
 
@@ -59,6 +61,7 @@ on_fileNew_activate                    (GtkMenuItem     *menuitem,
   end_text();
   if (close_journal()) {
     new_journal();
+    TRACE_2(">+++++++++++++++++++++++++ Startup %f\n", ui.startup_zoom);
     ui.zoom = ui.startup_zoom;
     update_page_stuff();
 
@@ -125,6 +128,7 @@ on_fileNewBackground_activate          (GtkMenuItem     *menuitem,
   }
   new_journal();
   ui.zoom = ui.startup_zoom;
+  TRACE_2(">+++++++++++++++++++++++++ Startup %f\n", ui.startup_zoom);
 
   xo_canvas_set_pixels_per_unit();
   WARN;
@@ -964,7 +968,9 @@ on_viewContinuous_activate             (GtkMenuItem     *menuitem,
   double yscroll;
   struct Page *pg;
 
-  if (!gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem))) return;
+  if (!gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem))) 
+    return;
+
   if (ui.view_continuous) return;
   ui.view_continuous = TRUE;
 
@@ -980,12 +986,7 @@ on_viewContinuous_activate             (GtkMenuItem     *menuitem,
 
   update_page_stuff();
 
-#ifdef ABC
   gtk_adjustment_set_value(v_adj, yscroll + pg->voffset*ui.zoom);
-#else
-  gtk_adjustment_set_value(v_adj, yscroll + pg->voffset*ui.zoom);
-  WARN;
-#endif
 
   // force a refresh
   xo_canvas_set_pixels_per_unit();

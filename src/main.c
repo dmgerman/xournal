@@ -196,16 +196,18 @@ void init_stuff (int argc, char *argv[])
 
 #ifdef ABC
   gnome_canvas_set_center_scroll_region (canvas, TRUE);  // if the canvas is too small, it simply puts it in the middle... not that important
-
-  gtk_widget_set_size_request (canvas, 600, 450);
-  goo_canvas_set_bounds (GOO_CANVAS (canvas), 0, 0, 1000, 1000);
-
-THIS NEEDS TO BE REDO XXXXXXXXXXXXXXXXXXX
-  gtk_scrollable_set_hadjustment(GTK_SCROLLABLE (canvas), ui.scrollbar_step_increment);
-  //  gtk_layout_get_hadjustment(GTK_LAYOUT (canvas))->step_increment = ui.scrollbar_step_increment;
-  gtk_scrollable_get_vadjustment(canvas, ui.scrollbar_step_increment);
-    //gtk_layout_set_vadjustment(GTK_LAYOUT (canvas))->step_increment = ui.scrollbar_step_increment;
+#else
+  WARN;
 #endif
+  
+  //  gtk_layout_get_hadjustment(GTK_LAYOUT (canvas))->step_increment = ui.scrollbar_step_increment;
+  //gtk_layout_set_vadjustment(GTK_LAYOUT (canvas))->step_increment = ui.scrollbar_step_increment;
+
+  GtkAdjustment *adj = gtk_scrollable_get_vadjustment(GTK_SCROLLABLE(canvas));
+  gtk_adjustment_set_step_increment(adj, ui.scrollbar_step_increment);
+
+  adj = gtk_scrollable_get_vadjustment(GTK_SCROLLABLE(canvas));
+  gtk_adjustment_set_step_increment(adj, ui.scrollbar_step_increment);
 
 
   xo_subscribe_gestures(GTK_WIDGET(winMain), GTK_WIDGET(canvas));

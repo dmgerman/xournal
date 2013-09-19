@@ -883,7 +883,7 @@ void update_canvas_bg(struct Page *pg)
     seg = gnome_canvas_points_new(2);
     pt = seg->coords;
 #else
-
+    WARN;
 #endif
 
 
@@ -977,6 +977,9 @@ void update_canvas_bg(struct Page *pg)
   {
     pg->bg->pixbuf_scale = 0;
     assert(pg->bg->pixbuf != NULL);
+
+    assert(0);
+
     pg->bg->canvas_group = goo_canvas_image_new(pg->group,
 						pg->bg->pixbuf,
 						0, 0);
@@ -1011,7 +1014,8 @@ void update_canvas_bg(struct Page *pg)
 
       pg->bg->canvas_group = goo_canvas_image_new(pg->group,
 						  pg->bg->pixbuf,
-						  0, 0);
+						  0, 0,
+						  NULL);
     /*
       pg->bg->canvas_item = gnome_canvas_item_new(pg->group, 
           gnome_canvas_pixbuf_get_type(), 
@@ -1022,6 +1026,7 @@ void update_canvas_bg(struct Page *pg)
       WARN;
     }
     else {
+      assert(0);
       pg->bg->canvas_group = goo_canvas_image_new(pg->group,
 					     pg->bg->pixbuf,
 					     0, 0);
@@ -1730,10 +1735,8 @@ void update_page_stuff(void)
 	//            "x", pg->hoffset, "y", pg->voffset, NULL);
         xo_goo_canvas_item_show(pg->group);
       } else {
-#ifdef adfdasf
-I AM NOT SURE ABOUT THE NEED FOR THIS	
-        if (pg->group!=NULL) goo_canvas_item_hide(pg->group);
-#endif
+        if (pg->group!=NULL) 
+	  xo_goo_canvas_item_hide(pg->group);
       }
     }
     //gnome_canvas_set_scroll_region(canvas, 0, 0, ui.cur_page->width, ui.cur_page->height);
