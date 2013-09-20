@@ -668,3 +668,4 @@ on_optionsPenCursor_activate           (GtkCheckMenuItem *checkmenuitem,
 
 void 
 xo_gesture_callback (GtkWidget        *widget, GripTimeType time_type, GripGestureEvent  *event, gpointer           user_data);
+

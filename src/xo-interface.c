@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdio.h>
+#include <assert.h>
 
 #include <gdk/gdkkeysyms.h>
 #include <gdk/gdkkeysyms-compat.h>

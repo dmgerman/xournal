@@ -233,7 +233,7 @@ void prepare_new_undo(void)
 
 void clear_redo_stack(void)
 {
-  WARN;
+  TRACE_1("\n\nThis needs to be implemented\n\n");
   return ;
 #ifdef ABC
 
@@ -331,7 +331,8 @@ void clear_redo_stack(void)
 
 void clear_undo_stack(void)
 {
-  WARN;
+  TRACE_1("\n\nThis needs to be implemented\n\n");
+
   return ;
 
 #ifdef ABC
@@ -427,8 +428,10 @@ void delete_page(struct Page *pg)
   }
   if (pg->group!=NULL) {
     goo_canvas_item_remove(pg->group);
-    g_object_unref(G_OBJECT(pg->group));
+    // removing it will delete it
+    //    g_object_unref(G_OBJECT(pg->group));
   }
+  TRACE_1("in the middle\n");
               // this also destroys the background's canvas items
   if (pg->bg->type == BG_PIXMAP || pg->bg->type == BG_PDF) {
     if (pg->bg->pixbuf != NULL) g_object_unref(pg->bg->pixbuf);
@@ -436,6 +439,7 @@ void delete_page(struct Page *pg)
   }
   g_free(pg->bg);
   g_free(pg);
+  TRACE_1("Leaving\n");
 }
 
 void delete_layer(struct Layer *l)
@@ -651,7 +655,7 @@ void update_item_bbox(struct Item *item)
   }
   if (item->type == ITEM_TEXT && item->canvas_item!=NULL) {
     h=0.; w=0.;
-    g_object_get(item->canvas_item, "text_width", &w, "text_height", &h, NULL);
+    g_object_get(item->canvas_item, "width", &w, "height", &h, NULL);
     item->bbox.right = item->bbox.left + w;
     item->bbox.bottom = item->bbox.top + h;
   }
@@ -673,9 +677,15 @@ void make_page_clipbox(struct Page *pg)
   gnome_canvas_item_set(GNOME_CANVAS_ITEM(pg->group), "path", pg_clip, NULL);
   gnome_canvas_path_def_unref(pg_clip);
 #else
-  WARN1("see GooCanvasBounds");
+  //  WARN1("see GooCanvasBounds");
   TRACE_1("usikng a rectangle... what about this?, used for resizing... I think I have to use ");
-  goo_canvas_rect_new(pg->group, 0, 0, pg->width, pg->height, NULL);
+  goo_canvas_rect_new(pg->group, 0, 0, pg->width, pg->height, 
+		      //"line-width", 5.0,
+		      //		      "fill-color-rgba", 0x80808080,
+		      NULL);
+
+
+  goo_canvas_set_bounds(canvas, 0, 0, pg->width, pg->height);
 #endif
 
 }
@@ -689,41 +699,20 @@ void make_canvas_item_one(GooCanvasItem *group, struct Item *item)
   if (item->type == ITEM_STROKE) {
     if (!item->brush.variable_width) {
 
-      /*
-      item->canvas_item = gnome_canvas_item_new(group,
-            gnome_canvas_line_get_type(), "points", item->path,   
-            "cap-style", GDK_CAP_ROUND, "join-style", GDK_JOIN_ROUND,
-            "fill-color-rgba", item->brush.color_rgba,  
-            "width-units", item->brush.thickness, NULL);
-      */
       item->canvas_item = goo_canvas_polyline_new(group, FALSE, 0,
 						  "points", item->path,
 						  "line-cap", CAIRO_LINE_CAP_ROUND, 
 						  "line-join", CAIRO_LINE_JOIN_ROUND,
-						  "fill-color-rgba", item->brush.color_rgba,  
+						  "stroke-color-rgba", item->brush.color_rgba,  
 						  "line-width", item->brush.thickness, 
 						  NULL);
     } else {
-      /*
-      item->canvas_item = gnome_canvas_item_new(group,
-            gnome_canvas_group_get_type(), NULL);
-      */
       item->canvas_item = goo_canvas_group_new(group, NULL);
       points.num_points = 2;
       points.ref_count = 1;
 
-      //      TRACE_2("Coords have [%d] points\n", item->path->num_points);
-
       for (j = 0; j < item->path->num_points-1; j++) {
         points.coords = item->path->coords+2*j;
-	//	TRACE_3("Coor  [%f][%f]\n", points.coords[0], points.coords[1]);
-	/*/
-        gnome_canvas_item_new((GooCanvasGroup *) item->canvas_item,
-              gnome_canvas_line_get_type(), "points", &points, 
-              "cap-style", GDK_CAP_ROUND, "join-style", GDK_JOIN_ROUND, 
-              "fill-color-rgba", item->brush.color_rgba,
-              "width-units", item->widths[j], NULL);
-	*/
 	goo_canvas_polyline_new(item->canvas_item, FALSE, 0,
 				"points", &points,
 				"line-cap", CAIRO_LINE_CAP_ROUND, 
@@ -737,23 +726,6 @@ void make_canvas_item_one(GooCanvasItem *group, struct Item *item)
     }
   }
   if (item->type == ITEM_TEXT) {
-
-				 
-    
-    /*
-      goocanvas does not seem to need pango any more, at least for this
-
-    font_desc = pango_font_description_from_string(item->font_name);
-
-    pango_font_description_set_absolute_size(font_desc, 
-            item->font_size*ui.zoom*PANGO_SCALE);
-    item->canvas_item = gnome_canvas_item_new(group,
-          gnome_canvas_text_get_type(),
-          "x", item->bbox.left, "y", item->bbox.top, "anchor", GTK_ANCHOR_NW,
-          "font-desc", font_desc, "fill-color-rgba", item->brush.color_rgba,
-          "text", item->text, NULL);
-    */
-
     // goocanvas needs the name of the font followed by its size
 
     char *font = g_strdup_printf("%s %f", item->font_name, item->font_size);
@@ -772,7 +744,7 @@ void make_canvas_item_one(GooCanvasItem *group, struct Item *item)
 
   }
   if (item->type == ITEM_IMAGE) {
-#ifdef ABC
+    /*
     item->canvas_item = gnome_canvas_item_new(group,
           gnome_canvas_pixbuf_get_type(),
           "pixbuf", item->image,
@@ -781,9 +753,23 @@ void make_canvas_item_one(GooCanvasItem *group, struct Item *item)
           "height", item->bbox.bottom - item->bbox.top,
           "width-set", TRUE, "height-set", TRUE,
           NULL);
-#else
-  assert(0);
-#endif
+    */
+    assert(item->image != NULL);
+    printf("   image left %f right %f top %f bottm %f\n",
+	   item->bbox.left,
+	   item->bbox.right,
+	   item->bbox.top,
+	   item->bbox.bottom);
+	   
+
+    item->canvas_item = goo_canvas_image_new(group, item->image,
+					     item->bbox.left, 
+					     item->bbox.top, 
+                                             "width", item->bbox.right - item->bbox.left,
+                                             "height", item->bbox.bottom - item->bbox.top,
+                                             "scale-to-fit", TRUE,
+					     NULL);
+
   }
 }
 
@@ -837,7 +823,7 @@ void update_canvas_bg(struct Page *pg)
   
   if (pg->bg->canvas_group != NULL) {
     goo_canvas_item_remove(pg->bg->canvas_group);
-    g_object_unref(G_OBJECT(pg->bg->canvas_group));
+    //g_object_unref(G_OBJECT(pg->bg->canvas_group));
     //    printf("deleting it...\n");
   }
 
@@ -883,7 +869,7 @@ void update_canvas_bg(struct Page *pg)
     seg = gnome_canvas_points_new(2);
     pt = seg->coords;
 #else
-    WARN;
+    //WARN;
 #endif
 
 
@@ -965,7 +951,7 @@ void update_canvas_bg(struct Page *pg)
 #ifdef ABC
     gnome_canvas_points_free(seg);
 #else
-    WARN;
+    //    WARN;
 #endif
 
     return;
@@ -1015,6 +1001,9 @@ void update_canvas_bg(struct Page *pg)
       pg->bg->canvas_group = goo_canvas_image_new(pg->group,
 						  pg->bg->pixbuf,
 						  0, 0,
+						  "width", pg->width,
+						  "height", pg->height,
+						   "scale-to-fit", TRUE,
 						  NULL);
     /*
       pg->bg->canvas_item = gnome_canvas_item_new(pg->group, 
@@ -1023,12 +1012,11 @@ void update_canvas_bg(struct Page *pg)
           "width-in-pixels", TRUE, "height-in-pixels", TRUE, 
           NULL);
     */ 
-      WARN;
-    }
-    else {
+    } else {
       assert(0);
       pg->bg->canvas_group = goo_canvas_image_new(pg->group,
 					     pg->bg->pixbuf,
+//"scale-to-fit", TRUE,
 					     0, 0);
 
       WARN;
@@ -1098,12 +1086,23 @@ void rescale_bg_pixmaps(void)
             "width-set", TRUE, "height-set", TRUE, 
             NULL);
 #else
-	WARN;
+	//        g_object_get(pg->bg->canvas_group, "width-in-pixels", &is_well_scaled, NULL)
+
+	//        if (is_well_scaled)
+	// we no longer need to scale... it is done automatically...
+	/*
+	goo_canvas_item_scale(pg->bg->canvas_group,
+			      "width", pg->width, 
+			      "height", pg->height, 
+			      "scale-to-fit", TRUE,
+			      NULL);
+	*/
 #endif
       }
       // request an asynchronous update to a better pixmap if needed
       zoom_to_request = MIN(ui.zoom, MAX_SAFE_RENDER_DPI/72.0);
-      if (pg->bg->pixbuf_scale == zoom_to_request) continue;
+      if (pg->bg->pixbuf_scale == zoom_to_request) 
+	continue;
       if (add_bgpdf_request(pg->bg->file_page_seq, zoom_to_request))
         pg->bg->pixbuf_scale = zoom_to_request;
     }
@@ -1122,6 +1121,7 @@ gboolean have_intersect(struct BBox *a, struct BBox *b)
 
 void lower_canvas_item_to(GooCanvasItem *g, GooCanvasItem *item, GooCanvasItem *after)
 {
+  assert(item != NULL);
 
 #ifdef ABC
   int i1, i2;
@@ -1259,8 +1259,9 @@ void update_color_buttons(void)
        ui.toolno[ui.cur_mapping] != TOOL_TEXT))
     gdkcolor.red = gdkcolor.blue = gdkcolor.green = 0;
   else rgb_to_gdkcolor(ui.cur_brush->color_rgba, &gdkcolor);
-#ifdef ABC
+
   gtk_color_button_set_color(colorbutton, &gdkcolor);
+
   if (ui.toolno[ui.cur_mapping] == TOOL_HIGHLIGHTER) {
     gtk_color_button_set_alpha(colorbutton,
       (ui.cur_brush->color_rgba&0xff)*0x101);
@@ -1269,9 +1270,7 @@ void update_color_buttons(void)
     gtk_color_button_set_alpha(colorbutton, 0xffff);
     gtk_color_button_set_use_alpha(colorbutton, FALSE);
   }
-#else
-  WARN;
-#endif
+
 
 }
 
@@ -1676,7 +1675,7 @@ void do_switch_page(int pg, gboolean rescroll, gboolean refresh_all)
     
     if (refresh_all)  {
       //gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
-      xo_canvas_set_pixels_per_unit(canvas, ui.zoom);
+      xo_canvas_set_pixels_per_unit();
     } else if (!ui.view_continuous) {
       //      gnome_canvas_item_move(GNOME_CANVAS_ITEM(ui.cur_page->group), 0., 0.);
       xo_goo_canvas_item_reposition(ui.cur_page->group, 0.0, 0.0);
@@ -2759,16 +2758,18 @@ xo_wrapper_copy_cairo_surface_to_pixbuf (cairo_surface_t *surface,
     }
 }	
 
-void
-xo_wrapper_poppler_page_render_to_pixbuf (PopplerPage *page,
+
+GdkPixbuf* xo_wrapper_poppler_page_render_to_pixbuf (PopplerPage *page,
 					  int src_x, int src_y,
 					  int src_width, int src_height,
 					  double scale,
 					  int rotation,
-					  GdkPixbuf *pixbuf)
+					  gboolean copyDirect)
 {
   cairo_t *cr;
   cairo_surface_t *surface;
+  GdkPixbuf *pixbuf;
+
 
   surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
 					src_width, src_height);
@@ -2803,9 +2804,18 @@ xo_wrapper_poppler_page_render_to_pixbuf (PopplerPage *page,
 
   cairo_destroy (cr);
 
-  xo_wrapper_copy_cairo_surface_to_pixbuf (surface, pixbuf);
+  if (copyDirect) {
+    pixbuf = gdk_pixbuf_new(GDK_COLORSPACE_RGB,
+			  FALSE, 8, src_width, src_height);
+    xo_wrapper_copy_cairo_surface_to_pixbuf (surface, pixbuf);
+  } else {
+    pixbuf = gdk_pixbuf_get_from_surface (surface,
+					  0,0,
+					  src_width, src_height);
+  }
 
   cairo_surface_destroy (surface);
+  return pixbuf;
 }
 
 
@@ -2860,4 +2870,16 @@ gboolean xo_event_button_device_is_core(GdkEventButton  *event)
 {
   return event->device == 
     gdk_device_manager_get_client_pointer(xo_device_manager_get(event->window));
+}
+
+
+void xo_canvas_set_pixels_per_unit(void)
+{
+
+#ifdef ABC
+  gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
+#else
+  goo_canvas_set_scale(canvas, ui.zoom);
+  //     WARN;
+#endif
 }

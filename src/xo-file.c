@@ -125,7 +125,6 @@ GdkPixbuf *read_pixbuf(const gchar *base64_str, gsize base64_strlen)
   png_buf = g_base64_decode(base64_str2, &png_buflen);
 
   pixbuf = pixbuf_from_buffer(png_buf, png_buflen);
-
   g_free(png_buf);
   g_free(base64_str2);
   return pixbuf;
@@ -791,6 +790,7 @@ void xoj_parser_text(GMarkupParseContext *context,
     tmpItem->text[text_len]=0;
   }
   if (!strcmp(element_name, "image")) {
+    // XXX what happens if there is an error?
     tmpItem->image = read_pixbuf(text, text_len);
   }
 
@@ -973,15 +973,16 @@ gboolean open_journal(char *filename)
 #ifdef ABC
   gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
 #else
-  WARN;
+  xo_canvas_set_pixels_per_unit();
 #endif
   make_canvas_items();
   update_page_stuff();
   rescale_bg_pixmaps(); // this requests the PDF pages if need be
 #ifdef ABC
   gtk_adjustment_set_value(gtk_layout_get_vadjustment(GTK_LAYOUT(canvas)), 0);
+
 #else
-  WARN
+  gtk_adjustment_set_value(gtk_scrollable_get_vadjustment(GTK_SCROLLABLE(canvas)), 0);
 #endif
   return TRUE;
 }
@@ -1185,15 +1186,12 @@ gboolean bgpdf_scheduler_callback(gpointer data)
 
     // the requested dpi is the default PDF dpi (72) * zoom
 
-    TRACE_2("Zoom %f\n", ui.zoom);
-    TRACE_3("DEBUG: Processing request for page %d at %f dpi\n", req->pageno, req->dpi);
     set_cursor_busy(TRUE);
     poppler_page_get_size(pdfpage, &widthInInches, &heightInInches);
     
     // compute the desired size of the page... 
     // 
 
-    TRACE_3("----------------PDF dims widthInInches [%f] heightInInches [%f]\n", widthInInches/72.0, heightInInches/72.0);
     widthInPixels = (int) (req->dpi * widthInInches/72);
     heightInPixels = (int) (req->dpi * heightInInches/72);
 
@@ -1201,54 +1199,38 @@ gboolean bgpdf_scheduler_callback(gpointer data)
 
     if (ui.poppler_force_cairo) { // poppler -> cairo -> pixbuf
 
-      TRACE_1("----------------With cairo");
 #ifdef ABC
       pixmap = gdk_pixmap_new(GTK_WIDGET(canvas)->window, widthInPixels, heightInPixels, -1);
 
       cr = gdk_cairo_create(pixmap);
       cairo_set_source_rgb(cr, 1., 1., 1.);
       cairo_paint(cr);
-      cairo_scale(cr, widthInPixels/width, heightInPixels/heightInInches);
+      cairo_scale(cr, widthInPixels/widthInInches, heightInPixels/heightInInches);
       //  render the PDF page  in the pixbuf pdfpage struct
-#else
-      // this is the way it is done in pdf2png test case from cairo
-      // if I understand correctly, this renders the pdf page into a pixmap of the size 
-
-      TRACE_3("\n\n    scale widths [%d][%d]\n\n", widthInPixels, heightInPixels);
-      surface = cairo_image_surface_create (CAIRO_FORMAT_RGB24, widthInPixels, heightInPixels);
-      cr = cairo_create (surface);
-      cairo_surface_destroy (surface);
+      //  render the PDF page  in the pixbuf pdfpage struct
+					    
+      poppler_page_render(pdfpage, cr);
+      cairo_set_operator (cr, CAIRO_OPERATOR_DEST_OVER);
       cairo_set_source_rgb(cr, 1., 1., 1.);
       cairo_paint(cr);
-      cairo_scale(cr, widthInPixels/widthInInches, heightInPixels/heightInInches);
-#endif
-      //  render the PDF page  in the pixbuf pdfpage struct
-      poppler_page_render(pdfpage, cr);
-
-#ifdef ABC
       cairo_destroy(cr);
       pixbuf = gdk_pixbuf_get_from_drawable(NULL, GDK_DRAWABLE(pixmap),
         NULL, 0, 0, 0, 0, widthInPixels, heightInPixels);
 
       g_object_unref(pixmap);
 #else
-      pixbuf = gdk_pixbuf_get_from_surface(cairo_get_target (cr), 
-					   0, 0, widthInPixels, heightInPixels);
-      cairo_destroy(cr);
+      pixbuf = xo_wrapper_poppler_page_render_to_pixbuf(pdfpage, 0, 0, widthInPixels, heightInPixels,
+							req->dpi/72, 0, FALSE);
+
 #endif
     } else { // directly poppler -> pixbuf: faster, but bitmap font bug
-      assert(0);
-      pixbuf = gdk_pixbuf_new(GDK_COLORSPACE_RGB,
-                 FALSE, 8, widthInPixels, heightInPixels);
 #ifdef ABC
       wrapper_poppler_page_render_to_pixbuf(
-                pdfpage, 0, 0, widthInPixels, heightInPixels,
-                req->dpi/72, 0, pixbuf);
+						     pdfpage, 0, 0, widthInPixels, heightInPixels,
+						     req->dpi/72, 0, pixbuf);
 #else
-      xo_wrapper_poppler_page_render_to_pixbuf(
-				     pdfpage, 0, 0, widthInPixels, heightInPixels,
-				     req->dpi/72, 0, 
-				     pixbuf);
+      pixbuf = xo_wrapper_poppler_page_render_to_pixbuf(pdfpage, 0, 0, widthInPixels, heightInPixels,
+							req->dpi/72, 0, TRUE);
 #endif
     }
     g_object_unref(pdfpage);
@@ -1392,7 +1374,8 @@ gboolean init_bgpdf(char *pdfname, gboolean create_pages, int file_domain)
 /* poppler_document_new_from_data() starts at 0.6.1, but we want to
    be compatible with poppler 0.5.4 = latest in CentOS as of sept 2009 */
   uri = g_filename_to_uri(pdfname, NULL, NULL);
-  if (!uri) uri = g_strdup_printf("file://%s", pdfname);
+  if (!uri) 
+    uri = g_strdup_printf("file://%s", pdfname);
   bgpdf.document = poppler_document_new_from_file(uri, NULL, NULL);
   g_free(uri);
 /*    with poppler 0.6.1 or later, can replace the above 4 lines by:
@@ -1476,6 +1459,7 @@ void bgpdf_update_bg(int pageno, struct BgPdfPage *bgpg)
       update_canvas_bg(pg);
     }
   }
+  TRACE_1("ending");
 }
 
 // initialize the recent files list
@@ -1701,15 +1685,16 @@ void save_config_to_file(void)
   if (glib_minor_version<6) return; 
 
   // save some data...
-#ifdef ABC
-  ui.maximize_at_start = (gdk_window_get_state(winMain->window) & GDK_WINDOW_STATE_MAXIMIZED);
+  
+  GdkWindow *w;
+  w = gtk_widget_get_window(winMain);
 
-  if (!ui.maximize_at_start && !ui.fullscreen)
-    gdk_drawable_get_size(winMain->window, 
-      &ui.window_default_width, &ui.window_default_height);
-#else
-  WARN
-#endif
+  ui.maximize_at_start = (gdk_window_get_state(w) & GDK_WINDOW_STATE_MAXIMIZED);
+
+  if (!ui.maximize_at_start && !ui.fullscreen) {
+    ui.window_default_width = gdk_window_get_width();
+    ui.window_default_height = gdk_window_get_height();
+  }
 
   update_keyval("general", "display_dpi",
     _(" the display resolution, in pixels per inch"),

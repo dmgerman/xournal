@@ -157,7 +157,7 @@ extern guint predef_bgcolors_rgba[COLOR_MAX];
 extern double predef_thickness[NUM_STROKE_TOOLS][THICKNESS_MAX];
 
 typedef struct BBox {
-  double left, right, top, bottom;
+  gdouble left, right, top, bottom;
 } BBox;
 
 struct UndoErasureData;
@@ -419,8 +419,13 @@ extern double DEFAULT_ZOOM;
 #define UNIT_PX 2
 #define UNIT_PT 3
 
+#ifdef JUST_WARN
 #define WARN printf(">>>>>>>>Warning, warning Mr Robinson --- [%s]:[%s]:[%d]\n", __FILE__, __func__, __LINE__);
 #define WARN1(a) printf(">>>>>>>>Warning, warning Mr Robinson --- [%s]:[%s]:[%d]---[%s]\n", __FILE__, __func__, __LINE__, a);
+#else
+#define WARN assert(0)
+#define WARN1(a) (printf(">>>>>>>>Warning, warning Mr Robinson --- [%s]:[%s]:[%d]---[%s]\n", __FILE__, __func__, __LINE__, a), assert(0))
+#endif
 
 #define TRACE printf("> IN [%s]:[%s]:[%d]\n", __FILE__, __func__, __LINE__);
 #define TRACE_1(a) printf("> IN [%s]:[%s]:[%d]--- [%s]\n", __FILE__, __func__, __LINE__,a);

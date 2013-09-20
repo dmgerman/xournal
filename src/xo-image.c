@@ -32,14 +32,29 @@ GdkPixbuf *pixbuf_from_buffer(const gchar *buf, gsize buflen)
 {
   GdkPixbufLoader *loader;
   GdkPixbuf *pixbuf;
+  GError *error = NULL;
+
+
+  assert(buf != NULL);
+  printf("bufflen [%d] %s\n", buflen, buf);
 
   loader = gdk_pixbuf_loader_new();
-  gdk_pixbuf_loader_write(loader, buf, buflen, NULL);
-  gdk_pixbuf_loader_close(loader, NULL);
+  assert(loader!=NULL);
+  if (!gdk_pixbuf_loader_write(loader, buf, buflen, &error)) {
+    goto FAIL;
+  }
+  if (!gdk_pixbuf_loader_close(loader, &error)) {
+    goto FAIL;
+  }
+
   pixbuf = gdk_pixbuf_loader_get_pixbuf(loader);
   g_object_ref(pixbuf);
   g_object_unref(loader);
+
   return pixbuf;
+FAIL:
+  printf("Failed converting stream to image [%s]\n", error->message);
+  return NULL;
 }
 
 void create_image_from_pixbuf(GdkPixbuf *pixbuf, double *pt)

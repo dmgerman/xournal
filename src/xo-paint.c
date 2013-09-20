@@ -31,33 +31,31 @@
 
 /************** drawing nice cursors *********/
 
+void xo_widget_set_cursor(GtkWidget *w, GdkCursor *cursor)
+{
+  GdkWindow *window;
+  window = gtk_widget_get_window(w);
+  gdk_window_set_cursor(window, cursor);
+}
+
 void set_cursor_busy(gboolean busy)
 {
   GdkCursor *cursor;
+  GdkWindow *window;
   
-#ifdef ABC
   if (busy) {
     cursor = gdk_cursor_new(GDK_WATCH);
-    gdk_window_set_cursor(GTK_WIDGET(winMain)->window, cursor);
-    /// gtk_widget_get_toplevel (widget);
-    // GtkWidget *toplevel = gtk_widget_get_toplevel (widget);
-    //   if (gtk_widget_is_toplevel (toplevel))
-    //     {
-    //       /* Perform action on toplevel. */
-    //     }
-
-    gdk_window_set_cursor(GTK_WIDGET(canvas)->window, cursor);
-    gdk_cursor_unref(cursor);
+    xo_widget_set_cursor(GTK_WIDGET(winMain), cursor);
+    //    xo_widget_set_cursor(GTK_WIDGET(canvas), cursor);
+    g_object_unref(cursor);
   }
   else {
-    gdk_window_set_cursor(GTK_WIDGET(winMain)->window, NULL);
+    xo_widget_set_cursor(winMain, NULL);
     update_cursor();
   }
-#else 
-  WARN
-#endif
 
   gdk_display_sync(gdk_display_get_default());
+  
 }
 
 #define PEN_CURSOR_RADIUS 1
@@ -132,7 +130,8 @@ void update_cursor(void)
 
   window = gtk_widget_get_parent_window(GTK_WIDGET(canvas));
 
-  if (window == NULL) return;
+  if (window == NULL) 
+    return;
   
   if (ui.cursor!=NULL) { 
     g_object_unref(ui.cursor);
@@ -211,7 +210,7 @@ void update_cursor_for_resize(double *pt)
 #ifdef ABC
   gdk_window_set_cursor(GTK_WIDGET(canvas)->window, ui.cursor);
 #else
-  WARN
+  WARN;
 #endif
 
 }

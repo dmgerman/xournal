@@ -17,6 +17,7 @@
 #  include <config.h>
 #endif
 
+#include <assert.h>
 #include <sys/stat.h>
 #include <string.h>
 #include <stdlib.h>
@@ -24,6 +25,7 @@
 #include <gtk/gtk.h>
 #include <goocanvas.h>
 #include<libgrip/grip.h>
+
 
 #include "xournal.h"
 #include "xo-interface.h"
@@ -197,7 +199,7 @@ void init_stuff (int argc, char *argv[])
 #ifdef ABC
   gnome_canvas_set_center_scroll_region (canvas, TRUE);  // if the canvas is too small, it simply puts it in the middle... not that important
 #else
-  WARN;
+  printf("\nHow the hell do I force the canvas to center the item in the middle...\n");
 #endif
   
   //  gtk_layout_get_hadjustment(GTK_LAYOUT (canvas))->step_increment = ui.scrollbar_step_increment;
@@ -233,7 +235,7 @@ void init_stuff (int argc, char *argv[])
                     G_CALLBACK (on_canvas_expose_event),
                     NULL);
 #else
-  WARN("This is supposed to be invalid [expose_event]");
+  TRACE_1("How the hell do I do this? Do we still need to handle the expose event\n\n");
 #endif
   g_signal_connect ((gpointer) canvas, "key_press_event",
                     G_CALLBACK (on_canvas_key_press_event),
@@ -307,6 +309,9 @@ void init_stuff (int argc, char *argv[])
   
   gtk_widget_show (winMain);
   update_cursor();
+
+
+
 
   /* this will cause extension events to get enabled/disabled, but
      we need the windows to be mapped first */

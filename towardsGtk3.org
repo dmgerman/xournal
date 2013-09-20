@@ -1,25 +1,27 @@
 * Moving Xournal to gtk3
 
-** Currently working
+** Currently working <2013-09-20 Fri>
 
-- Loads files, one of multiple pages
+- Loads files, one or multiple pages
+  - PDfs with annotations
+  - xournal files 
 
-- Draws
-  - Text
-  - paths
+- Exits
 
-- Scrolling (including hand)
+** In progress
+ - hand scrolling
 
 ** What is broken
 
-- the first pdf displayed is larger than it should be!!!
-- lots of assertions (that means it has not been ported)
-- Any ">>>>>>>>Warning, warning Mr Robinson --- " means that it has code that hasn't been ported, but it is probably not critical
+*** [TODO] lots of things
+-  Search for WARN or assert(0);
 
-
+*** [TODO] tt does not center the screen in the canvas when it is rezized
 
 
 * Other notes
+
+ignore from here on. This are my notes...
 
 ** Example of a port
 
@@ -54,6 +56,10 @@ http://www.gnu.org/software/guile-gnome/docs/libgnomecanvas/html/GnomeCanvasItem
   gnome-canvas-item-i2w. To get the transform for converting from item
   to world coordinates use gnome-canvas-item-i2w-affine or for
   converting item to canvas coordinates, gnome-canvas-item-i2c-affine.
+
+
+| old       | new                       |
+| w->window | gtk_widget_get_window(w); |
 
 
 | gnomecanvas                       | goo                  |                                                                                    |

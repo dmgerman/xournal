@@ -42,17 +42,6 @@
 #include "xo-print.h"
 #include "xo-shapes.h"
 
-void xo_canvas_set_pixels_per_unit(void)
-{
-
-#ifdef ABC
-  gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
-#else
-  TRACE_2("============================Setting zooom to %f \n", ui.zoom);
-  goo_canvas_set_scale(canvas, ui.zoom);
-  //     WARN;
-#endif
-}
 
 void
 on_fileNew_activate                    (GtkMenuItem     *menuitem,
@@ -128,10 +117,7 @@ on_fileNewBackground_activate          (GtkMenuItem     *menuitem,
   }
   new_journal();
   ui.zoom = ui.startup_zoom;
-  TRACE_2(">+++++++++++++++++++++++++ Startup %f\n", ui.startup_zoom);
-
   xo_canvas_set_pixels_per_unit();
-  WARN;
 
   update_page_stuff();
   success = init_bgpdf(filename, TRUE, file_domain);
@@ -3086,8 +3072,7 @@ on_optionsUseXInput_activate           (GtkMenuItem     *menuitem,
 #endif
 
 #else
-  printf("This really looks deprecated... find out how to do it\n");
-  WARN;
+  TRACE_1("\n\nDo I really need this This really looks deprecated... find out how to do it\n\n");
 #endif
   
   update_mappings_menu();
