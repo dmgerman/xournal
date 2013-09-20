@@ -1692,8 +1692,8 @@ void save_config_to_file(void)
   ui.maximize_at_start = (gdk_window_get_state(w) & GDK_WINDOW_STATE_MAXIMIZED);
 
   if (!ui.maximize_at_start && !ui.fullscreen) {
-    ui.window_default_width = gdk_window_get_width();
-    ui.window_default_height = gdk_window_get_height();
+    ui.window_default_width = gdk_window_get_width(w);
+    ui.window_default_height = gdk_window_get_height(w);
   }
 
   update_keyval("general", "display_dpi",
