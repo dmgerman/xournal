@@ -8,13 +8,33 @@
 
 - Exits
 
+- Selection
+- Resizing
+
+- Pressure sensitivity
+
+
 ** In progress
  - hand scrolling
 
 ** What is broken
 
 *** [TODO] lots of things
--  Search for WARN or assert(0);
+Search for WARN or assert(0):
+
+- Create new journal
+- Loading a new journal
+- implement Dialog windows (there is a deprecation in gtk3 that I need
+  to fix). This affects everything that creates a dialog window.
+- selection of items in canvas
+- selection of colors
+- drawing
+- inserting images
+- inserting text
+- undo/redo
+- cut and paste
+- print (I think)
+
 
 *** [TODO] tt does not center the screen in the canvas when it is rezized
 

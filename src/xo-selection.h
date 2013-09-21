@@ -13,6 +13,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef __XO_SELECTION_H__
+#define __XO_SELECTION_H__
 
 void start_selectrect(GdkEvent *event);
 void finalize_selectrect(void);
@@ -33,3 +35,6 @@ void selection_delete(void);
 
 void recolor_selection(int color_no, guint color_rgba);
 void rethicken_selection(int val);
+void xo_selection_rectangle_resize(gdouble x, gdouble y);
+
+#endif

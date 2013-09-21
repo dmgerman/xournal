@@ -2862,7 +2862,6 @@ on_canvas_key_press_event              (GtkWidget       *widget,
 
 }
 
-
 gboolean
 on_canvas_motion_notify_event          (GtkWidget       *widget,
                                         GdkEventMotion  *event,
@@ -2947,14 +2946,7 @@ on_canvas_motion_notify_event          (GtkWidget       *widget,
   }
   else if (ui.cur_item_type == ITEM_SELECTRECT) {
     get_pointer_coords((GdkEvent *)event, pt);
-    ui.selection->bbox.right = pt[0];
-    ui.selection->bbox.bottom = pt[1];
-#ifdef ABC
-    gnome_canvas_item_set(ui.selection->canvas_item,
-                               "x2", pt[0], "y2", pt[1], NULL);
-#else
-    assert(0);
-#endif
+    xo_selection_rectangle_resize(pt[0], pt[1]);
   }
   else if (ui.cur_item_type == ITEM_MOVESEL || ui.cur_item_type == ITEM_MOVESEL_VERT) {
     continue_movesel((GdkEvent *)event);

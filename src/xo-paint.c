@@ -207,11 +207,7 @@ void update_cursor_for_resize(double *pt)
   //if (ui.cursor!=NULL) gdk_cursor_unref(ui.cursor);
 
   ui.cursor = gdk_cursor_new(newcursor);
-#ifdef ABC
-  gdk_window_set_cursor(GTK_WIDGET(canvas)->window, ui.cursor);
-#else
-  WARN;
-#endif
+  xo_widget_set_cursor(GTK_WIDGET(canvas), ui.cursor);
 
 }
 
@@ -245,6 +241,25 @@ void subdivide_cur_path(null)
   }
 }
 
+GooCanvasItem *xo_create_group(GooCanvasItem *group)
+{
+  return goo_canvas_group_new(group, NULL);
+}
+
+
+void xo_create_path(GooCanvasItem *group, struct Item *item, GooCanvasPoints *points, gdouble lineWidth)
+{
+  item->canvas_item = goo_canvas_polyline_new(group, FALSE, 0,
+					      "points", points,
+					      "line-cap", CAIRO_LINE_CAP_ROUND, 
+					      "line-join", CAIRO_LINE_JOIN_ROUND,
+					      "stroke-color-rgba", item->brush.color_rgba,  
+					      "line-width", lineWidth, 
+					      NULL);
+}
+
+
+
 void create_new_stroke(GdkEvent *event)
 {
   ui.cur_item_type = ITEM_STROKE;
@@ -255,27 +270,31 @@ void create_new_stroke(GdkEvent *event)
   realloc_cur_path(2);
   ui.cur_path.num_points = 1;
   get_pointer_coords(event, ui.cur_path.coords);
-#ifdef ABC
   
   if (ui.cur_brush->ruler) {
+#ifdef ABC
     ui.cur_item->canvas_item = gnome_canvas_item_new(ui.cur_layer->group,
-      gnome_canvas_line_get_type(),
-      "cap-style", GDK_CAP_ROUND, "join-style", GDK_JOIN_ROUND,
-      "fill-color-rgba", ui.cur_item->brush.color_rgba,
-      "width-units", ui.cur_item->brush.thickness, NULL);
-    ui.cur_item->brush.variable_width = FALSE;
-  } else
-    ui.cur_item->canvas_item = gnome_canvas_item_new(
-      ui.cur_layer->group, gnome_canvas_group_get_type(), NULL);
+						     gnome_canvas_line_get_type(),
+						     "cap-style", GDK_CAP_ROUND, 
+						     "join-style", GDK_JOIN_ROUND,
+						     "fill-color-rgba", ui.cur_item->brush.color_rgba,
+						     "width-units", ui.cur_item->brush.thickness, NULL);
 #else
-  assert(0);
+    ui.cur_item->brush.variable_width = FALSE;
+    xo_create_path(ui.cur_layer->group, ui.cur_item, &ui.cur_path, ui.cur_item->brush.thickness);
 #endif
+  } else {
+#ifdef ABC
+    ui.cur_item->canvas_item = gnome_canvas_item_new(ui.cur_layer->group, gnome_canvas_group_get_type(), NULL);
+#else
+    ui.cur_item->canvas_item =  xo_create_group(ui.cur_layer->group);
+#endif
+  }
 }
 
 void continue_stroke(GdkEvent *event)
 {
-#ifdef ABC
-  GnomeCanvasPoints seg;
+  GooCanvasPoints seg;
   double *pt, current_width;
 
 
@@ -311,22 +330,31 @@ void continue_stroke(GdkEvent *event)
      upon creation the line just copies the contents of the GnomeCanvasPoints
      into an internal structure */
 
-  if (ui.cur_brush->ruler)
-    gnome_canvas_item_set(ui.cur_item->canvas_item, "points", &seg, NULL);
-  else
+  if (ui.cur_brush->ruler) {
+    //    goo_canvas_item_set(ui.cur_item->canvas_item, "points", &seg, NULL);
+    g_object_set(ui.cur_item->canvas_item, "points", &seg, NULL);
+  } else {
+#ifdef ABC
     gnome_canvas_item_new((GnomeCanvasGroup *)ui.cur_item->canvas_item,
-       gnome_canvas_line_get_type(), "points", &seg,
-       "cap-style", GDK_CAP_ROUND, "join-style", GDK_JOIN_ROUND,
-       "fill-color-rgba", ui.cur_item->brush.color_rgba,
-       "width-units", current_width, NULL);
+			  gnome_canvas_line_get_type(), "points", &seg,
+			  "cap-style", GDK_CAP_ROUND, 
+			  "join-style", GDK_JOIN_ROUND,
+			  "fill-color-rgba", ui.cur_item->brush.color_rgba,
+			  "width-units", current_width, NULL);
 #else
-  assert(0);
+    goo_canvas_polyline_new(ui.cur_item->canvas_item, FALSE, 0,
+			    "points", &seg,
+			    "line-cap", CAIRO_LINE_CAP_ROUND, 
+			    "line-join", CAIRO_LINE_JOIN_ROUND,
+			    "stroke-color-rgba", ui.cur_item->brush.color_rgba,
+			    "line-width", current_width, 
+			    NULL);
 #endif
+  }
 }
 
 void finalize_stroke(void)
 {
-#ifdef ABC
   if (ui.cur_path.num_points == 1) { // GnomeCanvas doesn't like num_points=1
     ui.cur_path.coords[2] = ui.cur_path.coords[0]+0.1;
     ui.cur_path.coords[3] = ui.cur_path.coords[1];
@@ -337,22 +365,29 @@ void finalize_stroke(void)
   if (!ui.cur_item->brush.variable_width)
     subdivide_cur_path(); // split the segment so eraser will work
 
-  ui.cur_item->path = gnome_canvas_points_new(ui.cur_path.num_points);
+  ui.cur_item->path = goo_canvas_points_new(ui.cur_path.num_points);
+
   g_memmove(ui.cur_item->path->coords, ui.cur_path.coords, 
       2*ui.cur_path.num_points*sizeof(double));
   if (ui.cur_item->brush.variable_width)
     ui.cur_item->widths = (gdouble *)g_memdup(ui.cur_widths, 
                             (ui.cur_path.num_points-1)*sizeof(gdouble));
   else ui.cur_item->widths = NULL;
+
   update_item_bbox(ui.cur_item);
   ui.cur_path.num_points = 0;
 
-  if (!ui.cur_item->brush.variable_width) {
+  // dmg: It just looks wrong if I don't redo the item
+  // XXX we need to investigate why drawing creates artifacts
+  if (1) // (!ui.cur_item->brush.variable_width) 
+  {
+
     // destroy the entire group of temporary line segments
-    gtk_object_destroy(GTK_OBJECT(ui.cur_item->canvas_item));
+    goo_canvas_item_remove(ui.cur_item->canvas_item);
     // make a new line item to replace it
     make_canvas_item_one(ui.cur_layer->group, ui.cur_item);
   }
+
 
   // add undo information
   prepare_new_undo();
@@ -365,9 +400,6 @@ void finalize_stroke(void)
   ui.cur_layer->nitems++;
   ui.cur_item = NULL;
   ui.cur_item_type = ITEM_NONE;
-#else
-  assert(0);
-#endif
 
 }
 

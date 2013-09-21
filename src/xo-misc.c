@@ -609,11 +609,10 @@ void fix_xinput_coords(GdkEvent *event)
 
 double get_pressure_multiplier(GdkEvent *event)
 {
-  double *axes;
-  double rawpressure;
+  gdouble *axes;
+  gdouble rawpressure;
   GdkDevice *device;
 
-#ifdef ABC
   if (event->type == GDK_MOTION_NOTIFY) {
     axes = event->motion.axes;
     device = event->motion.device;
@@ -622,19 +621,26 @@ double get_pressure_multiplier(GdkEvent *event)
     axes = event->button.axes;
     device = event->button.device;
   }
-  
-  if (device == gdk_device_get_core_pointer()
-      || gdk_device_get_n_axes (device) <= 2) return 1.0;
+
+#ifdef ABC
+  // dmg: we don't need any of this. It is way simpler now (I think :)
+  if (device == gdk_device_get_core_pointer() || 
+      gdk_device_get_n_axes (device) <= 2) 
+    return 1.0;
 
   rawpressure = axes[2]/(device->axes[2].max - device->axes[2].min);
-  if (!finite_sized(rawpressure)) return 1.0;
+
+  if (!finite_sized(rawpressure)) 
+    return 1.0;
 
   return ((1-rawpressure)*ui.width_minimum_multiplier + rawpressure*ui.width_maximum_multiplier);
-
 #else
-  assert(0);
+  // let us rewrite this code.
+  if (!gdk_device_get_axis(device, axes, GDK_AXIS_PRESSURE, &rawpressure)) {
+    return 1.0;
+  }
+  return ((1-rawpressure)*ui.width_minimum_multiplier + rawpressure*ui.width_maximum_multiplier);
 #endif
-
 }
 
 void update_item_bbox(struct Item *item)
@@ -699,13 +705,8 @@ void make_canvas_item_one(GooCanvasItem *group, struct Item *item)
   if (item->type == ITEM_STROKE) {
     if (!item->brush.variable_width) {
 
-      item->canvas_item = goo_canvas_polyline_new(group, FALSE, 0,
-						  "points", item->path,
-						  "line-cap", CAIRO_LINE_CAP_ROUND, 
-						  "line-join", CAIRO_LINE_JOIN_ROUND,
-						  "stroke-color-rgba", item->brush.color_rgba,  
-						  "line-width", item->brush.thickness, 
-						  NULL);
+      xo_create_path(group, item, item->path, item->brush.thickness);
+
     } else {
       item->canvas_item = goo_canvas_group_new(group, NULL);
       points.num_points = 2;
@@ -713,6 +714,8 @@ void make_canvas_item_one(GooCanvasItem *group, struct Item *item)
 
       for (j = 0; j < item->path->num_points-1; j++) {
         points.coords = item->path->coords+2*j;
+	xo_create_path(group, item, &points, item->widths[j]);
+	/*
 	goo_canvas_polyline_new(item->canvas_item, FALSE, 0,
 				"points", &points,
 				"line-cap", CAIRO_LINE_CAP_ROUND, 
@@ -721,7 +724,7 @@ void make_canvas_item_one(GooCanvasItem *group, struct Item *item)
 				"stroke-color-rgba", item->brush.color_rgba,  
 				"line-width", item->widths[j],
 				NULL);
-
+	*/
       }
     }
   }
@@ -804,163 +807,90 @@ void make_canvas_items(void)
   }
 }
 
+void xo_draw_vertical_rulings(GooCanvasItem *group, gdouble start, gdouble end,  gdouble spacing, gdouble vlen, guint rgbaColor)
+{
+  gdouble x, y;
+
+  for (x=start; x< end-1; x+=spacing) {
+    goo_canvas_polyline_new_line(group, 
+				 x, 0, x, vlen, 
+				 "stroke-color-rgba", rgbaColor,
+				 "line-width", RULING_THICKNESS,
+				 NULL);
+  }
+
+}
+
+void xo_draw_horizontal_rulings(GooCanvasItem *group, gdouble start, gdouble end, gdouble spacing, gdouble hlen, guint rgbaColor)
+{
+  gdouble x, y;
+
+  for (y=start; y<end-1; y+=spacing) {
+    goo_canvas_polyline_new_line(group, 
+				 0, y, hlen, y,
+				 "stroke-color-rgba", rgbaColor,
+				 "line-width", RULING_THICKNESS,
+				 NULL);
+  }
+  
+}
+
+
+void xo_page_background_ruling(struct Page *pg)
+{
+  GooCanvasItem *group;
+
+  pg->bg->canvas_group = goo_canvas_group_new (pg->group, NULL);
+  group = pg->bg->canvas_group;
+  goo_canvas_item_lower(pg->bg->canvas_group, NULL);
+  goo_canvas_rect_new(group, 0, 0, pg->width, pg->height, 
+		      "fill-color-rgba", pg->bg->color_rgba, 
+		      NULL); 
+  
+  if (pg->bg->ruling == RULING_NONE) {
+    TRACE_1("Exit");
+  } else if (pg->bg->ruling == RULING_GRAPH) {
+    TRACE_1("Ruling graph\n");
+    
+    xo_draw_horizontal_rulings(group, RULING_GRAPHSPACING, pg->height, RULING_GRAPHSPACING, pg->width, RULING_COLOR);
+    xo_draw_vertical_rulings(group, RULING_GRAPHSPACING, pg->width, RULING_GRAPHSPACING, pg->height, RULING_COLOR);
+    
+    TRACE_1("End in graphed Ruling");
+  } else if (pg->bg->ruling == RULING_LINED) {
+    // draw horizontal lines
+    
+    xo_draw_horizontal_rulings(group, RULING_TOPMARGIN, pg->height, RULING_SPACING, pg->width, RULING_COLOR);
+    
+    // vertical line
+    xo_draw_vertical_rulings(group, RULING_LEFTMARGIN, RULING_LEFTMARGIN+2, 2, pg->height, RULING_MARGIN_COLOR);
+    
+  } else {
+    fprintf(stderr, "invalid  type of ruling in document\n");
+  }
+  
+}
+
 void update_canvas_bg(struct Page *pg)
 {
   GooCanvasItem *group;
-  GooCanvasPoints *seg;
   GdkPixbuf *scaled_pix;
-  double *pt;
   double x, y;
   int w, h;
   gboolean is_well_scaled;
 
   TRACE;
-
-  //  printf("<<<Bg type  [%d]\n", pg->bg->type);
-  //  printf("<<<Bg pixbuf [%x]\n", pg->bg->pixbuf);
-  //  printf("<<<Bg canvas group [%x]\n", pg->bg->canvas_group);
-  //  printf("<<<Bg pg group [%x]\n",    pg->group);
   
   if (pg->bg->canvas_group != NULL) {
     goo_canvas_item_remove(pg->bg->canvas_group);
-    //g_object_unref(G_OBJECT(pg->bg->canvas_group));
-    //    printf("deleting it...\n");
+    pg->bg->canvas_group = NULL;
   }
 
-  pg->bg->canvas_group = NULL;
-  
-  if (pg->bg->type == BG_SOLID)
-  {
-    printf(">>>> It is a SOLID\n");
+  if (pg->bg->type == BG_SOLID) {
 
-#ifdef ABC
+    xo_page_background_ruling(pg);
 
+  } else if (pg->bg->type == BG_PIXMAP) {
 
-  pg->bg->canvas_item = gnome_canvas_item_new(pg->group,
-					      gnome_canvas_group_get_type(), NULL);
-
-
-    group = GNOME_CANVAS_GROUP(pg->bg->canvas_item);
-    lower_canvas_item_to(pg->group, pg->bg->canvas_item, NULL);
-#else
-
-    pg->bg->canvas_group = goo_canvas_group_new (pg->group, NULL);
-    group = pg->bg->canvas_group;
-    goo_canvas_item_lower(pg->bg->canvas_group, NULL);
-
-#endif
-
-    // we have to specify we want a rectangle
-
-#ifdef ABC
-    gnome_canvas_item_new(group, gnome_canvas_rect_get_type(),
-      "x1", 0., "x2", pg->width, "y1", 0., "y2", pg->height,
-      "fill-color-rgba", pg->bg->color_rgba, NULL);
-#else
-    goo_canvas_rect_new(group, 0, 0, pg->width, pg->height, "fill-color-rgba", pg->bg->color_rgba, NULL);
-#endif
-
-    if (pg->bg->ruling == RULING_NONE) {
-      TRACE_1("Exit");
-      return;
-    }
-
-#ifdef ABC
-    seg = gnome_canvas_points_new(2);
-    pt = seg->coords;
-#else
-    //WARN;
-#endif
-
-
-    if (pg->bg->ruling == RULING_GRAPH) {
-#ifdef ABC
-      pt[1] = 0; pt[3] = pg->height;
-      for (x=RULING_GRAPHSPACING; x<pg->width-1; x+=RULING_GRAPHSPACING) {
-        pt[0] = pt[2] = x;
-        gnome_canvas_item_new(group, gnome_canvas_line_get_type(),
-           "points", seg, "fill-color-rgba", RULING_COLOR,
-           "width-units", RULING_THICKNESS, NULL);
-      }      
-
-      pt[0] = 0; pt[2] = pg->width;
-      for (y=RULING_GRAPHSPACING; y<pg->height-1; y+=RULING_GRAPHSPACING) {
-        pt[1] = pt[3] = y;
-        gnome_canvas_item_new(group, gnome_canvas_line_get_type(),
-           "points", seg, "fill-color-rgba", RULING_COLOR,
-           "width-units", RULING_THICKNESS, NULL);
-      }      
-      gnome_canvas_points_free(seg);
-
-
-#else
-
-      for (x=RULING_GRAPHSPACING; x<pg->width-1; x+=RULING_GRAPHSPACING) {
-	goo_canvas_polyline_new_line(group, 
-				     x, 0, x, pg->height, 
-				     "stroke-color", "grey",
-				     "line-width", RULING_THICKNESS,
-				     "fill-color-rgba", RULING_COLOR, 
-				     NULL);
-      }
-      for (y=RULING_GRAPHSPACING; y<pg->height-1; y+=RULING_GRAPHSPACING) {
-	goo_canvas_polyline_new_line(group, 
-				     0, y, pg->width, y,
-				     "stroke-color", "grey",
-				     "line-width", RULING_THICKNESS,
-				     "fill-color-rgba", RULING_COLOR, 
-				     NULL);
-      }
-#endif
-      TRACE_1("End in graphed Ruling");
-      return;
-    }
-    TRACE_1("After Ruling");
-
-    pt[0] = 0; pt[2] = pg->width;
-    for (y=RULING_TOPMARGIN; y<pg->height-1; y+=RULING_SPACING) {
-      pt[1] = pt[3] = y;
-
-#ifdef ABC
-
-      gnome_canvas_item_new(group, gnome_canvas_line_get_type(),
-         "points", seg, "fill-color-rgba", RULING_COLOR,
-         "width-units", RULING_THICKNESS, NULL);
-#else
-    assert(0);
-#endif
-    }      
-    printf("Bg type [%d]\n", pg->bg->type);
-
-    if (pg->bg->ruling == RULING_LINED) {
-      pt[0] = pt[2] = RULING_LEFTMARGIN;
-      pt[1] = 0; pt[3] = pg->height;
-
-#ifdef ABC
-
-      gnome_canvas_item_new(group, gnome_canvas_line_get_type(),
-         "points", seg, "fill-color-rgba", RULING_MARGIN_COLOR,
-         "width-units", RULING_THICKNESS, NULL);
-#else
-    assert(0);
-#endif
-
-
-    }
-
-#ifdef ABC
-    gnome_canvas_points_free(seg);
-#else
-    //    WARN;
-#endif
-
-    return;
-  }
-  
-  printf("Bg type [%d]\n", pg->bg->type);
-
-  if (pg->bg->type == BG_PIXMAP)
-  {
     pg->bg->pixbuf_scale = 0;
     assert(pg->bg->pixbuf != NULL);
 
@@ -980,57 +910,47 @@ void update_canvas_bg(struct Page *pg)
     */
     WARN; // we might have to set the dimensions
     lower_canvas_item_to(pg->group, pg->bg->canvas_group, NULL);
-  }
-
-  printf("Bg type [%d]\n", pg->bg->type);
-  printf("Bg type [%x]\n", (unsigned int)pg->bg->pixbuf);
-
-  if (pg->bg->type == BG_PDF) {
+  } else if (pg->bg->type == BG_PDF) {
 
     TRACE_2("------------In bgpdf [%x]\n", (guint) pg->bg->pixbuf);
     if (pg->bg->pixbuf == NULL) 
       return;
-
+    
     is_well_scaled = (fabs(pg->bg->pixel_width - pg->width*ui.zoom) < 2.
 		      && fabs(pg->bg->pixel_height - pg->height*ui.zoom) < 2.);
-
+    
     TRACE_2("In bgpdf well scaled? [%d]\n", is_well_scaled);
-
+    
     if (is_well_scaled) {
-
+      
       pg->bg->canvas_group = goo_canvas_image_new(pg->group,
 						  pg->bg->pixbuf,
 						  0, 0,
 						  "width", pg->width,
 						  "height", pg->height,
-						   "scale-to-fit", TRUE,
+						  "scale-to-fit", TRUE,
 						  NULL);
-    /*
-      pg->bg->canvas_item = gnome_canvas_item_new(pg->group, 
-          gnome_canvas_pixbuf_get_type(), 
-          "pixbuf", pg->bg->pixbuf,
-          "width-in-pixels", TRUE, "height-in-pixels", TRUE, 
-          NULL);
-    */ 
     } else {
       assert(0);
       pg->bg->canvas_group = goo_canvas_image_new(pg->group,
-					     pg->bg->pixbuf,
-//"scale-to-fit", TRUE,
-					     0, 0);
+						  pg->bg->pixbuf,
+						  //"scale-to-fit", TRUE,
+						  0, 0);
 
       WARN;
       /*
-      pg->bg->canvas_item = gnome_canvas_item_new(pg->group, 
-          gnome_canvas_pixbuf_get_type(), 
-          "pixbuf", pg->bg->pixbuf,
-          "width", pg->width, "height", pg->height, 
-          "width-set", TRUE, "height-set", TRUE, 
-          NULL);
-
+	pg->bg->canvas_item = gnome_canvas_item_new(pg->group, 
+	gnome_canvas_pixbuf_get_type(), 
+	"pixbuf", pg->bg->pixbuf,
+	"width", pg->width, "height", pg->height, 
+	"width-set", TRUE, "height-set", TRUE, 
+	NULL);
+	
       */
     }
     lower_canvas_item_to(pg->group, GOO_CANVAS_ITEM(pg->bg->canvas_group), NULL);
+  } else {
+    fprintf(stderr, "invalid  type of background in document\n");
   }
 }
 
@@ -2243,10 +2163,9 @@ void resize_journal_items_by(GList *itemlist, double scaling_x, double scaling_y
   GList *list;
   double mean_scaling, temp;
   double *pt, *wid;
-  GooCanvasGroup *group;
+  GooCanvasItem *group;
   int i; 
 
-#ifdef ABC
 
   
   /* geometric mean of x and y scalings = rescaling for stroke widths
@@ -2306,14 +2225,14 @@ void resize_journal_items_by(GList *itemlist, double scaling_x, double scaling_y
     }
     // redraw the item
     if (item->canvas_item!=NULL) {
-      group = (GooCanvasGroup *) item->canvas_item->parent;
-      g_object_unref(G_OBJECT(item->canvas_item));
+      group =  goo_canvas_item_get_parent(item->canvas_item);
+      // delete it
+      goo_canvas_item_remove(item->canvas_item);
+      //create it again
+
       make_canvas_item_one(group, item);
     }
   }
-#else
-  assert(0);
-#endif
 }
 
 // Switch between button mappings

@@ -70,6 +70,62 @@ xo_subscribe_gestures(GtkWidget *window, GtkWidget *scroller) {
 
 
 
+xo_describe_device(GdkDevice* device)
+{
+  printf("->    device  [%s]\n", gdk_device_get_name(device));
+
+  int countAxes = gdk_device_get_n_axes(device);
+  // check if we need to dispose it after we use it XXXXXXXXXXX
+  printf("Number of axis in device [%d]\n", countAxes);
+  GList *list = gdk_device_list_axes(device);
+  int i=0;
+  while (list != NULL) {
+    GdkAxisUse use = gdk_device_get_axis_use(device, i);
+    printf("Use of this device %d Use [%d]\n", i, use);
+    /*
+      gtk_device_get_axis_value(device, XXXX, label, minAxis);
+      gtk_device_get_axis_value(device, XXXX, label, maxAxis);
+      gtk_device_get_axis_value(device, XXXX, label, minValue);
+      gtk_device_get_axis_value(device, XXXX, label, maxValue);
+      gtk_device_get_axis_value(device, XXXX, label, resolution);
+	    
+      gdouble min_axis = 
+      gdouble max_axis;
+      gdouble min_value;
+      gdouble max_value;
+      gdouble resolution;
+    */
+    i++;
+    list = list->next;
+  }
+  switch (gdk_device_get_device_type(device)) {
+    case GDK_DEVICE_TYPE_MASTER:
+      printf("   master device\n");
+
+      list = gdk_device_list_slave_devices(device);
+      i = 0;
+      while (list != NULL) {
+	printf("       Listing slave device [%d] XXXXXXXXXXXXXXXX\n",i);
+	xo_describe_device((GdkDevice*)list->data);
+	i++;
+	list = list->next;
+      }
+
+
+      break;
+    case GDK_DEVICE_TYPE_SLAVE:
+      printf("   slave device\n");
+      break;
+    case GDK_DEVICE_TYPE_FLOATING:
+      printf("   slave device\n");
+      break;
+    default:
+      printf("   unknown type device\n");
+      break;
+  }
+}
+
+
 
 void init_stuff (int argc, char *argv[])
 {
@@ -255,9 +311,42 @@ void init_stuff (int argc, char *argv[])
   ui.screen_height = gdk_screen_get_height(screen);
   
   can_xinput = FALSE;
-   dev_list = xo_devices_list(NULL);
+  dev_list = xo_devices_list(NULL);
   while (dev_list != NULL) {
     device = (GdkDevice *)dev_list->data;
+
+    //************* TESTING CODE TO UNDERSTAND AXIS
+      {
+      printf("->    device  [%s]\n", gdk_device_get_name(device));
+	int countAxes = gdk_device_get_n_axes(device);
+	  // check if we need to dispose it after we use it XXXXXXXXXXX
+	printf("Number of axis in device [%d]\n", countAxes);
+	  GList *list = gdk_device_list_axes(device);
+	  int i=0;
+	  while (list != NULL) {
+	    GdkAxisUse use = gdk_device_get_axis_use(device, i);
+	    printf("Use of this device %d Use [%d]\n", i, use);
+	    /*
+	    gtk_device_get_axis_value(device, XXXX, label, minAxis);
+	    gtk_device_get_axis_value(device, XXXX, label, maxAxis);
+	    gtk_device_get_axis_value(device, XXXX, label, minValue);
+	    gtk_device_get_axis_value(device, XXXX, label, maxValue);
+	    gtk_device_get_axis_value(device, XXXX, label, resolution);
+	    
+	    gdouble min_axis = 
+	    gdouble max_axis;
+	    gdouble min_value;
+	    gdouble max_value;
+	    gdouble resolution;
+	    */
+	    i++;
+	    list = list->next;
+	  }
+      }
+
+
+
+
     //    if (device != gdk_device_manager_get_client_pointer(xo_device_manager_get() && device->num_axes >= 2) {
     if ( !xo_gtkwidget_device_is_core(NULL, device)  && gdk_device_get_n_axes(device) >= 2) {
       /* get around a GDK bug: map the valuator range CORRECTLY to [0,1] */
@@ -276,6 +365,7 @@ void init_stuff (int argc, char *argv[])
     }
     dev_list = dev_list->next;
   }
+
   if (!can_xinput)
     gtk_widget_set_sensitive(GET_COMPONENT("optionsUseXInput"), FALSE);
 

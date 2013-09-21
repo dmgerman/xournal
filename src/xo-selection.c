@@ -43,16 +43,82 @@ void make_dashed(GooCanvasItem *item)
   dash.offset = 3.0;
   dash.dash = dashlen;
   dashlen[0] = dashlen[1] = 6.0;
+
   gnome_canvas_item_set(item, "dash", &dash, NULL);
 #else
-  assert(0);
+  TRACE_1("We need to do this dashed, not red, but we need to learn how");
+  g_object_set(ui.selection->canvas_item, 
+	       "stroke-color", "red", 
+	       NULL);
+#endif
+
+}
+
+
+void xo_selection_rectangle_resize(gdouble x, gdouble y)
+{
+  gdouble width;
+  gdouble height;
+  BBox *bbox = &(ui.selection->bbox);
+  gdouble xOrigin = ui.selection->create_x;
+  gdouble yOrigin = ui.selection->create_y;
+
+  // goocanvas can't draw negative widths
+  // so we recompute the boundaries of the box, always left/top first
+
+  if (x < xOrigin) {
+    bbox->right = xOrigin;
+    bbox->left = x;
+  } else {
+    bbox->right = x;
+  }
+  if (y < yOrigin) {
+    bbox->bottom = yOrigin;
+    ui.selection->bbox.top = y;
+  } else {
+    ui.selection->bbox.bottom = y;
+  }
+  width = ui.selection->bbox.right - ui.selection->bbox.left;
+  height = ui.selection->bbox.bottom - ui.selection->bbox.top;
+
+  g_object_set(ui.selection->canvas_item, 
+	       "x", ui.selection->bbox.left,
+	       "width", width,
+	       "y", ui.selection->bbox.top,
+	       "height", height,
+	       NULL);
+}
+
+
+void xo_selection_rectangle_create(gdouble x, gdouble y)
+{
+  
+  ui.selection->create_x = ui.selection->bbox.left = ui.selection->bbox.right = x;
+  ui.selection->create_y = ui.selection->bbox.top = ui.selection->bbox.bottom = y;
+  ui.selection->create_width = 0;
+  ui.selection->create_height = 0;
+  
+  ui.selection->canvas_item = goo_canvas_rect_new(ui.cur_layer->group, 
+						  x, y, 
+						  0,0,
+						  "line-width", 1.0,
+						  "stroke-color-rgba", 0x000000ff,
+						  "fill-color-rgba", 0x80808040,
+						  NULL);
+  
+
+#ifdef ABC  
+  ui.selection->canvas_item = gnome_canvas_item_new(ui.cur_layer->group,
+      gnome_canvas_rect_get_type(), "width-pixels", 1, 
+      "outline-color-rgba", 0x000000ff,
+      "fill-color-rgba", 0x80808040,
+      "x1", pt[0], "x2", pt[0], "y1", pt[1], "y2", pt[1], NULL);
 #endif
 
 }
 
 void start_selectrect(GdkEvent *event)
 {
-#ifdef ABC
   double pt[2];
   reset_selection();
   
@@ -63,43 +129,30 @@ void start_selectrect(GdkEvent *event)
   ui.selection->layer = ui.cur_layer;
 
   get_pointer_coords(event, pt);
-  ui.selection->bbox.left = ui.selection->bbox.right = pt[0];
-  ui.selection->bbox.top = ui.selection->bbox.bottom = pt[1];
- 
-  ui.selection->canvas_item = gnome_canvas_item_new(ui.cur_layer->group,
-      gnome_canvas_rect_get_type(), "width-pixels", 1, 
-      "outline-color-rgba", 0x000000ff,
-      "fill-color-rgba", 0x80808040,
-      "x1", pt[0], "x2", pt[0], "y1", pt[1], "y2", pt[1], NULL);
+
+  xo_selection_rectangle_create(pt[0], pt[1]);
+
   update_cursor();
-#else
-  assert(0);
-#endif
 
 }
 
 void finalize_selectrect(void)
 {
-#ifdef ABC
   double x1, x2, y1, y2;
   GList *itemlist;
   struct Item *item;
   
   ui.cur_item_type = ITEM_NONE;
 
-  if (ui.selection->bbox.left > ui.selection->bbox.right) {
-    x1 = ui.selection->bbox.right;  x2 = ui.selection->bbox.left;
-    ui.selection->bbox.left = x1;   ui.selection->bbox.right = x2;
-  } else {
-    x1 = ui.selection->bbox.left;  x2 = ui.selection->bbox.right;
-  }
+  assert(ui.selection->bbox.right > ui.selection->bbox.left);
+  assert(ui.selection->bbox.bottom > ui.selection->bbox.top);
+  
 
-  if (ui.selection->bbox.top > ui.selection->bbox.bottom) {
-    y1 = ui.selection->bbox.bottom;  y2 = ui.selection->bbox.top;
-    ui.selection->bbox.top = y1;   ui.selection->bbox.bottom = y2;
-  } else {
-    y1 = ui.selection->bbox.top;  y2 = ui.selection->bbox.bottom;
-  }
+  x1 = ui.selection->bbox.left;
+  x2 = ui.selection->bbox.right;
+
+  y1 = ui.selection->bbox.top; 
+  y2 = ui.selection->bbox.bottom;
   
   for (itemlist = ui.selection->layer->items; itemlist!=NULL; itemlist = itemlist->next) {
     item = (struct Item *)itemlist->data;
@@ -115,20 +168,29 @@ void finalize_selectrect(void)
     if (item!=NULL && item==click_is_in_text_or_image(ui.selection->layer, x2, y2)) {
       ui.selection->items = g_list_append(ui.selection->items, item);
       g_memmove(&(ui.selection->bbox), &(item->bbox), sizeof(struct BBox));
+#ifdef ABC
       gnome_canvas_item_set(ui.selection->canvas_item,
         "x1", item->bbox.left, "x2", item->bbox.right, 
         "y1", item->bbox.top, "y2", item->bbox.bottom, NULL);
+#else
+      g_object_set(ui.selection->canvas_item,
+		   "x", item->bbox.left,
+		   "width", item->bbox.right -item->bbox.left,
+		   "y", item->bbox.top, 
+		   "height", item->bbox.bottom - item->bbox.top, 
+		   NULL);
+#endif
     }
+
   }
   
-  if (ui.selection->items == NULL) reset_selection();
-  else make_dashed(ui.selection->canvas_item);
+  if (ui.selection->items == NULL) 
+    reset_selection();
+  else 
+    make_dashed(ui.selection->canvas_item);
   update_cursor();
   update_copy_paste_enabled();
   update_font_button();
-#else
-  assert(0);
-#endif
 }
 
 
@@ -374,7 +436,7 @@ gboolean start_resizesel(GdkEvent *event)
 #ifdef ABC
     gnome_canvas_item_set(ui.selection->canvas_item, "dash", NULL, NULL);
 #else
-    WARN;
+    make_dashed(ui.selection->canvas_item);
 #endif
     update_cursor_for_resize(pt);
     return TRUE;
@@ -512,7 +574,6 @@ void continue_movesel(GdkEvent *event)
 
 void continue_resizesel(GdkEvent *event)
 {
-#ifdef ABC
   double pt[2];
 
   get_pointer_coords(event, pt);
@@ -522,11 +583,17 @@ void continue_resizesel(GdkEvent *event)
   if (ui.selection->resizing_left) ui.selection->new_x1 = pt[0];
   if (ui.selection->resizing_right) ui.selection->new_x2 = pt[0];
 
+#ifdef ABC
   gnome_canvas_item_set(ui.selection->canvas_item, 
     "x1", ui.selection->new_x1, "x2", ui.selection->new_x2,
     "y1", ui.selection->new_y1, "y2", ui.selection->new_y2, NULL);
 #else
-  assert(0);
+  g_object_set(ui.selection->canvas_item, 
+	       "x", ui.selection->new_x1,
+	       "width", ui.selection->new_x2- ui.selection->new_x1,
+	       "y", ui.selection->new_y1,
+	       "height", ui.selection->new_y2- ui.selection->new_y1,
+	       NULL);
 #endif
 }
 

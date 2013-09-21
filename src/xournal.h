@@ -235,6 +235,12 @@ typedef struct Journal {
 typedef struct Selection {
   int type;  // ITEM_SELECTRECT, ITEM_MOVESEL_VERT, ITEM_SELECTREGION
   BBox bbox; // the rectangle bbox of the selection
+
+  gdouble create_x; // where it starts
+  gdouble create_y; // where it ends
+  gdouble create_width;
+  gdouble create_height;
+
   struct Layer *layer; // the layer on which the selection lives
   double anchor_x, anchor_y, last_x, last_y; // for selection motion
   gboolean resizing_top, resizing_bottom, resizing_left, resizing_right; // for selection resizing

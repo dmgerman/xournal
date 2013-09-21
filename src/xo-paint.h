@@ -13,6 +13,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef __XO_PAINT_H__
+#define __XO_PAINT_H__
 
 void set_cursor_busy(gboolean busy);
 void update_cursor(void);
@@ -44,3 +46,7 @@ struct Item *click_is_in_text(struct Layer *layer, double x, double y);
 struct Item *click_is_in_text_or_image(struct Layer *layer, double x, double y);
 void refont_text_item(struct Item *item, gchar *font_name, double font_size);
 void process_font_sel(gchar *str);
+
+void xo_create_path(GooCanvasItem *group, struct Item *item, GooCanvasPoints *points, gdouble lineWidth);
+
+#endif
