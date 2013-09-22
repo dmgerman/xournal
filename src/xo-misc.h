@@ -174,4 +174,8 @@ GdkPixbuf* xo_wrapper_poppler_page_render_to_pixbuf (PopplerPage *page,
 
 
 
+void xo_canvas_get_scroll_offsets(GooCanvas *canvas, int *x, int *y) ;
+
+GooCanvasItem *xo_create_path(GooCanvasItem *group, GooCanvasPoints *points, gdouble lineWidth);
+
 #endif

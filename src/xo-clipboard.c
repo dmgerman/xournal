@@ -195,9 +195,9 @@ void selection_to_clip(void)
 // paste xournal native data
 void clipboard_paste_from_xournal(GtkSelectionData *sel_data)
 {
-#ifdef ABC
 
-  unsigned char *p;
+
+  const unsigned char *p;
   int nitems, npts, i, len;
   struct Item *item;
   double hoffset, voffset, cx, cy;
@@ -207,7 +207,7 @@ void clipboard_paste_from_xournal(GtkSelectionData *sel_data)
   reset_selection();
   
   ui.selection = g_new(struct Selection, 1);
-  p = sel_data->data + sizeof(int);
+  p =  gtk_selection_data_get_data(sel_data) + sizeof(int);
   g_memmove(&nitems, p, sizeof(int)); p+= sizeof(int);
   ui.selection->type = ITEM_SELECTRECT;
   ui.selection->layer = ui.cur_layer;
@@ -215,9 +215,16 @@ void clipboard_paste_from_xournal(GtkSelectionData *sel_data)
   ui.selection->items = NULL;
   
   // find by how much we translate the pasted selection
-  gnome_canvas_get_scroll_offsets(canvas, &sx, &sy);
-  gdk_window_get_geometry(GTK_WIDGET(canvas)->window, NULL, NULL, &wx, &wy, NULL);
+  xo_canvas_get_scroll_offsets(canvas, &sx, &sy);
+
+  gdk_window_get_geometry(gtk_widget_get_window(GTK_WIDGET(canvas)), NULL, NULL, &wx, &wy);
+
+#ifdef ABCD
+  // I tink tihs isi overcomplicated
   gnome_canvas_window_to_world(canvas, sx + wx/2, sy + wy/2, &cx, &cy);
+#else
+  cx = sx + wx/2;
+  cy = sy + wy/2;
   cx -= ui.cur_page->hoffset;
   cy -= ui.cur_page->voffset;
   if (cx + (ui.selection->bbox.right-ui.selection->bbox.left)/2 > ui.cur_page->width)
@@ -230,18 +237,21 @@ void clipboard_paste_from_xournal(GtkSelectionData *sel_data)
     cy = (ui.selection->bbox.bottom-ui.selection->bbox.top)/2;
   hoffset = cx - (ui.selection->bbox.right+ui.selection->bbox.left)/2;
   voffset = cy - (ui.selection->bbox.top+ui.selection->bbox.bottom)/2;
+#endif
+  
+  /* can the code above be replace by this only */
+  //  hoffset = ui.cur_page->width/10;
+  //  voffset = ui.cur_page->height/10;
+
+
+
   ui.selection->bbox.left += hoffset;
   ui.selection->bbox.right += hoffset;
   ui.selection->bbox.top += voffset;
   ui.selection->bbox.bottom += voffset;
 
-  ui.selection->canvas_item = gnome_canvas_item_new(ui.cur_layer->group,
-      gnome_canvas_rect_get_type(), "width-pixels", 1,
-      "outline-color-rgba", 0x000000ff,
-      "fill-color-rgba", 0x80808040,
-      "x1", ui.selection->bbox.left, "x2", ui.selection->bbox.right, 
-      "y1", ui.selection->bbox.top, "y2", ui.selection->bbox.bottom, NULL);
-  make_dashed(ui.selection->canvas_item);
+  xo_selection_rectangle_draw();
+  xo_canvas_item_set_dashed(ui.selection->canvas_item);
 
   while (nitems-- > 0) {
     item = g_new(struct Item, 1);
@@ -252,7 +262,7 @@ void clipboard_paste_from_xournal(GtkSelectionData *sel_data)
     if (item->type == ITEM_STROKE) {
       g_memmove(&item->brush, p, sizeof(struct Brush)); p+= sizeof(struct Brush);
       g_memmove(&npts, p, sizeof(int)); p+= sizeof(int);
-      item->path = gnome_canvas_points_new(npts);
+      item->path = goo_canvas_points_new(npts);
       pf = (double *)p;
       for (i=0; i<npts; i++) {
         item->path->coords[2*i] = pf[2*i] + hoffset;
@@ -315,9 +325,6 @@ void clipboard_paste_from_xournal(GtkSelectionData *sel_data)
   update_color_buttons();
   update_font_button();  
   update_cursor(); // FIXME: can't know if pointer is within selection!
-#else
-  assert(0);
-#endif
 
 
 }
@@ -404,8 +411,6 @@ void clipboard_paste_image(GdkPixbuf *pixbuf)
 // work out what format the clipboard data is in, and paste accordingly
 void clipboard_paste(void)
 {
-#ifdef ABC
-
 
   GtkSelectionData *sel_data;
   GtkClipboard *clipboard;
@@ -441,8 +446,5 @@ void clipboard_paste(void)
     clipboard_paste_text(text);
     return;
   }
-#else
-  assert(0);
-#endif
 
 }

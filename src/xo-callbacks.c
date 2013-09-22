@@ -22,10 +22,11 @@
 #include <string.h>
 #include <time.h>
 #include <glib/gstdio.h>
+#include <gtk/gtk.h>
 #include <gdk/gdk.h>
 #include <gdk/gdkkeysyms.h>
 #include <gdk/gdkkeysyms-compat.h>
-#include <gtk/gtk.h>
+
 
 #include <libgrip/grip.h>
 #include <goocanvas.h>
@@ -55,7 +56,6 @@ on_fileNew_activate                    (GtkMenuItem     *menuitem,
     update_page_stuff();
 
     gtk_adjustment_set_value(gtk_scrollable_get_vadjustment(GTK_SCROLLABLE(canvas)), 0);
-    WARN;
     xo_canvas_set_pixels_per_unit();
   }
 }
@@ -465,7 +465,6 @@ void
 on_editUndo_activate                   (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-#ifdef ABC
   struct UndoItem *u;
   GList *list, *itemlist;
   struct UndoErasureData *erasure;
@@ -474,7 +473,7 @@ on_editUndo_activate                   (GtkMenuItem     *menuitem,
   struct Background *tmp_bg;
   double tmp_x, tmp_y;
   gchar *tmpstr;
-  GnomeCanvasGroup *group;
+  GooCanvasItem *group;
   
   end_text();
   if (undo == NULL) return; // nothing to undo!
@@ -482,11 +481,48 @@ on_editUndo_activate                   (GtkMenuItem     *menuitem,
   reset_recognizer(); // safer
   if (undo->type == ITEM_STROKE || undo->type == ITEM_TEXT || undo->type == ITEM_IMAGE) {
     // we're keeping the stroke info, but deleting the canvas item
-    g_object_run_dispose(GTK_OBJECT(undo->item->canvas_item));
+
+    goo_canvas_item_remove(undo->item->canvas_item);
+
     undo->item->canvas_item = NULL;
     // we also remove the object from its layer!
     undo->layer->items = g_list_remove(undo->layer->items, undo->item);
     undo->layer->nitems--;
+  } else if (undo->type == ITEM_NEW_PAGE) {
+    // unmap the page; keep the page & its empty layer in memory
+    if (undo->page->group!=NULL) 
+      /*       g_object_run_dispose(GTK_OBJECT(undo->page->group)); */
+      goo_canvas_item_remove(undo->page->group);
+      // also destroys the background and layer's canvas items
+    undo->page->group = NULL;
+    undo->page->bg->canvas_group = NULL;
+    journal.pages = g_list_remove(journal.pages, undo->page);
+    journal.npages--;
+    if (ui.cur_page == undo->page) ui.cur_page = NULL;
+        // so do_switch_page() won't try to remap the layers of the defunct page
+    if (ui.pageno >= undo->val) ui.pageno--;
+    if (ui.pageno < 0) ui.pageno = 0;
+    do_switch_page(ui.pageno, TRUE, TRUE);
+  } else if (undo->type == ITEM_DELETE_PAGE) {
+    journal.pages = g_list_insert(journal.pages, undo->page, undo->val);
+    journal.npages++;
+    make_canvas_items(); // re-create the canvas items
+    do_switch_page(undo->val, TRUE, TRUE);
+  } else if (undo->type == ITEM_MOVESEL) {
+    for (itemlist = undo->itemlist; itemlist != NULL; itemlist = itemlist->next) {
+      it = (struct Item *)itemlist->data;
+      if (it->canvas_item != NULL) {
+        if (undo->layer != undo->layer2)
+          xo_canvas_item_reparent(it->canvas_item, undo->layer->group);
+        goo_canvas_item_translate(it->canvas_item, -undo->val_x, -undo->val_y);
+      }
+    }
+    move_journal_items_by(undo->itemlist, -undo->val_x, -undo->val_y,
+                            undo->layer2, undo->layer, undo->auxlist);
+  } else if (undo->type == ITEM_RESIZESEL) {
+    resize_journal_items_by(undo->itemlist, 
+      1/undo->scaling_x, 1/undo->scaling_y,
+      -undo->val_x/undo->scaling_x, -undo->val_y/undo->scaling_y);
   }
   else if (undo->type == ITEM_ERASURE || undo->type == ITEM_RECOGNIZER) {
     for (list = undo->erasurelist; list!=NULL; list = list->next) {
@@ -494,7 +530,7 @@ on_editUndo_activate                   (GtkMenuItem     *menuitem,
       // delete all the created items
       for (itemlist = erasure->replacement_items; itemlist!=NULL; itemlist = itemlist->next) {
         it = (struct Item *)itemlist->data;
-        g_object_run_dispose(GTK_OBJECT(it->canvas_item));
+        goo_canvas_item_remove(it->canvas_item);
         it->canvas_item = NULL;
         undo->layer->items = g_list_remove(undo->layer->items, it);
         undo->layer->nitems--;
@@ -514,13 +550,14 @@ on_editUndo_activate                   (GtkMenuItem     *menuitem,
   }
   else if (undo->type == ITEM_NEW_BG_ONE || undo->type == ITEM_NEW_BG_RESIZE
            || undo->type == ITEM_PAPER_RESIZE) {
+    assert(0);
     if (undo->type != ITEM_PAPER_RESIZE) {
       // swap the two bg's
       tmp_bg = undo->page->bg;
       undo->page->bg = undo->bg;
       undo->bg = tmp_bg;
-      undo->page->bg->canvas_item = undo->bg->canvas_item;
-      undo->bg->canvas_item = NULL;
+      undo->page->bg->canvas_group = undo->bg->canvas_group;
+      undo->bg->canvas_group = NULL;
     }
     if (undo->type != ITEM_NEW_BG_ONE) {
       tmp_x = undo->page->width;
@@ -535,6 +572,7 @@ on_editUndo_activate                   (GtkMenuItem     *menuitem,
     do_switch_page(g_list_index(journal.pages, undo->page), TRUE, TRUE);
   }
   else if (undo->type == ITEM_NEW_DEFAULT_BG) {
+    assert(0);
     tmp_bg = ui.default_page.bg;
     ui.default_page.bg = undo->bg;
     undo->bg = tmp_bg;
@@ -545,47 +583,10 @@ on_editUndo_activate                   (GtkMenuItem     *menuitem,
     undo->val_x = tmp_x;
     undo->val_y = tmp_y;
   }
-  else if (undo->type == ITEM_NEW_PAGE) {
-    // unmap the page; keep the page & its empty layer in memory
-    if (undo->page->group!=NULL) g_object_run_dispose(GTK_OBJECT(undo->page->group));
-      // also destroys the background and layer's canvas items
-    undo->page->group = NULL;
-    undo->page->bg->canvas_item = NULL;
-    journal.pages = g_list_remove(journal.pages, undo->page);
-    journal.npages--;
-    if (ui.cur_page == undo->page) ui.cur_page = NULL;
-        // so do_switch_page() won't try to remap the layers of the defunct page
-    if (ui.pageno >= undo->val) ui.pageno--;
-    if (ui.pageno < 0) ui.pageno = 0;
-    do_switch_page(ui.pageno, TRUE, TRUE);
-  }
-  else if (undo->type == ITEM_DELETE_PAGE) {
-    journal.pages = g_list_insert(journal.pages, undo->page, undo->val);
-    journal.npages++;
-    make_canvas_items(); // re-create the canvas items
-    do_switch_page(undo->val, TRUE, TRUE);
-  }
-  else if (undo->type == ITEM_MOVESEL) {
-    for (itemlist = undo->itemlist; itemlist != NULL; itemlist = itemlist->next) {
-      it = (struct Item *)itemlist->data;
-      if (it->canvas_item != NULL) {
-        if (undo->layer != undo->layer2)
-          gnome_canvas_item_reparent(it->canvas_item, undo->layer->group);
-        gnome_canvas_item_move(it->canvas_item, -undo->val_x, -undo->val_y);
-      }
-    }
-    move_journal_items_by(undo->itemlist, -undo->val_x, -undo->val_y,
-                            undo->layer2, undo->layer, undo->auxlist);
-  }
-  else if (undo->type == ITEM_RESIZESEL) {
-    resize_journal_items_by(undo->itemlist, 
-      1/undo->scaling_x, 1/undo->scaling_y,
-      -undo->val_x/undo->scaling_x, -undo->val_y/undo->scaling_y);
-  }
   else if (undo->type == ITEM_PASTE) {
     for (itemlist = undo->itemlist; itemlist != NULL; itemlist = itemlist->next) {
       it = (struct Item *)itemlist->data;
-      g_object_run_dispose(GTK_OBJECT(it->canvas_item));
+      goo_canvas_item_remove(it->canvas_item);
       it->canvas_item = NULL;
       undo->layer->items = g_list_remove(undo->layer->items, it);
       undo->layer->nitems--;
@@ -593,7 +594,8 @@ on_editUndo_activate                   (GtkMenuItem     *menuitem,
   }
   else if (undo->type == ITEM_NEW_LAYER) {
     // unmap the layer; keep the empty layer in memory
-    if (undo->layer->group!=NULL) g_object_run_dispose(GTK_OBJECT(undo->layer->group));
+    if (undo->layer->group!=NULL) 
+      goo_canvas_item_remove(undo->layer->group);
     undo->layer->group = NULL;
     undo->page->layers = g_list_remove(undo->page->layers, undo->layer);
     undo->page->nlayers--;
@@ -602,13 +604,15 @@ on_editUndo_activate                   (GtkMenuItem     *menuitem,
   else if (undo->type == ITEM_DELETE_LAYER) {
     // special case of -1: deleted the last layer, created a new one
     if (undo->val == -1) {
-      if (undo->layer2->group!=NULL) g_object_run_dispose(GTK_OBJECT(undo->layer2->group));
+      if (undo->layer2->group!=NULL) 
+	goo_canvas_item_remove(undo->layer2->group);
       undo->layer2->group = NULL;
       undo->page->layers = g_list_remove(undo->page->layers, undo->layer2);
       undo->page->nlayers--;
     }
     // re-map the layer
-    undo->layer->group = (GnomeCanvasGroup *) gnome_canvas_item_new(
+#ifdef ABC
+    undo->layer->group = gnome_canvas_item_new(
       undo->page->group, gnome_canvas_group_get_type(), NULL);
     lower_canvas_item_to(undo->page->group, GNOME_CANVAS_ITEM(undo->layer->group),
       (undo->val >= 1) ? GNOME_CANVAS_ITEM(((struct Layer *)
@@ -622,8 +626,12 @@ on_editUndo_activate                   (GtkMenuItem     *menuitem,
       make_canvas_item_one(undo->layer->group, (struct Item *)itemlist->data);
 
     do_switch_page(ui.pageno, FALSE, FALSE); // show the restored layer & others...
+#else
+    assert(0);
+#endif
   }
   else if (undo->type == ITEM_REPAINTSEL) {
+    assert(0);
     for (itemlist = undo->itemlist, list = undo->auxlist; itemlist!=NULL;
            itemlist = itemlist->next, list = list->next) {
       it = (struct Item *)itemlist->data;
@@ -632,16 +640,18 @@ on_editUndo_activate                   (GtkMenuItem     *menuitem,
       g_memmove(list->data, &tmp_brush, sizeof(struct Brush));
       if (it->type == ITEM_STROKE && it->canvas_item != NULL) {
         // remark: a variable-width item might have lost its variable-width
-        group = (GnomeCanvasGroup *) it->canvas_item->parent;
-        g_object_run_dispose(GTK_OBJECT(it->canvas_item));
+        group = goo_canvas_item_get_parent(it->canvas_item);
+	goo_canvas_item_remove(it->canvas_item);
         make_canvas_item_one(group, it);
       }
       if (it->type == ITEM_TEXT && it->canvas_item != NULL)
-        gnome_canvas_item_set(it->canvas_item, 
-          "fill-color-rgba", it->brush.color_rgba, NULL);
+        g_object_set(it->canvas_item, 
+		     "fill-color-rgba", it->brush.color_rgba, 
+		     NULL);
     }
   }
   else if (undo->type == ITEM_TEXT_EDIT) {
+    assert(0);
     tmpstr = undo->str;
     undo->str = undo->item->text;
     undo->item->text = tmpstr;
@@ -649,6 +659,7 @@ on_editUndo_activate                   (GtkMenuItem     *menuitem,
     update_item_bbox(undo->item);
   }
   else if (undo->type == ITEM_TEXT_ATTRIB) {
+    assert(0);
     tmpstr = undo->str;
     undo->str = undo->item->font_name;
     undo->item->font_name = tmpstr;
@@ -658,12 +669,13 @@ on_editUndo_activate                   (GtkMenuItem     *menuitem,
     g_memmove(&tmp_brush, undo->brush, sizeof(struct Brush));
     g_memmove(undo->brush, &(undo->item->brush), sizeof(struct Brush));
     g_memmove(&(undo->item->brush), &tmp_brush, sizeof(struct Brush));
-    gnome_canvas_item_set(undo->item->canvas_item, 
-      "fill-color-rgba", undo->item->brush.color_rgba, NULL);
+    g_object_set(undo->item->canvas_item, 
+		 "fill-color-rgba", undo->item->brush.color_rgba, 
+		 NULL);
     update_text_item_displayfont(undo->item);
     update_item_bbox(undo->item);
   }
-  
+
   // move item from undo to redo stack
   u = undo;
   undo = undo->next;
@@ -673,9 +685,6 @@ on_editUndo_activate                   (GtkMenuItem     *menuitem,
   update_undo_redo_enabled();
   if (u->multiop & MULTIOP_CONT_UNDO) on_editUndo_activate(NULL,NULL); // loop
 
-#else
-  assert(0);
-#endif
 }
 
 
@@ -683,8 +692,6 @@ void
 on_editRedo_activate                   (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-#ifdef ABC
-
 
   struct UndoItem *u;
   GList *list, *itemlist, *target;
@@ -695,7 +702,7 @@ on_editRedo_activate                   (GtkMenuItem     *menuitem,
   struct Layer *l;
   double tmp_x, tmp_y;
   gchar *tmpstr;
-  GnomeCanvasGroup *group;
+  GooCanvasItem *group;
   
   end_text();
   if (redo == NULL) return; // nothing to redo!
@@ -707,6 +714,27 @@ on_editRedo_activate                   (GtkMenuItem     *menuitem,
     // reinsert the item on its layer
     redo->layer->items = g_list_append(redo->layer->items, redo->item);
     redo->layer->nitems++;
+  } else if (redo->type == ITEM_NEW_PAGE) {
+    // remap the page
+    redo->page->bg->canvas_group = NULL;
+#ifdef ABC
+    redo->page->group = gnome_canvas_item_new(canvas, 
+      gnome_canvas_root(canvas), gnome_canvas_clipgroup_get_type(), NULL);
+    make_page_clipbox(redo->page);
+#else
+    xo_page_canvas_group_new(redo->page);
+#endif
+    update_canvas_bg(redo->page);
+    l = (struct Layer *)redo->page->layers->data;
+    l->group =  goo_canvas_group_new ((GooCanvasItem*)redo->page->group, NULL);
+    /*
+      (GnomeCanvasGroup *) gnome_canvas_item_new(
+      redo->page->group, gnome_canvas_group_get_type(), NULL);
+    */
+    
+    journal.pages = g_list_insert(journal.pages, redo->page, redo->val);
+    journal.npages++;
+    do_switch_page(redo->val, TRUE, TRUE);
   }
   else if (redo->type == ITEM_ERASURE || redo->type == ITEM_RECOGNIZER) {
     for (list = redo->erasurelist; list!=NULL; list = list->next) {
@@ -721,7 +749,7 @@ on_editRedo_activate                   (GtkMenuItem     *menuitem,
         lower_canvas_item_to(redo->layer->group, it->canvas_item, erasure->item->canvas_item);
       }
       // re-delete the deleted one
-      g_object_run_dispose(GTK_OBJECT(erasure->item->canvas_item));
+      goo_canvas_item_remove(erasure->item->canvas_item);
       erasure->item->canvas_item = NULL;
       redo->layer->items = g_list_delete_link(redo->layer->items, target);
       redo->layer->nitems--;
@@ -734,8 +762,8 @@ on_editRedo_activate                   (GtkMenuItem     *menuitem,
       tmp_bg = redo->page->bg;
       redo->page->bg = redo->bg;
       redo->bg = tmp_bg;
-      redo->page->bg->canvas_item = redo->bg->canvas_item;
-      redo->bg->canvas_item = NULL;
+      redo->page->bg->canvas_group = redo->bg->canvas_group;
+      redo->bg->canvas_group = NULL;
     }
     if (redo->type != ITEM_NEW_BG_ONE) {
       tmp_x = redo->page->width;
@@ -760,26 +788,11 @@ on_editRedo_activate                   (GtkMenuItem     *menuitem,
     redo->val_x = tmp_x;
     redo->val_y = tmp_y;
   }
-  else if (redo->type == ITEM_NEW_PAGE) {
-    // remap the page
-    redo->page->bg->canvas_item = NULL;
-    redo->page->group = (GnomeCanvasGroup *) gnome_canvas_item_new(
-      gnome_canvas_root(canvas), gnome_canvas_clipgroup_get_type(), NULL);
-    make_page_clipbox(redo->page);
-    update_canvas_bg(redo->page);
-    l = (struct Layer *)redo->page->layers->data;
-    l->group = (GnomeCanvasGroup *) gnome_canvas_item_new(
-      redo->page->group, gnome_canvas_group_get_type(), NULL);
-    
-    journal.pages = g_list_insert(journal.pages, redo->page, redo->val);
-    journal.npages++;
-    do_switch_page(redo->val, TRUE, TRUE);
-  }
   else if (redo->type == ITEM_DELETE_PAGE) {
     // unmap all the canvas items
-    g_object_run_dispose(GTK_OBJECT(redo->page->group));
+    goo_canvas_item_remove(redo->page->group);
     redo->page->group = NULL;
-    redo->page->bg->canvas_item = NULL;
+    redo->page->bg->canvas_group = NULL;
     for (list = redo->page->layers; list!=NULL; list = list->next) {
       l = (struct Layer *)list->data;
       for (itemlist = l->items; itemlist!=NULL; itemlist = itemlist->next)
@@ -798,8 +811,9 @@ on_editRedo_activate                   (GtkMenuItem     *menuitem,
       it = (struct Item *)itemlist->data;
       if (it->canvas_item != NULL) {
         if (redo->layer != redo->layer2)
-          gnome_canvas_item_reparent(it->canvas_item, redo->layer2->group);
-        gnome_canvas_item_move(it->canvas_item, redo->val_x, redo->val_y);
+          xo_canvas_item_reparent(it->canvas_item, redo->layer2->group);
+
+        goo_canvas_item_translate(it->canvas_item, redo->val_x, redo->val_y);
       }
     }
     move_journal_items_by(redo->itemlist, redo->val_x, redo->val_y,
@@ -818,18 +832,23 @@ on_editRedo_activate                   (GtkMenuItem     *menuitem,
     }
   }
   else if (redo->type == ITEM_NEW_LAYER) {
-    redo->layer->group = (GnomeCanvasGroup *) gnome_canvas_item_new(
+    assert(0);
+#ifdef ABC
+    redo->layer->group = gnome_canvas_item_new(
         redo->page->group, gnome_canvas_group_get_type(), NULL);
     lower_canvas_item_to(redo->page->group, GNOME_CANVAS_ITEM(redo->layer->group),
       (redo->val >= 1) ? GNOME_CANVAS_ITEM(((struct Layer *)
             g_list_nth_data(redo->page->layers, redo->val-1))->group) :
-            redo->page->bg->canvas_item);
+            redo->page->bg->canvas_group);
     redo->page->layers = g_list_insert(redo->page->layers, redo->layer, redo->val);
     redo->page->nlayers++;
     do_switch_page(ui.pageno, FALSE, FALSE);
+#endif
   }
   else if (redo->type == ITEM_DELETE_LAYER) {
-    g_object_run_dispose(GTK_OBJECT(redo->layer->group));
+    assert(0);
+#ifdef ABC
+    goo_canvas_item_remove(redo->layer->group);
     redo->layer->group = NULL;
     for (list=redo->layer->items; list!=NULL; list=list->next)
       ((struct Item *)list->data)->canvas_item = NULL;
@@ -842,6 +861,7 @@ on_editRedo_activate                   (GtkMenuItem     *menuitem,
       redo->page->nlayers++;
     }
     do_switch_page(ui.pageno, FALSE, FALSE);
+#endif
   }
   else if (redo->type == ITEM_REPAINTSEL) {
     for (itemlist = redo->itemlist, list = redo->auxlist; itemlist!=NULL;
@@ -852,17 +872,18 @@ on_editRedo_activate                   (GtkMenuItem     *menuitem,
       g_memmove(list->data, &tmp_brush, sizeof(struct Brush));
       if (it->type == ITEM_STROKE && it->canvas_item != NULL) {
         // remark: a variable-width item might have lost its variable-width
-        group = (GnomeCanvasGroup *) it->canvas_item->parent;
-        g_object_run_dispose(GTK_OBJECT(it->canvas_item));
+        group = goo_canvas_item_get_parent(it->canvas_item);
+        goo_canvas_item_remove(it->canvas_item);
         make_canvas_item_one(group, it);
       }
       if (it->type == ITEM_TEXT && it->canvas_item != NULL)
-        gnome_canvas_item_set(it->canvas_item, 
-          "fill-color-rgba", it->brush.color_rgba, NULL);
+        g_object_set(it->canvas_item, 
+		     "fill-color-rgba", it->brush.color_rgba, 
+		     NULL);
       if (it->type == ITEM_IMAGE && it->canvas_item != NULL) {
         // remark: a variable-width item might have lost its variable-width
-        group = (GnomeCanvasGroup *) it->canvas_item->parent;
-        g_object_run_dispose(GTK_OBJECT(it->canvas_item));
+        group = goo_canvas_item_get_parent(it->canvas_item);
+        goo_canvas_item_remove(it->canvas_item);
         make_canvas_item_one(group, it);
       }
     }
@@ -871,7 +892,9 @@ on_editRedo_activate                   (GtkMenuItem     *menuitem,
     tmpstr = redo->str;
     redo->str = redo->item->text;
     redo->item->text = tmpstr;
-    gnome_canvas_item_set(redo->item->canvas_item, "text", tmpstr, NULL);
+    g_object_set(redo->item->canvas_item, 
+		 "text", tmpstr, 
+		 NULL);
     update_item_bbox(redo->item);
   }
   else if (redo->type == ITEM_TEXT_ATTRIB) {
@@ -884,12 +907,17 @@ on_editRedo_activate                   (GtkMenuItem     *menuitem,
     g_memmove(&tmp_brush, redo->brush, sizeof(struct Brush));
     g_memmove(redo->brush, &(redo->item->brush), sizeof(struct Brush));
     g_memmove(&(redo->item->brush), &tmp_brush, sizeof(struct Brush));
-    gnome_canvas_item_set(redo->item->canvas_item, 
-      "fill-color-rgba", redo->item->brush.color_rgba, NULL);
+
+    g_object_set(redo->item->canvas_item, 
+		 "fill-color-rgba", 
+		 redo->item->brush.color_rgba, NULL);
+
     update_text_item_displayfont(redo->item);
     update_item_bbox(redo->item);
   }
-  
+  else {
+    WARN;
+  }
   // move item from redo to undo stack
   u = redo;
   redo = redo->next;
@@ -899,9 +927,6 @@ on_editRedo_activate                   (GtkMenuItem     *menuitem,
   update_undo_redo_enabled();
   if (u->multiop & MULTIOP_CONT_REDO) on_editRedo_activate(NULL,NULL); // loop
 
-#else
-  assert(0);
-#endif
 
 
 }
@@ -1212,7 +1237,7 @@ on_journalDeletePage_activate          (GtkMenuItem     *menuitem,
   undo->page = ui.cur_page;
 
   // unmap all the canvas items  
-  g_object_run_dispose(G_OBJECT(ui.cur_page->group));
+  goo_canvas_item_remove(ui.cur_page->group);
   ui.cur_page->group = NULL;
   ui.cur_page->bg->canvas_group = NULL;
   for (layerlist = ui.cur_page->layers; layerlist!=NULL; layerlist = layerlist->next) {
@@ -1247,7 +1272,7 @@ on_journalNewLayer_activate            (GtkMenuItem     *menuitem,
   l->group = (GnomeCanvasGroup *) gnome_canvas_item_new(
     ui.cur_page->group, gnome_canvas_group_get_type(), NULL);
   lower_canvas_item_to(ui.cur_page->group, GNOME_CANVAS_ITEM(l->group),
-    (ui.cur_layer!=NULL)?(GNOME_CANVAS_ITEM(ui.cur_layer->group)):(ui.cur_page->bg->canvas_item));
+    (ui.cur_layer!=NULL)?(GNOME_CANVAS_ITEM(ui.cur_layer->group)):(ui.cur_page->bg->canvas_group));
   ui.cur_page->layers = g_list_insert(ui.cur_page->layers, l, ui.layerno+1);
   ui.cur_layer = l;
   ui.layerno++;
@@ -1289,7 +1314,7 @@ on_journalDeleteLayer_activate         (GtkMenuItem     *menuitem,
   undo->layer2 = NULL;
   undo->page = ui.cur_page;
   // delete all the canvas items
-  g_object_run_dispose(GTK_OBJECT(ui.cur_layer->group));
+  goo_canvas_item_remove(ui.cur_layer->group);
   ui.cur_layer->group = NULL;
   for (list=ui.cur_layer->items; list!=NULL; list=list->next)
     ((struct Item *)list->data)->canvas_item = NULL;
@@ -1630,8 +1655,8 @@ on_journalLoadBackground_activate      (GtkMenuItem     *menuitem,
       undo->type = ITEM_NEW_BG_RESIZE;
       undo->page = pg;
       undo->bg = pg->bg;
-      bg->canvas_item = undo->bg->canvas_item;
-      undo->bg->canvas_item = NULL;
+      bg->canvas_group = undo->bg->canvas_group;
+      undo->bg->canvas_group = NULL;
       undo->val_x = pg->width;
       undo->val_y = pg->height;
       pg->bg = bg;
@@ -1688,8 +1713,8 @@ on_journalScreenshot_activate          (GtkMenuItem     *menuitem,
   undo->type = ITEM_NEW_BG_RESIZE;
   undo->page = ui.cur_page;
   undo->bg = ui.cur_page->bg;
-  bg->canvas_item = undo->bg->canvas_item;
-  undo->bg->canvas_item = NULL;
+  bg->canvas_group = undo->bg->canvas_group;
+  undo->bg->canvas_group = NULL;
   undo->val_x = ui.cur_page->width;
   undo->val_y = ui.cur_page->height;
 
@@ -1747,8 +1772,8 @@ on_journalApplyAllPages_activate       (GtkMenuItem     *menuitem,
     page->bg = (struct Background *)g_memdup(ui.cur_page->bg, sizeof(struct Background));
     page->width = ui.cur_page->width;
     page->height = ui.cur_page->height;
-    page->bg->canvas_item = undo->bg->canvas_item;
-    undo->bg->canvas_item = NULL;
+    page->bg->canvas_group = undo->bg->canvas_group;
+    undo->bg->canvas_group = NULL;
   
     make_page_clipbox(page);
     update_canvas_bg(page);
@@ -3014,6 +3039,11 @@ on_optionsUseXInput_activate           (GtkMenuItem     *menuitem,
   end_text();
   ui.allow_xinput = ui.use_xinput =
     gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem));
+  
+  TRACE_1("This is no longer needed GTK3 supports it by default\n");
+  update_mappings_menu();
+
+#ifdef NO_LONGER_NEEDED
 
 /* HOW THINGS USED TO BE:
 
@@ -3036,8 +3066,6 @@ on_optionsUseXInput_activate           (GtkMenuItem     *menuitem,
    non-responsive). 
 */
 
-
-#ifdef ABC
 
 
 #ifndef WIN32
@@ -3062,12 +3090,8 @@ on_optionsUseXInput_activate           (GtkMenuItem     *menuitem,
 #ifndef WIN32
   }
 #endif
-
-#else
-  TRACE_1("\n\nDo I really need this This really looks deprecated... find out how to do it\n\n");
 #endif
-  
-  update_mappings_menu();
+
 }
 
 void

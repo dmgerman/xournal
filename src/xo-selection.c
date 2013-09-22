@@ -32,8 +32,16 @@
 
 /************ selection tools ***********/
 
+void xo_canvas_item_reparent(GooCanvasItem *item, GooCanvasItem *newParent)
+{
+  g_object_set(item,
+	       "parent", newParent,
+	       NULL);
+  
+}
 
-void make_dashed(GooCanvasItem *item)
+
+void xo_canvas_item_set_dashed(GooCanvasItem *item)
 {
 #ifdef ABC
   double dashlen[2];
@@ -46,8 +54,9 @@ void make_dashed(GooCanvasItem *item)
 
   gnome_canvas_item_set(item, "dash", &dash, NULL);
 #else
-  TRACE_1("We need to do this dashed, not red, but we need to learn how");
-  g_object_set(ui.selection->canvas_item, 
+  // we can hack this by removing the rectangle and drawing it again in dashed
+  TRACE_1("We need to do this dashed, not red, but we need to learn how. Goo canvas people say they need to implement it. ");
+  g_object_set(item, 
 	       "stroke-color", "red", 
 	       NULL);
 #endif
@@ -89,23 +98,29 @@ void xo_selection_rectangle_resize(gdouble x, gdouble y)
 	       NULL);
 }
 
+void xo_selection_rectangle_draw(void)
+{
+  
+  ui.selection->canvas_item = goo_canvas_rect_new(ui.cur_layer->group, 
+						  ui.selection->bbox.left, ui.selection->bbox.top, 
+						  ui.selection->bbox.right - ui.selection->bbox.left,
+						  ui.selection->bbox.bottom - ui.selection->bbox.top,
+						  "line-width", 1.0,
+						  "stroke-color-rgba", 0x000000ff,
+						  "fill-color-rgba", 0x80808040,
+						  NULL);
+
+}
 
 void xo_selection_rectangle_create(gdouble x, gdouble y)
 {
-  
+
   ui.selection->create_x = ui.selection->bbox.left = ui.selection->bbox.right = x;
   ui.selection->create_y = ui.selection->bbox.top = ui.selection->bbox.bottom = y;
   ui.selection->create_width = 0;
   ui.selection->create_height = 0;
   
-  ui.selection->canvas_item = goo_canvas_rect_new(ui.cur_layer->group, 
-						  x, y, 
-						  0,0,
-						  "line-width", 1.0,
-						  "stroke-color-rgba", 0x000000ff,
-						  "fill-color-rgba", 0x80808040,
-						  NULL);
-  
+  xo_selection_rectangle_draw();
 
 #ifdef ABC  
   ui.selection->canvas_item = gnome_canvas_item_new(ui.cur_layer->group,
@@ -144,10 +159,9 @@ void finalize_selectrect(void)
   
   ui.cur_item_type = ITEM_NONE;
 
-  assert(ui.selection->bbox.right > ui.selection->bbox.left);
-  assert(ui.selection->bbox.bottom > ui.selection->bbox.top);
+  assert(ui.selection->bbox.right >= ui.selection->bbox.left);
+  assert(ui.selection->bbox.bottom >= ui.selection->bbox.top);
   
-
   x1 = ui.selection->bbox.left;
   x2 = ui.selection->bbox.right;
 
@@ -187,7 +201,7 @@ void finalize_selectrect(void)
   if (ui.selection->items == NULL) 
     reset_selection();
   else 
-    make_dashed(ui.selection->canvas_item);
+    xo_canvas_item_set_dashed(ui.selection->canvas_item);
   update_cursor();
   update_copy_paste_enabled();
   update_font_button();
@@ -339,7 +353,7 @@ void finalize_selectregion(void)
 
   if (ui.selection->items == NULL) reset_selection();
   else { // make a selection rectangle instead of the lasso shape
-    g_object_run_dispose(GTK_OBJECT(ui.selection->canvas_item));
+    goo_canvas_remove(ui.selection->canvas_item);
     ui.selection->canvas_item = gnome_canvas_item_new(ui.cur_layer->group,
       gnome_canvas_rect_get_type(), "width-pixels", 1, 
       "outline-color-rgba", 0x000000ff,
@@ -384,7 +398,7 @@ gboolean start_movesel(GdkEvent *event)
 #ifdef ABC
     gnome_canvas_item_set(ui.selection->canvas_item, "dash", NULL, NULL);
 #else
-    WARN1("We need to set the dash of the selection");
+    xo_canvas_item_set_dashed(ui.selection->canvas_item);
 #endif
     update_cursor();
     return TRUE;
@@ -436,7 +450,7 @@ gboolean start_resizesel(GdkEvent *event)
 #ifdef ABC
     gnome_canvas_item_set(ui.selection->canvas_item, "dash", NULL, NULL);
 #else
-    make_dashed(ui.selection->canvas_item);
+    xo_canvas_item_set_dashed(ui.selection->canvas_item);
 #endif
     update_cursor_for_resize(pt);
     return TRUE;
@@ -490,7 +504,6 @@ void start_vertspace(GdkEvent *event)
 
 void continue_movesel(GdkEvent *event)
 {
-#ifdef ABC
 
   double pt[2], dx, dy, upmargin;
   GList *list;
@@ -531,18 +544,34 @@ void continue_movesel(GdkEvent *event)
     else
       ui.selection->move_layer = (struct Layer *)(g_list_last(
         ((struct Page *)g_list_nth_data(journal.pages, tmppageno))->layers)->data);
+
+#ifdef ABC
     gnome_canvas_item_reparent(ui.selection->canvas_item, ui.selection->move_layer->group);
+#else
+    xo_canvas_item_reparent(ui.selection->canvas_item, ui.selection->move_layer->group);
+#endif
+
     for (list = ui.selection->items; list!=NULL; list = list->next) {
       item = (struct Item *)list->data;
       if (item->canvas_item!=NULL)
-        gnome_canvas_item_reparent(item->canvas_item, ui.selection->move_layer->group);
+        xo_canvas_item_reparent(item->canvas_item, ui.selection->move_layer->group);
     }
     // avoid a refresh bug
+#ifdef ABC
     gnome_canvas_item_move(GNOME_CANVAS_ITEM(ui.selection->move_layer->group), 0., 0.);
-    if (ui.cur_item_type == ITEM_MOVESEL_VERT)
+#else
+    TRACE_1("Do i still need this refresh?\n");
+#endif
+
+    if (ui.cur_item_type == ITEM_MOVESEL_VERT) {
+#ifdef ABC
       gnome_canvas_item_set(ui.selection->canvas_item,
         "x2", tmppage->width+100, 
         "y1", ui.selection->anchor_y+ui.selection->move_pagedelta, NULL);
+#else
+      WARN1("No idea what is tihs for\n");
+#endif
+    }
   }
   
   // now, process things normally
@@ -554,22 +583,27 @@ void continue_movesel(GdkEvent *event)
   ui.selection->last_y = pt[1];
 
   // move the canvas items
-  if (ui.cur_item_type == ITEM_MOVESEL_VERT)
+  if (ui.cur_item_type == ITEM_MOVESEL_VERT) {
+
+#ifdef ABC
     gnome_canvas_item_set(ui.selection->canvas_item, "y2", pt[1], NULL);
-  else 
+#else
+    WARN1("No idea what is going on\n");
+#endif
+
+  } else { 
+#ifdef ABC
     gnome_canvas_item_move(ui.selection->canvas_item, dx, dy);
+#else
+    goo_canvas_item_translate(ui.selection->canvas_item, dx, dy);
+#endif
+  }
   
   for (list = ui.selection->items; list != NULL; list = list->next) {
     item = (struct Item *)list->data;
     if (item->canvas_item != NULL)
-      gnome_canvas_item_move(item->canvas_item, dx, dy);
+      goo_canvas_item_translate(item->canvas_item, dx, dy);
   }
-
-
-#else
-  assert(0);
-#endif
-
 }
 
 void continue_resizesel(GdkEvent *event)
@@ -599,7 +633,6 @@ void continue_resizesel(GdkEvent *event)
 
 void finalize_movesel(void)
 {
-#ifdef ABC
   GList *list, *link;
   
   if (ui.selection->items != NULL) {
@@ -633,22 +666,21 @@ void finalize_movesel(void)
     ui.selection->bbox.right += undo->val_x;
     ui.selection->bbox.top += undo->val_y;
     ui.selection->bbox.bottom += undo->val_y;
-    make_dashed(ui.selection->canvas_item);
+    xo_canvas_item_set_dashed(ui.selection->canvas_item);
     /* update selection box object's offset to be trivial, and its internal 
        coordinates to agree with those of the bbox; need this since resize
        operations will modify the box by setting its coordinates directly */
+#ifdef ABC 
     gnome_canvas_item_affine_absolute(ui.selection->canvas_item, NULL);
     gnome_canvas_item_set(ui.selection->canvas_item, 
       "x1", ui.selection->bbox.left, "x2", ui.selection->bbox.right,
       "y1", ui.selection->bbox.top, "y2", ui.selection->bbox.bottom, NULL);
+#else
+    TRACE_1("This is no longer needed. It is already moved by the selection\n");
+#endif
   }
   ui.cur_item_type = ITEM_NONE;
   update_cursor();
-
-
-#else
-  assert(0);
-#endif
 }
 
 #define SCALING_EPSILON 0.001
@@ -699,7 +731,7 @@ void finalize_resizesel(void)
     ui.selection->bbox.top = ui.selection->new_y2;
     ui.selection->bbox.bottom = ui.selection->new_y1;
   }
-  make_dashed(ui.selection->canvas_item);
+  xo_canvas_item_set_dashed(ui.selection->canvas_item);
 
   ui.cur_item_type = ITEM_NONE;
   update_cursor();
@@ -711,7 +743,8 @@ void selection_delete(void)
   GList *itemlist;
   struct Item *item;
   
-  if (ui.selection == NULL) return;
+  if (ui.selection == NULL) 
+    return;
   prepare_new_undo();
   undo->type = ITEM_ERASURE;
   undo->layer = ui.selection->layer;
@@ -719,7 +752,7 @@ void selection_delete(void)
   for (itemlist = ui.selection->items; itemlist!=NULL; itemlist = itemlist->next) {
     item = (struct Item *)itemlist->data;
     if (item->canvas_item!=NULL)
-      g_object_run_dispose(G_OBJECT(item->canvas_item));
+      goo_canvas_item_remove(item->canvas_item);
     erasure = g_new(struct UndoErasureData, 1);
     erasure->item = item;
     erasure->npos = g_list_index(ui.selection->layer->items, item);
@@ -741,11 +774,9 @@ void selection_delete(void)
 
 void recolor_selection(int color_no, guint color_rgba)
 {
-#ifdef ABC
   GList *itemlist;
   struct Item *item;
   struct Brush *brush;
-  GnomeCanvasGroup *group;
   
   if (ui.selection == NULL) return;
   prepare_new_undo();
@@ -765,19 +796,27 @@ void recolor_selection(int color_no, guint color_rgba)
     item->brush.color_no = color_no;
     item->brush.color_rgba = color_rgba | 0xff; // no alpha
     if (item->canvas_item!=NULL) {
+      // I think all it is needed is to change the color of the item
+      g_object_set(item->canvas_item, 
+		   "stroke-color-rgba", item->brush.color_rgba, 
+		   NULL);
+      
+      
+#ifdef ABC
+  GnomeCanvasGroup *group;
+
       if (!item->brush.variable_width)
         gnome_canvas_item_set(item->canvas_item, 
            "fill-color-rgba", item->brush.color_rgba, NULL);
       else {
         group = (GnomeCanvasGroup *) item->canvas_item->parent;
-        g_object_run_dispose(GTK_OBJECT(item->canvas_item));
+        goo_canvas_item_remove(item->canvas_item);
         make_canvas_item_one(group, item);
       }
+#endif
     }
   }
-#else
-  assert(0);
-#endif
+
 }
 
 void rethicken_selection(int val)
@@ -810,7 +849,7 @@ void rethicken_selection(int val)
            "width-units", item->brush.thickness, NULL);
       else {
         group = (GnomeCanvasGroup *) item->canvas_item->parent;
-        g_object_run_dispose(GTK_OBJECT(item->canvas_item));
+        goo_canvas_item_remove(item->canvas_item);
         item->brush.variable_width = FALSE;
         make_canvas_item_one(group, item);
       }

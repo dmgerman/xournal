@@ -126,7 +126,7 @@ void xo_goo_canvas_item_hide(GooCanvasItem *item)
 		NULL);
 }
 
-void xo_goo_canvas_item_reposition(GooCanvasItem *item, gdouble x, gdouble y)
+void xo_goo_canvas_item_move_to(GooCanvasItem *item, gdouble x, gdouble y)
 {
   g_object_set(G_OBJECT(item), "x",x,"y",y, NULL);
 }
@@ -233,9 +233,6 @@ void prepare_new_undo(void)
 
 void clear_redo_stack(void)
 {
-  TRACE_1("\n\nThis needs to be implemented\n\n");
-  return ;
-#ifdef ABC
 
 
   struct UndoItem *u;  
@@ -250,7 +247,7 @@ void clear_redo_stack(void)
   
   while (redo!=NULL) {
     if (redo->type == ITEM_STROKE) {
-      gnome_canvas_points_free(redo->item->path);
+      goo_canvas_points_unref(redo->item->path);
       if (redo->item->brush.variable_width) g_free(redo->item->widths);
       g_free(redo->item);
       /* the strokes are unmapped, so there are no associated canvas items */
@@ -270,7 +267,7 @@ void clear_redo_stack(void)
         erasure = (struct UndoErasureData *)list->data;
         for (repl = erasure->replacement_items; repl!=NULL; repl=repl->next) {
           it = (struct Item *)repl->data;
-          gnome_canvas_points_free(it->path);
+          goo_canvas_points_unref(it->path);
           if (it->brush.variable_width) g_free(it->widths);
           g_free(it);
         }
@@ -301,7 +298,7 @@ void clear_redo_stack(void)
       for (list = redo->itemlist; list!=NULL; list=list->next) {
         it = (struct Item *)list->data;
         if (it->type == ITEM_STROKE) {
-          gnome_canvas_points_free(it->path);
+          goo_canvas_points_unref(it->path);
           if (it->brush.variable_width) g_free(it->widths);
         }
         g_free(it);
@@ -322,20 +319,11 @@ void clear_redo_stack(void)
   }
   update_undo_redo_enabled();
 
-#else
-  assert(0);
-#endif
-
 
 }
 
 void clear_undo_stack(void)
 {
-  TRACE_1("\n\nThis needs to be implemented\n\n");
-
-  return ;
-
-#ifdef ABC
 
   struct UndoItem *u;
   GList *list;
@@ -348,7 +336,7 @@ void clear_undo_stack(void)
       for (list = undo->erasurelist; list!=NULL; list=list->next) {
         erasure = (struct UndoErasureData *)list->data;
         if (erasure->item->type == ITEM_STROKE) {
-          gnome_canvas_points_free(erasure->item->path);
+          goo_canvas_points_unref(erasure->item->path);
           if (erasure->item->brush.variable_width) g_free(erasure->item->widths);
         }
         if (erasure->item->type == ITEM_TEXT)
@@ -398,9 +386,7 @@ void clear_undo_stack(void)
     g_free(u);
   }
   update_undo_redo_enabled();
-#else
-  assert(0);
-#endif
+
 
 }
 
@@ -452,9 +438,8 @@ void delete_layer(struct Layer *l)
 
     item = (struct Item *)l->items->data;
 
-#ifdef ABC
     if (item->type == ITEM_STROKE && item->path != NULL) 
-      gnome_canvas_points_free(item->path);
+      goo_canvas_points_unref(item->path);
 
     if (item->type == ITEM_TEXT) {
       g_free(item->font_name); g_free(item->text);
@@ -463,9 +448,6 @@ void delete_layer(struct Layer *l)
       g_object_unref(item->image);
       g_free(item->image_png);
     }
-#else
-  assert(0);
-#endif
     // don't need to delete the canvas_item, as it's part of the group destroyed below
     g_free(item);
     l->items = g_list_delete_link(l->items, l->items);
@@ -705,7 +687,7 @@ void make_canvas_item_one(GooCanvasItem *group, struct Item *item)
   if (item->type == ITEM_STROKE) {
     if (!item->brush.variable_width) {
 
-      xo_create_path(group, item, item->path, item->brush.thickness);
+      item->canvas_item = xo_create_path(group, item->path, item->brush.thickness);
 
     } else {
       item->canvas_item = goo_canvas_group_new(group, NULL);
@@ -714,7 +696,7 @@ void make_canvas_item_one(GooCanvasItem *group, struct Item *item)
 
       for (j = 0; j < item->path->num_points-1; j++) {
         points.coords = item->path->coords+2*j;
-	xo_create_path(group, item, &points, item->widths[j]);
+	xo_create_path(group, &points, item->widths[j]);
 	/*
 	goo_canvas_polyline_new(item->canvas_item, FALSE, 0,
 				"points", &points,
@@ -727,6 +709,8 @@ void make_canvas_item_one(GooCanvasItem *group, struct Item *item)
 	*/
       }
     }
+    // set color
+    // we do it separately because this way the items  inherit from the group
   }
   if (item->type == ITEM_TEXT) {
     // goocanvas needs the name of the font followed by its size
@@ -1598,7 +1582,7 @@ void do_switch_page(int pg, gboolean rescroll, gboolean refresh_all)
       xo_canvas_set_pixels_per_unit();
     } else if (!ui.view_continuous) {
       //      gnome_canvas_item_move(GNOME_CANVAS_ITEM(ui.cur_page->group), 0., 0.);
-      xo_goo_canvas_item_reposition(ui.cur_page->group, 0.0, 0.0);
+      xo_goo_canvas_item_move_to(ui.cur_page->group, 0.0, 0.0);
     }
 
   }
@@ -1628,7 +1612,7 @@ void update_page_stuff(void)
       if (pg->group!=NULL) {
         pg->hoffset = 0.; pg->voffset = vertpos;
 
-	xo_goo_canvas_item_reposition(pg->group, pg->hoffset, pg->voffset);
+	xo_goo_canvas_item_move_to(pg->group, pg->hoffset, pg->voffset);
 
 //        gnome_canvas_item_set(GNOME_CANVAS_ITEM(pg->group), 
 //            "x", pg->hoffset, "y", pg->voffset, NULL);
@@ -1649,7 +1633,7 @@ void update_page_stuff(void)
       pg = (struct Page *)pglist->data;
       if (pg == ui.cur_page && pg->group!=NULL) {
         pg->hoffset = 0.; pg->voffset = 0.;
-	xo_goo_canvas_item_reposition(pg->group, pg->hoffset, pg->voffset);
+	xo_goo_canvas_item_move_to(pg->group, pg->hoffset, pg->voffset);
 	//        gnome_canvas_item_set(GNOME_CANVAS_ITEM(pg->group), 
 	//            "x", pg->hoffset, "y", pg->voffset, NULL);
         xo_goo_canvas_item_show(pg->group);
@@ -2095,7 +2079,8 @@ void reset_selection(void)
 {
   if (ui.selection == NULL) return;
   if (ui.selection->canvas_item != NULL) 
-    g_object_unref(G_OBJECT(ui.selection->canvas_item));
+    goo_canvas_item_remove(ui.selection->canvas_item);
+
   g_list_free(ui.selection->items);
   g_free(ui.selection);
   ui.selection = NULL;
@@ -2801,4 +2786,16 @@ void xo_canvas_set_pixels_per_unit(void)
   goo_canvas_set_scale(canvas, ui.zoom);
   //     WARN;
 #endif
+}
+
+void xo_canvas_get_scroll_offsets(GooCanvas *canvas, int *x, int *y) 
+{
+  GtkAdjustment *v_adj, *h_adj;
+  
+  v_adj = gtk_scrollable_get_vadjustment(GTK_SCROLLABLE(canvas));
+  h_adj = gtk_scrollable_get_hadjustment(GTK_SCROLLABLE(canvas));
+
+  *x = gtk_adjustment_get_value(h_adj);
+  *y = gtk_adjustment_get_value(v_adj);
+
 }

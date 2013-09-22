@@ -247,15 +247,14 @@ GooCanvasItem *xo_create_group(GooCanvasItem *group)
 }
 
 
-void xo_create_path(GooCanvasItem *group, struct Item *item, GooCanvasPoints *points, gdouble lineWidth)
+GooCanvasItem *xo_create_path(GooCanvasItem *group, GooCanvasPoints *points, gdouble lineWidth)
 {
-  item->canvas_item = goo_canvas_polyline_new(group, FALSE, 0,
-					      "points", points,
-					      "line-cap", CAIRO_LINE_CAP_ROUND, 
-					      "line-join", CAIRO_LINE_JOIN_ROUND,
-					      "stroke-color-rgba", item->brush.color_rgba,  
-					      "line-width", lineWidth, 
-					      NULL);
+  return goo_canvas_polyline_new(group, FALSE, 0,
+				 "points", points,
+				 "line-cap", CAIRO_LINE_CAP_ROUND, 
+				 "line-join", CAIRO_LINE_JOIN_ROUND,
+				 "line-width", lineWidth, 
+				 NULL);
 }
 
 
@@ -281,7 +280,7 @@ void create_new_stroke(GdkEvent *event)
 						     "width-units", ui.cur_item->brush.thickness, NULL);
 #else
     ui.cur_item->brush.variable_width = FALSE;
-    xo_create_path(ui.cur_layer->group, ui.cur_item, &ui.cur_path, ui.cur_item->brush.thickness);
+    ui.cur_item->canvas_item = xo_create_path(ui.cur_layer->group, &ui.cur_path, ui.cur_item->brush.thickness);
 #endif
   } else {
 #ifdef ABC
@@ -594,12 +593,12 @@ gboolean do_hand_scrollto(gpointer data)
   return FALSE;
 }
 
+
 void do_hand(GdkEvent *event)
 {
 
   double pt[2];
   int cx, cy;
-  GtkAdjustment *v_adj, *h_adj;
   
   get_pointer_coords(event, pt);
 
@@ -607,19 +606,7 @@ void do_hand(GdkEvent *event)
   pt[0] += ui.cur_page->hoffset;
   pt[1] += ui.cur_page->voffset;
 
-  //dmg: i think the adjustments gives me the offset, in pixels...
-  /*
-  goo_canvas_convert_from_pixels(canvas, &x, &y);
-
-  */
-  v_adj = gtk_scrollable_get_vadjustment(GTK_SCROLLABLE(canvas));
-  h_adj = gtk_scrollable_get_hadjustment(GTK_SCROLLABLE(canvas));
-
-  printf("The offset coordinates of the corner in world are  vadj [%f] vhor[%f]\n", 
-	 gtk_adjustment_get_value(v_adj), gtk_adjustment_get_value(h_adj));
-
-  cx = gtk_adjustment_get_value(h_adj);
-  cy = gtk_adjustment_get_value(v_adj);
+  xo_canvas_get_scroll_offsets(canvas, &cx, &cy);
 
   ui.hand_scrollto_cx = cx - (pt[0]-ui.hand_refpt[0])*ui.zoom;
   ui.hand_scrollto_cy = cy - (pt[1]-ui.hand_refpt[1])*ui.zoom;

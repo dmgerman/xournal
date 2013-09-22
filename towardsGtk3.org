@@ -1,47 +1,86 @@
 * Moving Xournal to gtk3
 
-** Currently working <2013-09-20 Fri>
+** Currently working <2013-09-22 Sun>
 
-- Loads files, one or multiple pages
-  - PDfs with annotations
+- Loads files, one or multiple pages 
+  - PDfs with annotations (in on page mode)
   - xournal files 
 
 - Exits
-
 - Selection
 - Resizing
-
+- moving
 - Pressure sensitivity
 
+- Draws
+  - Lines
+  - straight lines
 
-** In progress
- - hand scrolling
+** What is broken seriously (and would impede using it)
 
-** What is broken
+*** [TODO] Loading pdf backgrounds does not  properly display if continous and multipage.
+  
+- Interestingly it works if the file is loaded one page, then switched to continuous 
+  This seems to imply to execution paths for the same code.
+- Canvas items are properly displayed where they belong
 
-*** [TODO] the screen needs to be redrawn after each line, because there are aliasing artifacts
+*** [TODO] strokes with variable width
 
-*** [TODO] selection rectangle is not dashed, but red :minor:
+- They need to inherit the color from its parent, that way it is easy to change it
+- They cannot be selected!
+
+*** [TODO] Drawing of items needs to add the color
+    
+- which I removed by .... stupidity? Makes the code more complicated... 
+
+*** [TODO] Selection
+
+- It does not work for strokes of variable length
+- It assert faults under some situations (I think i fixed it). The
+  main problem is that rectangles are no longer drawn with four
+  points, but with x,y width and height and they do not allow negative
+  withds/heights. This means we always have to draw from left/top
+  point.  One alternative is to use a path.
+
+*** [TODO] Undo-Redo
+
+- I think there are issues that need to be implemented. At the very
+  least, it needs testing
 
 *** [TODO] lots of things
 Search for WARN or assert(0):
 
-- Create new journal
-- Loading a new journal
 - implement Dialog windows (there is a deprecation in gtk3 that I need
   to fix). This affects everything that creates a dialog window.
-- selection of items in canvas
 - selection of colors
-- drawing
 - inserting images
 - inserting text
-- undo/redo
-- cut and paste
+- undo/redo of some items 
+- cut and paste 
 - print (I think)
 
+** Minor issues that need to be looked at
 
-*** [TODO] tt does not center the screen in the canvas when it is rezized
+*** [TODO] Mouse shapes
 
+- I have observed some cases in which the shape of the mouse during
+  resizing of a region stays even after the resizing. Needs investigation
+
+
+*** [TODO] it does not center the screen in the canvas when it is rezized
+
+
+
+
+*** [TODO] the screen needs to be redrawn after each line, because there are aliasing artifacts :minor:
+
+*** [TODO] selection rectangle is not dashed, but red :minor:
+
+
+*** [TODO] the bounding box of the selection needs to be dashed instead of painted red
+    
+- but this is something that goo-canvas people are implementing, which
+  is nice ;) it means we are supported
 
 * Other notes
 
