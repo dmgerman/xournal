@@ -2,19 +2,9 @@
 
 ** Currently working <2013-09-22 Sun>
 
-- Loads files, one or multiple pages 
-  - PDfs with annotations (in on page mode)
-  - xournal files 
-
-- Exits
-- Selection
-- Resizing
-- moving
-- Pressure sensitivity
-
-- Draws
-  - Lines
-  - straight lines
+- DO NOT USE YET. This branch is still broken
+- There are lots of features that work, but a lot that does not work
+- Below I have listed the features that have been ported, but are broken
 
 ** What is broken seriously (and would impede using it)
 
