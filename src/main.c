@@ -286,24 +286,19 @@ void init_stuff (int argc, char *argv[])
   g_signal_connect ((gpointer) canvas, "leave_notify_event",
                     G_CALLBACK (on_canvas_leave_notify_event),
                     NULL);
-#ifdef ABC
-  g_signal_connect ((gpointer) canvas, "expose_event",
-                    G_CALLBACK (on_canvas_expose_event),
+  g_signal_connect ((gpointer) canvas, "draw",
+                    G_CALLBACK (on_canvas_draw_event),
                     NULL);
-#else
-  TRACE_1("How the hell do I do this? Do we still need to handle the expose event\n\n");
-#endif
   g_signal_connect ((gpointer) canvas, "key_press_event",
                     G_CALLBACK (on_canvas_key_press_event),
                     NULL);
   g_signal_connect ((gpointer) canvas, "motion_notify_event",
                     G_CALLBACK (on_canvas_motion_notify_event),
                     NULL);
-#ifdef ABC
-  g_signal_connect ((gpointer) gtk_layout_get_vadjustment(GTK_LAYOUT(canvas)),
+  //  v_adj = gtk_scrollable_get_vadjustment(GTK_SCROLLABLE(canvas));
+  g_signal_connect ((gpointer) gtk_scrollable_get_vadjustment(GTK_SCROLLABLE(canvas)),
                     "value-changed", G_CALLBACK (on_vscroll_changed),
                     NULL);
-#endif
   g_object_set_data (G_OBJECT (winMain), "canvas", canvas);
 
   screen = gtk_widget_get_screen(winMain);

@@ -1556,7 +1556,6 @@ void
 on_journalLoadBackground_activate      (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-#ifdef ABC
   GtkWidget *dialog, *attach_opt;
   struct Background *bg;
   struct Page *pg;
@@ -1670,16 +1669,14 @@ on_journalLoadBackground_activate      (GtkMenuItem     *menuitem,
   g_list_free(bglist);
   if (ui.zoom != DEFAULT_ZOOM) {
     ui.zoom = DEFAULT_ZOOM;
-    gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
+    //    gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
+    xo_canvas_set_pixels_per_unit();
     rescale_text_items();
     rescale_bg_pixmaps();
     rescale_images();
   }
   do_switch_page(ui.pageno, TRUE, TRUE);
 
-#else
-  assert(0);
-#endif
 
 
 
@@ -2810,11 +2807,12 @@ on_canvas_leave_notify_event           (GtkWidget       *widget,
 
 
 gboolean
-on_canvas_expose_event                 (GtkWidget       *widget,
-                                        GdkEventExpose  *event,
-                                        gpointer         user_data)
+on_canvas_draw_event                 (GtkWidget       *widget,
+				      void             *cr,
+                                      gpointer         user_data)
 {
-  if (ui.view_continuous && ui.progressive_bg) rescale_bg_pixmaps();
+  if (ui.view_continuous && ui.progressive_bg) 
+    rescale_bg_pixmaps();
   return FALSE;
 }
 
@@ -3098,22 +3096,24 @@ void
 on_vscroll_changed                     (GtkAdjustment   *adjustment,
                                         gpointer         user_data)
 {
-#ifdef ABC
-
-
   gboolean need_update;
   double viewport_top, viewport_bottom;
   struct Page *tmppage;
   
-  if (!ui.view_continuous) return;
+  if (!ui.view_continuous) 
+    return;
   
-  if (ui.progressive_bg) rescale_bg_pixmaps();
+  if (ui.progressive_bg)  {
+    TRACE_1("\n\n----------------------------------------------------\nit is progressive, rescale the background\n");
+    rescale_bg_pixmaps();
+  }
   need_update = FALSE;
-  viewport_top = adjustment->value / ui.zoom;
-  viewport_bottom = (adjustment->value + adjustment->page_size) / ui.zoom;
+  viewport_top = gtk_adjustment_get_value(adjustment) / ui.zoom;
+  viewport_bottom = (gtk_adjustment_get_value(adjustment) + gtk_adjustment_get_page_size(adjustment)) / ui.zoom;
   tmppage = ui.cur_page;
   while (viewport_top > tmppage->voffset + tmppage->height) {
-    if (ui.pageno == journal.npages-1) break;
+    if (ui.pageno == journal.npages-1) 
+      break;
     need_update = TRUE;
     ui.pageno++;
     tmppage = g_list_nth_data(journal.pages, ui.pageno);
@@ -3129,9 +3129,6 @@ on_vscroll_changed                     (GtkAdjustment   *adjustment,
     do_switch_page(ui.pageno, FALSE, FALSE);
   }
   return;
-#else
-  assert(0);
-#endif
 
 }
 

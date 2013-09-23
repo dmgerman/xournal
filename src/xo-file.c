@@ -1139,7 +1139,6 @@ struct Background *attempt_screenshot_bg(void)
 void cancel_bgpdf_request(struct BgPdfRequest *req)
 {
   GList *list_link;
-  
   list_link = g_list_find(bgpdf.requests, req);
   if (list_link == NULL) return;
   // remove the request
@@ -1165,7 +1164,6 @@ gboolean bgpdf_scheduler_callback(gpointer data)
 #endif
   cairo_t *cr;
 
-  TRACE;
   // if all requests have been cancelled, remove ourselves from main loop
   if (bgpdf.requests == NULL) { 
     bgpdf.pid = 0; 
@@ -1181,6 +1179,7 @@ gboolean bgpdf_scheduler_callback(gpointer data)
 
   // use poppler to generate the page
   pixbuf = NULL;
+  
   pdfpage = poppler_document_get_page(bgpdf.document, req->pageno-1);
   if (pdfpage) {
 
@@ -1283,8 +1282,9 @@ gboolean add_bgpdf_request(int pageno, double zoom)
   struct BgPdfRequest *req, *cmp_req;
   GList *list;
 
-  if (bgpdf.status == STATUS_NOT_INIT)
+  if (bgpdf.status == STATUS_NOT_INIT) {
     return FALSE; // don't accept requests
+  }
   req = g_new(struct BgPdfRequest, 1);
   req->pageno = pageno;
   req->dpi = 72*zoom;
@@ -1297,11 +1297,12 @@ gboolean add_bgpdf_request(int pageno, double zoom)
     if (cmp_req->pageno == pageno) 
       cancel_bgpdf_request(cmp_req);
   }
-
   // make the request
+
   bgpdf.requests = g_list_append(bgpdf.requests, req);
-  if (!bgpdf.pid) 
+  if (!bgpdf.pid)  {
     bgpdf.pid = g_idle_add(bgpdf_scheduler_callback, NULL);
+  }
   return TRUE;
 }
 
@@ -1440,7 +1441,6 @@ void bgpdf_update_bg(int pageno, struct BgPdfPage *bgpg)
   GList *list;
   struct Page *pg;
   
-  TRACE_2("With pageno [%d]", pageno);
   for (list = journal.pages; list!= NULL; list = list->next) {
     pg = (struct Page *)list->data;
 
@@ -1454,12 +1454,9 @@ void bgpdf_update_bg(int pageno, struct BgPdfPage *bgpg)
       pg->bg->pixel_width = bgpg->pixel_width;
       pg->bg->pixel_height = bgpg->pixel_height;
         
-      TRACE_3("    Width Height [%d][%d]", bgpg->pixel_width, bgpg->pixel_height);
-
       update_canvas_bg(pg);
     }
   }
-  TRACE_1("ending");
 }
 
 // initialize the recent files list

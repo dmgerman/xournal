@@ -865,6 +865,7 @@ void update_canvas_bg(struct Page *pg)
   TRACE;
   
   if (pg->bg->canvas_group != NULL) {
+    // dispose it 
     goo_canvas_item_remove(pg->bg->canvas_group);
     pg->bg->canvas_group = NULL;
   }
@@ -878,11 +879,13 @@ void update_canvas_bg(struct Page *pg)
     pg->bg->pixbuf_scale = 0;
     assert(pg->bg->pixbuf != NULL);
 
-    assert(0);
-
     pg->bg->canvas_group = goo_canvas_image_new(pg->group,
 						pg->bg->pixbuf,
-						0, 0);
+						0, 0,
+						"width", pg->width,
+						"height", pg->height,
+						"scale-to-fit", TRUE,
+						NULL);
 
     /*
     pg->bg->canvas_item = gnome_canvas_item_new(pg->group, 
@@ -892,7 +895,6 @@ void update_canvas_bg(struct Page *pg)
         "width-set", TRUE, "height-set", TRUE, 
         NULL);
     */
-    WARN; // we might have to set the dimensions
     lower_canvas_item_to(pg->group, pg->bg->canvas_group, NULL);
   } else if (pg->bg->type == BG_PDF) {
 
@@ -906,7 +908,8 @@ void update_canvas_bg(struct Page *pg)
     TRACE_2("In bgpdf well scaled? [%d]\n", is_well_scaled);
     
     if (is_well_scaled) {
-      
+      // then don't resize
+      TRACE_1("We are not resizing\n");
       pg->bg->canvas_group = goo_canvas_image_new(pg->group,
 						  pg->bg->pixbuf,
 						  0, 0,
@@ -915,13 +918,15 @@ void update_canvas_bg(struct Page *pg)
 						  "scale-to-fit", TRUE,
 						  NULL);
     } else {
-      assert(0);
+      // insert resizing
       pg->bg->canvas_group = goo_canvas_image_new(pg->group,
 						  pg->bg->pixbuf,
-						  //"scale-to-fit", TRUE,
-						  0, 0);
+						  0, 0,
+						  "width", pg->width,
+						  "height", pg->height,
+						  "scale-to-fit", TRUE,
+						  NULL);
 
-      WARN;
       /*
 	pg->bg->canvas_item = gnome_canvas_item_new(pg->group, 
 	gnome_canvas_pixbuf_get_type(), 
@@ -961,16 +966,23 @@ void rescale_bg_pixmaps(void)
   gboolean is_well_scaled;
   gdouble zoom_to_request;
   
+  TRACE_1("Entering");
   for (pglist = journal.pages; pglist!=NULL; pglist = pglist->next) {
     pg = (struct Page *)pglist->data;
     // in progressive mode we scale only visible pages
-    if (ui.progressive_bg && !is_visible(pg)) continue;
+    if (ui.progressive_bg && !is_visible(pg)) 
+      continue;
+    
 
     if (pg->bg->type == BG_PIXMAP && pg->bg->canvas_group!=NULL) {
+
+#ifdef ABC      
+      printf("This needs to be reimplmented... goo_canvas_image does not store the pixbuf\n");
+
       pix = xo_goo_canvas_item_pixbuf_get(pg->bg->canvas_group);
-    //    g_object_get(G_OBJECT(pg->bg->canvas_group), "pixbuf", &pix, NULL);
       if (pix!=pg->bg->pixbuf)
-	//        gnome_canvas_item_set(pg->bg->canvas_group, "pixbuf", pg->bg->pixbuf, NULL);
+	gnome_canvas_item_set(pg->bg->canvas_group, "pixbuf", pg->bg->pixbuf, NULL);
+#endif
 	xo_goo_canvas_item_pixbuf_set(pg->bg->canvas_group, pg->bg->pixbuf);
       pg->bg->pixbuf_scale = 0;
     }
@@ -990,27 +1002,28 @@ void rescale_bg_pixmaps(void)
             "width-set", TRUE, "height-set", TRUE, 
             NULL);
 #else
-	//        g_object_get(pg->bg->canvas_group, "width-in-pixels", &is_well_scaled, NULL)
+	
+	g_object_get(pg->bg->canvas_group, "width", &is_well_scaled, NULL);
 
-	//        if (is_well_scaled)
-	// we no longer need to scale... it is done automatically...
-	/*
-	goo_canvas_item_scale(pg->bg->canvas_group,
-			      "width", pg->width, 
-			      "height", pg->height, 
-			      "scale-to-fit", TRUE,
-			      NULL);
-	*/
+	if (is_well_scaled) {
+	  g_object_set(pg->bg->canvas_group,
+		       "width", pg->width, 
+		       "height", pg->height, 
+		       "scale-to-fit", TRUE,
+		       NULL);
+	}
 #endif
       }
       // request an asynchronous update to a better pixmap if needed
       zoom_to_request = MIN(ui.zoom, MAX_SAFE_RENDER_DPI/72.0);
-      if (pg->bg->pixbuf_scale == zoom_to_request) 
-	continue;
-      if (add_bgpdf_request(pg->bg->file_page_seq, zoom_to_request))
-        pg->bg->pixbuf_scale = zoom_to_request;
+      if (pg->bg->pixbuf_scale != zoom_to_request) {
+	TRACE;
+	if (add_bgpdf_request(pg->bg->file_page_seq, zoom_to_request))
+	  pg->bg->pixbuf_scale = zoom_to_request;
+      }
     }
   }
+  TRACE_1("Ending\n");
 }
 
 gboolean have_intersect(struct BBox *a, struct BBox *b)
@@ -1616,7 +1629,13 @@ void update_page_stuff(void)
 
 //        gnome_canvas_item_set(GNOME_CANVAS_ITEM(pg->group), 
 //            "x", pg->hoffset, "y", pg->voffset, NULL);
+	TRACE_2("Showing page %d\n", i);
+	if (pg->bg->canvas_group == NULL) {
+	  TRACE_1("But this page is empty!\n");
+	}
+
         xo_goo_canvas_item_show(pg->group);
+
       }
       vertpos += pg->height + VIEW_CONTINUOUS_SKIP;
       if (pg->width > maxwidth) maxwidth = pg->width;

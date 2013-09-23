@@ -13,6 +13,8 @@
 - Interestingly it works if the file is loaded one page, then switched to continuous 
   This seems to imply to execution paths for the same code.
 - Canvas items are properly displayed where they belong
+- Only those pages that are visible in the first screen are rendered... the rest are not.
+- At zooming, the same happens, only visible pages are rendered..
 
 *** [TODO] strokes with variable width
 

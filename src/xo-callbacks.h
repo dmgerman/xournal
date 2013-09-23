@@ -426,8 +426,8 @@ on_canvas_leave_notify_event           (GtkWidget       *widget,
                                         gpointer         user_data);
 
 gboolean
-on_canvas_expose_event                 (GtkWidget       *widget,
-                                        GdkEventExpose  *event,
+on_canvas_draw_event                 (GtkWidget       *widget,
+                                        void           *event,
                                         gpointer         user_data);
 
 gboolean
