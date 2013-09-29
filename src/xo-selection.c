@@ -106,7 +106,7 @@ void xo_selection_rectangle_draw(void)
 						  ui.selection->bbox.right - ui.selection->bbox.left,
 						  ui.selection->bbox.bottom - ui.selection->bbox.top,
 						  "line-width", 1.0,
-						  "stroke-color-rgba", 0x000000ff,
+						  //						  "stroke-color-rgba", 0x000000ff,
 						  "fill-color-rgba", 0x80808040,
 						  NULL);
 

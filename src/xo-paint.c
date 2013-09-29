@@ -138,6 +138,8 @@ void update_cursor(void)
   GdkColor fg = {0, 0, 0, 0}, bg = {0, 65535, 65535, 65535};
   GdkWindow *window;
 
+  TRACE_2("Entry type of cur_item_type [%d]",ui.cur_item_type);
+
   ui.is_sel_cursor = FALSE;
 
 
@@ -146,6 +148,8 @@ void update_cursor(void)
   if (window == NULL) 
     return;
   
+  TRACE_1("And going");
+
   if (ui.cursor!=NULL) { 
     g_object_unref(ui.cursor);
     ui.cursor = NULL;
@@ -174,6 +178,9 @@ void update_cursor(void)
   }
   
   gdk_window_set_cursor(window, ui.cursor);
+
+  TRACE_1("Exit");
+
 }
 
 /* adjust the cursor shape if it hovers near a selection box */
@@ -431,7 +438,6 @@ void finalize_stroke(void)
 void erase_stroke_portions(struct Item *item, double x, double y, double radius,
                    gboolean whole_strokes, struct UndoErasureData *erasure)
 {
-#ifdef ABC
   int i;
   double *pt;
   struct Item *newhead, *newtail;
@@ -443,7 +449,7 @@ void erase_stroke_portions(struct Item *item, double x, double y, double radius,
       // hide the canvas item, and create erasure data if needed
       if (erasure == NULL) {
         item->type = ITEM_TEMP_STROKE;
-        gnome_canvas_item_hide(item->canvas_item);  
+        xo_goo_canvas_item_hide(item->canvas_item);  
             /*  we'll use this hidden item as an insertion point later */
         erasure = (struct UndoErasureData *)g_malloc(sizeof(struct UndoErasureData));
         item->erasure = erasure;
@@ -459,7 +465,7 @@ void erase_stroke_portions(struct Item *item, double x, double y, double radius,
           newhead = (struct Item *)g_malloc(sizeof(struct Item));
           newhead->type = ITEM_STROKE;
           g_memmove(&newhead->brush, &item->brush, sizeof(struct Brush));
-          newhead->path = gnome_canvas_points_new(i);
+          newhead->path = goo_canvas_points_new(i);
           g_memmove(newhead->path->coords, item->path->coords, 2*i*sizeof(double));
           if (newhead->brush.variable_width)
             newhead->widths = (gdouble *)g_memdup(item->widths, (i-1)*sizeof(gdouble));
@@ -473,7 +479,7 @@ void erase_stroke_portions(struct Item *item, double x, double y, double radius,
           newtail = (struct Item *)g_malloc(sizeof(struct Item));
           newtail->type = ITEM_STROKE;
           g_memmove(&newtail->brush, &item->brush, sizeof(struct Brush));
-          newtail->path = gnome_canvas_points_new(item->path->num_points-i);
+          newtail->path = goo_canvas_points_new(item->path->num_points-i);
           g_memmove(newtail->path->coords, item->path->coords+2*i, 
                            2*(item->path->num_points-i)*sizeof(double));
           if (newtail->brush.variable_width)
@@ -485,10 +491,12 @@ void erase_stroke_portions(struct Item *item, double x, double y, double radius,
       }
       if (item->type == ITEM_STROKE) { 
         // it's inside an erasure list - we destroy it
-        gnome_canvas_points_free(item->path);
+        goo_canvas_points_unref(item->path);
         if (item->brush.variable_width) g_free(item->widths);
-        if (item->canvas_item != NULL) 
-          gtk_object_destroy(GTK_OBJECT(item->canvas_item));
+        if (item->canvas_item != NULL) {
+	  //          gtk_object_destroy(GTK_OBJECT(item->canvas_item));
+	  goo_canvas_item_remove(item->canvas_item);
+	}
         erasure->nrepl--;
         erasure->replacement_items = g_list_remove(erasure->replacement_items, item);
         g_free(item);
@@ -519,17 +527,12 @@ void erase_stroke_portions(struct Item *item, double x, double y, double radius,
   lower_canvas_item_to(ui.cur_layer->group, item->canvas_item, 
                                       erasure->item->canvas_item);
 
-#else
-  assert(0);
-#endif
-
 
 }
 
 
 void do_eraser(GdkEvent *event, double radius, gboolean whole_strokes)
 {
-#ifdef ABC
   struct Item *item, *repl;
   GList *itemlist, *repllist;
   double pos[2];
@@ -556,16 +559,11 @@ void do_eraser(GdkEvent *event, double radius, gboolean whole_strokes)
       }
     }
   }
-
-#else
-  assert(0);
-#endif
-
 }
 
 void finalize_erasure(void)
 {
-#ifdef ABC
+
   GList *itemlist, *partlist;
   struct Item *item;
   
@@ -583,7 +581,8 @@ void finalize_erasure(void)
     ui.cur_layer->items = g_list_remove(ui.cur_layer->items, item);
     // the item has an invisible canvas item, which used to act as anchor
     if (item->canvas_item!=NULL) {
-      gtk_object_destroy(GTK_OBJECT(item->canvas_item));
+      //      gtk_object_destroy(GTK_OBJECT(item->canvas_item));
+      goo_canvas_item_remove(item->canvas_item);
       item->canvas_item = NULL;
     }
     undo->erasurelist = g_list_append(undo->erasurelist, item->erasure);
@@ -601,11 +600,6 @@ void finalize_erasure(void)
      this guarantees that, upon undo, the erasure->npos fields give the
      correct position where each item should be reinserted as the list
      is traversed in the forward direction */
-
-#else
-  assert(0);
-#endif
-
 
 }
 
