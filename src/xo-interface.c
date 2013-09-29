@@ -3147,11 +3147,7 @@ GtkWidget*
 create_zoomDialog (void)
 {
   GtkWidget *zoomDialog;
-#ifdef ABC
   GtkWidget *dialog_vbox3;
-#else
-  WARN;
-#endif
   GtkWidget *vbox1;
   GtkWidget *hbox4;
   GtkWidget *radioZoom;
@@ -3176,17 +3172,14 @@ create_zoomDialog (void)
   dialog_vbox3 = GTK_DIALOG (zoomDialog)->vbox;
   gtk_widget_show (dialog_vbox3);
 #else
-  WARN;
+  dialog_vbox3 = gtk_dialog_get_content_area((GtkDialog*)zoomDialog);
 #endif
 
   vbox1 = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
   //  vbox1 = gtk_vbox_new (FALSE, 2);
   gtk_widget_show (vbox1);
-#ifdef ABC
+
   gtk_box_pack_start (GTK_BOX (dialog_vbox3), vbox1, FALSE, FALSE, 0);
-#else
-  WARN;
-#endif
   gtk_container_set_border_width (GTK_CONTAINER (vbox1), 8);
 
   hbox4 = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
@@ -3236,10 +3229,11 @@ create_zoomDialog (void)
 #ifdef ABC
   dialog_action_area3 = GTK_DIALOG (zoomDialog)->action_area;
   gtk_widget_show (dialog_action_area3);
-  gtk_button_box_set_layout (GTK_BUTTON_BOX (dialog_action_area3), GTK_BUTTONBOX_END);
 #else
-  WARN;
+  dialog_action_area3 = gtk_dialog_get_action_area((GtkDialog*)zoomDialog);
 #endif
+
+  gtk_button_box_set_layout (GTK_BUTTON_BOX (dialog_action_area3), GTK_BUTTONBOX_END);
 
   cancelbutton2 = gtk_button_new_from_stock ("gtk-cancel");
   gtk_widget_show (cancelbutton2);
@@ -3248,7 +3242,7 @@ create_zoomDialog (void)
 #ifdef ABC
   GTK_WIDGET_SET_FLAGS (cancelbutton2, GTK_CAN_DEFAULT);
 #else
-  WARN;
+
 #endif
 
   button1 = gtk_button_new_from_stock ("gtk-apply");
@@ -3258,7 +3252,7 @@ create_zoomDialog (void)
 #ifdef ABC
   GTK_WIDGET_SET_FLAGS (button1, GTK_CAN_DEFAULT);
 #else
-  WARN;
+
 #endif
 
   button2 = gtk_button_new_from_stock ("gtk-ok");
@@ -3267,7 +3261,7 @@ create_zoomDialog (void)
 #ifdef ABC
   GTK_WIDGET_SET_FLAGS (button2, GTK_CAN_DEFAULT);
 #else
-  WARN;
+
 #endif
 
   g_signal_connect ((gpointer) radioZoom, "toggled",
@@ -3288,11 +3282,7 @@ create_zoomDialog (void)
 
   /* Store pointers to all widgets, for use by lookup_widget(). */
   GLADE_HOOKUP_OBJECT_NO_REF (zoomDialog, zoomDialog, "zoomDialog");
-#ifdef ABC
   GLADE_HOOKUP_OBJECT_NO_REF (zoomDialog, dialog_vbox3, "dialog_vbox3");
-#else
-  WARN;
-#endif
   GLADE_HOOKUP_OBJECT (zoomDialog, vbox1, "vbox1");
   GLADE_HOOKUP_OBJECT (zoomDialog, hbox4, "hbox4");
   GLADE_HOOKUP_OBJECT (zoomDialog, radioZoom, "radioZoom");
@@ -3301,11 +3291,7 @@ create_zoomDialog (void)
   GLADE_HOOKUP_OBJECT (zoomDialog, radioZoom100, "radioZoom100");
   GLADE_HOOKUP_OBJECT (zoomDialog, radioZoomWidth, "radioZoomWidth");
   GLADE_HOOKUP_OBJECT (zoomDialog, radioZoomHeight, "radioZoomHeight");
-#ifdef ABC
   GLADE_HOOKUP_OBJECT_NO_REF (zoomDialog, dialog_action_area3, "dialog_action_area3");
-#else
-  WARN;
-#endif
   GLADE_HOOKUP_OBJECT (zoomDialog, cancelbutton2, "cancelbutton2");
   GLADE_HOOKUP_OBJECT (zoomDialog, button1, "button1");
   GLADE_HOOKUP_OBJECT (zoomDialog, button2, "button2");
