@@ -54,8 +54,11 @@ void rescale_bg_pixmaps(void);
 gboolean have_intersect(struct BBox *a, struct BBox *b);
 void lower_canvas_item_to(GooCanvasItem *g, GooCanvasItem *item, GooCanvasItem *after);
 
-void rgb_to_gdkcolor(guint rgba, GdkColor *color);
-guint32 gdkcolor_to_rgba(GdkColor gdkcolor, guint16 alpha);
+void xo_rgb_to_GdkColor(guint rgba, GdkColor *color);
+guint32 xo_GdkColor_to_rgba(GdkColor gdkcolor, guint16 alpha) ;
+void xo_rgba_to_GdkRGBA(guint rgba, GdkRGBA *color);
+guint32 xo_GdkRGBA_to_rgba(GdkRGBA *gdkcolor);
+
 
 // interface misc functions
 

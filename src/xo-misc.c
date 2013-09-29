@@ -1042,21 +1042,24 @@ gboolean have_intersect(struct BBox *a, struct BBox *b)
 
 void lower_canvas_item_to(GooCanvasItem *g, GooCanvasItem *item, GooCanvasItem *after)
 {
-  assert(item != NULL);
 
 #ifdef ABC
   int i1, i2;
-
   
   i1 = g_list_index(g->item_list, item);
-  if (i1 == -1) return;
+
+  if (i1 == -1) 
+    return;
   
-  if (after == NULL) i2 = -1;
-  else i2 = g_list_index(g->item_list, after);
+  if (after == NULL) 
+    i2 = -1;
+  else 
+    i2 = g_list_index(g->item_list, after);
 
-
-  if (i1 < i2) gnome_canvas_item_raise(item, i2-i1);
-  if (i1 > i2+1) gnome_canvas_item_lower(item, i1-i2-1);
+  if (i1 < i2) 
+    goo_canvas_item_raise(item, i2-i1);
+  if (i1 > i2+1) 
+    goo_canvas_item_lower(item, i1-i2-1);
   // BUGFIX for libgnomecanvas
   g->item_list_end = g_list_last(g->item_list);
 
@@ -1069,7 +1072,7 @@ void lower_canvas_item_to(GooCanvasItem *g, GooCanvasItem *item, GooCanvasItem *
 
 }
 
-void rgb_to_gdkcolor(guint rgba, GdkColor *color)
+void xo_rgb_to_GdkColor(guint rgba, GdkColor *color)
 {
   color->pixel = 0;
   color->red = ((rgba>>24)&0xff)*0x101;
@@ -1077,12 +1080,37 @@ void rgb_to_gdkcolor(guint rgba, GdkColor *color)
   color->blue = ((rgba>>8)&0xff)*0x101;
 }
 
-guint32 gdkcolor_to_rgba(GdkColor gdkcolor, guint16 alpha) 
+guint32 xo_GdkColor_to_rgba(GdkColor gdkcolor, guint16 alpha) 
 {
   guint32 rgba =  ((gdkcolor.red   & 0xff00) << 16) |
                   ((gdkcolor.green & 0xff00) << 8)  |
                   ((gdkcolor.blue  & 0xff00) )      |
                   ((alpha & 0xff00) >> 8);
+
+  return rgba;
+}
+
+
+void xo_rgba_to_GdkRGBA(guint rgba, GdkRGBA *color)
+{
+  color->red =   ((rgba>>24) & 0xff) / 255.0;
+  color->green = ((rgba>>16) & 0xff) / 255.0;
+  color->blue =  ((rgba>>8) & 0xff) / 255.0;
+  color->alpha = (rgba && 0xff) / 255.0;
+}
+
+guint32 xo_GdkRGBA_to_rgba(GdkRGBA *gdkcolor)
+{
+  // from floats to integers
+  guint red = gdkcolor->red * 255;
+  guint green = gdkcolor->green * 255;
+  guint blue = gdkcolor->blue * 255;
+  guint alpha = gdkcolor->alpha * 255;
+
+  guint32 rgba =  (red    << 24) |
+		   (green  << 16 ) |
+		   (blue   << 8)   |
+		  alpha;
 
   return rgba;
 }
@@ -1116,7 +1144,7 @@ void update_thickness_buttons(void)
 
 void update_color_buttons(void)
 {
-  GdkColor gdkcolor;
+  GdkRGBA gdkcolor;
   GtkColorButton *colorbutton;
   
   if (ui.selection!=NULL || (ui.toolno[ui.cur_mapping] != TOOL_PEN 
@@ -1179,9 +1207,10 @@ void update_color_buttons(void)
        ui.toolno[ui.cur_mapping] != TOOL_HIGHLIGHTER && 
        ui.toolno[ui.cur_mapping] != TOOL_TEXT))
     gdkcolor.red = gdkcolor.blue = gdkcolor.green = 0;
-  else rgb_to_gdkcolor(ui.cur_brush->color_rgba, &gdkcolor);
+  else 
+    xo_rgba_to_GdkRGBA(ui.cur_brush->color_rgba, &gdkcolor);
 
-  gtk_color_button_set_color(colorbutton, &gdkcolor);
+  gtk_color_button_set_rgba(colorbutton, &gdkcolor);
 
   if (ui.toolno[ui.cur_mapping] == TOOL_HIGHLIGHTER) {
     gtk_color_button_set_alpha(colorbutton,
@@ -1891,13 +1920,14 @@ void recolor_temp_text(int color_no, guint color_rgba)
   }
   ui.cur_item->brush.color_no = color_no;
   ui.cur_item->brush.color_rgba = color_rgba;
-  rgb_to_gdkcolor(color_rgba, &gdkcolor);
+  xo_rgb_to_GdkColor(color_rgba, &gdkcolor);
   gtk_widget_modify_text(ui.cur_item->widget, GTK_STATE_NORMAL, &gdkcolor);
   gtk_widget_grab_focus(ui.cur_item->widget);
 }
 
 void process_color_activate(GtkMenuItem *menuitem, int color_no, guint color_rgba)
 {
+  TRACE_3("enter color color index [%d] color [%x]\n", color_no, color_rgba);
   if (G_OBJECT_TYPE(menuitem) == GTK_TYPE_RADIO_MENU_ITEM) {
     if (!gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem)))
       return;

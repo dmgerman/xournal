@@ -602,6 +602,7 @@ on_editUndo_activate                   (GtkMenuItem     *menuitem,
     do_switch_page(ui.pageno, FALSE, FALSE); // don't stay with bad cur_layer info
   }
   else if (undo->type == ITEM_DELETE_LAYER) {
+
     // special case of -1: deleted the last layer, created a new one
     if (undo->val == -1) {
       if (undo->layer2->group!=NULL) 
@@ -611,27 +612,45 @@ on_editUndo_activate                   (GtkMenuItem     *menuitem,
       undo->page->nlayers--;
     }
     // re-map the layer
-#ifdef ABC
-    undo->layer->group = gnome_canvas_item_new(
-      undo->page->group, gnome_canvas_group_get_type(), NULL);
-    lower_canvas_item_to(undo->page->group, GNOME_CANVAS_ITEM(undo->layer->group),
-      (undo->val >= 1) ? GNOME_CANVAS_ITEM(((struct Layer *)
-            g_list_nth_data(undo->page->layers, undo->val-1))->group) :
-            undo->page->bg->canvas_item);
+    undo->layer->group = goo_canvas_group_new(undo->page->group, NULL);
+    GooCanvasItem *prevLayer;
+
+    if (undo->val >= 1) {
+      struct Layer *l2 = (struct Layer *)g_list_nth_data(undo->page->layers, undo->val-1);
+      prevLayer = l2->group;
+    } else {
+      prevLayer = undo->page->bg->canvas_group;
+    }
+
+
+    /*
+    lower_canvas_item_to(undo->page->group, undo->layer->group, prevLayer);
+    */
+    goo_canvas_item_lower(undo->layer->group, NULL);
+    goo_canvas_item_raise(undo->layer->group, prevLayer);
+    //lower_canvas_item_to(undo->page->group, undo->layer->group,
+    //			 (undo->val >= 1) ? ((struct Layer *)
+    //					     g_list_nth_data(undo->page->layers, undo->val-1))->group :
+    //            undo->page->bg->canvas_group);
+
+
+    //    lower_canvas_item_to(undo->page->group, GNOME_CANVAS_ITEM(undo->layer->group),
+    //      (undo->val >= 1) ? GNOME_CANVAS_ITEM(((struct Layer *)
+    //            g_list_nth_data(undo->page->layers, undo->val-1))->group) :
+    //            undo->page->bg->canvas_item);
+
     undo->page->layers = g_list_insert(undo->page->layers, undo->layer,
                                      (undo->val >= 0) ? undo->val:0);
     undo->page->nlayers++;
     
-    for (itemlist = undo->layer->items; itemlist!=NULL; itemlist = itemlist->next)
+    for (itemlist = undo->layer->items; itemlist!=NULL; itemlist = itemlist->next) {
+      printf("remaking an item-----------\n");
       make_canvas_item_one(undo->layer->group, (struct Item *)itemlist->data);
+    }
 
     do_switch_page(ui.pageno, FALSE, FALSE); // show the restored layer & others...
-#else
-    assert(0);
-#endif
   }
   else if (undo->type == ITEM_REPAINTSEL) {
-    assert(0);
     for (itemlist = undo->itemlist, list = undo->auxlist; itemlist!=NULL;
            itemlist = itemlist->next, list = list->next) {
       it = (struct Item *)itemlist->data;
@@ -832,22 +851,26 @@ on_editRedo_activate                   (GtkMenuItem     *menuitem,
     }
   }
   else if (redo->type == ITEM_NEW_LAYER) {
-    assert(0);
-#ifdef ABC
-    redo->layer->group = gnome_canvas_item_new(
-        redo->page->group, gnome_canvas_group_get_type(), NULL);
-    lower_canvas_item_to(redo->page->group, GNOME_CANVAS_ITEM(redo->layer->group),
-      (redo->val >= 1) ? GNOME_CANVAS_ITEM(((struct Layer *)
-            g_list_nth_data(redo->page->layers, redo->val-1))->group) :
-            redo->page->bg->canvas_group);
+    redo->layer->group = goo_canvas_group_new(redo->page->group, NULL);
+
+    // put on top of previous layer
+    GooCanvasItem *prevLayer;
+    if (redo->val >= 1) {
+      struct Layer *l2 = (struct Layer *)g_list_nth_data(redo->page->layers, redo->val-1);
+      prevLayer = l2->group;
+    } else {
+      prevLayer = redo->page->bg->canvas_group;
+    }
+
+    goo_canvas_item_lower(redo->layer->group, NULL);
+    goo_canvas_item_raise(redo->layer->group, prevLayer);
+    //    lower_canvas_item_to(redo->page->group, redo->layer->group, prevLayer);
+
     redo->page->layers = g_list_insert(redo->page->layers, redo->layer, redo->val);
     redo->page->nlayers++;
     do_switch_page(ui.pageno, FALSE, FALSE);
-#endif
   }
   else if (redo->type == ITEM_DELETE_LAYER) {
-    assert(0);
-#ifdef ABC
     goo_canvas_item_remove(redo->layer->group);
     redo->layer->group = NULL;
     for (list=redo->layer->items; list!=NULL; list=list->next)
@@ -855,13 +878,13 @@ on_editRedo_activate                   (GtkMenuItem     *menuitem,
     redo->page->layers = g_list_remove(redo->page->layers, redo->layer);
     redo->page->nlayers--;
     if (redo->val == -1) {
-      redo->layer2->group = (GnomeCanvasGroup *)gnome_canvas_item_new(
-        redo->page->group, gnome_canvas_group_get_type(), NULL);
+      //      redo->layer2->group = (GnomeCanvasGroup *)gnome_canvas_item_new(
+      //        redo->page->group, gnome_canvas_group_get_type(), NULL);
+      redo->layer2->group = goo_canvas_group_new(redo->page->group, NULL);
       redo->page->layers = g_list_append(redo->page->layers, redo->layer2);
       redo->page->nlayers++;
     }
     do_switch_page(ui.pageno, FALSE, FALSE);
-#endif
   }
   else if (redo->type == ITEM_REPAINTSEL) {
     for (itemlist = redo->itemlist, list = redo->auxlist; itemlist!=NULL;
@@ -916,7 +939,8 @@ on_editRedo_activate                   (GtkMenuItem     *menuitem,
     update_item_bbox(redo->item);
   }
   else {
-    WARN;
+    fprintf(stderr, "This should never be reached\n");
+    assert(0);
   }
   // move item from redo to undo stack
   u = redo;
@@ -1134,7 +1158,7 @@ on_viewShowLayer_activate              (GtkMenuItem     *menuitem,
 #ifdef ABC
   gnome_canvas_item_show(GNOME_CANVAS_ITEM(ui.cur_layer->group));
 #else
-  WARN;
+  xo_goo_canvas_item_show(ui.cur_layer->group);
 #endif
 
   update_page_stuff();
@@ -1260,7 +1284,6 @@ void
 on_journalNewLayer_activate            (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-#ifdef ABC
 
   struct Layer *l;
   
@@ -1269,10 +1292,17 @@ on_journalNewLayer_activate            (GtkMenuItem     *menuitem,
   l = g_new(struct Layer, 1);
   l->items = NULL;
   l->nitems = 0;
-  l->group = (GnomeCanvasGroup *) gnome_canvas_item_new(
-    ui.cur_page->group, gnome_canvas_group_get_type(), NULL);
-  lower_canvas_item_to(ui.cur_page->group, GNOME_CANVAS_ITEM(l->group),
-    (ui.cur_layer!=NULL)?(GNOME_CANVAS_ITEM(ui.cur_layer->group)):(ui.cur_page->bg->canvas_group));
+  l->group = goo_canvas_group_new(ui.cur_page->group, NULL);
+
+  /*
+  lower_canvas_item_to(ui.cur_page->group, l->group,
+		       (ui.cur_layer!=NULL)?ui.cur_layer->group:ui.cur_page->bg->canvas_group);
+  */
+
+  // put new layer on top of current layer or background otherwise
+  goo_canvas_item_lower(l->group, NULL);
+  goo_canvas_item_raise(l->group, (ui.cur_layer!=NULL)?ui.cur_layer->group:ui.cur_page->bg->canvas_group);
+
   ui.cur_page->layers = g_list_insert(ui.cur_page->layers, l, ui.layerno+1);
   ui.cur_layer = l;
   ui.layerno++;
@@ -1285,11 +1315,6 @@ on_journalNewLayer_activate            (GtkMenuItem     *menuitem,
   undo->layer = l;
   undo->page = ui.cur_page;  
 
-#else
-  assert(0);
-#endif
-
-
 
 }
 
@@ -1298,9 +1323,6 @@ void
 on_journalDeleteLayer_activate         (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-
-#ifdef ABC
-
   GList *list;
   
   end_text();
@@ -1331,19 +1353,15 @@ on_journalDeleteLayer_activate         (GtkMenuItem     *menuitem,
     ui.cur_layer = g_new(struct Layer, 1);
     ui.cur_layer->items = NULL;
     ui.cur_layer->nitems = 0;
-    ui.cur_layer->group = (GnomeCanvasGroup *) gnome_canvas_item_new(
-      ui.cur_page->group, gnome_canvas_group_get_type(), NULL);
+    ui.cur_layer->group = goo_canvas_group_new(ui.cur_page->group, NULL);
+    //(GnomeCanvasGroup *) gnome_canvas_item_new(
+    //      ui.cur_page->group, gnome_canvas_group_get_type(), NULL);
     ui.cur_page->layers = g_list_append(NULL, ui.cur_layer);
     undo->val = -1;
     undo->layer2 = ui.cur_layer;
   }
 
   update_page_stuff();
-
-#else
-  assert(0);
-#endif
-
 
 
 }
@@ -3849,17 +3867,16 @@ void
 on_buttonColorChooser_set              (GtkColorButton  *colorbutton,
                                         gpointer         user_data)
 {
-  GdkColor gdkcolor;
-  guint16 alpha;
+  GdkRGBA gdkcolor;
+  //  GdkColor gdkcolor;
+  //  guint16 alpha;
+  TRACE_1("ente-------------------------------------------------------------r");
+  gtk_color_button_get_rgba(colorbutton, &gdkcolor);
+  //  alpha = gtk_color_button_get_alpha(colorbutton);
   
-#ifdef ABC
-  gtk_color_button_get_color(colorbutton, &gdkcolor);
-  alpha = gtk_color_button_get_alpha(colorbutton);
-  process_color_activate((GtkMenuItem*)colorbutton, COLOR_OTHER, gdkcolor_to_rgba(gdkcolor, alpha));
-#else
-  WARN;
-#endif
 
+  process_color_activate((GtkMenuItem*)colorbutton, COLOR_OTHER, xo_GdkRGBA_to_rgba(&gdkcolor));
+  TRACE_1("exie-------------------------------------------------------------t");
 }
 
 
