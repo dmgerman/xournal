@@ -2953,8 +2953,7 @@ create_papersizeDialog (void)
 
 
   //GTK_DIALOG (papersizeDialog)->vbox;
-  dialog_vbox1 = gtk_dialog_get_action_area((GtkDialog*)papersizeDialog);
-
+  dialog_vbox1 = gtk_dialog_get_content_area((GtkDialog*)papersizeDialog);
 
   gtk_widget_show (dialog_vbox1);
 
@@ -3073,13 +3072,11 @@ GtkWidget*
 create_aboutDialog (void)
 {
   GtkWidget *aboutDialog;
-  //  GtkWidget *dialog_vbox2;
+  GtkWidget *dialog_vbox2;
   GtkWidget *image387;
   GtkWidget *labelTitle;
   GtkWidget *labelInfo;
-#ifdef ABC
   GtkWidget *dialog_action_area2;
-#endif
   GtkWidget *closebutton1;
 
   aboutDialog = gtk_dialog_new ();
@@ -3091,44 +3088,36 @@ create_aboutDialog (void)
   dialog_vbox2 = GTK_DIALOG (aboutDialog)->vbox;
   gtk_widget_show (dialog_vbox2);
 #else
-  WARN;
+  dialog_vbox2 = gtk_dialog_get_content_area((GtkDialog*)aboutDialog);
 #endif
 
   image387 = create_pixmap (aboutDialog, "xournal.png");
   gtk_widget_show (image387);
-#ifdef ABC
+
   gtk_box_pack_start (GTK_BOX (dialog_vbox2), image387, FALSE, TRUE, 12);
-#else
-  WARN;
-#endif
+
 
   labelTitle = gtk_label_new (_("Xournal"));
   gtk_widget_show (labelTitle);
-#ifdef ABC
+
   gtk_box_pack_start (GTK_BOX (dialog_vbox2), labelTitle, FALSE, FALSE, 3);
-#else
-  WARN;
-#endif
   gtk_label_set_justify (GTK_LABEL (labelTitle), GTK_JUSTIFY_CENTER);
 
   labelInfo = gtk_label_new (_("Written by Denis Auroux\nand other contributors\n       http://xournal.sourceforge.net/       "));
   gtk_widget_show (labelInfo);
-#ifdef ABC
+
   gtk_box_pack_start (GTK_BOX (dialog_vbox2), labelInfo, FALSE, FALSE, 0);
-#else
-  WARN;
-#endif
   gtk_label_set_justify (GTK_LABEL (labelInfo), GTK_JUSTIFY_CENTER);
   gtk_misc_set_padding (GTK_MISC (labelInfo), 20, 10);
 
 
 #ifdef ABC
   dialog_action_area2 = GTK_DIALOG (aboutDialog)->action_area;
+#else
+  dialog_action_area2 = gtk_dialog_get_action_area((GtkDialog*)aboutDialog);
+#endif
   gtk_widget_show (dialog_action_area2);
   gtk_button_box_set_layout (GTK_BUTTON_BOX (dialog_action_area2), GTK_BUTTONBOX_END);
-#else
-  WARN;
-#endif
 
 
   closebutton1 = gtk_button_new_from_stock ("gtk-close");
@@ -3138,24 +3127,17 @@ create_aboutDialog (void)
 #ifdef ABC
   GTK_WIDGET_SET_FLAGS (closebutton1, GTK_CAN_DEFAULT);
 #else
-  WARN;
+  TRACE_1("do we need to set this flags");
 #endif
 
   /* Store pointers to all widgets, for use by lookup_widget(). */
   GLADE_HOOKUP_OBJECT_NO_REF (aboutDialog, aboutDialog, "aboutDialog");
-#ifdef ABC
+
   GLADE_HOOKUP_OBJECT_NO_REF (aboutDialog, dialog_vbox2, "dialog_vbox2");
-#else
-  WARN;
-#endif
   GLADE_HOOKUP_OBJECT (aboutDialog, image387, "image387");
   GLADE_HOOKUP_OBJECT (aboutDialog, labelTitle, "labelTitle");
   GLADE_HOOKUP_OBJECT (aboutDialog, labelInfo, "labelInfo");
-#ifdef ABC
   GLADE_HOOKUP_OBJECT_NO_REF (aboutDialog, dialog_action_area2, "dialog_action_area2");
-#else
-  WARN;
-#endif
   GLADE_HOOKUP_OBJECT (aboutDialog, closebutton1, "closebutton1");
 
   return aboutDialog;

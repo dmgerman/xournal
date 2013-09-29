@@ -1170,11 +1170,9 @@ on_viewHideLayer_activate              (GtkMenuItem     *menuitem,
   end_text();
   if (ui.layerno == -1) return;
   reset_selection();
-#ifdef ABC
-  gnome_canvas_item_hide(GNOME_CANVAS_ITEM(ui.cur_layer->group));
-#else
-  assert(0);
-#endif
+
+  xo_goo_canvas_item_hide(ui.cur_layer->group);
+
   ui.layerno--;
   if (ui.layerno<0) ui.cur_layer = NULL;
   else ui.cur_layer = g_list_nth_data(ui.cur_page->layers, ui.layerno);

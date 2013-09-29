@@ -847,11 +847,10 @@ void recolor_selection(int color_no, guint color_rgba)
 
 void rethicken_selection(int val)
 {
-#ifdef ABC
   GList *itemlist;
   struct Item *item;
   struct Brush *brush;
-  GnomeCanvasGroup *group;
+  GooCanvasItem *group;
   
   if (ui.selection == NULL) return;
   prepare_new_undo();
@@ -871,18 +870,16 @@ void rethicken_selection(int val)
     item->brush.thickness = predef_thickness[TOOL_PEN][val];
     if (item->canvas_item!=NULL) {
       if (!item->brush.variable_width)
-        gnome_canvas_item_set(item->canvas_item, 
-           "width-units", item->brush.thickness, NULL);
+	g_object_set(item->canvas_item, 
+		     "width-units", item->brush.thickness, 
+		     NULL);
       else {
-        group = (GnomeCanvasGroup *) item->canvas_item->parent;
+        group = goo_canvas_item_get_parent(item->canvas_item);
         goo_canvas_item_remove(item->canvas_item);
         item->brush.variable_width = FALSE;
         make_canvas_item_one(group, item);
       }
     }
   }
-#else
-  assert(0);
-#endif
 }
 

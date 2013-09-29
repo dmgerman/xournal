@@ -1052,11 +1052,13 @@ GList *attempt_load_gv_bg(char *filename)
       if (buflen < 6 || buf[0]!='B' || buf[1]!='M') break; // fatal: abort
       remnlen = (int)(buf[5]<<24) + (buf[4]<<16) + (buf[3]<<8) + (buf[2]);
       loader = gdk_pixbuf_loader_new();
-    }
-    else buflen = fread(buf, 1, (remnlen < BUFSIZE)?remnlen:BUFSIZE, gs_pipe);
+    } else 
+      buflen = fread(buf, 1, (remnlen < BUFSIZE)?remnlen:BUFSIZE, gs_pipe);
     remnlen -= buflen;
-    if (buflen == 0) break;
-    if (!gdk_pixbuf_loader_write(loader, buf, buflen, NULL)) break;
+    if (buflen == 0) 
+      break;
+    if (!gdk_pixbuf_loader_write(loader, buf, buflen, NULL)) 
+      break;
     if (remnlen == 0) { // make a new bg
       pix = gdk_pixbuf_loader_get_pixbuf(loader);
       if (pix == NULL) break;
@@ -1075,7 +1077,8 @@ GList *attempt_load_gv_bg(char *filename)
       bg_list = g_list_append(bg_list, bg);
     }
   }
-  if (loader != NULL) gdk_pixbuf_loader_close(loader, NULL);
+  if (loader != NULL) 
+    gdk_pixbuf_loader_close(loader, NULL);
   pclose(gs_pipe);
   g_free(buf);
   return bg_list;

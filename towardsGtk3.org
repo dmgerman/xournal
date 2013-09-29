@@ -15,13 +15,15 @@ happens in start_text and how to replace it.
 ** What is broken seriously (and would impede using it)
 
 
-*** [TODO] Loading pdf backgrounds does not  properly display if continous and multipage.
+*** TODO Loading pdf backgrounds does not  properly display if continous and multipage.
   
-- Interestingly it works if the file is loaded one page, then switched to continuous 
-  This seems to imply to execution paths for the same code.
-- Canvas items are properly displayed where they belong
+- it crashes!!!! now <2013-09-29 Sun>
 - Only those pages that are visible in the first screen are rendered... the rest are not.
 - At zooming, the same happens, only visible pages are rendered..
+
+*** TODO Annotating PDFs
+
+- Continuous view does not properly rescale the background
 
 *** TODO Selection
 
