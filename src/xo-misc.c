@@ -2838,7 +2838,6 @@ void xo_canvas_set_pixels_per_unit(void)
   gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
 #else
   goo_canvas_set_scale(canvas, ui.zoom);
-  //     WARN;
 #endif
 }
 

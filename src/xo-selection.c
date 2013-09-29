@@ -472,7 +472,6 @@ gboolean start_resizesel(GdkEvent *event)
 
 void start_vertspace(GdkEvent *event)
 {
-#ifdef ABC
   double pt[2];
   GList *itemlist;
   struct Item *item;
@@ -501,16 +500,22 @@ void start_vertspace(GdkEvent *event)
   ui.selection->move_pageno = ui.pageno;
   ui.selection->move_layer = ui.selection->layer;
   ui.selection->move_pagedelta = 0.;
+#ifdef ABC
   ui.selection->canvas_item = gnome_canvas_item_new(ui.cur_layer->group,
       gnome_canvas_rect_get_type(), "width-pixels", 1, 
       "outline-color-rgba", 0x000000ff,
       "fill-color-rgba", 0x80808040,
       "x1", -100.0, "x2", ui.cur_page->width+100, "y1", pt[1], "y2", pt[1], NULL);
-  update_cursor();
 #else
-  assert(0);
+  ui.selection->canvas_item = goo_canvas_rect_new(ui.cur_layer->group,
+						  -100.0, pt[1],
+						  ui.cur_page->width+100.0, 0.0,
+						  "line-width", 1.0, 
+						  //						  "outline-color-rgba", 0x000000ff,
+						  "fill-color-rgba", 0x80808040,
+						  NULL);
 #endif
-
+  update_cursor();
 }
 
 void continue_movesel(GdkEvent *event)
@@ -592,8 +597,6 @@ void continue_movesel(GdkEvent *event)
   dx = pt[0] - ui.selection->last_x;
   dy = pt[1] - ui.selection->last_y;
   if (hypot(dx,dy) < 1) return; // don't move subpixel
-  ui.selection->last_x = pt[0];
-  ui.selection->last_y = pt[1];
 
   // move the canvas items
   if (ui.cur_item_type == ITEM_MOVESEL_VERT) {
@@ -601,8 +604,19 @@ void continue_movesel(GdkEvent *event)
 #ifdef ABC
     gnome_canvas_item_set(ui.selection->canvas_item, "y2", pt[1], NULL);
 #else
-    WARN1("No idea what is going on\n");
+    if (ui.selection->anchor_y <  pt[1]) {
+      g_object_set(ui.selection->canvas_item, "height", 
+		   pt[1] - ui.selection->anchor_y, NULL);
+    } else {
+      g_object_set(ui.selection->canvas_item, 
+		   "y", pt[1], 
+		   "height", ui.selection->anchor_y - pt[1],
+		   NULL);
+    }
 #endif
+
+  ui.selection->last_x = pt[0];
+  ui.selection->last_y = pt[1];
 
   } else { 
 #ifdef ABC
