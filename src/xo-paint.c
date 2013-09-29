@@ -31,6 +31,14 @@
 
 /************** drawing nice cursors *********/
 
+void xo_canvas_item_color_set(GooCanvasItem *canvasItem, guint color)
+{
+  g_object_set(canvasItem,
+	       "stroke-color-rgba",color,
+	       NULL);
+}
+
+
 void xo_widget_set_cursor(GtkWidget *w, GdkCursor *cursor)
 {
   GdkWindow *window;
@@ -55,7 +63,6 @@ void set_cursor_busy(gboolean busy)
   }
 
   gdk_display_sync(gdk_display_get_default());
-  
 }
 
 #define PEN_CURSOR_RADIUS 1
@@ -257,6 +264,17 @@ GooCanvasItem *xo_create_path(GooCanvasItem *group, GooCanvasPoints *points, gdo
 				 NULL);
 }
 
+GooCanvasItem *xo_create_path_with_color(GooCanvasItem *group, GooCanvasPoints *points, gdouble lineWidth, guint color)
+{
+  return goo_canvas_polyline_new(group, FALSE, 0,
+				 "points", points,
+				 "line-cap", CAIRO_LINE_CAP_ROUND, 
+				 "stroke-color-rgba", color,
+				 "line-join", CAIRO_LINE_JOIN_ROUND,
+				 "line-width", lineWidth, 
+				 NULL);
+}
+
 
 
 void create_new_stroke(GdkEvent *event)
@@ -280,7 +298,7 @@ void create_new_stroke(GdkEvent *event)
 						     "width-units", ui.cur_item->brush.thickness, NULL);
 #else
     ui.cur_item->brush.variable_width = FALSE;
-    ui.cur_item->canvas_item = xo_create_path(ui.cur_layer->group, &ui.cur_path, ui.cur_item->brush.thickness);
+    ui.cur_item->canvas_item = xo_create_path_with_color(ui.cur_layer->group, &ui.cur_path, ui.cur_item->brush.thickness, ui.cur_item->brush.color_rgba);
 #endif
   } else {
 #ifdef ABC
@@ -649,7 +667,7 @@ void start_text(GdkEvent *event, struct Item *item)
 #ifdef ABC
   double pt[2];
   GtkTextBuffer *buffer;
-  GnomeCanvasItem *canvas_item;
+  GooCanvasItem *canvas_item;
   PangoFontDescription *font_desc;
   GdkColor color;
 
@@ -682,11 +700,12 @@ void start_text(GdkEvent *event, struct Item *item)
   buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(item->widget));
   if (item->text!=NULL)
     gtk_text_buffer_set_text(buffer, item->text, -1);
+
   gtk_widget_modify_font(item->widget, font_desc);
   rgb_to_gdkcolor(item->brush.color_rgba, &color);
   gtk_widget_modify_text(item->widget, GTK_STATE_NORMAL, &color);
   pango_font_description_free(font_desc);
-
+ 
   canvas_item = gnome_canvas_item_new(ui.cur_layer->group,
     gnome_canvas_widget_get_type(),
     "x", item->bbox.left, "y", item->bbox.top, 
@@ -708,7 +727,6 @@ void start_text(GdkEvent *event, struct Item *item)
   gtk_widget_set_sensitive(GET_COMPONENT("editPaste"), FALSE);
   gtk_widget_set_sensitive(GET_COMPONENT("buttonPaste"), FALSE);
   gtk_widget_grab_focus(item->widget); 
-
 #else
   assert(0);
 #endif

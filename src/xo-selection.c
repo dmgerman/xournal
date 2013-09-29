@@ -210,7 +210,6 @@ void finalize_selectrect(void)
 
 void start_selectregion(GdkEvent *event)
 {
-#ifdef ABC
   double pt[2];
   reset_selection();
   
@@ -229,22 +228,27 @@ void start_selectregion(GdkEvent *event)
   ui.cur_path.coords[0] = ui.cur_path.coords[2] = pt[0];
   ui.cur_path.coords[1] = ui.cur_path.coords[3] = pt[1];
  
+  ui.selection->canvas_item = goo_canvas_polyline_new(ui.cur_layer->group, FALSE, 0,
+						      "stroke-color-rgba", 0x000000ff,
+						      "fill-color-rgba", 0x80808040,
+						      "line-width", 1, 
+						      NULL);
+
+  /*
   ui.selection->canvas_item = gnome_canvas_item_new(ui.cur_layer->group,
       gnome_canvas_polygon_get_type(), "width-pixels", 1, 
       "outline-color-rgba", 0x000000ff,
       "fill-color-rgba", 0x80808040,
       NULL);
   make_dashed(ui.selection->canvas_item);
+  */
+  xo_canvas_item_set_dashed(ui.selection->canvas_item);
   update_cursor();
-#else
-  assert(0);
-#endif
 
 }
 
 void continue_selectregion(GdkEvent *event)
 {
-#ifdef ABC
 
   double *pt;
   
@@ -254,14 +258,14 @@ void continue_selectregion(GdkEvent *event)
   if (hypot(pt[0]-pt[-2], pt[1]-pt[-1]) < PIXEL_MOTION_THRESHOLD/ui.zoom)
     return; // not a meaningful motion
   ui.cur_path.num_points++;
-  if (ui.cur_path.num_points>2)
+
+  if (ui.cur_path.num_points>2) {
+    g_object_set(ui.selection->canvas_item, "points", &ui.cur_path, NULL);
+    /*
     gnome_canvas_item_set(ui.selection->canvas_item, 
      "points", &ui.cur_path, NULL);
-
-
-#else
-  assert(0);
-#endif
+    */
+  }
 
 }
 
@@ -290,6 +294,7 @@ gboolean hittest_item(ArtSVP *lassosvp, struct Item *item)
             hittest_point(lassosvp, item->bbox.right, item->bbox.bottom));
 }
 #endif
+
 void finalize_selectregion(void)
 {
 #ifdef ABC
@@ -351,9 +356,13 @@ void finalize_selectregion(void)
     }
   }
 
-  if (ui.selection->items == NULL) reset_selection();
-  else { // make a selection rectangle instead of the lasso shape
+  if (ui.selection->items == NULL) 
+    reset_selection();
+  else {
+    // make a selection rectangle instead of the lasso shape
     goo_canvas_remove(ui.selection->canvas_item);
+    xo_selection_rectangle_draw();
+    /*
     ui.selection->canvas_item = gnome_canvas_item_new(ui.cur_layer->group,
       gnome_canvas_rect_get_type(), "width-pixels", 1, 
       "outline-color-rgba", 0x000000ff,
@@ -361,6 +370,8 @@ void finalize_selectregion(void)
       "x1", ui.selection->bbox.left, "x2", ui.selection->bbox.right, 
       "y1", ui.selection->bbox.top, "y2", ui.selection->bbox.bottom, NULL);
     make_dashed(ui.selection->canvas_item);
+    */
+    xo_canvas_item_set_dashed(ui.selection->canvas_item);
     ui.selection->type = ITEM_SELECTRECT;
   }
 
@@ -518,11 +529,13 @@ void continue_movesel(GdkEvent *event)
   // check for page jumps
   if (ui.cur_item_type == ITEM_MOVESEL_VERT)
     upmargin = ui.selection->bbox.bottom - ui.selection->bbox.top;
-  else upmargin = VIEW_CONTINUOUS_SKIP;
+  else
+    upmargin = VIEW_CONTINUOUS_SKIP;
   tmppageno = ui.selection->move_pageno;
   tmppage = g_list_nth_data(journal.pages, tmppageno);
   while (ui.view_continuous && (pt[1] < - upmargin)) {
-    if (tmppageno == 0) break;
+    if (tmppageno == 0) 
+      break;
     tmppageno--;
     tmppage = g_list_nth_data(journal.pages, tmppageno);
     pt[1] += tmppage->height + VIEW_CONTINUOUS_SKIP;
@@ -770,6 +783,32 @@ void selection_delete(void)
      the forward direction */
 }
 
+gboolean xo_item_can_be_recolored(Item *item)
+{
+  // this condition is complicated so let us break it appart
+  if (item->type == ITEM_TEXT) {
+    // not sure why
+    return item->brush.tool_type==TOOL_PEN;
+  } else {
+    // othewise simply check if it is 
+    return (item->type == ITEM_STROKE);
+  }
+}
+
+void xo_item_color_set(Item *item, int color_no, guint color_rgba)
+{
+  item->brush.color_no = color_no;
+  item->brush.color_rgba = color_rgba | 0xff; // no alpha
+
+  // goocanvas takes care of recoloring its children if they don't
+  // have a set color
+
+  xo_canvas_item_color_set(item->canvas_item, item->brush.color_rgba);
+
+
+}
+
+
 // modify the color or thickness of pen strokes in a selection
 
 void recolor_selection(int color_no, guint color_rgba)
@@ -783,38 +822,25 @@ void recolor_selection(int color_no, guint color_rgba)
   undo->type = ITEM_REPAINTSEL;
   undo->itemlist = NULL;
   undo->auxlist = NULL;
+
   for (itemlist = ui.selection->items; itemlist!=NULL; itemlist = itemlist->next) {
     item = (struct Item *)itemlist->data;
-    if (item->type != ITEM_STROKE && item->type != ITEM_TEXT) continue;
-    if (item->type == ITEM_STROKE && item->brush.tool_type!=TOOL_PEN) continue;
+    
+    if (!xo_item_can_be_recolored(item)) {
+      continue;
+    }
+    
+    TRACE_1("We are recoloring this item\n");
+
     // store info for undo
     undo->itemlist = g_list_append(undo->itemlist, item);
     brush = (struct Brush *)g_malloc(sizeof(struct Brush));
     g_memmove(brush, &(item->brush), sizeof(struct Brush));
     undo->auxlist = g_list_append(undo->auxlist, brush);
     // repaint the stroke
-    item->brush.color_no = color_no;
-    item->brush.color_rgba = color_rgba | 0xff; // no alpha
-    if (item->canvas_item!=NULL) {
-      // I think all it is needed is to change the color of the item
-      g_object_set(item->canvas_item, 
-		   "stroke-color-rgba", item->brush.color_rgba, 
-		   NULL);
-      
-      
-#ifdef ABC
-  GnomeCanvasGroup *group;
 
-      if (!item->brush.variable_width)
-        gnome_canvas_item_set(item->canvas_item, 
-           "fill-color-rgba", item->brush.color_rgba, NULL);
-      else {
-        group = (GnomeCanvasGroup *) item->canvas_item->parent;
-        goo_canvas_item_remove(item->canvas_item);
-        make_canvas_item_one(group, item);
-      }
-#endif
-    }
+    xo_item_color_set(item, color_no, color_rgba);
+      
   }
 
 }

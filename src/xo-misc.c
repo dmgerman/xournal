@@ -686,17 +686,21 @@ void make_canvas_item_one(GooCanvasItem *group, struct Item *item)
 
   if (item->type == ITEM_STROKE) {
     if (!item->brush.variable_width) {
-
-      item->canvas_item = xo_create_path(group, item->path, item->brush.thickness);
-
+      item->canvas_item = xo_create_path_with_color(group, item->path, item->brush.thickness, item->brush.color_rgba);
     } else {
+      // For variable length we use a sequence of segments, each with a different width
+      // this is a sequence of segments each with a different width
       item->canvas_item = goo_canvas_group_new(group, NULL);
       points.num_points = 2;
       points.ref_count = 1;
 
+      // set the color of hte item separately
+      xo_canvas_item_color_set(item->canvas_item, item->brush.color_rgba);
+	   
       for (j = 0; j < item->path->num_points-1; j++) {
         points.coords = item->path->coords+2*j;
-	xo_create_path(group, &points, item->widths[j]);
+	// do not set color, it will be done by the container
+	xo_create_path(item->canvas_item, &points, item->widths[j]);
 	/*
 	goo_canvas_polyline_new(item->canvas_item, FALSE, 0,
 				"points", &points,
@@ -966,7 +970,7 @@ void rescale_bg_pixmaps(void)
   gboolean is_well_scaled;
   gdouble zoom_to_request;
   
-  TRACE_1("Entering");
+  //  TRACE_1("Entering");
   for (pglist = journal.pages; pglist!=NULL; pglist = pglist->next) {
     pg = (struct Page *)pglist->data;
     // in progressive mode we scale only visible pages
@@ -1023,7 +1027,7 @@ void rescale_bg_pixmaps(void)
       }
     }
   }
-  TRACE_1("Ending\n");
+  //  TRACE_1("Ending\n");
 }
 
 gboolean have_intersect(struct BBox *a, struct BBox *b)
@@ -1903,7 +1907,8 @@ void process_color_activate(GtkMenuItem *menuitem, int color_no, guint color_rgb
       return;
   }
 
-  if (ui.cur_mapping != 0 && !ui.button_switch_mapping) return; // not user-generated
+  if (ui.cur_mapping != 0 && !ui.button_switch_mapping) 
+    return; // not user-generated
 
   if (ui.cur_item_type == ITEM_TEXT)
     recolor_temp_text(color_no, color_rgba);

@@ -3594,9 +3594,8 @@ on_viewSetZoom_activate                (GtkMenuItem     *menuitem,
   int response;
   double test_w, test_h;
   GtkSpinButton *spinZoom;
-  
-#ifdef ABC
-
+  gint width;
+  gint height;
 
   end_text();
   zoom_dialog = create_zoomDialog();
@@ -3604,8 +3603,12 @@ on_viewSetZoom_activate                (GtkMenuItem     *menuitem,
   spinZoom = GTK_SPIN_BUTTON(g_object_get_data(G_OBJECT(zoom_dialog), "spinZoom"));
   gtk_spin_button_set_increments(spinZoom, ui.zoom_step_increment, 5*ui.zoom_step_increment);
   gtk_spin_button_set_value(spinZoom, zoom_percent);
-  test_w = 100*(GTK_WIDGET(canvas))->allocation.width/ui.cur_page->width/DEFAULT_ZOOM;
-  test_h = 100*(GTK_WIDGET(canvas))->allocation.height/ui.cur_page->height/DEFAULT_ZOOM;
+
+  width = gtk_widget_get_allocated_width(GTK_WIDGET(canvas));
+  height = gtk_widget_get_allocated_height(GTK_WIDGET(canvas));
+
+  test_w = 100*width/ui.cur_page->width/DEFAULT_ZOOM;
+  test_h = 100*height/ui.cur_page->height/DEFAULT_ZOOM;
   if (zoom_percent > 99.9 && zoom_percent < 100.1) 
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(g_object_get_data(
            G_OBJECT(zoom_dialog), "radioZoom100")), TRUE);
@@ -3623,7 +3626,7 @@ on_viewSetZoom_activate                (GtkMenuItem     *menuitem,
     response = gtk_dialog_run(GTK_DIALOG(zoom_dialog));
     if (response == GTK_RESPONSE_OK || response == GTK_RESPONSE_APPLY) {
       ui.zoom = DEFAULT_ZOOM*zoom_percent/100;
-      gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
+      xo_canvas_set_pixels_per_unit();
       rescale_text_items();
       rescale_bg_pixmaps();
       rescale_images();
@@ -3631,9 +3634,7 @@ on_viewSetZoom_activate                (GtkMenuItem     *menuitem,
   } while (response == GTK_RESPONSE_APPLY);
   
   gtk_widget_destroy(zoom_dialog);
-#else
-  assert(0);
-#endif
+
 
 }
 

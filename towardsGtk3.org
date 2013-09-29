@@ -1,10 +1,16 @@
 * Moving Xournal to gtk3
 
-** Currently working <2013-09-22 Sun>
-
 - DO NOT USE YET. This branch is still broken
 - There are lots of features that work, but a lot that does not work
 - Below I have listed the features that have been ported, but are broken
+
+** Currently working <2013-09-29 Sun>
+
+I am trying to implement adding text...but I am not understanding what
+happens in start_text and how to replace it.
+
+[[file:src/xo-paint.c::gtk_widget_modify_font(item->widget,%20font_desc)%3B][file:src/xo-paint.c::gtk_widget_modify_font(item->widget, font_desc);]]
+
 
 ** What is broken seriously (and would impede using it)
 
@@ -16,23 +22,15 @@
 - Only those pages that are visible in the first screen are rendered... the rest are not.
 - At zooming, the same happens, only visible pages are rendered..
 
-*** [TODO] strokes with variable width
-
-- They need to inherit the color from its parent, that way it is easy to change it
-- They cannot be selected!
-
-*** [TODO] Drawing of items needs to add the color
-    
-- which I removed by .... stupidity? Makes the code more complicated... 
-
 *** [TODO] Selection
 
-- It does not work for strokes of variable length
 - It assert faults under some situations (I think i fixed it). The
   main problem is that rectangles are no longer drawn with four
   points, but with x,y width and height and they do not allow negative
   withds/heights. This means we always have to draw from left/top
   point.  One alternative is to use a path.
+
+- Lasso selection needs to be reimplemented...
 
 *** [TODO] Undo-Redo
 
@@ -44,7 +42,7 @@ Search for WARN or assert(0):
 
 - implement Dialog windows (there is a deprecation in gtk3 that I need
   to fix). This affects everything that creates a dialog window.
-- selection of colors
+- selection of new colors
 - inserting images
 - inserting text
 - undo/redo of some items 
@@ -53,11 +51,10 @@ Search for WARN or assert(0):
 
 ** Minor issues that need to be looked at
 
-*** [TODO] Mouse shapes
+*** [TODO] Cursor shapes
 
 - I have observed some cases in which the shape of the mouse during
-  resizing of a region stays even after the resizing. Needs investigation
-
+  resizing of a region stays even after the resizing. Needs investigation. I think I have broken setting the cursor shape
 
 *** [TODO] it does not center the screen in the canvas when it is rezized
 
@@ -66,13 +63,10 @@ Search for WARN or assert(0):
 
 *** [TODO] the screen needs to be redrawn after each line, because there are aliasing artifacts :minor:
 
-*** [TODO] selection rectangle is not dashed, but red :minor:
 
+*** [TODO] selection polygons are not dashed, but red 	      :minor:
 
-*** [TODO] the bounding box of the selection needs to be dashed instead of painted red
-    
-- but this is something that goo-canvas people are implementing, which
-  is nice ;) it means we are supported
+- Dashing the polygons (rectangle and polygon) requires deleting it and adding it again...
 
 * Other notes
 
