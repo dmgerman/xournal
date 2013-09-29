@@ -33,9 +33,15 @@
 
 void xo_canvas_item_color_set(GooCanvasItem *canvasItem, guint color)
 {
-  g_object_set(canvasItem,
-	       "stroke-color-rgba",color,
-	       NULL);
+  if (G_OBJECT_TYPE(canvasItem) == GOO_TYPE_CANVAS_TEXT) {
+    g_object_set(canvasItem,
+		 "fill-color-rgba", color,
+		 NULL);
+  } else{
+    g_object_set(canvasItem,
+		 "stroke-color-rgba", color,
+		 NULL);
+  }
 }
 
 
@@ -872,9 +878,12 @@ struct Item *click_is_in_text_or_image(struct Layer *layer, double x, double y)
   val = NULL;
   for (itemlist = layer->items; itemlist!=NULL; itemlist = itemlist->next) {
     item = (struct Item *)itemlist->data;
-    if (item->type != ITEM_TEXT && item->type != ITEM_IMAGE) continue;
-    if (x<item->bbox.left || x>item->bbox.right) continue;
-    if (y<item->bbox.top || y>item->bbox.bottom) continue;
+    if (item->type != ITEM_TEXT && item->type != ITEM_IMAGE) 
+      continue;
+    if (x<item->bbox.left || x>item->bbox.right) 
+      continue;
+    if (y<item->bbox.top || y>item->bbox.bottom) 
+      continue;
     val = item;
   }
   return val;
