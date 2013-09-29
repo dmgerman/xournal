@@ -2922,7 +2922,7 @@ GtkWidget*
 create_papersizeDialog (void)
 {
   GtkWidget *papersizeDialog;
-  //  GtkWidget *dialog_vbox1;
+  GtkWidget *dialog_vbox1;
   GtkWidget *hbox2;
   GtkWidget *labelStdSizes;
   GtkWidget *comboStdSizes;
@@ -2936,29 +2936,33 @@ create_papersizeDialog (void)
   GtkWidget *cancelbutton1;
   GtkWidget *okbutton1;
 
+#ifndef ABC
   papersizeDialog = gtk_dialog_new ();
   gtk_window_set_title (GTK_WINDOW (papersizeDialog), _("Set Paper Size"));
   gtk_window_set_modal (GTK_WINDOW (papersizeDialog), TRUE);
   gtk_window_set_resizable (GTK_WINDOW (papersizeDialog), FALSE);
   gtk_window_set_type_hint (GTK_WINDOW (papersizeDialog), GDK_WINDOW_TYPE_HINT_DIALOG);
-
-#ifdef ABC
-  dialog_vbox1 = GTK_DIALOG (papersizeDialog)->vbox;
-  gtk_widget_show (dialog_vbox1);
 #else
-  WARN;
+  papersizeDialog = gtk_dialog_new_with_buttons ( _("Set Paper Size"),
+						  NULL,
+						  GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
+						  GTK_STOCK_OK,
+						  GTK_RESPONSE_CANCEL,
+						  NULL);
 #endif
+
+
+  //GTK_DIALOG (papersizeDialog)->vbox;
+  dialog_vbox1 = gtk_dialog_get_action_area((GtkDialog*)papersizeDialog);
+
+
+  gtk_widget_show (dialog_vbox1);
 
   hbox2 = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
   //hbox2 = gtk_hbox_new (FALSE, 0);
   gtk_widget_show (hbox2);
 
-#ifdef ABC
   gtk_box_pack_start (GTK_BOX (dialog_vbox1), hbox2, TRUE, TRUE, 10);
-#else
-  WARN;
-#endif
-
 
   labelStdSizes = gtk_label_new (_("Standard paper sizes:"));
   gtk_widget_show (labelStdSizes);
@@ -2977,11 +2981,8 @@ create_papersizeDialog (void)
   hbox3 = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
   //  hbox3 = gtk_hbox_new (FALSE, 0);
   gtk_widget_show (hbox3);
-#ifdef ABC
+
   gtk_box_pack_start (GTK_BOX (dialog_vbox1), hbox3, TRUE, TRUE, 8);
-#else
-  WARN;
-#endif
 
   labelWidth = gtk_label_new (_("Width:"));
   gtk_widget_show (labelWidth);
@@ -3009,13 +3010,11 @@ create_papersizeDialog (void)
   gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (comboUnit), _("pixels"));
   gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (comboUnit), _("points"));
 
-#ifdef ABC
-  dialog_action_area1 = GTK_DIALOG (papersizeDialog)->action_area;
+
+  dialog_action_area1 = gtk_dialog_get_action_area(GTK_DIALOG (papersizeDialog));
   gtk_widget_show (dialog_action_area1);
   gtk_button_box_set_layout (GTK_BUTTON_BOX (dialog_action_area1), GTK_BUTTONBOX_END);
-#else
-  WARN;
-#endif
+
 
   cancelbutton1 = gtk_button_new_from_stock ("gtk-cancel");
   gtk_widget_show (cancelbutton1);
@@ -3023,18 +3022,15 @@ create_papersizeDialog (void)
 
 #ifdef ABC
   GTK_WIDGET_SET_FLAGS (cancelbutton1, GTK_CAN_DEFAULT);
-#else
-  WARN;
 #endif
 
   okbutton1 = gtk_button_new_from_stock ("gtk-ok");
   gtk_widget_show (okbutton1);
   gtk_dialog_add_action_widget (GTK_DIALOG (papersizeDialog), okbutton1, GTK_RESPONSE_OK);
 
+
 #ifdef ABC
   GTK_WIDGET_SET_FLAGS (okbutton1, GTK_CAN_DEFAULT);
-#else
-  WARN;
 #endif
 
   g_signal_connect ((gpointer) comboStdSizes, "changed",
@@ -3053,11 +3049,9 @@ create_papersizeDialog (void)
   /* Store pointers to all widgets, for use by lookup_widget(). */
   GLADE_HOOKUP_OBJECT_NO_REF (papersizeDialog, papersizeDialog, "papersizeDialog");
 
-#ifdef ABC
+
   GLADE_HOOKUP_OBJECT_NO_REF (papersizeDialog, dialog_vbox1, "dialog_vbox1");
-#else
-  WARN;
-#endif
+
 
   GLADE_HOOKUP_OBJECT (papersizeDialog, hbox2, "hbox2");
   GLADE_HOOKUP_OBJECT (papersizeDialog, labelStdSizes, "labelStdSizes");

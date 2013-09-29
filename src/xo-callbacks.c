@@ -550,7 +550,6 @@ on_editUndo_activate                   (GtkMenuItem     *menuitem,
   }
   else if (undo->type == ITEM_NEW_BG_ONE || undo->type == ITEM_NEW_BG_RESIZE
            || undo->type == ITEM_PAPER_RESIZE) {
-    assert(0);
     if (undo->type != ITEM_PAPER_RESIZE) {
       // swap the two bg's
       tmp_bg = undo->page->bg;
@@ -572,7 +571,6 @@ on_editUndo_activate                   (GtkMenuItem     *menuitem,
     do_switch_page(g_list_index(journal.pages, undo->page), TRUE, TRUE);
   }
   else if (undo->type == ITEM_NEW_DEFAULT_BG) {
-    assert(0);
     tmp_bg = ui.default_page.bg;
     ui.default_page.bg = undo->bg;
     undo->bg = tmp_bg;
@@ -1419,12 +1417,16 @@ on_journalPaperSize_activate           (GtkMenuItem     *menuitem,
   gtk_widget_show(papersize_dialog);
   on_comboStdSizes_changed(GTK_COMBO_BOX(g_object_get_data(
        G_OBJECT(papersize_dialog), "comboStdSizes")), NULL);
+
   gtk_dialog_set_default_response(GTK_DIALOG(papersize_dialog), GTK_RESPONSE_OK);
        
   response = gtk_dialog_run(GTK_DIALOG(papersize_dialog));
   gtk_widget_destroy(papersize_dialog);
-  if (response != GTK_RESPONSE_OK) return;
+  if (response != GTK_RESPONSE_OK) 
+    return;
 
+  TRACE_3("paper sizes [%f][%f]\n", papersize_width, papersize_height);
+  assert(0);
   pg = ui.cur_page;
   for (pglist = journal.pages; pglist!=NULL; pglist = pglist->next) {
     if (ui.bg_apply_all_pages) pg = (struct Page *)pglist->data;
@@ -1437,8 +1439,10 @@ on_journalPaperSize_activate           (GtkMenuItem     *menuitem,
     undo->page = pg;
     undo->val_x = pg->width;
     undo->val_y = pg->height;
-    if (papersize_width_valid) pg->width = papersize_width;
-    if (papersize_height_valid) pg->height = papersize_height;
+    if (papersize_width_valid) 
+      pg->width = papersize_width;
+    if (papersize_height_valid)
+      pg->height = papersize_height;
     make_page_clipbox(pg);
     update_canvas_bg(pg);
     if (!ui.bg_apply_all_pages) break;
@@ -1510,26 +1514,23 @@ on_papercolorOther_activate            (GtkMenuItem     *menuitem,
   gint result;
   guint rgba;
   GdkColor gdkcolor;
-  
-#ifdef ABC
 
   end_text();
-  dialog = gtk_color_chooser_dialog_new(_("Pick a Paper Color"));
+  dialog =    gtk_color_selection_dialog_new(_("Pick a Paper Color"));
+
   //  dialog = gtk_color_selection_dialog_new(_("Pick a Paper Color"));
-  colorsel = GTK_COLOR_SELECTION(GTK_COLOR_SELECTION_DIALOG(dialog)->colorsel);
+  colorsel =  gtk_color_selection_dialog_get_color_selection(GTK_COLOR_SELECTION_DIALOG(dialog));
+
   if (ui.cur_page->bg->type == BG_SOLID) rgba = ui.cur_page->bg->color_rgba;
   else rgba = ui.default_page.bg->color_rgba;
-  rgb_to_gdkcolor(rgba, &gdkcolor);
+  xo_rgb_to_GdkColor(rgba, &gdkcolor);
   gtk_color_selection_set_current_color(colorsel, &gdkcolor);
   
   if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_OK) {
     gtk_color_selection_get_current_color(colorsel, &gdkcolor);
-    process_papercolor_activate(menuitem, COLOR_OTHER, gdkcolor_to_rgba(gdkcolor, 0xffff));
+    process_papercolor_activate(menuitem, COLOR_OTHER, xo_GdkColor_to_rgba(gdkcolor, 0xffff));
   }
   gtk_widget_destroy(dialog);
-#else
-  assert(0);
-#endif
 
 }
 
@@ -2785,8 +2786,8 @@ on_canvas_enter_notify_event           (GtkWidget       *widget,
     ui.is_corestroke = ui.saved_is_corestroke;
     gdk_flush();
     if (gdk_error_trap_pop() != 0) {
-      WARN;
       printf("gdk_error_trap_pop() returned != 0\n");
+      WARN;
     }
   }
   return FALSE;
@@ -2816,8 +2817,8 @@ on_canvas_leave_notify_event           (GtkWidget       *widget,
     ui.is_corestroke = TRUE;
     gdk_flush();
     if (gdk_error_trap_pop() != 0) {
-      WARN;
       printf("gdk_error_trap_pop() returned != 0\n");
+      WARN;
     }
   }
   return FALSE;
