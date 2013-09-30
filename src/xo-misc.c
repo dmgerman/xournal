@@ -690,7 +690,6 @@ void make_page_clipbox(struct Page *pg)
 
 void make_canvas_item_one(GooCanvasItem *group, struct Item *item)
 {
-  PangoFontDescription *font_desc;
   GooCanvasPoints points;
   int j;
 
@@ -2861,6 +2860,9 @@ void xo_canvas_set_pixels_per_unit(void)
 void xo_canvas_get_scroll_offsets(GooCanvas *canvas, gdouble *x, gdouble *y) 
 {
   GtkAdjustment *v_adj, *h_adj;
+
+  //the return values can be negative if the canvas is to the right, lower corner
+  // of its container
   
   v_adj = gtk_scrollable_get_vadjustment(GTK_SCROLLABLE(canvas));
   h_adj = gtk_scrollable_get_hadjustment(GTK_SCROLLABLE(canvas));

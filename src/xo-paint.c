@@ -634,8 +634,6 @@ void do_hand(GdkEvent *event)
   }
 
   xo_canvas_get_scroll_offsets(canvas, &cx, &cy);
-  assert(cx >= 0);
-  assert(cy >=0);
 
   /*
     dmg: we don't need to zoom them any more, since they are already in good coordinates
