@@ -509,7 +509,7 @@ void start_vertspace(GdkEvent *event)
 #else
   ui.selection->canvas_item = goo_canvas_rect_new(ui.cur_layer->group,
 						  -100.0, pt[1],
-						  ui.cur_page->width+100.0, 0.0,
+						  ui.cur_page->width+200.0, 0.0,
 						  "line-width", 1.0, 
 						  //						  "outline-color-rgba", 0x000000ff,
 						  "fill-color-rgba", 0x80808040,
@@ -538,6 +538,7 @@ void continue_movesel(GdkEvent *event)
     upmargin = VIEW_CONTINUOUS_SKIP;
   tmppageno = ui.selection->move_pageno;
   tmppage = g_list_nth_data(journal.pages, tmppageno);
+
   while (ui.view_continuous && (pt[1] < - upmargin)) {
     if (tmppageno == 0) 
       break;
@@ -546,6 +547,7 @@ void continue_movesel(GdkEvent *event)
     pt[1] += tmppage->height + VIEW_CONTINUOUS_SKIP;
     ui.selection->move_pagedelta += tmppage->height + VIEW_CONTINUOUS_SKIP;
   }
+
   while (ui.view_continuous && (pt[1] > tmppage->height+VIEW_CONTINUOUS_SKIP)) {
     if (tmppageno == journal.npages-1) break;
     pt[1] -= tmppage->height + VIEW_CONTINUOUS_SKIP;
@@ -587,7 +589,11 @@ void continue_movesel(GdkEvent *event)
         "x2", tmppage->width+100, 
         "y1", ui.selection->anchor_y+ui.selection->move_pagedelta, NULL);
 #else
-      WARN1("No idea what is tihs for\n");
+      // y1 is anchor_y 
+      g_object_set(ui.selection->canvas_item,
+		   "width", tmppage->width+200.0,
+		   "y", ui.selection->anchor_y+ui.selection->move_pagedelta, NULL);
+      TRACE_1("broken for one direction");
 #endif
     }
   }
@@ -596,6 +602,7 @@ void continue_movesel(GdkEvent *event)
 
   dx = pt[0] - ui.selection->last_x;
   dy = pt[1] - ui.selection->last_y;
+
   if (hypot(dx,dy) < 1) return; // don't move subpixel
 
   // move the canvas items
@@ -615,22 +622,25 @@ void continue_movesel(GdkEvent *event)
     }
 #endif
 
-  ui.selection->last_x = pt[0];
-  ui.selection->last_y = pt[1];
-
   } else { 
 #ifdef ABC
     gnome_canvas_item_move(ui.selection->canvas_item, dx, dy);
 #else
+    TRACE_3("Translate [%f] [%f]\n", dx, dy);
     goo_canvas_item_translate(ui.selection->canvas_item, dx, dy);
 #endif
   }
-  
+
   for (list = ui.selection->items; list != NULL; list = list->next) {
     item = (struct Item *)list->data;
     if (item->canvas_item != NULL)
       goo_canvas_item_translate(item->canvas_item, dx, dy);
   }
+
+  ui.selection->last_x = pt[0];
+  ui.selection->last_y = pt[1];
+
+
 }
 
 void continue_resizesel(GdkEvent *event)

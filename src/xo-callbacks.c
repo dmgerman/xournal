@@ -2663,8 +2663,10 @@ on_canvas_button_press_event           (GtkWidget       *widget,
   }
 
   // if this can be a selection move or resize, then it takes precedence over anything else  
-  if (start_resizesel((GdkEvent *)event)) return FALSE;
-  if (start_movesel((GdkEvent *)event)) return FALSE;
+  if (start_resizesel((GdkEvent *)event)) 
+    return FALSE;
+  if (start_movesel((GdkEvent *)event)) 
+    return FALSE;
   
   if (ui.toolno[mapping] != TOOL_SELECTREGION && ui.toolno[mapping] != TOOL_SELECTRECT)
     reset_selection();
