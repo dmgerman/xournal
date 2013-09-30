@@ -628,7 +628,8 @@ void do_hand(GdkEvent *event)
 
   ui.hand_scrollto_cx = cx - (pt[0]-ui.hand_refpt[0])*ui.zoom;
   ui.hand_scrollto_cy = cy - (pt[1]-ui.hand_refpt[1])*ui.zoom;
-  if (!ui.hand_scrollto_pending) g_idle_add(do_hand_scrollto, NULL);
+  if (!ui.hand_scrollto_pending) 
+    g_idle_add(do_hand_scrollto, NULL);
   ui.hand_scrollto_pending = TRUE;
 
 }
@@ -640,31 +641,41 @@ void do_hand(GdkEvent *event)
 
 void resize_textview(gpointer *toplevel, gpointer *data)
 {
-#ifdef ABC
 
   GtkTextView *w;
-  int width, height;
+  gdouble width, height;
   
   /* when the text changes, resize the GtkTextView accordingly */
-  if (ui.cur_item_type!=ITEM_TEXT) return;
+  if (ui.cur_item_type!=ITEM_TEXT) 
+    return;
+
+
+  TRACE_1("This code needs to be revised\n");
+  return;
+
   w = GTK_TEXT_VIEW(ui.cur_item->widget);
-  width = w->width + WIDGET_RIGHT_MARGIN;
-  height = w->height;
+  width = gtk_widget_get_allocated_width(GTK_WIDGET(w)) + WIDGET_RIGHT_MARGIN;
+  height = gtk_widget_get_allocated_height(GTK_WIDGET(w));
+
+  printf("To set width %f %f\n", width, height);
+  
+#ifdef ABC
   gnome_canvas_item_set(ui.cur_item->canvas_item, 
     "size-pixels", TRUE, 
     "width", (gdouble)width, "height", (gdouble)height, NULL);
+#else
+  g_object_set(ui.cur_item->canvas_item, 
+	       //	       "size-pixels", TRUE, 
+	       "width", width, 
+	       "height", height, NULL);
+#endif
   ui.cur_item->bbox.right = ui.cur_item->bbox.left + width/ui.zoom;
   ui.cur_item->bbox.bottom = ui.cur_item->bbox.top + height/ui.zoom;
-
-#else
-  assert(0);
-#endif
 
 }
 
 void start_text(GdkEvent *event, struct Item *item)
 {
-#ifdef ABC
   double pt[2];
   GtkTextBuffer *buffer;
   GooCanvasItem *canvas_item;
@@ -676,6 +687,9 @@ void start_text(GdkEvent *event, struct Item *item)
   ui.cur_item_type = ITEM_TEXT;
 
   if (item==NULL) {
+    // Create the item if it does not exist
+
+    // DMG: this needs to be refactored!! XXX
     item = g_new(struct Item, 1);
     item->text = NULL;
     item->canvas_item = NULL;
@@ -696,26 +710,49 @@ void start_text(GdkEvent *event, struct Item *item)
   font_desc = pango_font_description_from_string(item->font_name);
   pango_font_description_set_absolute_size(font_desc, 
       item->font_size*ui.zoom*PANGO_SCALE);
+
   item->widget = gtk_text_view_new();
   buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(item->widget));
+
   if (item->text!=NULL)
     gtk_text_buffer_set_text(buffer, item->text, -1);
 
   gtk_widget_modify_font(item->widget, font_desc);
-  rgb_to_gdkcolor(item->brush.color_rgba, &color);
+  xo_rgb_to_GdkColor(item->brush.color_rgba, &color);
   gtk_widget_modify_text(item->widget, GTK_STATE_NORMAL, &color);
   pango_font_description_free(font_desc);
  
+#ifdef ABC
   canvas_item = gnome_canvas_item_new(ui.cur_layer->group,
     gnome_canvas_widget_get_type(),
     "x", item->bbox.left, "y", item->bbox.top, 
     "width", item->bbox.right-item->bbox.left, 
     "height", item->bbox.bottom-item->bbox.top,
     "widget", item->widget, NULL);
+#else
+  assert(item->bbox.right >= item->bbox.left);
+  assert(item->bbox.bottom >= item->bbox.top);
+  
+  printf("------->[%f] [%f] [%f] [%f]\n",
+	 item->bbox.left, item->bbox.right,
+	 item->bbox.top, item->bbox.bottom);
+
+  printf("W/H------->[%f] [%f]\n",
+	 item->bbox.right -	 item->bbox.left, 
+	 item->bbox.bottom -	 item->bbox.top);
+
+
+  canvas_item = goo_canvas_widget_new(ui.cur_layer->group,
+				      item->widget,
+				      item->bbox.left, item->bbox.top, 
+				      item->bbox.right  - item->bbox.left, 
+				      item->bbox.bottom - item->bbox.top,
+				      NULL);
+#endif
   // TODO: width/height?
   if (item->canvas_item!=NULL) {
     lower_canvas_item_to(ui.cur_layer->group, canvas_item, item->canvas_item);
-    gtk_object_destroy(GTK_OBJECT(item->canvas_item));
+    goo_canvas_item_remove(item->canvas_item);
   }
   item->canvas_item = canvas_item;
 
@@ -727,9 +764,7 @@ void start_text(GdkEvent *event, struct Item *item)
   gtk_widget_set_sensitive(GET_COMPONENT("editPaste"), FALSE);
   gtk_widget_set_sensitive(GET_COMPONENT("buttonPaste"), FALSE);
   gtk_widget_grab_focus(item->widget); 
-#else
-  assert(0);
-#endif
+
 
 }
 
@@ -741,7 +776,8 @@ void end_text(void)
   struct UndoErasureData *erasure;
   GooCanvasItem *tmpitem;
 
-  if (ui.cur_item_type!=ITEM_TEXT) return; // nothing for us to do!
+  if (ui.cur_item_type!=ITEM_TEXT) 
+    return; // nothing for us to do!
 
   // finalize the text that's been edited... 
   buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(ui.cur_item->widget));
@@ -752,10 +788,11 @@ void end_text(void)
   gtk_widget_set_sensitive(GET_COMPONENT("editPaste"), TRUE);
   gtk_widget_set_sensitive(GET_COMPONENT("buttonPaste"), TRUE);
   
+
   if (strlen(new_text)==0) { // erase object and cancel
     g_free(new_text);
     g_signal_handler_disconnect(winMain, ui.resize_signal_handler);
-    g_object_unref(G_OBJECT(ui.cur_item->canvas_item));
+    goo_canvas_item_remove(ui.cur_item->canvas_item);
     ui.cur_item->canvas_item = NULL;
     if (ui.cur_item->text == NULL) // nothing happened
       g_free(ui.cur_item->font_name);
@@ -795,13 +832,8 @@ void end_text(void)
   update_item_bbox(ui.cur_item);
   //lower_canvas_item_to(ui.cur_layer->group, ui.cur_item->canvas_item, tmpitem);
   goo_canvas_item_lower(ui.cur_item->canvas_item, tmpitem);
-  g_object_unref(G_OBJECT(tmpitem));
+  goo_canvas_item_remove(tmpitem);
 
-#ifdef ABC
-
-#else
-  assert(0);
-#endif
 }
 
 

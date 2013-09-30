@@ -1064,8 +1064,8 @@ void lower_canvas_item_to(GooCanvasItem *g, GooCanvasItem *item, GooCanvasItem *
   g->item_list_end = g_list_last(g->item_list);
 
 #else
-  
-  goo_canvas_item_lower(item, after);
+  goo_canvas_item_lower(item, NULL);
+  goo_canvas_item_raise(item, after);
 
 #endif
 
