@@ -3699,15 +3699,16 @@ void
 on_radioZoomWidth_toggled              (GtkToggleButton *togglebutton,
                                         gpointer         user_data)
 {
-#ifdef ABC
+  gint width;
 
-  if (!gtk_toggle_button_get_active(togglebutton)) return;
-  zoom_percent = 100*(GTK_WIDGET(canvas))->allocation.width/ui.cur_page->width/DEFAULT_ZOOM;
+  if (!gtk_toggle_button_get_active(togglebutton)) 
+    return;
+
+  width = gtk_widget_get_allocated_width(GTK_WIDGET(canvas));
+
+  zoom_percent = 100.0* width /ui.cur_page->width/DEFAULT_ZOOM;
   gtk_spin_button_set_value(GTK_SPIN_BUTTON(g_object_get_data(
         G_OBJECT(zoom_dialog), "spinZoom")), zoom_percent);
-#else
-  assert(0);
-#endif
 
 }
 
@@ -3716,15 +3717,14 @@ void
 on_radioZoomHeight_toggled             (GtkToggleButton *togglebutton,
                                         gpointer         user_data)
 {
-#ifdef ABC
+  gint height;
+
+  height = gtk_widget_get_allocated_height(GTK_WIDGET(canvas));
 
   if (!gtk_toggle_button_get_active(togglebutton)) return;
-  zoom_percent = 100*(GTK_WIDGET(canvas))->allocation.height/ui.cur_page->height/DEFAULT_ZOOM;
+  zoom_percent = 100.0*height/ui.cur_page->height/DEFAULT_ZOOM;
   gtk_spin_button_set_value(GTK_SPIN_BUTTON(g_object_get_data(
         G_OBJECT(zoom_dialog), "spinZoom")), zoom_percent);
-#else
-  assert(0);
-#endif
 
 }
 
