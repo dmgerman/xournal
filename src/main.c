@@ -255,7 +255,9 @@ void init_stuff (int argc, char *argv[])
 #ifdef ABC
   gnome_canvas_set_center_scroll_region (canvas, TRUE);  // if the canvas is too small, it simply puts it in the middle... not that important
 #else
-  printf("\nHow the hell do I force the canvas to center the item in the middle...\n");
+  g_object_set(canvas,
+	       "anchor", GOO_CANVAS_ANCHOR_CENTER, 
+	       NULL);
 #endif
   
   //  gtk_layout_get_hadjustment(GTK_LAYOUT (canvas))->step_increment = ui.scrollbar_step_increment;

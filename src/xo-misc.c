@@ -2851,4 +2851,6 @@ void xo_canvas_get_scroll_offsets(GooCanvas *canvas, int *x, int *y)
   *x = gtk_adjustment_get_value(h_adj);
   *y = gtk_adjustment_get_value(v_adj);
 
+  printf("the offset is %d %d\n", *x, *y);
+
 }
