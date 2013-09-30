@@ -47,7 +47,6 @@ struct Item *click_is_in_text_or_image(struct Layer *layer, double x, double y);
 void refont_text_item(struct Item *item, gchar *font_name, double font_size);
 void process_font_sel(gchar *str);
 
-void xo_canvas_get_scroll_offsets(GooCanvas *canvas, int *x, int *y);
 GooCanvasItem *xo_create_path(GooCanvasItem *group, GooCanvasPoints *points, gdouble lineWidth);
 GooCanvasItem *xo_create_path_with_color(GooCanvasItem *group, GooCanvasPoints *points, gdouble lineWidth, guint color);
 

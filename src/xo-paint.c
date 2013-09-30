@@ -616,18 +616,35 @@ void do_hand(GdkEvent *event)
 {
 
   double pt[2];
-  int cx, cy;
-  
+  gdouble cx, cy;
+  int x, y;
+  gdouble deltaX, deltaY;
   get_pointer_coords(event, pt);
 
-  //gnome_canvas_get_scroll_offsets(canvas, &cx, &cy);
   pt[0] += ui.cur_page->hoffset;
   pt[1] += ui.cur_page->voffset;
 
-  xo_canvas_get_scroll_offsets(canvas, &cx, &cy);
+  deltaX = pt[0]-ui.hand_refpt[0];
+  deltaY = pt[1]-ui.hand_refpt[1];
 
+  if (fabs(deltaX) < 1 &&
+      fabs(deltaY) < 1) {
+    // don't do micro move movements
+    return ;
+  }
+
+  xo_canvas_get_scroll_offsets(canvas, &cx, &cy);
+  assert(cx >= 0);
+  assert(cy >=0);
+
+  /*
+    dmg: we don't need to zoom them any more, since they are already in good coordinates
   ui.hand_scrollto_cx = cx - (pt[0]-ui.hand_refpt[0])*ui.zoom;
   ui.hand_scrollto_cy = cy - (pt[1]-ui.hand_refpt[1])*ui.zoom;
+  */
+  ui.hand_scrollto_cx = cx - deltaX;
+  ui.hand_scrollto_cy = cy - deltaY;
+
   if (!ui.hand_scrollto_pending) 
     g_idle_add(do_hand_scrollto, NULL);
   ui.hand_scrollto_pending = TRUE;

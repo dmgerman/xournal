@@ -989,10 +989,11 @@ void rescale_bg_pixmaps(void)
       continue;
     
     TRACE_2("doing it for a visible page %d\n",i);
-    if (pg->bg->type == BG_PIXMAP && pg->bg->canvas_group!=NULL) {
 
-#ifdef ABC      
+    if (pg->bg->type == BG_PIXMAP && pg->bg->canvas_group!=NULL) {
       printf("This needs to be reimplmented... goo_canvas_image does not store the pixbuf\n");
+#ifdef ABC      
+
 
       pix = xo_goo_canvas_item_pixbuf_get(pg->bg->canvas_group);
       if (pix!=pg->bg->pixbuf)
@@ -1021,6 +1022,7 @@ void rescale_bg_pixmaps(void)
 	g_object_get(pg->bg->canvas_group, "width", &is_well_scaled, NULL);
 
 	if (is_well_scaled) {
+	  TRACE_1(">>>>>>>>>>>>>>>>>>>>... it is being rescaled \n");
 	  g_object_set(pg->bg->canvas_group,
 		       "width", pg->width, 
 		       "height", pg->height, 
@@ -2856,7 +2858,7 @@ void xo_canvas_set_pixels_per_unit(void)
 #endif
 }
 
-void xo_canvas_get_scroll_offsets(GooCanvas *canvas, int *x, int *y) 
+void xo_canvas_get_scroll_offsets(GooCanvas *canvas, gdouble *x, gdouble *y) 
 {
   GtkAdjustment *v_adj, *h_adj;
   
@@ -2865,7 +2867,7 @@ void xo_canvas_get_scroll_offsets(GooCanvas *canvas, int *x, int *y)
 
   *x = gtk_adjustment_get_value(h_adj);
   *y = gtk_adjustment_get_value(v_adj);
-
-  printf("the offset is %d %d\n", *x, *y);
+ 
+  goo_canvas_convert_from_pixels(canvas, x, y);
 
 }

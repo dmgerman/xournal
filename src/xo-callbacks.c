@@ -2669,9 +2669,13 @@ on_canvas_button_press_event           (GtkWidget       *widget,
   
   if (ui.toolno[mapping] == TOOL_HAND) {
     ui.cur_item_type = ITEM_HAND;
+
+    // we save it in coordinates
     get_pointer_coords((GdkEvent *)event, ui.hand_refpt);
+
     ui.hand_refpt[0] += ui.cur_page->hoffset;
     ui.hand_refpt[1] += ui.cur_page->voffset;
+
   } 
   else if (ui.toolno[mapping] == TOOL_PEN || ui.toolno[mapping] == TOOL_HIGHLIGHTER ||
         (ui.toolno[mapping] == TOOL_ERASER && ui.cur_brush->tool_options == TOOLOPT_ERASER_WHITEOUT)) {
@@ -3117,7 +3121,6 @@ on_vscroll_changed                     (GtkAdjustment   *adjustment,
     return;
   
   if (ui.progressive_bg)  {
-    TRACE_1("\n\n----------------------------------------------------\nit is progressive, rescale the background\n");
     rescale_bg_pixmaps();
   }
   need_update = FALSE;
