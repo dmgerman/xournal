@@ -1064,8 +1064,12 @@ void lower_canvas_item_to(GooCanvasItem *g, GooCanvasItem *item, GooCanvasItem *
   g->item_list_end = g_list_last(g->item_list);
 
 #else
+  // we want item just above after
+
   goo_canvas_item_lower(item, NULL);
-  goo_canvas_item_raise(item, after);
+  if (after != NULL) {
+    goo_canvas_item_raise(item, after);
+  }
 
 #endif
 
