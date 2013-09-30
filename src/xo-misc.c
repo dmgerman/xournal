@@ -114,21 +114,30 @@ struct Page *new_page(struct Page *template)
 
 void xo_goo_canvas_item_show(GooCanvasItem *item)
 {
-  g_object_set (item,
-		"visibility", GOO_CANVAS_ITEM_VISIBLE,
-		NULL);
+  if (!goo_canvas_item_is_visible (item)) {
+    g_object_set (item,
+		  "visibility", GOO_CANVAS_ITEM_VISIBLE,
+		  NULL);
+  }
 }
 
 void xo_goo_canvas_item_hide(GooCanvasItem *item)
 {
-  g_object_set (item,
-		"visibility", GOO_CANVAS_ITEM_INVISIBLE,
-		NULL);
+  if (goo_canvas_item_is_visible (item)) {
+    g_object_set (item,
+		  "visibility", GOO_CANVAS_ITEM_INVISIBLE,
+		  NULL);
+  }
 }
 
 void xo_goo_canvas_item_move_to(GooCanvasItem *item, gdouble x, gdouble y)
 {
-  g_object_set(G_OBJECT(item), "x",x,"y",y, NULL);
+  gdouble xold;
+  gdouble yold;
+  g_object_get(item, "x", &xold, "y", &yold, NULL);
+  if (fabs(x - xold) > 1e-10 || 
+      fabs(y - yold) > 1e-10)
+    g_object_set(G_OBJECT(item), "x",x,"y",y, NULL);
 }
 
 void xo_goo_canvas_item_pixbuf_set(GooCanvasItem *item,  GdkPixbuf *pix)
@@ -279,7 +288,8 @@ void clear_redo_stack(void)
     else if (redo->type == ITEM_NEW_BG_ONE || redo->type == ITEM_NEW_BG_RESIZE
           || redo->type == ITEM_NEW_DEFAULT_BG) {
       if (redo->bg->type == BG_PIXMAP || redo->bg->type == BG_PDF) {
-        if (redo->bg->pixbuf!=NULL) g_object_unref(redo->bg->pixbuf);
+        if (redo->bg->pixbuf!=NULL) 
+	  g_object_unref(redo->bg->pixbuf);
         refstring_unref(redo->bg->filename);
       }
       g_free(redo->bg);
@@ -969,15 +979,16 @@ void rescale_bg_pixmaps(void)
   GdkPixbuf *pix;
   gboolean is_well_scaled;
   gdouble zoom_to_request;
-  
-  //  TRACE_1("Entering");
+  int i=0;
+  TRACE_1("Entering");
   for (pglist = journal.pages; pglist!=NULL; pglist = pglist->next) {
+    i++;
     pg = (struct Page *)pglist->data;
     // in progressive mode we scale only visible pages
     if (ui.progressive_bg && !is_visible(pg)) 
       continue;
     
-
+    TRACE_2("doing it for a visible page %d\n",i);
     if (pg->bg->type == BG_PIXMAP && pg->bg->canvas_group!=NULL) {
 
 #ifdef ABC      
@@ -1027,7 +1038,7 @@ void rescale_bg_pixmaps(void)
       }
     }
   }
-  //  TRACE_1("Ending\n");
+  TRACE_1("Ending\n");
 }
 
 gboolean have_intersect(struct BBox *a, struct BBox *b)
