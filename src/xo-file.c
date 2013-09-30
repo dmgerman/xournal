@@ -1091,9 +1091,11 @@ struct Background *attempt_screenshot_bg(void)
   GdkPixbuf *pix;
   XEvent x_event;
   GdkWindow *window;
-  int x,y,w,h;
+  gint x,y,w,h;
   Window x_root, x_win;
+
   Display* xDisplay = gdk_x11_display_get_xdisplay(gdk_display_get_default());
+  GdkDisplay *gdkDisplay =   gdk_display_get_default();
 
   x_root = gdk_x11_get_default_root_xwindow();
   
@@ -1107,27 +1109,24 @@ struct Background *attempt_screenshot_bg(void)
   x_win = x_event.xbutton.subwindow;
   if (x_win == None) x_win = x_root;
 
-#ifdef ABC
-  window = gdk_window_foreign_new_for_display(xDisplay, x_win);
-    
-  gdk_window_get_geometry(window, &x, &y, &w, &h, NULL);
   
-  pix = gdk_pixbuf_get_from_drawable(NULL, window,
-    gdk_colormap_get_system(), 0, 0, 0, 0, w, h);
+  window = gdk_x11_window_foreign_new_for_display(gdkDisplay, x_win);
     
+  gdk_window_get_geometry(window, &x, &y, &w, &h);
+  w = gdk_window_get_width(window);
+  h = gdk_window_get_height(window);
+  pix = gdk_pixbuf_get_from_window(window, 0, 0, w, h);
+  
   if (pix == NULL) return NULL;
   
   bg = g_new(struct Background, 1);
   bg->type = BG_PIXMAP;
-  bg->canvas_item = NULL;
+  bg->canvas_group = NULL;
   bg->pixbuf = pix;
   bg->pixbuf_scale = DEFAULT_ZOOM;
   bg->filename = new_refstring(NULL);
   bg->file_domain = DOMAIN_ATTACH;
   return bg;
-#else
-  assert(0);
-#endif
 
 #else
   // not implemented under WIN32

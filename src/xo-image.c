@@ -59,7 +59,6 @@ FAIL:
 
 void create_image_from_pixbuf(GdkPixbuf *pixbuf, double *pt)
 {
-#ifdef ABC
   double scale;
   struct Item *item;
 
@@ -101,24 +100,25 @@ void create_image_from_pixbuf(GdkPixbuf *pixbuf, double *pt)
   ui.selection->layer = ui.cur_layer;
   ui.selection->bbox = item->bbox;
   ui.selection->items = g_list_append(ui.selection->items, item);
+
+
+#ifdef ABC
   ui.selection->canvas_item = gnome_canvas_item_new(ui.cur_layer->group,
       gnome_canvas_rect_get_type(), "width-pixels", 1,
       "outline-color-rgba", 0x000000ff,
       "fill-color-rgba", 0x80808040,
       "x1", ui.selection->bbox.left, "x2", ui.selection->bbox.right, 
       "y1", ui.selection->bbox.top, "y2", ui.selection->bbox.bottom, NULL);
-  make_dashed(ui.selection->canvas_item);
-  update_copy_paste_enabled();
 #else
-  assert(0);
+  xo_selection_rectangle_draw();
 #endif
+  //  make_dashed(ui.selection->canvas_item);
+  update_copy_paste_enabled();
 }
 
 void insert_image(GdkEvent *event)
 {
-#ifdef ABC
   GtkTextBuffer *buffer;
-  GnomeCanvasItem *canvas_item;
   GdkColor color;
   GtkWidget *dialog;
   GtkFileFilter *filt_all;
@@ -179,9 +179,6 @@ void insert_image(GdkEvent *event)
   set_current_page(pt);  
 
   create_image_from_pixbuf(pixbuf, pt);
-#else
-  assert(0);
-#endif
 
 }
 

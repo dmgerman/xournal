@@ -949,8 +949,6 @@ on_editRedo_activate                   (GtkMenuItem     *menuitem,
   update_undo_redo_enabled();
   if (u->multiop & MULTIOP_CONT_REDO) on_editRedo_activate(NULL,NULL); // loop
 
-
-
 }
 
 
@@ -1703,9 +1701,6 @@ void
 on_journalScreenshot_activate          (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-#ifdef ABC
-
-
   struct Background *bg;
   
   end_text();
@@ -1721,7 +1716,8 @@ on_journalScreenshot_activate          (GtkMenuItem     *menuitem,
     
   gtk_window_deiconify(GTK_WINDOW(winMain));
   update_cursor();
-  if (bg==NULL) return;
+  if (bg==NULL) 
+    return;
 
   prepare_new_undo();
   undo->type = ITEM_NEW_BG_RESIZE;
@@ -1741,16 +1737,14 @@ on_journalScreenshot_activate          (GtkMenuItem     *menuitem,
 
   if (ui.zoom != DEFAULT_ZOOM) {
     ui.zoom = DEFAULT_ZOOM;
-    gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
+    xo_canvas_set_pixels_per_unit();
+
     rescale_text_items();
     rescale_bg_pixmaps();
     rescale_images();
   }
   do_switch_page(ui.pageno, TRUE, TRUE);
 
-#else
-  assert(0);
-#endif
 
 }
 
