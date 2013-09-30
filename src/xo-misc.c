@@ -650,13 +650,23 @@ void update_item_bbox(struct Item *item)
       if (p[1] < item->bbox.top) item->bbox.top = p[1];
       if (p[1] > item->bbox.bottom) item->bbox.bottom = p[1];
     }
-  }
-  if (item->type == ITEM_TEXT && item->canvas_item!=NULL) {
-    h=0.; w=0.;
-    g_object_get(item->canvas_item, "width", &w, "height", &h, NULL);
-    item->bbox.right = item->bbox.left + w;
-    item->bbox.bottom = item->bbox.top + h;
-  }
+  } else if (item->type == ITEM_TEXT) {
+    if (item->canvas_item!=NULL) {
+      GooCanvasBounds bounds;
+
+      goo_canvas_item_get_bounds(item->canvas_item, 
+				 &bounds);
+
+      // test our assumptions
+      assert(bounds.x2 >= bounds.x1);
+      assert(bounds.y2 >= bounds.y1);
+      item->bbox.right = bounds.x2;
+      item->bbox.bottom = bounds.y2;
+
+    }  else {
+      ; // no bounding box, I guess...
+    }
+  }// dmg: what happens otherwise?
 }
 
 void make_page_clipbox(struct Page *pg)

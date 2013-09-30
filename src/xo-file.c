@@ -608,29 +608,25 @@ void xoj_parser_start_element(GMarkupParseContext *context,
         if (has_attr & 1) *error = xoj_invalid();
         tmpItem->font_name = g_strdup(*attribute_values);
         has_attr |= 1;
-      }
-      else if (!strcmp(*attribute_names, "size")) {
+      } else if (!strcmp(*attribute_names, "size")) {
         if (has_attr & 2) *error = xoj_invalid();
         cleanup_numeric((gchar *)*attribute_values);
         tmpItem->font_size = g_ascii_strtod(*attribute_values, &ptr);
         if (ptr == *attribute_values) *error = xoj_invalid();
         has_attr |= 2;
-      }
-      else if (!strcmp(*attribute_names, "x")) {
+      } else if (!strcmp(*attribute_names, "x")) {
         if (has_attr & 4) *error = xoj_invalid();
         cleanup_numeric((gchar *)*attribute_values);
         tmpItem->bbox.left = g_ascii_strtod(*attribute_values, &ptr);
         if (ptr == *attribute_values) *error = xoj_invalid();
         has_attr |= 4;
-      }
-      else if (!strcmp(*attribute_names, "y")) {
+      } else if (!strcmp(*attribute_names, "y")) {
         if (has_attr & 8) *error = xoj_invalid();
         cleanup_numeric((gchar *)*attribute_values);
         tmpItem->bbox.top = g_ascii_strtod(*attribute_values, &ptr);
         if (ptr == *attribute_values) *error = xoj_invalid();
         has_attr |= 8;
-      }
-      else if (!strcmp(*attribute_names, "color")) {
+      } else if (!strcmp(*attribute_names, "color")) {
         if (has_attr & 16) *error = xoj_invalid();
         tmpItem->brush.color_no = COLOR_OTHER;
         for (i=0; i<COLOR_MAX; i++)
@@ -644,12 +640,14 @@ void xoj_parser_start_element(GMarkupParseContext *context,
           if (*ptr!=0) *error = xoj_invalid();
         }
         has_attr |= 16;
+      } else {
+	*error = xoj_invalid();
       }
-      else *error = xoj_invalid();
       attribute_names++;
       attribute_values++;
     }
-    if (has_attr!=31) *error = xoj_invalid();
+    if (has_attr!=31) 
+      *error = xoj_invalid();
   }
   else if (!strcmp(element_name, "image")) { // start of a image item
     if (tmpLayer == NULL || tmpItem != NULL) {
@@ -854,8 +852,7 @@ gboolean open_journal(char *filename)
   
   tmpfn = g_strdup_printf("%s.xoj", filename);
   if (ui.autoload_pdf_xoj && g_file_test(tmpfn, G_FILE_TEST_EXISTS) &&
-      (g_str_has_suffix(filename, ".pdf") || g_str_has_suffix(filename, ".PDF")))
-  {
+      (g_str_has_suffix(filename, ".pdf") || g_str_has_suffix(filename, ".PDF")))   {
     valid = open_journal(tmpfn);
     g_free(tmpfn);
     return valid;
@@ -869,6 +866,7 @@ gboolean open_journal(char *filename)
     ui.default_path = g_path_get_dirname(filename);
   }
   
+  /// dmg: refactor all these assignments
   context = g_markup_parse_context_new(&parser, 0, NULL, NULL);
   valid = TRUE;
   tmpJournal.npages = 0;
@@ -885,17 +883,24 @@ gboolean open_journal(char *filename)
   while (valid && !gzeof(f)) {
     len = gzread(f, buffer, 1000);
     if (len<0) valid = FALSE;
-    if (maybe_pdf && len>=4 && !strncmp(buffer, "%PDF", 4))
-      { valid = FALSE; break; } // most likely pdf
-    else maybe_pdf = FALSE;
-    if (len<=0) break;
+    if (maybe_pdf && len>=4 && !strncmp(buffer, "%PDF", 4)) { 
+      valid = FALSE; 
+      break; // most likely pdf
+    } else  {
+      maybe_pdf = FALSE;
+    }
+    if (len<=0) 
+      break;
     valid = g_markup_parse_context_parse(context, buffer, len, &error);
   }
   gzclose(f);
-  if (valid) valid = g_markup_parse_context_end_parse(context, &error);
-  if (tmpJournal.npages == 0) valid = FALSE;
+  if (valid) 
+    valid = g_markup_parse_context_end_parse(context, &error);
+  if (tmpJournal.npages == 0) 
+    valid = FALSE;
+
   g_markup_parse_context_free(context);
-  
+
   if (!valid) {
     delete_journal(&tmpJournal);
     if (!maybe_pdf) return FALSE;
@@ -903,6 +908,9 @@ gboolean open_journal(char *filename)
     ui.saved = TRUE;
     close_journal();
     while (bgpdf.status != STATUS_NOT_INIT) gtk_main_iteration();
+
+    // dmg: this should be refactored
+
     new_journal();
     ui.zoom = ui.startup_zoom;
 #ifdef ABC
@@ -921,7 +929,8 @@ gboolean open_journal(char *filename)
   
   // if we need to initialize a fresh pdf loader
   if (tmpBg_pdf!=NULL) { 
-    while (bgpdf.status != STATUS_NOT_INIT) gtk_main_iteration();
+    while (bgpdf.status != STATUS_NOT_INIT) 
+      gtk_main_iteration();
     if (tmpBg_pdf->file_domain == DOMAIN_ATTACH)
       tmpfn = g_strdup_printf("%s.%s", filename, tmpBg_pdf->filename->s);
     else
