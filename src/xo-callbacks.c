@@ -668,15 +668,15 @@ on_editUndo_activate                   (GtkMenuItem     *menuitem,
     }
   }
   else if (undo->type == ITEM_TEXT_EDIT) {
-    assert(0);
     tmpstr = undo->str;
     undo->str = undo->item->text;
     undo->item->text = tmpstr;
-    gnome_canvas_item_set(undo->item->canvas_item, "text", tmpstr, NULL);
+    g_object_set(undo->item->canvas_item, 
+		 "text", tmpstr, 
+		 NULL);
     update_item_bbox(undo->item);
   }
   else if (undo->type == ITEM_TEXT_ATTRIB) {
-    assert(0);
     tmpstr = undo->str;
     undo->str = undo->item->font_name;
     undo->item->font_name = tmpstr;

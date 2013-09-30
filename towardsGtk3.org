@@ -1,58 +1,35 @@
 * Moving Xournal to gtk3
 
 - DO NOT USE YET. This branch is still broken
-- There are lots of features that work, but a lot that does not work
+- There are some minor interface bugs and some major bugs
 - Below I have listed the features that have been ported, but are broken
 
-** Currently working <2013-09-29 Sun>
+** Currently working <2013-09-30 Mon>
 
-I am trying to implement adding text...but I am not understanding what
-happens in start_text and how to replace it.
-
-[[file:src/xo-paint.c::gtk_widget_modify_font(item->widget,%20font_desc)%3B][file:src/xo-paint.c::gtk_widget_modify_font(item->widget, font_desc);]]
-
+- Most features
 
 ** What is broken seriously (and would impede using it)
 
 
-*** TODO Loading pdf backgrounds does not  properly display if continous and multipage.
+*** TODO Pixmap  backgrounds
   
-- it crashes!!!! now <2013-09-29 Sun>
-- Only those pages that are visible in the first screen are rendered... the rest are not.
-- At zooming, the same happens, only visible pages are rendered..
+- they are broken
 
-*** TODO Annotating PDFs
+*** TODO Pdfs
 
-- Continuous view does not properly rescale the background
+- Loas properly, but it segfaults in resizing
 
 *** TODO Selection
 
-- It assert faults under some situations (I think i fixed it). The
-  main problem is that rectangles are no longer drawn with four
-  points, but with x,y width and height and they do not allow negative
-  withds/heights. This means we always have to draw from left/top
-  point.  One alternative is to use a path.
+- Cursor gets stuck with selection cursors
 
 - Lasso selection needs to be reimplemented...
 
-*** TODO Undo-Redo
+*** TODO cut and paste
 
-- I think there are issues that need to be implemented. At the very
-  least, it needs testing
+- the pasting is incorrectly placed, needs investigation
 
-** TODO cut and paste
-
-- the pasting is incorrectly placed
-
-*** TODO lots of things
-Search for WARN or assert(0):
-
-- implement Dialog windows (there is a deprecation in gtk3 that I need
-  to fix). This affects everything that creates a dialog window.
-- inserting images
-- inserting text
-- undo/redo of some items 
-- print (I think)
+*** TODO screenshots
 
 ** Minor issues that need to be looked at
 
@@ -61,12 +38,7 @@ Search for WARN or assert(0):
 - I have observed some cases in which the shape of the mouse during
   resizing of a region stays even after the resizing. Needs investigation. I think I have broken setting the cursor shape
 
-*** TODO it does not center the screen in the canvas when it is rezized
-
-
-
-
-*** TODO the screen needs to be redrawn after each line, because there are aliasing artifacts :minor:
+*** TODO there are aliasing artifacts :minor:
 
 *** TODO selection polygons are not dashed, but red 		      :minor:
 
