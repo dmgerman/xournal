@@ -626,7 +626,6 @@ void continue_movesel(GdkEvent *event)
 #ifdef ABC
     gnome_canvas_item_move(ui.selection->canvas_item, dx, dy);
 #else
-    TRACE_3("Translate [%f] [%f]\n", dx, dy);
     goo_canvas_item_translate(ui.selection->canvas_item, dx, dy);
 #endif
   }

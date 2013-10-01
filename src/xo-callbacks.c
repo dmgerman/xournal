@@ -2237,8 +2237,6 @@ on_toolsTextFont_activate              (GtkMenuItem     *menuitem,
   GtkWidget *dialog;
   gchar *str;
   
-#ifdef ABC
-
   dialog = gtk_font_selection_dialog_new(_("Select Font"));
   str = make_cur_font_name();
   gtk_font_selection_dialog_set_font_name(GTK_FONT_SELECTION_DIALOG(dialog), str);
@@ -2250,10 +2248,6 @@ on_toolsTextFont_activate              (GtkMenuItem     *menuitem,
   str = gtk_font_selection_dialog_get_font_name(GTK_FONT_SELECTION_DIALOG(dialog));
   gtk_widget_destroy(dialog);
   process_font_sel(str);
-
-#else
-  assert(0);
-#endif
 
 
 }    
@@ -3910,6 +3904,7 @@ xo_gesture_callback (GtkWidget        *widget,
     double old_x, old_y;
     double delta_x, delta_y;
 
+    assert(0);
     if(event->type != GRIP_GESTURE_PINCH)
         return;
 

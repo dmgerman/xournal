@@ -10,7 +10,6 @@
 
 ** What is broken seriously (and would impede using it)
 
-
 *** TODO Pixmap  backgrounds
   
 - they are broken
@@ -32,6 +31,10 @@
 *** TODO screenshots
 
 ** Minor issues that need to be looked at
+
+*** TODO Text editing  :minor:
+
+The resizing of the GtkTextView does not work.
 
 *** TODO Cursor shapes
 

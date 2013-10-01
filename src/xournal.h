@@ -437,5 +437,6 @@ extern double DEFAULT_ZOOM;
 #define TRACE_1(a) printf("> IN [%s]:[%s]:[%d]--- [%s]\n", __FILE__, __func__, __LINE__,a);
 #define TRACE_2(a,b) printf("> IN [%s]:[%s]:[%d]---" a, __FILE__, __func__, __LINE__,b);
 #define TRACE_3(a,b,c) printf("> IN [%s]:[%s]:[%d]---" a, __FILE__, __func__, __LINE__,b,c);
+#define TRACE_4(a,b,c,d) printf("> IN [%s]:[%s]:[%d]---" a, __FILE__, __func__, __LINE__,b,c,d);
 
 #endif

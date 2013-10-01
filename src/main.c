@@ -50,7 +50,9 @@ double DEFAULT_ZOOM;
 
 void
 xo_subscribe_gestures(GtkWidget *window, GtkWidget *scroller) {
+
     GripGestureManager *manager = grip_gesture_manager_get();
+
     grip_gesture_manager_register_window (manager,
             window,
             GRIP_GESTURE_PINCH,
@@ -63,7 +65,7 @@ xo_subscribe_gestures(GtkWidget *window, GtkWidget *scroller) {
             window,
             GRIP_GESTURE_DRAG,
             GRIP_DEVICE_TOUCHSCREEN,
-            1,
+            2,
             xo_gesture_callback,
             scroller, NULL);
 }
@@ -270,7 +272,7 @@ void init_stuff (int argc, char *argv[])
   gtk_adjustment_set_step_increment(adj, ui.scrollbar_step_increment);
 
 
-  xo_subscribe_gestures(GTK_WIDGET(winMain), GTK_WIDGET(canvas));
+  xo_subscribe_gestures(GTK_WIDGET(canvas), canvas);
 
 
   // set up the page size and canvas size

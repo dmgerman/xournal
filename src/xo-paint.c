@@ -664,25 +664,29 @@ void resize_textview(gpointer *toplevel, gpointer *data)
   if (ui.cur_item_type!=ITEM_TEXT) 
     return;
 
-
-  TRACE_1("This code needs to be revised\n");
-  return;
+  // XXXX: the problem is that we do not know
+  //       how to compute the width of the text in the GtkTextView
+  //       
 
   w = GTK_TEXT_VIEW(ui.cur_item->widget);
   width = gtk_widget_get_allocated_width(GTK_WIDGET(w)) + WIDGET_RIGHT_MARGIN;
   height = gtk_widget_get_allocated_height(GTK_WIDGET(w));
 
-  printf("To set width %f %f\n", width, height);
-  
+  TRACE_3("To set width %f %f\n", width, height);
+  TRACE_4("Zoom %f [%f] [%f]\n", ui.zoom, width/ui.zoom, height/ui.zoom);
+
 #ifdef ABC
   gnome_canvas_item_set(ui.cur_item->canvas_item, 
     "size-pixels", TRUE, 
     "width", (gdouble)width, "height", (gdouble)height, NULL);
 #else
-  g_object_set(ui.cur_item->canvas_item, 
+  TRACE_1("resizing of the GtkTextView does not work!!!!. Needs fixing\n");
+  /*
+  g_object_set(ui.cur_item->canvas_item,
 	       //	       "size-pixels", TRUE, 
 	       "width", width, 
 	       "height", height, NULL);
+  */
 #endif
   ui.cur_item->bbox.right = ui.cur_item->bbox.left + width/ui.zoom;
   ui.cur_item->bbox.bottom = ui.cur_item->bbox.top + height/ui.zoom;
@@ -857,29 +861,36 @@ void end_text(void)
 void update_text_item_displayfont(struct Item *item)
 {
   //   WARN1("I don't think we need this any more");
-   return;
- 
-
-#ifdef ABC
 
 
-  PangoFontDescription *font_desc;
+  if (item->type != ITEM_TEXT && item->type != ITEM_TEMP_TEXT) 
+    return;
+  if (item->canvas_item==NULL) 
+    return;
 
-  if (item->type != ITEM_TEXT && item->type != ITEM_TEMP_TEXT) return;
-  if (item->canvas_item==NULL) return;
-  font_desc = pango_font_description_from_string(item->font_name);
-  pango_font_description_set_absolute_size(font_desc, 
-        item->font_size*ui.zoom*PANGO_SCALE);
-  if (item->type == ITEM_TEMP_TEXT)
+  if (item->type == ITEM_TEMP_TEXT) {
+    PangoFontDescription *font_desc;
+
+    font_desc = pango_font_description_from_string(item->font_name);
+
+    pango_font_description_set_absolute_size(font_desc, 
+					     item->font_size*ui.zoom*PANGO_SCALE);
+
     gtk_widget_modify_font(item->widget, font_desc);
-  else {
-    gnome_canvas_item_set(item->canvas_item, "font-desc", font_desc, NULL);
+
+    pango_font_description_free(font_desc);
+
+  }  else {
+    char *font = g_strdup_printf("%s %f", item->font_name, item->font_size);
+    printf("Setting font to [%s]\n", font);
+
+    g_object_set(item->canvas_item, "font", font, NULL);
+    g_free(font);
+
     update_item_bbox(item);
+
+
   }
-  pango_font_description_free(font_desc);
-#else
-  assert(0);
-#endif
 
 }
 
