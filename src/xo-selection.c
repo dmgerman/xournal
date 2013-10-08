@@ -59,7 +59,7 @@ void xo_canvas_rectangle_resize(GooCanvasItem *item,
     y2 = t;
   } 
 
-  g_object_set(ui.selection->canvas_item, 
+  g_object_set(item,
 	       "x", x1,
 	       "width", x2- x1,
 	       "y", y1,
@@ -124,6 +124,12 @@ void xo_selection_rectangle_resize(gdouble x, gdouble y)
 
   assert(width >= 0);
   assert(height >= 0);
+
+  /*
+  xo_canvas_rectangle_resize(ui.selection->canvas_item, 
+			     bbox->left, bbox->top,
+			     bbox->right, bbox->bottom);
+  */
 
   g_object_set(ui.selection->canvas_item, 
 	       "x", bbox->left,
