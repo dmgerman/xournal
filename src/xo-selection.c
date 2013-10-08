@@ -99,44 +99,14 @@ void xo_selection_rectangle_resize(gdouble x, gdouble y)
   gdouble width;
   gdouble height;
   BBox *bbox = &(ui.selection->bbox);
-  gdouble xOrigin = ui.selection->create_x;
-  gdouble yOrigin = ui.selection->create_y;
 
-  // goocanvas can't draw negative widths
-  // so we recompute the boundaries of the box, always left/top first
-
-  if (x < xOrigin) {
-    bbox->right = xOrigin;
-    bbox->left = x;
-  } else {
-    bbox->right = x;
-    bbox->left = xOrigin;
-  }
-  if (y < yOrigin) {
-    bbox->bottom = yOrigin;
-    bbox->top = y;
-  } else {
-    bbox->bottom = y;
-    bbox->top = yOrigin;
-  }
-  height =  bbox->bottom - bbox->top;
-  width = bbox->right - bbox->left;
-
-  assert(width >= 0);
-  assert(height >= 0);
-
-  /*
+  bbox->right = x;
+  bbox->bottom = y;
   xo_canvas_rectangle_resize(ui.selection->canvas_item, 
 			     bbox->left, bbox->top,
 			     bbox->right, bbox->bottom);
-  */
+  return;
 
-  g_object_set(ui.selection->canvas_item, 
-	       "x", bbox->left,
-	       "width", width,
-	       "y", bbox->top,
-	       "height", height,
-	       NULL);
 }
 
 void xo_selection_rectangle_draw(void)
@@ -197,17 +167,29 @@ void finalize_selectrect(void)
   double x1, x2, y1, y2;
   GList *itemlist;
   struct Item *item;
-  
+  BBox *bbox = &(ui.selection->bbox);
+
   ui.cur_item_type = ITEM_NONE;
 
-  assert(ui.selection->bbox.right >= ui.selection->bbox.left);
-  assert(ui.selection->bbox.bottom >= ui.selection->bbox.top);
   
-  x1 = ui.selection->bbox.left;
-  x2 = ui.selection->bbox.right;
+  if (bbox->left > bbox->right) {
+      x2 = bbox->left;
+      bbox->left = bbox->right;
+      bbox->right = x2;
+  }
+  if (bbox->top > bbox->bottom) {
+      y2 = bbox->top;
+      bbox->top = bbox->bottom;
+      bbox->bottom = y2;
+  }
 
-  y1 = ui.selection->bbox.top; 
-  y2 = ui.selection->bbox.bottom;
+  assert(bbox->right >= bbox->left);
+  assert(bbox->bottom >= bbox->top);
+
+  x1 = bbox->left;
+  x2 = bbox->right;
+  y1 = bbox->top; 
+  y2 = bbox->bottom;
   
   for (itemlist = ui.selection->layer->items; itemlist!=NULL; itemlist = itemlist->next) {
     item = (struct Item *)itemlist->data;
@@ -228,6 +210,10 @@ void finalize_selectrect(void)
         "x1", item->bbox.left, "x2", item->bbox.right, 
         "y1", item->bbox.top, "y2", item->bbox.bottom, NULL);
 #else
+      xo_canvas_rectangle_resize(ui.selection->canvas_item,
+				 item->bbox.left, item->bbox.top,
+				 item->bbox.right, item->bbox.bottom);
+
       assert(item->bbox.bottom - item->bbox.top >= 0);
       assert(item->bbox.right -item->bbox.left >= 0);
       g_object_set(ui.selection->canvas_item,
