@@ -212,7 +212,9 @@ void start_selectregion(GdkEvent *event)
 {
   double pt[2];
   reset_selection();
-  
+  fprintf(stderr, "This needs to be implemented\n");
+  return;
+
   ui.cur_item_type = ITEM_SELECTREGION;
   ui.selection = g_new(struct Selection, 1);
   ui.selection->type = ITEM_SELECTREGION;
@@ -228,10 +230,10 @@ void start_selectregion(GdkEvent *event)
   ui.cur_path.coords[0] = ui.cur_path.coords[2] = pt[0];
   ui.cur_path.coords[1] = ui.cur_path.coords[3] = pt[1];
  
-  ui.selection->canvas_item = goo_canvas_polyline_new(ui.cur_layer->group, FALSE, 0,
+  ui.selection->canvas_item = goo_canvas_polyline_new(ui.cur_layer->group, TRUE, 0,
 						      "stroke-color-rgba", 0x000000ff,
 						      "fill-color-rgba", 0x80808040,
-						      "line-width", 1, 
+						      "line-width", 1.0, 
 						      NULL);
 
   /*
@@ -375,11 +377,10 @@ void finalize_selectregion(void)
     ui.selection->type = ITEM_SELECTRECT;
   }
 
-  update_cursor();
-  update_copy_paste_enabled();
-  update_font_button();
+
 #else
-  assert(0);
+  fprintf(stderr, "This needs to be implemented.\n");
+  reset_selection();
 #endif
 }
 

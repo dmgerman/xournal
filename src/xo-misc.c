@@ -57,9 +57,9 @@ void xo_canvas_scroll_to_y_pixels(gdouble y)
 {
   // we need to convert the y to real dimentions
   gdouble x;
-  gdouble top, bottom, left, right;
+  gdouble oldy;
 
-  goo_canvas_get_bounds(canvas, &left, &top, &right, &bottom);
+  xo_canvas_get_scroll_offsets(canvas, &x, &oldy);
 
   goo_canvas_scroll_to(canvas, x, y);
 
@@ -667,7 +667,11 @@ void update_item_bbox(struct Item *item)
       assert(bounds.x2 >= bounds.x1);
       assert(bounds.y2 >= bounds.y1);
       item->bbox.right = bounds.x2;
-      item->bbox.bottom = bounds.y2;
+      item->bbox.bottom = bounds.y2 - ui.cur_page->voffset;
+
+      printf("-------------------> [%f] [%f] [%f] [%f]\n", bounds.x1, bounds.y1, bounds.x2, bounds.y2);
+      printf("---------bbox------> [%f] [%f] [%f] [%f]\n", item->bbox.left, item->bbox.top, item->bbox.right, item->bbox.bottom);
+
 
     }  else {
       ; // no bounding box, I guess...
@@ -1658,7 +1662,8 @@ void do_switch_page(int pg, gboolean rescroll, gboolean refresh_all)
     cy = ui.cur_page->voffset*ui.zoom;
     gnome_canvas_scroll_to(canvas, cx, cy);
 #else
-    xo_canvas_scroll_to_y_pixels(ui.cur_page->voffset*ui.zoom);
+    //    xo_canvas_scroll_to_y_pixels(ui.cur_page->voffset*ui.zoom);
+    xo_canvas_scroll_to_y_pixels(ui.cur_page->voffset);
 #endif
     
     if (refresh_all)  {
@@ -1684,8 +1689,6 @@ void update_page_stuff(void)
   struct Page *pg;
   double vertpos, maxwidth;
   
-  TRACE_1("Starting...");
-
   // move the page groups to their rightful locations or hide them
   if (ui.view_continuous) {
 
@@ -1700,11 +1703,6 @@ void update_page_stuff(void)
 
 //        gnome_canvas_item_set(GNOME_CANVAS_ITEM(pg->group), 
 //            "x", pg->hoffset, "y", pg->voffset, NULL);
-	TRACE_2("Showing page %d\n", i);
-	if (pg->bg->canvas_group == NULL) {
-	  TRACE_1("But this page is empty!\n");
-	}
-
         xo_goo_canvas_item_show(pg->group);
 
       }
@@ -2169,10 +2167,12 @@ void reset_focus(void)
 
 void reset_selection(void)
 {
-  if (ui.selection == NULL) return;
-  if (ui.selection->canvas_item != NULL) 
-    goo_canvas_item_remove(ui.selection->canvas_item);
+  if (ui.selection == NULL) 
+    return;
 
+  if (ui.selection->canvas_item != NULL)  {
+    goo_canvas_item_remove(ui.selection->canvas_item);
+  }
   g_list_free(ui.selection->items);
   g_free(ui.selection);
   ui.selection = NULL;

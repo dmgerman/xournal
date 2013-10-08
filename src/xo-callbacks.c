@@ -43,6 +43,13 @@
 #include "xo-print.h"
 #include "xo-shapes.h"
 
+void xo_rescale(void)
+{
+  xo_canvas_set_pixels_per_unit();
+  rescale_text_items();
+  rescale_bg_pixmaps();
+  rescale_images();
+}
 
 void
 on_fileNew_activate                    (GtkMenuItem     *menuitem,
@@ -1051,10 +1058,7 @@ on_viewZoomIn_activate                 (GtkMenuItem     *menuitem,
   if (ui.zoom > MAX_ZOOM) 
     return;
   ui.zoom *= ui.zoom_step_factor;
-  xo_canvas_set_pixels_per_unit();
-  rescale_text_items();
-  rescale_bg_pixmaps();
-  rescale_images();
+  xo_rescale();
 }
 
 
@@ -1065,11 +1069,7 @@ on_viewZoomOut_activate                (GtkMenuItem     *menuitem,
   if (ui.zoom < MIN_ZOOM) return;
 
   ui.zoom /= ui.zoom_step_factor;
-  xo_canvas_set_pixels_per_unit();
-
-  rescale_text_items();
-  rescale_bg_pixmaps();
-  rescale_images();
+  xo_rescale();
 }
 
 
@@ -1078,10 +1078,7 @@ on_viewNormalSize_activate             (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
   ui.zoom = DEFAULT_ZOOM;
-  xo_canvas_set_pixels_per_unit();
-  rescale_text_items();
-  rescale_bg_pixmaps();
-  rescale_images();
+  xo_rescale();
 }
 
 
@@ -1091,12 +1088,7 @@ on_viewPageWidth_activate              (GtkMenuItem     *menuitem,
 {
 
   ui.zoom =  gtk_widget_get_allocated_width(GTK_WIDGET(canvas))/ui.cur_page->width;
-    
-  xo_canvas_set_pixels_per_unit();
-  rescale_text_items();
-  rescale_bg_pixmaps();
-  rescale_images();
-
+  xo_rescale();
 }
 
 
@@ -1687,10 +1679,7 @@ on_journalLoadBackground_activate      (GtkMenuItem     *menuitem,
   if (ui.zoom != DEFAULT_ZOOM) {
     ui.zoom = DEFAULT_ZOOM;
     //    gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
-    xo_canvas_set_pixels_per_unit();
-    rescale_text_items();
-    rescale_bg_pixmaps();
-    rescale_images();
+    xo_rescale();
   }
   do_switch_page(ui.pageno, TRUE, TRUE);
 
@@ -1739,11 +1728,7 @@ on_journalScreenshot_activate          (GtkMenuItem     *menuitem,
 
   if (ui.zoom != DEFAULT_ZOOM) {
     ui.zoom = DEFAULT_ZOOM;
-    xo_canvas_set_pixels_per_unit();
-
-    rescale_text_items();
-    rescale_bg_pixmaps();
-    rescale_images();
+    xo_rescale();
   }
   do_switch_page(ui.pageno, TRUE, TRUE);
 
@@ -3376,7 +3361,8 @@ on_optionsProgressiveBG_activate       (GtkMenuItem     *menuitem,
   if (ui.progressive_bg == active) return;
   end_text();
   ui.progressive_bg = active;
-  if (!ui.progressive_bg) rescale_bg_pixmaps();
+  if (!ui.progressive_bg) 
+    rescale_bg_pixmaps();
 }
 
 
@@ -3639,10 +3625,7 @@ on_viewSetZoom_activate                (GtkMenuItem     *menuitem,
     response = gtk_dialog_run(GTK_DIALOG(zoom_dialog));
     if (response == GTK_RESPONSE_OK || response == GTK_RESPONSE_APPLY) {
       ui.zoom = DEFAULT_ZOOM*zoom_percent/100;
-      xo_canvas_set_pixels_per_unit();
-      rescale_text_items();
-      rescale_bg_pixmaps();
-      rescale_images();
+      xo_rescale();
     }
   } while (response == GTK_RESPONSE_APPLY);
   

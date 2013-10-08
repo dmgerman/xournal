@@ -137,19 +137,17 @@ void update_cursor(void)
 {
   GdkColor fg = {0, 0, 0, 0}, bg = {0, 65535, 65535, 65535};
   GdkWindow *window;
+  GdkWindow *mainWin;
 
   TRACE_2("Entry type of cur_item_type [%d]",ui.cur_item_type);
 
   ui.is_sel_cursor = FALSE;
-
 
   window = gtk_widget_get_parent_window(GTK_WIDGET(canvas));
 
   if (window == NULL) 
     return;
   
-  TRACE_1("And going");
-
   if (ui.cursor!=NULL) { 
     g_object_unref(ui.cursor);
     ui.cursor = NULL;
@@ -175,6 +173,12 @@ void update_cursor(void)
   }
   else if (ui.toolno[ui.cur_mapping] == TOOL_TEXT) {
     ui.cursor = gdk_cursor_new(GDK_XTERM);
+  } 
+  else {
+    // in gtk2 a NULL cursor sets the parent cursor. In gtk3
+    // we need to explicitly indicate it
+    mainWin = gtk_widget_get_parent_window(GTK_WIDGET(winMain));
+    ui.cursor = gdk_window_get_cursor(mainWin);
   }
   
   gdk_window_set_cursor(window, ui.cursor);
@@ -617,7 +621,6 @@ void do_hand(GdkEvent *event)
 
   double pt[2];
   gdouble cx, cy;
-  int x, y;
   gdouble deltaX, deltaY;
   get_pointer_coords(event, pt);
 
