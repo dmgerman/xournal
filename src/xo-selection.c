@@ -41,9 +41,9 @@ void xo_canvas_item_reparent(GooCanvasItem *item, GooCanvasItem *newParent)
 }
 
 
-void xo_canvas_rectangle_resize(GooCanvasItem *item, 
-				gdouble x1, gdouble y1,
-				gdouble x2, gdouble y2)
+void xo_canvas_item_resize_bounding_box(GooCanvasItem *item, 
+					gdouble x1, gdouble y1,
+					gdouble x2, gdouble y2)
 {
   gdouble t;
   // goo_canvas does not take negative widthds
@@ -102,9 +102,9 @@ void xo_selection_rectangle_resize(gdouble x, gdouble y)
 
   bbox->right = x;
   bbox->bottom = y;
-  xo_canvas_rectangle_resize(ui.selection->canvas_item, 
-			     bbox->left, bbox->top,
-			     bbox->right, bbox->bottom);
+  xo_canvas_item_resize_bounding_box(ui.selection->canvas_item, 
+				     bbox->left, bbox->top,
+				     bbox->right, bbox->bottom);
   return;
 
 }
@@ -210,7 +210,7 @@ void finalize_selectrect(void)
         "x1", item->bbox.left, "x2", item->bbox.right, 
         "y1", item->bbox.top, "y2", item->bbox.bottom, NULL);
 #else
-      xo_canvas_rectangle_resize(ui.selection->canvas_item,
+      xo_canvas_item_resize_bounding_box(ui.selection->canvas_item,
 				 item->bbox.left, item->bbox.top,
 				 item->bbox.right, item->bbox.bottom);
 
@@ -691,9 +691,9 @@ void continue_resizesel(GdkEvent *event)
     "y1", ui.selection->new_y1, "y2", ui.selection->new_y2, NULL);
 #else
 
-  xo_canvas_rectangle_resize(ui.selection->canvas_item,
-			     ui.selection->new_x1, ui.selection->new_y1,
-			     ui.selection->new_x2, ui.selection->new_y2);
+  xo_canvas_item_resize_bounding_box(ui.selection->canvas_item,
+				     ui.selection->new_x1, ui.selection->new_y1,
+				     ui.selection->new_x2, ui.selection->new_y2);
 #endif
 }
 
