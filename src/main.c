@@ -257,6 +257,7 @@ void init_stuff (int argc, char *argv[])
 #ifdef ABC
   gnome_canvas_set_center_scroll_region (canvas, TRUE);  // if the canvas is too small, it simply puts it in the middle... not that important
 #else
+// if the canvas is too small, it simply puts it in the middle...
   g_object_set(canvas,
 	       "anchor", GOO_CANVAS_ANCHOR_CENTER, 
 	       NULL);

@@ -169,7 +169,7 @@ struct Page *new_page_with_bg(struct Background *bg, double width, double height
   pg->nlayers = 1;
   pg->bg = bg;
   printf("<<<Bg type [%d]\n", pg->bg->type);
-  printf("<<<Bg type [%x]\n", (unsigned int)pg->bg->pixbuf);
+  printf("<<<Bg type [%p]\n", (void*)pg->bg->pixbuf);
 
   pg->bg->canvas_group = NULL;
   pg->height = height;
@@ -519,17 +519,22 @@ void get_pointer_coords(GdkEvent *event, gdouble *ret)
 
 void get_current_pointer_coords(gdouble *ret)
 {
-  gint wx, wy, sx, sy;
-#ifdef ABC
+  gdouble sx, sy;
+  gint wx, wy;
+  gdouble x, y;
 
-  gtk_widget_get_pointer((GtkWidget *)canvas, &wx, &wy);
+  gtk_widget_get_pointer(GTK_WIDGET(canvas), &wx, &wy);
+#ifdef ABC
   gnome_canvas_get_scroll_offsets(canvas, &sx, &sy);
   gnome_canvas_window_to_world(canvas, (double)(wx + sx), (double)(wy + sy), ret, ret+1);
+#else
+  xo_canvas_get_scroll_offsets(canvas, &sx, &sy);
+  ret[0] = sx + wx;
+  ret[1] = sy + wy;
+  goo_canvas_convert_from_pixels(canvas, ret, ret+1);
+#endif
   ret[0] -= ui.cur_page->hoffset;
   ret[1] -= ui.cur_page->voffset;
-#else
-  WARN;
-#endif
 }
 
 void fix_xinput_coords(GdkEvent *event)
@@ -593,7 +598,8 @@ void fix_xinput_coords(GdkEvent *event)
     }
   }
 #endif
-
+#else
+  WARN;
 #endif
 
 
@@ -921,7 +927,7 @@ void update_canvas_bg(struct Page *pg)
     lower_canvas_item_to(pg->group, pg->bg->canvas_group, NULL);
   } else if (pg->bg->type == BG_PDF) {
 
-    TRACE_2("------------In bgpdf [%x]\n", (guint) pg->bg->pixbuf);
+    TRACE_2("------------In bgpdf [%p]\n", pg->bg->pixbuf);
     if (pg->bg->pixbuf == NULL) 
       return;
     
@@ -987,6 +993,7 @@ void rescale_bg_pixmaps(void)
   struct Page *pg;
   GdkPixbuf *pix;
   gboolean is_well_scaled;
+  gdouble width;
   gdouble zoom_to_request;
   int i=0;
   TRACE_1("Entering");
@@ -1001,8 +1008,8 @@ void rescale_bg_pixmaps(void)
 
     if (pg->bg->type == BG_PIXMAP && pg->bg->canvas_group!=NULL) {
       printf("This needs to be reimplmented... goo_canvas_image does not store the pixbuf\n");
+      assert(0);
 #ifdef ABC      
-
 
       pix = xo_goo_canvas_item_pixbuf_get(pg->bg->canvas_group);
       if (pix!=pg->bg->pixbuf)
@@ -1010,8 +1017,7 @@ void rescale_bg_pixmaps(void)
 #endif
 	xo_goo_canvas_item_pixbuf_set(pg->bg->canvas_group, pg->bg->pixbuf);
       pg->bg->pixbuf_scale = 0;
-    }
-    if (pg->bg->type == BG_PDF) { 
+    } else if (pg->bg->type == BG_PDF) { 
       // make pixmap scale to correct size if current one is wrong
       is_well_scaled = (fabs(pg->bg->pixel_width - pg->width*ui.zoom) < 2.
                      && fabs(pg->bg->pixel_height - pg->height*ui.zoom) < 2.);
@@ -1028,9 +1034,12 @@ void rescale_bg_pixmaps(void)
             NULL);
 #else
 	
-	g_object_get(pg->bg->canvas_group, "width", &is_well_scaled, NULL);
+	g_object_get(pg->bg->canvas_group, "width", &width, NULL);
+	
+	TRACE_2(" ---------getting width [%f]\n", width)
 
-	if (is_well_scaled) {
+	if (width > 0) {
+	  // I think it means the canvas has been instantiated...
 	  TRACE_1(">>>>>>>>>>>>>>>>>>>>... it is being rescaled \n");
 	  g_object_set(pg->bg->canvas_group,
 		       "width", pg->width, 
@@ -1047,6 +1056,9 @@ void rescale_bg_pixmaps(void)
 	if (add_bgpdf_request(pg->bg->file_page_seq, zoom_to_request))
 	  pg->bg->pixbuf_scale = zoom_to_request;
       }
+    } else {
+      // do nothing. simply skip this page
+      ;
     }
   }
   TRACE_1("Ending\n");

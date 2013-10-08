@@ -453,7 +453,8 @@ create_winMain (void)
   gtk_widget_show (image624);
   gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (filePrintOptions), image624);
 
-  filePrint = gtk_image_menu_item_new_from_stock ("gtk-print", accel_group);
+//  filePrint = gtk_image_menu_item_new_from_stock (GTK_STOCK_PRINT, accel_group);
+  filePrint = gtk_menu_item_new_with_mnemonic (_("_Print"));
   gtk_widget_show (filePrint);
   gtk_container_add (GTK_CONTAINER (menuFile_menu), filePrint);
   gtk_widget_add_accelerator (filePrint, "activate", accel_group,

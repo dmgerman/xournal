@@ -10,17 +10,33 @@
 
 ** What is broken seriously (and would impede using it)
 
+*** TODO Print
+
+- What happened to print? Did I remove the option?
+
+
+The menu item seems to be created, but it is not rendered...
+
+[[file:src/xo-interface.c::filePrint%20%3D%20gtk_image_menu_item_new_from_stock%20("gtk-print",%20accel_group)%3B][file:src/xo-interface.c::filePrint = gtk_image_menu_item_new_from_stock ("gtk-print", accel_group);]] 
+
+*** TODO Page resizing
+
+- the dialog/and its callback are broken. 
+- Default values don't work
+
 *** TODO Pixmap  backgrounds
   
 - they are broken
 
 *** TODO Pdfs
 
-- Loas properly, but it segfaults in resizing
+- Works properly in one-page mode
+- Segfaults in zoom in continuous mode
 
 *** TODO Selection
 
 - Cursor gets stuck with selection cursors
+- Use dash lines during selection
 
 - Lasso selection needs to be reimplemented...
 
@@ -30,7 +46,12 @@
 
 *** TODO screenshots
 
+- They don't work
+
 ** Minor issues that need to be looked at
+
+*** TODO Deprecations. There are still a few
+ - color and font selection
 
 *** TODO Text editing  :minor:
 
@@ -42,6 +63,8 @@ The resizing of the GtkTextView does not work.
   resizing of a region stays even after the resizing. Needs investigation. I think I have broken setting the cursor shape
 
 *** TODO there are aliasing artifacts :minor:
+
+Sometimes during drawing artifacts appear in the screen. 
 
 *** TODO selection polygons are not dashed, but red 		      :minor:
 

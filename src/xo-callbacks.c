@@ -737,9 +737,9 @@ on_editRedo_activate                   (GtkMenuItem     *menuitem,
 #ifdef ABC
     redo->page->group = gnome_canvas_item_new(canvas, 
       gnome_canvas_root(canvas), gnome_canvas_clipgroup_get_type(), NULL);
-    make_page_clipbox(redo->page);
 #else
     xo_page_canvas_group_new(redo->page);
+    make_page_clipbox(redo->page);
 #endif
     update_canvas_bg(redo->page);
     l = (struct Layer *)redo->page->layers->data;
@@ -1401,12 +1401,14 @@ on_journalPaperSize_activate           (GtkMenuItem     *menuitem,
   papersize_height = ui.cur_page->height;
   papersize_unit = ui.default_unit;
   unit_sizes[UNIT_PX] = 1./DEFAULT_ZOOM;
-//  if (ui.cur_page->bg->type == BG_PIXMAP) papersize_unit = UNIT_PX;
+//  if (ui.cur_page->bg->type == BG_PIXMAP) 
+//     papersize_unit = UNIT_PX;
   papersize_std = STD_SIZE_CUSTOM;
   for (i=0;i<STD_SIZE_CUSTOM;i++)
     if (fabs(papersize_width - std_widths[i])<0.1 &&
-        fabs(papersize_height - std_heights[i])<0.1)
-      { papersize_std = i; papersize_unit = std_units[i]; }
+        fabs(papersize_height - std_heights[i])<0.1) {
+       papersize_std = i; papersize_unit = std_units[i];
+    }
   papersize_need_init = TRUE;
   papersize_width_valid = papersize_height_valid = TRUE;
       
@@ -1709,7 +1711,7 @@ on_journalScreenshot_activate          (GtkMenuItem     *menuitem,
   gdk_display_sync(gdk_display_get_default());
 
   if (ui.cursor!=NULL)
-    gdk_cursor_unref(ui.cursor);
+    g_object_unref(ui.cursor);
   ui.cursor = gdk_cursor_new(GDK_TCROSS);
 
   bg = attempt_screenshot_bg();
@@ -3115,6 +3117,7 @@ on_vscroll_changed                     (GtkAdjustment   *adjustment,
     return;
   
   if (ui.progressive_bg)  {
+    TRACE("Going to rescale background\n");
     rescale_bg_pixmaps();
   }
   need_update = FALSE;

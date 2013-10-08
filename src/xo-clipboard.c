@@ -404,7 +404,6 @@ void clipboard_paste_image(GdkPixbuf *pixbuf)
 
   get_current_pointer_coords(pt);
   set_current_page(pt);  
-
   create_image_from_pixbuf(pixbuf, pt);
 }
 
