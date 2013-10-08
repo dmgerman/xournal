@@ -14,8 +14,7 @@
 
 - What happened to print? Did I remove the option?
 
-
-The menu item seems to be created, but it is not rendered...
+The menu item seems to be created, but it is not rendered... needs investigation
 
 [[file:src/xo-interface.c::filePrint%20%3D%20gtk_image_menu_item_new_from_stock%20("gtk-print",%20accel_group)%3B][file:src/xo-interface.c::filePrint = gtk_image_menu_item_new_from_stock ("gtk-print", accel_group);]] 
 
@@ -31,22 +30,17 @@ The menu item seems to be created, but it is not rendered...
 *** TODO Pdfs
 
 - Works properly in one-page mode
-- it misbehaves in multipage (ie. crashes )
+- it misbehaves in multipage (ie. crashes, it is probably related to pixbuf backgrounds )
 
 *** TODO Selection
 
-- Use dash lines during selection
 - Lasso selection needs to be reimplemented...
 
 *** TODO screenshots
 
-- They don't work
+- They don't work. Probably related to pixbufs sizes and scaling
 
 ** Minor issues that need to be looked at
-
-*** TODO selection rectangle is overmoved after move
- - it seems to be problem with coordinates. It only affects the rectangle, not the 
-   items moved
 
 *** TODO Deprecations. There are still a few
  - color and font selection
@@ -61,7 +55,9 @@ Sometimes during drawing artifacts appear in the screen.
 
 *** TODO selection polygons are not dashed, but red 		      :minor:
 
-- Dashing the polygons (rectangle and polygon) requires deleting it and adding it again...
+- Use dash lines during selection. 
+ Dashing the polygons (rectangle and polygon) requires deleting it and adding it again... 
+ See email from Damon on how to do it.
 
 * Other notes
 

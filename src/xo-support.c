@@ -6,6 +6,7 @@
 #  include <config.h>
 #endif
 
+#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -17,6 +18,7 @@
 
 #include "xo-support.h"
 
+/*
 GtkWidget*
 lookup_widget                          (GtkWidget       *widget,
                                         const gchar     *widget_name)
@@ -43,9 +45,11 @@ lookup_widget                          (GtkWidget       *widget,
     g_warning ("Widget not found: %s", widget_name);
   return found_widget;
 #else
-  assert(0);
+  fprintf(stderr, "This is no longer needed\n");
+  exit(1);
 #endif
 }
+*/
 
 static GList *pixmaps_directories = NULL;
 

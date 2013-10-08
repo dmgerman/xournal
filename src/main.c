@@ -356,11 +356,14 @@ void init_stuff (int argc, char *argv[])
       gdk_device_set_axis_use(device, 1, GDK_AXIS_IGNORE);
 #endif
       gdk_device_set_mode(device, GDK_MODE_SCREEN);
-      if (g_strrstr(gdk_device_get_name(device), "raser"))
+      if (g_strrstr(gdk_device_get_name(device), "raser")) {
+
 #ifdef ABC
         gdk_device_set_source(device, GDK_SOURCE_ERASER);
 #else
-      WARN;
+	fprintf(stderr, "we need to learn how to do this... not currently implemented... simply fail. Call 911.\n");
+	assert(0);
+      }
 #endif
       can_xinput = TRUE;
     }

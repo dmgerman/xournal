@@ -858,8 +858,6 @@ void end_text(void)
 
 void update_text_item_displayfont(struct Item *item)
 {
-  //   WARN1("I don't think we need this any more");
-
 
   if (item->type != ITEM_TEXT && item->type != ITEM_TEMP_TEXT) 
     return;

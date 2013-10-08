@@ -415,8 +415,6 @@ void delete_page(struct Page *pg)
 {
   struct Layer *l;
 
-  TRACE_1("entering");
-  
   while (pg->layers!=NULL) {
     l = (struct Layer *)pg->layers->data;
     l->group = NULL;
@@ -436,7 +434,6 @@ void delete_page(struct Page *pg)
   }
   g_free(pg->bg);
   g_free(pg);
-  TRACE_1("Leaving\n");
 }
 
 void delete_layer(struct Layer *l)
@@ -445,7 +442,6 @@ void delete_layer(struct Layer *l)
   struct Item *item;
   
   while (l->items!=NULL) {
-    printf("Deleting...\n");
 
     item = (struct Item *)l->items->data;
 
@@ -549,7 +545,7 @@ void fix_xinput_coords(GdkEvent *event)
   double *axes, *px, *py, axis_width;
   GdkDevice *device;
   int wx, wy, sx, sy, ix, iy;
-  printf("To be implemented\n");
+  TRACE_1("To be implemented\n");
   assert(0);
 #ifdef ABC
   if (event->type == GDK_BUTTON_PRESS || event->type == GDK_BUTTON_RELEASE) {
@@ -607,7 +603,8 @@ void fix_xinput_coords(GdkEvent *event)
   }
 #endif
 #else
-  WARN;
+  fprintf(stderr, "This function needs to be ported...failing...");
+  exit(1);
 #endif
 
 
@@ -677,10 +674,6 @@ void update_item_bbox(struct Item *item)
       item->bbox.right = bounds.x2;
       item->bbox.bottom = bounds.y2 - ui.cur_page->voffset;
 
-      printf("-------------------> [%f] [%f] [%f] [%f]\n", bounds.x1, bounds.y1, bounds.x2, bounds.y2);
-      printf("---------bbox------> [%f] [%f] [%f] [%f]\n", item->bbox.left, item->bbox.top, item->bbox.right, item->bbox.bottom);
-
-
     }  else {
       ; // no bounding box, I guess...
     }
@@ -703,13 +696,13 @@ void make_page_clipbox(struct Page *pg)
   gnome_canvas_item_set(GNOME_CANVAS_ITEM(pg->group), "path", pg_clip, NULL);
   gnome_canvas_path_def_unref(pg_clip);
 #else
-  //  WARN1("see GooCanvasBounds");
+  /*
+    
   TRACE_1("usikng a rectangle... what about this?, used for resizing... I think I have to use ");
   goo_canvas_rect_new(pg->group, 0, 0, pg->width, pg->height, 
-		      //"line-width", 5.0,
-		      //		      "fill-color-rgba", 0x80808080,
+		      "line-width", 5.0,
 		      NULL);
-
+  */
 
   goo_canvas_set_bounds(canvas, 0, 0, pg->width, pg->height);
 #endif

@@ -19,6 +19,7 @@
 #endif
 
 #include <math.h>
+#include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include <glib/gstdio.h>
@@ -944,8 +945,8 @@ on_editRedo_activate                   (GtkMenuItem     *menuitem,
     update_item_bbox(redo->item);
   }
   else {
-    fprintf(stderr, "This should never be reached\n");
-    assert(0);
+    fprintf(stderr, "This should never be reached\n Aborting... call 911\n");
+    exit(1);
   }
   // move item from redo to undo stack
   u = redo;
@@ -2741,6 +2742,15 @@ on_canvas_button_release_event         (GtkWidget       *widget,
   return FALSE;
 }
 
+void xo_flush_gdk(void)
+{
+  gdk_flush();
+  if (gdk_error_trap_pop() != 0) {
+    fprintf(stderr, "gdk_error_trap_pop() returned != 0. Failing... Crashing... quiting...\n");
+    exit(1);
+  }
+}
+
 
 gboolean
 on_canvas_enter_notify_event           (GtkWidget       *widget,
@@ -2763,11 +2773,7 @@ on_canvas_enter_notify_event           (GtkWidget       *widget,
       gdk_device_set_mode(dev, GDK_MODE_SCREEN);
     }
     ui.is_corestroke = ui.saved_is_corestroke;
-    gdk_flush();
-    if (gdk_error_trap_pop() != 0) {
-      printf("gdk_error_trap_pop() returned != 0\n");
-      WARN;
-    }
+    xo_flush_gdk();
   }
   return FALSE;
 }
@@ -2794,11 +2800,7 @@ on_canvas_leave_notify_event           (GtkWidget       *widget,
     }
     ui.saved_is_corestroke = ui.is_corestroke;
     ui.is_corestroke = TRUE;
-    gdk_flush();
-    if (gdk_error_trap_pop() != 0) {
-      printf("gdk_error_trap_pop() returned != 0\n");
-      WARN;
-    }
+    xo_flush_gdk();
   }
   return FALSE;
 }
