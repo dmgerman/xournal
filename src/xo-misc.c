@@ -505,7 +505,7 @@ int finite_sized(double x) // detect unrealistic coordinate values
 }
 
 
-void get_pointer_coords(GdkEvent *event, gdouble *ret)
+void xo_event_get_pointer_coords(GdkEvent *event, gdouble *ret)
 {
   double x, y;
   gdk_event_get_coords(event, &x, &y);
@@ -2524,7 +2524,7 @@ gboolean is_event_within_textview(GdkEventButton *event)
   double pt[2];
   
   if (ui.cur_item_type!=ITEM_TEXT) return FALSE;
-  get_pointer_coords((GdkEvent *)event, pt);
+  xo_event_get_pointer_coords((GdkEvent *)event, pt);
   if (pt[0]<ui.cur_item->bbox.left || pt[0]>ui.cur_item->bbox.right) return FALSE;
   if (pt[1]<ui.cur_item->bbox.top || pt[1]>ui.cur_item->bbox.bottom) return FALSE;
   return TRUE;

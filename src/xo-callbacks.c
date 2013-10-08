@@ -2579,7 +2579,7 @@ on_canvas_button_press_event           (GtkWidget       *widget,
       // Xorg 7.3+ sent core event before XInput event: fix initial point 
     ui.is_corestroke = FALSE;
     ui.stroke_device = event->device;
-    get_pointer_coords((GdkEvent *)event, ui.cur_path.coords);
+    xo_event_get_pointer_coords((GdkEvent *)event, ui.cur_path.coords);
   }
   if (ui.cur_item_type != ITEM_NONE) return FALSE; // we're already doing something
 
@@ -2603,7 +2603,7 @@ on_canvas_button_press_event           (GtkWidget       *widget,
   else mapping = event->button-1;
 
   // check whether we're in a page
-  get_pointer_coords((GdkEvent *)event, pt);
+  xo_event_get_pointer_coords((GdkEvent *)event, pt);
   set_current_page(pt);
   
   // can't paint on the background...
@@ -2652,7 +2652,7 @@ on_canvas_button_press_event           (GtkWidget       *widget,
     ui.cur_item_type = ITEM_HAND;
 
     // we save it in coordinates
-    get_pointer_coords((GdkEvent *)event, ui.hand_refpt);
+    xo_event_get_pointer_coords((GdkEvent *)event, ui.hand_refpt);
 
     ui.hand_refpt[0] += ui.cur_page->hoffset;
     ui.hand_refpt[1] += ui.cur_page->voffset;
@@ -2905,7 +2905,7 @@ on_canvas_motion_notify_event          (GtkWidget       *widget,
   if (!finite_sized(event->x) || !finite_sized(event->y)) return FALSE; // Xorg 7.3 bug
 
   if (ui.selection!=NULL && ui.cur_item_type == ITEM_NONE) {
-    get_pointer_coords((GdkEvent *)event, pt);
+    xo_event_get_pointer_coords((GdkEvent *)event, pt);
     update_cursor_for_resize(pt);
     return FALSE;
   }
@@ -2966,7 +2966,7 @@ on_canvas_motion_notify_event          (GtkWidget       *widget,
     continue_selectregion((GdkEvent *)event);
   }
   else if (ui.cur_item_type == ITEM_SELECTRECT) {
-    get_pointer_coords((GdkEvent *)event, pt);
+    xo_event_get_pointer_coords((GdkEvent *)event, pt);
     xo_selection_rectangle_resize(pt[0], pt[1]);
   }
   else if (ui.cur_item_type == ITEM_MOVESEL || ui.cur_item_type == ITEM_MOVESEL_VERT) {

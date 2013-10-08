@@ -44,6 +44,10 @@ The menu item seems to be created, but it is not rendered...
 
 ** Minor issues that need to be looked at
 
+*** TODO selection rectangle is overmoved after move
+ - it seems to be problem with coordinates. It only affects the rectangle, not the 
+   items moved
+
 *** TODO Deprecations. There are still a few
  - color and font selection
 

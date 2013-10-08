@@ -175,7 +175,7 @@ void insert_image(GdkEvent *event)
 
   ui.cur_item_type = ITEM_IMAGE;
 
-  get_pointer_coords(event, pt);
+  xo_event_get_pointer_coords(event, pt);
   set_current_page(pt);  
 
   create_image_from_pixbuf(pixbuf, pt);

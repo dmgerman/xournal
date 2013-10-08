@@ -154,7 +154,7 @@ void start_selectrect(GdkEvent *event)
   ui.selection->items = NULL;
   ui.selection->layer = ui.cur_layer;
 
-  get_pointer_coords(event, pt);
+  xo_event_get_pointer_coords(event, pt);
 
   xo_selection_rectangle_create(pt[0], pt[1]);
 
@@ -285,7 +285,7 @@ void continue_selectregion(GdkEvent *event)
   
   realloc_cur_path(ui.cur_path.num_points+1);
   pt = ui.cur_path.coords + 2*ui.cur_path.num_points;
-  get_pointer_coords(event, pt);
+  xo_event_get_pointer_coords(event, pt);
   if (hypot(pt[0]-pt[-2], pt[1]-pt[-1]) < PIXEL_MOTION_THRESHOLD/ui.zoom)
     return; // not a meaningful motion
   ui.cur_path.num_points++;
@@ -424,7 +424,7 @@ gboolean start_movesel(GdkEvent *event)
   if (ui.selection==NULL) return FALSE;
   if (ui.cur_layer != ui.selection->layer) return FALSE;
   
-  get_pointer_coords(event, pt);
+  xo_event_get_pointer_coords(event, pt);
   if (ui.selection->type == ITEM_SELECTRECT || ui.selection->type == ITEM_SELECTREGION) {
     if (pt[0]<ui.selection->bbox.left || pt[0]>ui.selection->bbox.right ||
         pt[1]<ui.selection->bbox.top  || pt[1]>ui.selection->bbox.bottom)
@@ -455,7 +455,13 @@ gboolean start_resizesel(GdkEvent *event)
   if (ui.selection==NULL) return FALSE;
   if (ui.cur_layer != ui.selection->layer) return FALSE;
 
-  get_pointer_coords(event, pt);
+  printf("remove this...VVVVV\n");
+  xo_canvas_item_resize_bounding_box(ui.selection->canvas_item, 
+				     ui.selection->bbox.left, ui.selection->bbox.top,
+				     ui.selection->bbox.right, ui.selection->bbox.bottom);
+
+
+  xo_event_get_pointer_coords(event, pt);
 
   if (ui.selection->type == ITEM_SELECTRECT || ui.selection->type == ITEM_SELECTREGION) {
     resize_margin = RESIZE_MARGIN/ui.zoom;
@@ -513,7 +519,7 @@ void start_vertspace(GdkEvent *event)
   ui.selection->items = NULL;
   ui.selection->layer = ui.cur_layer;
 
-  get_pointer_coords(event, pt);
+  xo_event_get_pointer_coords(event, pt);
   ui.selection->bbox.top = ui.selection->bbox.bottom = pt[1];
   for (itemlist = ui.cur_layer->items; itemlist!=NULL; itemlist = itemlist->next) {
     item = (struct Item *)itemlist->data;
@@ -557,7 +563,7 @@ void continue_movesel(GdkEvent *event)
   int tmppageno;
   struct Page *tmppage;
   
-  get_pointer_coords(event, pt);
+  xo_event_get_pointer_coords(event, pt);
   if (ui.cur_item_type == ITEM_MOVESEL_VERT) pt[0] = 0;
   pt[1] += ui.selection->move_pagedelta;
 
@@ -678,7 +684,7 @@ void continue_resizesel(GdkEvent *event)
   double t;
   double x1,x2,y1,y2;
 
-  get_pointer_coords(event, pt);
+  xo_event_get_pointer_coords(event, pt);
 
   if (ui.selection->resizing_top) ui.selection->new_y1 = pt[1];
   if (ui.selection->resizing_bottom) ui.selection->new_y2 = pt[1];
@@ -728,11 +734,16 @@ void finalize_movesel(void)
   if (ui.cur_item_type == ITEM_MOVESEL_VERT)
     reset_selection();
   else {
+
+    /* we have been moving the bounding box all along.. so really, why is this code ehere?
+
     ui.selection->bbox.left += undo->val_x;
     ui.selection->bbox.right += undo->val_x;
     ui.selection->bbox.top += undo->val_y;
     ui.selection->bbox.bottom += undo->val_y;
     xo_canvas_item_set_dashed(ui.selection->canvas_item);
+    */
+
     /* update selection box object's offset to be trivial, and its internal 
        coordinates to agree with those of the bbox; need this since resize
        operations will modify the box by setting its coordinates directly */
@@ -742,7 +753,10 @@ void finalize_movesel(void)
       "x1", ui.selection->bbox.left, "x2", ui.selection->bbox.right,
       "y1", ui.selection->bbox.top, "y2", ui.selection->bbox.bottom, NULL);
 #else
-    TRACE_1("This is no longer needed. It is already moved by the selection\n");
+    // we really dont need this
+    xo_canvas_item_resize_bounding_box(ui.selection->canvas_item, 
+				       ui.selection->bbox.left, ui.selection->bbox.top,
+				       ui.selection->bbox.right, ui.selection->bbox.bottom);
 #endif
   }
   ui.cur_item_type = ITEM_NONE;

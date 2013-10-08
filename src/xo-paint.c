@@ -297,7 +297,7 @@ void create_new_stroke(GdkEvent *event)
   ui.cur_item->path = &ui.cur_path;
   realloc_cur_path(2);
   ui.cur_path.num_points = 1;
-  get_pointer_coords(event, ui.cur_path.coords);
+  xo_event_get_pointer_coords(event, ui.cur_path.coords);
   
   if (ui.cur_brush->ruler) {
 #ifdef ABC
@@ -333,7 +333,7 @@ void continue_stroke(GdkEvent *event)
     pt = ui.cur_path.coords + 2*(ui.cur_path.num_points-1);
   } 
   
-  get_pointer_coords(event, pt+2);
+  xo_event_get_pointer_coords(event, pt+2);
   
   if (ui.cur_item->brush.variable_width) {
     realloc_cur_widths(ui.cur_path.num_points);
@@ -536,7 +536,7 @@ void do_eraser(GdkEvent *event, double radius, gboolean whole_strokes)
   double pos[2];
   struct BBox eraserbox;
   
-  get_pointer_coords(event, pos);
+  xo_event_get_pointer_coords(event, pos);
   eraserbox.left = pos[0]-radius;
   eraserbox.right = pos[0]+radius;
   eraserbox.top = pos[1]-radius;
@@ -617,7 +617,7 @@ void do_hand(GdkEvent *event)
   double pt[2];
   gdouble cx, cy;
   gdouble deltaX, deltaY;
-  get_pointer_coords(event, pt);
+  xo_event_get_pointer_coords(event, pt);
 
   pt[0] += ui.cur_page->hoffset;
   pt[1] += ui.cur_page->voffset;
@@ -699,7 +699,7 @@ void start_text(GdkEvent *event, struct Item *item)
   PangoFontDescription *font_desc;
   GdkColor color;
 
-  get_pointer_coords(event, pt);
+  xo_event_get_pointer_coords(event, pt);
 
   ui.cur_item_type = ITEM_TEXT;
 
