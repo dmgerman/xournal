@@ -137,13 +137,10 @@ void update_cursor(void)
 {
   GdkColor fg = {0, 0, 0, 0}, bg = {0, 65535, 65535, 65535};
   GdkWindow *window;
-  GdkWindow *mainWin;
-
-  TRACE_2("Entry type of cur_item_type [%d]",ui.cur_item_type);
 
   ui.is_sel_cursor = FALSE;
 
-  window = gtk_widget_get_parent_window(GTK_WIDGET(canvas));
+  window = gtk_widget_get_window(GTK_WIDGET(canvas));
 
   if (window == NULL) 
     return;
@@ -177,13 +174,10 @@ void update_cursor(void)
   else {
     // in gtk2 a NULL cursor sets the parent cursor. In gtk3
     // we need to explicitly indicate it
-    mainWin = gtk_widget_get_parent_window(GTK_WIDGET(winMain));
-    ui.cursor = gdk_window_get_cursor(mainWin);
+    // use arrow as default
+    ui.cursor = gdk_cursor_new(GDK_ARROW);
   }
-  
   gdk_window_set_cursor(window, ui.cursor);
-
-  TRACE_1("Exit");
 
 }
 
@@ -611,6 +605,7 @@ void finalize_erasure(void)
 gboolean do_hand_scrollto(gpointer data)
 {
   ui.hand_scrollto_pending = FALSE;
+  // uses world coordinates
   goo_canvas_scroll_to(canvas, ui.hand_scrollto_cx, ui.hand_scrollto_cy);
   return FALSE;
 }
@@ -636,7 +631,7 @@ void do_hand(GdkEvent *event)
     return ;
   }
 
-  xo_canvas_get_scroll_offsets(canvas, &cx, &cy);
+  xo_canvas_get_scroll_offsets_in_world(canvas, &cx, &cy);
 
   /*
     dmg: we don't need to zoom them any more, since they are already in good coordinates

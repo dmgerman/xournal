@@ -55,11 +55,12 @@ double predef_thickness[NUM_STROKE_TOOLS][THICKNESS_MAX] =
 
 void xo_canvas_scroll_to_y_pixels(gdouble y)
 {
-  // we need to convert the y to real dimentions
+
   gdouble x;
   gdouble oldy;
 
-  xo_canvas_get_scroll_offsets(canvas, &x, &oldy);
+  // get x
+  xo_canvas_get_scroll_offsets_in_pixels(canvas, &x, &oldy);
 
   goo_canvas_scroll_to(canvas, x, y);
 
@@ -517,18 +518,24 @@ void get_pointer_coords(GdkEvent *event, gdouble *ret)
 
 }
 
-void get_current_pointer_coords(gdouble *ret)
+void xo_pointer_get_current_coords(gdouble *ret)
 {
   gdouble sx, sy;
   gint wx, wy;
   gdouble x, y;
+  GdkModifierType modifier_mask;
 
-  gtk_widget_get_pointer(GTK_WIDGET(canvas), &wx, &wy);
 #ifdef ABC
+  gtk_widget_get_pointer(GTK_WIDGET(canvas), &wx, &wy);
   gnome_canvas_get_scroll_offsets(canvas, &sx, &sy);
   gnome_canvas_window_to_world(canvas, (double)(wx + sx), (double)(wy + sy), ret, ret+1);
 #else
-  xo_canvas_get_scroll_offsets(canvas, &sx, &sy);
+
+  // gets it in pixels units
+  gdk_window_get_device_position(gtk_widget_get_window (GTK_WIDGET(canvas)),  
+				 gtk_get_current_event_device (),  &wx, &wy, &modifier_mask);
+
+  xo_canvas_get_scroll_offsets_in_pixels(canvas, &sx, &sy);
   ret[0] = sx + wx;
   ret[1] = sy + wy;
   goo_canvas_convert_from_pixels(canvas, ret, ret+1);
@@ -1000,7 +1007,7 @@ void rescale_bg_pixmaps(void)
   gdouble width;
   gdouble zoom_to_request;
   int i=0;
-  TRACE_1("Entering");
+
   for (pglist = journal.pages; pglist!=NULL; pglist = pglist->next) {
     i++;
     pg = (struct Page *)pglist->data;
@@ -1008,8 +1015,6 @@ void rescale_bg_pixmaps(void)
     if (ui.progressive_bg && !is_visible(pg)) 
       continue;
     
-    TRACE_2("doing it for a visible page %d\n",i);
-
     if (pg->bg->type == BG_PIXMAP && pg->bg->canvas_group!=NULL) {
       printf("This needs to be reimplmented... goo_canvas_image does not store the pixbuf\n");
       assert(0);
@@ -1065,7 +1070,6 @@ void rescale_bg_pixmaps(void)
       ;
     }
   }
-  TRACE_1("Ending\n");
 }
 
 gboolean have_intersect(struct BBox *a, struct BBox *b)
@@ -2879,7 +2883,7 @@ void xo_canvas_set_pixels_per_unit(void)
 #endif
 }
 
-void xo_canvas_get_scroll_offsets(GooCanvas *canvas, gdouble *x, gdouble *y) 
+void xo_canvas_get_scroll_offsets_in_world(GooCanvas *canvas, gdouble *x, gdouble *y) 
 {
   GtkAdjustment *v_adj, *h_adj;
 
@@ -2895,3 +2899,20 @@ void xo_canvas_get_scroll_offsets(GooCanvas *canvas, gdouble *x, gdouble *y)
   goo_canvas_convert_from_pixels(canvas, x, y);
 
 }
+
+void xo_canvas_get_scroll_offsets_in_pixels(GooCanvas *canvas, gdouble *x, gdouble *y) 
+{
+  GtkAdjustment *v_adj, *h_adj;
+
+  //the return values can be negative if the canvas is to the right, lower corner
+  // of its container
+  
+  v_adj = gtk_scrollable_get_vadjustment(GTK_SCROLLABLE(canvas));
+  h_adj = gtk_scrollable_get_hadjustment(GTK_SCROLLABLE(canvas));
+
+  *x = gtk_adjustment_get_value(h_adj);
+  *y = gtk_adjustment_get_value(v_adj);
+ 
+}
+
+

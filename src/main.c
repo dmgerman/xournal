@@ -260,6 +260,7 @@ void init_stuff (int argc, char *argv[])
 // if the canvas is too small, it simply puts it in the middle...
   g_object_set(canvas,
 	       "anchor", GOO_CANVAS_ANCHOR_CENTER, 
+	       "background-color", "lightgrey",
 	       NULL);
 #endif
   
@@ -273,7 +274,7 @@ void init_stuff (int argc, char *argv[])
   gtk_adjustment_set_step_increment(adj, ui.scrollbar_step_increment);
 
 
-  xo_subscribe_gestures(GTK_WIDGET(canvas), canvas);
+  xo_subscribe_gestures(GTK_WIDGET(canvas), GTK_WIDGET(canvas));
 
 
   // set up the page size and canvas size
@@ -399,9 +400,6 @@ void init_stuff (int argc, char *argv[])
   
   gtk_widget_show (winMain);
   update_cursor();
-
-
-
 
   /* this will cause extension events to get enabled/disabled, but
      we need the windows to be mapped first */

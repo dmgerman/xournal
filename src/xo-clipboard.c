@@ -202,7 +202,8 @@ void clipboard_paste_from_xournal(GtkSelectionData *sel_data)
   struct Item *item;
   double hoffset, voffset, cx, cy;
   double *pf;
-  int sx, sy, wx, wy;
+  gdouble sx, sy;
+  int wx, wy;
   
   reset_selection();
   
@@ -215,7 +216,8 @@ void clipboard_paste_from_xournal(GtkSelectionData *sel_data)
   ui.selection->items = NULL;
   
   // find by how much we translate the pasted selection
-  xo_canvas_get_scroll_offsets(canvas, &sx, &sy);
+  // this returns in world
+  xo_canvas_get_scroll_offsets_in_pixels(canvas, &sx, &sy);
 
   gdk_window_get_geometry(gtk_widget_get_window(GTK_WIDGET(canvas)), NULL, NULL, &wx, &wy);
 
@@ -225,6 +227,7 @@ void clipboard_paste_from_xournal(GtkSelectionData *sel_data)
 #else
   cx = sx + wx/2;
   cy = sy + wy/2;
+  goo_canvas_convert_from_pixels(canvas, &cx, &cy);
   cx -= ui.cur_page->hoffset;
   cy -= ui.cur_page->voffset;
   if (cx + (ui.selection->bbox.right-ui.selection->bbox.left)/2 > ui.cur_page->width)
@@ -402,7 +405,7 @@ void clipboard_paste_image(GdkPixbuf *pixbuf)
 
   reset_selection();
 
-  get_current_pointer_coords(pt);
+  xo_pointer_get_current_coords(pt);
   set_current_page(pt);  
   create_image_from_pixbuf(pixbuf, pt);
 }

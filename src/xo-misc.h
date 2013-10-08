@@ -40,7 +40,6 @@ void refstring_unref(struct Refstring *rs);
 
 int finite_sized(double x);
 void get_pointer_coords(GdkEvent *event, double *ret);
-void get_current_pointer_coords(double *ret);
 double get_pressure_multiplier(GdkEvent *event);
 void fix_xinput_coords(GdkEvent *event);
 void update_item_bbox(struct Item *item);
@@ -177,6 +176,9 @@ GdkPixbuf* xo_wrapper_poppler_page_render_to_pixbuf (PopplerPage *page,
 
 
 
-void xo_canvas_get_scroll_offsets(GooCanvas *canvas, gdouble *x, gdouble *y) ;
+void xo_canvas_get_scroll_offsets_in_pixels(GooCanvas *canvas, gdouble *x, gdouble *y) ;
+void xo_canvas_get_scroll_offsets_in_world(GooCanvas *canvas, gdouble *x, gdouble *y) ;
+
+void xo_pointer_get_current_coords(double *ret);
 
 #endif

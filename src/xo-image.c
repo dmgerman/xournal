@@ -36,7 +36,7 @@ GdkPixbuf *pixbuf_from_buffer(const gchar *buf, gsize buflen)
 
 
   assert(buf != NULL);
-  printf("bufflen [%d] %s\n", buflen, buf);
+  printf("bufflen [%d] %s\n", (int)buflen, buf);
 
   loader = gdk_pixbuf_loader_new();
   assert(loader!=NULL);

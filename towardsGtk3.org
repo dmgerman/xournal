@@ -31,18 +31,12 @@ The menu item seems to be created, but it is not rendered...
 *** TODO Pdfs
 
 - Works properly in one-page mode
-- Segfaults in zoom in continuous mode
+- it misbehaves in multipage (ie. crashes )
 
 *** TODO Selection
 
-- Cursor gets stuck with selection cursors
 - Use dash lines during selection
-
 - Lasso selection needs to be reimplemented...
-
-*** TODO cut and paste
-
-- the pasting is incorrectly placed, needs investigation
 
 *** TODO screenshots
 
@@ -56,11 +50,6 @@ The menu item seems to be created, but it is not rendered...
 *** TODO Text editing  :minor:
 
 The resizing of the GtkTextView does not work.
-
-*** TODO Cursor shapes
-
-- I have observed some cases in which the shape of the mouse during
-  resizing of a region stays even after the resizing. Needs investigation. I think I have broken setting the cursor shape
 
 *** TODO there are aliasing artifacts :minor:
 
