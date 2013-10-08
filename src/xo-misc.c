@@ -549,7 +549,8 @@ void fix_xinput_coords(GdkEvent *event)
   double *axes, *px, *py, axis_width;
   GdkDevice *device;
   int wx, wy, sx, sy, ix, iy;
-
+  printf("To be implemented\n");
+  assert(0);
 #ifdef ABC
   if (event->type == GDK_BUTTON_PRESS || event->type == GDK_BUTTON_RELEASE) {
     axes = event->button.axes;

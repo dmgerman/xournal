@@ -41,6 +41,36 @@ void xo_canvas_item_reparent(GooCanvasItem *item, GooCanvasItem *newParent)
 }
 
 
+void xo_canvas_rectangle_resize(GooCanvasItem *item, 
+				gdouble x1, gdouble y1,
+				gdouble x2, gdouble y2)
+{
+  gdouble t;
+  // goo_canvas does not take negative widthds
+  // so invert coordinates
+  if (x1 > x2) {
+    t = x1;
+    x1 = x2;
+    x2 = t;
+  } 
+  if (y1 > y2) {
+    t = y1;
+    y1 = y2;
+    y2 = t;
+  } 
+
+  g_object_set(ui.selection->canvas_item, 
+	       "x", x1,
+	       "width", x2- x1,
+	       "y", y1,
+	       "height", y2- y1,
+	       NULL);
+  
+}
+			 
+			 
+
+
 void xo_canvas_item_set_dashed(GooCanvasItem *item)
 {
 #ifdef ABC
@@ -80,20 +110,25 @@ void xo_selection_rectangle_resize(gdouble x, gdouble y)
     bbox->left = x;
   } else {
     bbox->right = x;
+    bbox->left = xOrigin;
   }
   if (y < yOrigin) {
     bbox->bottom = yOrigin;
-    ui.selection->bbox.top = y;
+    bbox->top = y;
   } else {
-    ui.selection->bbox.bottom = y;
+    bbox->bottom = y;
+    bbox->top = yOrigin;
   }
-  width = ui.selection->bbox.right - ui.selection->bbox.left;
-  height = ui.selection->bbox.bottom - ui.selection->bbox.top;
+  height =  bbox->bottom - bbox->top;
+  width = bbox->right - bbox->left;
+
+  assert(width >= 0);
+  assert(height >= 0);
 
   g_object_set(ui.selection->canvas_item, 
-	       "x", ui.selection->bbox.left,
+	       "x", bbox->left,
 	       "width", width,
-	       "y", ui.selection->bbox.top,
+	       "y", bbox->top,
 	       "height", height,
 	       NULL);
 }
@@ -187,6 +222,8 @@ void finalize_selectrect(void)
         "x1", item->bbox.left, "x2", item->bbox.right, 
         "y1", item->bbox.top, "y2", item->bbox.bottom, NULL);
 #else
+      assert(item->bbox.bottom - item->bbox.top >= 0);
+      assert(item->bbox.right -item->bbox.left >= 0);
       g_object_set(ui.selection->canvas_item,
 		   "x", item->bbox.left,
 		   "width", item->bbox.right -item->bbox.left,
@@ -646,6 +683,8 @@ void continue_movesel(GdkEvent *event)
 void continue_resizesel(GdkEvent *event)
 {
   double pt[2];
+  double t;
+  double x1,x2,y1,y2;
 
   get_pointer_coords(event, pt);
 
@@ -659,12 +698,10 @@ void continue_resizesel(GdkEvent *event)
     "x1", ui.selection->new_x1, "x2", ui.selection->new_x2,
     "y1", ui.selection->new_y1, "y2", ui.selection->new_y2, NULL);
 #else
-  g_object_set(ui.selection->canvas_item, 
-	       "x", ui.selection->new_x1,
-	       "width", ui.selection->new_x2- ui.selection->new_x1,
-	       "y", ui.selection->new_y1,
-	       "height", ui.selection->new_y2- ui.selection->new_y1,
-	       NULL);
+
+  xo_canvas_rectangle_resize(ui.selection->canvas_item,
+			     ui.selection->new_x1, ui.selection->new_y1,
+			     ui.selection->new_x2, ui.selection->new_y2);
 #endif
 }
 
