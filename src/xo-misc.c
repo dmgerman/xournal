@@ -23,6 +23,7 @@
 #include <gdk/gdkkeysyms.h>
 #include <gdk/gdkkeysyms-compat.h>
 #include <assert.h>
+#include <stdlib.h>
 
 #include "xournal.h"
 #include "xo-interface.h"
@@ -141,9 +142,13 @@ void xo_goo_canvas_item_move_to(GooCanvasItem *item, gdouble x, gdouble y)
     g_object_set(G_OBJECT(item), "x",x,"y",y, NULL);
 }
 
-void xo_goo_canvas_item_pixbuf_set(GooCanvasItem *item,  GdkPixbuf *pix)
+void xo_background_update_pixbuf(Background *bg)
 {
-  g_object_set(G_OBJECT(item), "pixbuf" , pix, NULL);
+  // we need to keep two pixbufs, the one already rendered, and the one that is rescaled --PDF backgrounds
+  if (bg->canvas_pixbuf != bg->pixbuf) {
+    g_object_set(G_OBJECT(bg->canvas_group), "pixbuf" , bg->pixbuf, NULL);
+    bg->canvas_pixbuf = bg->pixbuf;
+  }
 }
 
 GdkPixbuf  *xo_goo_canvas_item_pixbuf_get(GooCanvasItem *item)
@@ -422,15 +427,18 @@ void delete_page(struct Page *pg)
     pg->layers = g_list_delete_link(pg->layers, pg->layers);
   }
   if (pg->group!=NULL) {
+    // removing it deletes it
     goo_canvas_item_remove(pg->group);
-    // removing it will delete it
-    //    g_object_unref(G_OBJECT(pg->group));
   }
   TRACE_1("in the middle\n");
               // this also destroys the background's canvas items
   if (pg->bg->type == BG_PIXMAP || pg->bg->type == BG_PDF) {
-    if (pg->bg->pixbuf != NULL) g_object_unref(pg->bg->pixbuf);
-    if (pg->bg->filename != NULL) refstring_unref(pg->bg->filename);
+    if (pg->bg->pixbuf != NULL) 
+      g_object_unref(pg->bg->pixbuf);
+    if (pg->bg->canvas_pixbuf != NULL) 
+      g_object_unref(pg->bg->canvas_pixbuf);
+    if (pg->bg->filename != NULL) 
+      refstring_unref(pg->bg->filename);
   }
   g_free(pg->bg);
   g_free(pg);
@@ -891,6 +899,7 @@ void xo_page_background_ruling(struct Page *pg)
 void update_canvas_bg(struct Page *pg)
 {
   GooCanvasItem *group;
+  GdkPixbuf *pix;
   GdkPixbuf *scaled_pix;
   double x, y;
   int w, h;
@@ -909,18 +918,20 @@ void update_canvas_bg(struct Page *pg)
     xo_page_background_ruling(pg);
 
   } else if (pg->bg->type == BG_PIXMAP) {
-
     pg->bg->pixbuf_scale = 0;
     assert(pg->bg->pixbuf != NULL);
 
+    pix = pg->bg->pixbuf;
+
     pg->bg->canvas_group = goo_canvas_image_new(pg->group,
-						pg->bg->pixbuf,
-						0, 0,
+						pix,
+						0, 0,   // x,y coordinate in canvas
 						"width", pg->width,
 						"height", pg->height,
 						"scale-to-fit", TRUE,
 						NULL);
 
+    pg->bg->canvas_pixbuf = pix;
     /*
     pg->bg->canvas_item = gnome_canvas_item_new(pg->group, 
         gnome_canvas_pixbuf_get_type(), 
@@ -1010,16 +1021,10 @@ void rescale_bg_pixmaps(void)
       continue;
     
     if (pg->bg->type == BG_PIXMAP && pg->bg->canvas_group!=NULL) {
-      printf("This needs to be reimplmented... goo_canvas_image does not store the pixbuf\n");
-      assert(0);
-#ifdef ABC      
 
-      pix = xo_goo_canvas_item_pixbuf_get(pg->bg->canvas_group);
-      if (pix!=pg->bg->pixbuf)
-	gnome_canvas_item_set(pg->bg->canvas_group, "pixbuf", pg->bg->pixbuf, NULL);
-#endif
-	xo_goo_canvas_item_pixbuf_set(pg->bg->canvas_group, pg->bg->pixbuf);
+      xo_background_update_pixbuf(pg->bg);
       pg->bg->pixbuf_scale = 0;
+
     } else if (pg->bg->type == BG_PDF) { 
       // make pixmap scale to correct size if current one is wrong
       is_well_scaled = (fabs(pg->bg->pixel_width - pg->width*ui.zoom) < 2.

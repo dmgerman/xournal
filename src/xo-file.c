@@ -47,6 +47,8 @@
 #include "xo-file.h"
 #include "xo-paint.h"
 #include "xo-image.h"
+#include "xo-shapes.h"
+
 
 const char *tool_names[NUM_TOOLS] = {"pen", "eraser", "highlighter", "text", "selectregion", "selectrect", "vertspace", "hand", "image"};
 const char *color_names[COLOR_MAX] = {"black", "blue", "red", "green",
@@ -104,7 +106,7 @@ gboolean write_image(gzFile f, Item *item)
     }
   }
 
-  base64_str = g_base64_encode(item->image_png, item->image_png_len);
+  base64_str = g_base64_encode((guchar*)item->image_png, item->image_png_len);
   gzputs(f, base64_str);
   g_free(base64_str);
   return TRUE;
@@ -115,7 +117,7 @@ gboolean write_image(gzFile f, Item *item)
 GdkPixbuf *read_pixbuf(const gchar *base64_str, gsize base64_strlen)
 {
   gchar *base64_str2;
-  gchar *png_buf;
+  guchar *png_buf;
   gsize png_buflen;
   GdkPixbuf *pixbuf;
 
@@ -1101,7 +1103,9 @@ struct Background *attempt_screenshot_bg(void)
   XEvent x_event;
   GdkWindow *window;
   gint x,y,w,h;
-  Window x_root, x_win;
+  gint depth;
+  Window x_root;
+  Window x_win;
 
   Display* xDisplay = gdk_x11_display_get_xdisplay(gdk_display_get_default());
   GdkDisplay *gdkDisplay =   gdk_display_get_default();
@@ -1116,17 +1120,18 @@ struct Background *attempt_screenshot_bg(void)
   XUngrabButton(xDisplay, AnyButton, AnyModifier, x_root);
 
   x_win = x_event.xbutton.subwindow;
-  if (x_win == None) x_win = x_root;
-
+  if (x_win == None) 
+    x_win = x_root;
   
   window = gdk_x11_window_foreign_new_for_display(gdkDisplay, x_win);
     
-  gdk_window_get_geometry(window, &x, &y, &w, &h);
   w = gdk_window_get_width(window);
   h = gdk_window_get_height(window);
+
   pix = gdk_pixbuf_get_from_window(window, 0, 0, w, h);
   
-  if (pix == NULL) return NULL;
+  if (pix == NULL) 
+    return NULL;
   
   bg = g_new(struct Background, 1);
   bg->type = BG_PIXMAP;
@@ -1175,7 +1180,8 @@ gboolean bgpdf_scheduler_callback(gpointer data)
 #endif
   cairo_t *cr;
 
-  // if all requests have been cancelled, remove ourselves from main loop
+  TRACE_1("Entering\n");
+ // if all requests have been cancelled, remove ourselves from main loop
   if (bgpdf.requests == NULL) { 
     bgpdf.pid = 0; 
     return FALSE; 
@@ -1246,6 +1252,7 @@ gboolean bgpdf_scheduler_callback(gpointer data)
     g_object_unref(pdfpage);
     set_cursor_busy(FALSE);
   }
+  TRACE;
 
   // process the generated pixbuf...
   if (pixbuf != NULL) { // success

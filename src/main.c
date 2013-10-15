@@ -72,7 +72,7 @@ xo_subscribe_gestures(GtkWidget *window, GtkWidget *scroller) {
 
 
 
-xo_describe_device(GdkDevice* device)
+void xo_describe_device(GdkDevice* device)
 {
   printf("->    device  [%s]\n", gdk_device_get_name(device));
 

@@ -335,7 +335,8 @@ on_filePrint_activate                  (GtkMenuItem     *menuitem,
   
   int fromPage, toPage;
   int response;
-  char *in_fn, *p;
+  char *in_fn;
+  char *p;
 
   end_text();
   if (!gtk_check_version(2, 10, 0)) {
@@ -1708,8 +1709,10 @@ on_journalScreenshot_activate          (GtkMenuItem     *menuitem,
     
   gtk_window_deiconify(GTK_WINDOW(winMain));
   update_cursor();
-  if (bg==NULL) 
+  if (bg==NULL) {				
+    ///XXX print message that it could not be done
     return;
+  }
 
   prepare_new_undo();
   undo->type = ITEM_NEW_BG_RESIZE;
@@ -1721,6 +1724,7 @@ on_journalScreenshot_activate          (GtkMenuItem     *menuitem,
   undo->val_y = ui.cur_page->height;
 
   ui.cur_page->bg = bg;
+
   ui.cur_page->width = gdk_pixbuf_get_width(bg->pixbuf)/bg->pixbuf_scale;
   ui.cur_page->height = gdk_pixbuf_get_height(bg->pixbuf)/bg->pixbuf_scale;
 

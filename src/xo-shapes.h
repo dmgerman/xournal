@@ -15,6 +15,9 @@
 
 // #define RECOGNIZER_DEBUG  // uncomment for debug output
 
+#ifndef __XO_SHAPES_H
+#define __XO_SHAPES_H
+
 #define MAX_POLYGON_SIDES 4
 
 #define LINE_MAX_DET 0.015   // maximum score for line (ideal line = 0)
@@ -38,3 +41,6 @@
 
 void recognize_patterns(void);
 void reset_recognizer(void);
+
+#endif
+

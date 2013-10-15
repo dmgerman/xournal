@@ -78,10 +78,11 @@ typedef struct Refstring {
 typedef struct Background {
   int type;
   GooCanvasItem *canvas_group; // replaced canvas_item
+  GdkPixbuf *canvas_pixbuf;    // pixbuf currently rendered
+  GdkPixbuf *pixbuf;           // pixbuf to be rendered... might be different from current
   int color_no;
   guint color_rgba;
   int ruling;
-  GdkPixbuf *pixbuf;
   Refstring *filename;
   int file_domain;
   int file_page_seq;
