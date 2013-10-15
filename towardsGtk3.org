@@ -40,7 +40,11 @@ Nothing, as far as I know.
 
 ** Bugs from before porting
 
-- it is not possible to select a new color for the highlighter tool
+- it is not possible to select a new color for the highlighter
+  tool. How to reproduce.  Select highlighter, then select the button
+  to select a new color. Select the new color. The hightlighter will
+  have that color now. Now try to change the color. Any time you try
+  to change the color the tool reverts to the drawing one.
 
 
 * Other notes
