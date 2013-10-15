@@ -67,6 +67,30 @@ void xo_canvas_scroll_to_y_pixels(gdouble y)
 
 }
 
+void xo_canvas_item_resize(GooCanvasItem  *item, gdouble newWidth, gdouble newHeight)
+{
+  gdouble currentWidth;
+  gdouble currentHeight;
+  
+  // goocanvas resizes widget even if the size has not really changed
+  // so make sure we don't waste our time
+
+  g_object_get(item, 
+	       "width", &currentWidth,
+	       "height", &currentHeight,
+	       NULL);
+  if (fabs(currentWidth - newWidth) >= 2.0 ||
+      fabs(currentHeight - newHeight) >= 2.0) {
+    g_object_set(item,
+		 "width", newWidth, 
+		 "height", newHeight, 
+		 "scale-to-fit", TRUE,
+		 NULL);
+  }
+
+}
+
+
 
 // some manipulation functions
 
@@ -85,7 +109,7 @@ void xo_page_canvas_group_new(Page *pg)
 
 }
 
-void xo_background_set_canvas_pixbuf(Page *pg, GdkPixbuf *pix, gboolean scale)
+void xo_page_set_canvas_pixbuf(Page *pg, GdkPixbuf *pix, gboolean scale)
 {
   pg->bg->canvas_group = goo_canvas_image_new(pg->group,
 					      pix,
@@ -95,9 +119,27 @@ void xo_background_set_canvas_pixbuf(Page *pg, GdkPixbuf *pix, gboolean scale)
 					      "scale-to-fit", scale,
 					      NULL);
   
+  if (pg->bg->canvas_pixbuf != NULL) {
+    g_object_unref(pg->bg->canvas_pixbuf);
+  }
   pg->bg->canvas_pixbuf = pix;
+  g_object_ref(pix);
 }
 
+void xo_background_update_pixbuf(Background *bg)
+{
+  // we need to keep two pixbufs, the one already rendered, and the one that is being rescaled
+  if (bg->canvas_pixbuf != bg->pixbuf) {
+    g_object_set(G_OBJECT(bg->canvas_group), "pixbuf" , bg->pixbuf, NULL);
+
+    if (bg->canvas_pixbuf != NULL) {
+      g_object_unref(bg->canvas_pixbuf);
+    }
+    
+    bg->canvas_pixbuf = bg->pixbuf;
+    g_object_ref(bg->pixbuf);
+  }
+}
 
 
 struct Page *new_page(struct Page *template)
@@ -155,14 +197,6 @@ void xo_goo_canvas_item_move_to(GooCanvasItem *item, gdouble x, gdouble y)
     g_object_set(G_OBJECT(item), "x",x,"y",y, NULL);
 }
 
-void xo_background_update_pixbuf(Background *bg)
-{
-  // we need to keep two pixbufs, the one already rendered, and the one that is rescaled --PDF backgrounds
-  if (bg->canvas_pixbuf != bg->pixbuf) {
-    g_object_set(G_OBJECT(bg->canvas_group), "pixbuf" , bg->pixbuf, NULL);
-    bg->canvas_pixbuf = bg->pixbuf;
-  }
-}
 
 GdkPixbuf  *xo_goo_canvas_item_pixbuf_get(GooCanvasItem *item)
 {
@@ -918,7 +952,6 @@ void update_canvas_bg(struct Page *pg)
   int w, h;
   gboolean is_well_scaled;
 
-  TRACE;
   
   if (pg->bg->canvas_group != NULL) {
     // dispose it 
@@ -934,7 +967,7 @@ void update_canvas_bg(struct Page *pg)
     pg->bg->pixbuf_scale = 0;
     assert(pg->bg->pixbuf != NULL);
 
-    xo_background_set_canvas_pixbuf(pg, pg->bg->pixbuf, TRUE);
+    xo_page_set_canvas_pixbuf(pg, pg->bg->pixbuf, TRUE);
 
     lower_canvas_item_to(pg->group, pg->bg->canvas_group, NULL);
   } else if (pg->bg->type == BG_PDF) {
@@ -948,14 +981,17 @@ void update_canvas_bg(struct Page *pg)
     
     TRACE_2("In bgpdf well scaled? [%d]\n", is_well_scaled);
     
+    // dmg: the following code is a port from the old one
+    // the problem is that in both cases it needs to be resized!!! 
+    // So I don't get why we do this.   XXXXXXXXX
     if (is_well_scaled) {
       // then don't resize
       TRACE_1("We are not resizing\n");
-      xo_background_set_canvas_pixbuf(pg, pg->bg->pixbuf, TRUE);
+      xo_page_set_canvas_pixbuf(pg, pg->bg->pixbuf, TRUE);
     } else {
       // insert resizing
       TRACE_1("We are resizing\n");
-      xo_background_set_canvas_pixbuf(pg, pg->bg->pixbuf, TRUE);
+      xo_page_set_canvas_pixbuf(pg, pg->bg->pixbuf, TRUE);
     }
     lower_canvas_item_to(pg->group, GOO_CANVAS_ITEM(pg->bg->canvas_group), NULL);
   } else {
@@ -1005,32 +1041,21 @@ void rescale_bg_pixmaps(void)
       is_well_scaled = (fabs(pg->bg->pixel_width - pg->width*ui.zoom) < 2.
                      && fabs(pg->bg->pixel_height - pg->height*ui.zoom) < 2.);
       if (pg->bg->canvas_group != NULL && !is_well_scaled) {
-#ifdef ABC
-
-        g_object_get(pg->bg->canvas_group, "width-in-pixels", &is_well_scaled, NULL);
-        if (is_well_scaled)
-
-          gnome_canvas_item_set(pg->bg->canvas_group,
-            "width", pg->width, "height", pg->height, 
-            "width-in-pixels", FALSE, "height-in-pixels", FALSE, 
-            "width-set", TRUE, "height-set", TRUE, 
-            NULL);
-#else
 	
 	g_object_get(pg->bg->canvas_group, "width", &width, NULL);
 	
-	TRACE_2(" ---------getting width [%f]\n", width)
+	//	TRACE_2(" ---------getting width [%f]\n", width)
 
 	if (width > 0) {
 	  // I think it means the canvas has been instantiated...
-	  TRACE_1(">>>>>>>>>>>>>>>>>>>>... it is being rescaled \n");
-	  g_object_set(pg->bg->canvas_group,
-		       "width", pg->width, 
-		       "height", pg->height, 
-		       "scale-to-fit", TRUE,
-		       NULL);
+	  // so resize
+	  xo_canvas_item_resize(pg->bg->canvas_group, pg->width, pg->height);
+	  // dmg: should we update pixel_width and pixel_height in bg? XXX
+	  // ahh, this is the autorescaling in case that we don't have 
+	  // progressive backgrounds. pixel_width is only changed when the actual
+	  // pixmap is updated.
 	}
-#endif
+
       }
       // request an asynchronous update to a better pixmap if needed
       zoom_to_request = MIN(ui.zoom, MAX_SAFE_RENDER_DPI/72.0);
@@ -1231,7 +1256,6 @@ void update_color_buttons(void)
     xo_rgba_to_GdkRGBA(ui.cur_brush->color_rgba, &gdkcolor);
 
   gtk_color_button_set_rgba(colorbutton, &gdkcolor);
-
   if (ui.toolno[ui.cur_mapping] == TOOL_HIGHLIGHTER) {
     gtk_color_button_set_alpha(colorbutton,
       (ui.cur_brush->color_rgba&0xff)*0x101);

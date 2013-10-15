@@ -3104,7 +3104,6 @@ on_vscroll_changed                     (GtkAdjustment   *adjustment,
     return;
   
   if (ui.progressive_bg)  {
-    TRACE("Going to rescale background\n");
     rescale_bg_pixmaps();
   }
   need_update = FALSE;

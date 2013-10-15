@@ -1,7 +1,7 @@
 * Moving Xournal to gtk3
 
 - It is ready for testing
-- There are some minor interface bugs and some major bugs
+- There are some minor interface bugs and todos (see below)
 - Below I have listed the features that have been ported, but are broken
 
 ** Currently working <2013-10-15 Tue>
@@ -33,6 +33,12 @@
 - Use dash lines during selection. 
  Dashing the polygons (rectangle and polygon) requires deleting it and adding it again... 
  See email from Damon on how to do it.
+
+
+** Bugs from before porting
+
+- it is not possible to select a new color for the highlighter tool
+
 
 * Other notes
 

@@ -1205,9 +1205,6 @@ gboolean bgpdf_scheduler_callback(gpointer data)
     widthInPixels = (int) (req->dpi * widthInPoints/72);
     heightInPixels = (int) (req->dpi * heightInPoints/72);
 
-    printf("-------------------------->         size in inches [%f] [%f]\n", widthInPoints, heightInPoints);
-    printf("-------------------------->         dpi [%f]\n", req->dpi);
-    printf("-------------------------->         width [%d] height [%d]\n", widthInPixels, heightInPixels);
     pixbuf = xo_wrapper_poppler_page_render_to_pixbuf(pdfpage, 0, 0, widthInPixels, heightInPixels, req->dpi/72, 0);
     g_object_unref(pdfpage);
     set_cursor_busy(FALSE);
