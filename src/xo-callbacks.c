@@ -1414,7 +1414,7 @@ on_journalPaperSize_activate           (GtkMenuItem     *menuitem,
     return;
 
   TRACE_3("paper sizes [%f][%f]\n", papersize_width, papersize_height);
-  assert(0);
+
   pg = ui.cur_page;
   for (pglist = journal.pages; pglist!=NULL; pglist = pglist->next) {
     if (ui.bg_apply_all_pages) pg = (struct Page *)pglist->data;

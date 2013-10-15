@@ -10,15 +10,6 @@
 
 ** What is broken seriously (and would impede using it)
 
-*** TODO Page resizing
-
-- the dialog/and its callback are broken. 
-- Default values don't work
-
-*** TODO Pixmap  backgrounds
-  
-- they are broken
-
 *** TODO Selection
 
 - Lasso selection needs to be reimplemented...
@@ -26,15 +17,16 @@
 ** Minor issues that need to be looked at
 
 *** TODO Deprecations. There are still a few
+
  - color and font selection
 
 *** TODO Text editing  :minor:
 
-The resizing of the GtkTextView does not work.
+- The resizing of the GtkTextView does not work.
 
 *** TODO there are aliasing artifacts :minor:
 
-Sometimes during drawing artifacts appear in the screen. 
+- Sometimes during drawing artifacts appear in the screen. 
 
 *** TODO selection polygons are not dashed, but red 		      :minor:
 
