@@ -10,19 +10,22 @@
 
 ** What is broken seriously (and would impede using it)
 
+Nothing, as far as I know.
+
+
+** Minor issues that need to be looked at and reimplemented
+
 *** TODO Selection
 
-- Lasso selection needs to be reimplemented...
-
-** Minor issues that need to be looked at
+- Lasso selection needs to be reimplemented. 
 
 *** TODO Deprecations. There are still a few
 
- - color and font selection
+ - color and font selection. They need to be ported, but the deprecated methods still work.
 
 *** TODO Text editing  :minor:
 
-- The resizing of the GtkTextView does not work.
+- The resizing of the GtkTextView does not work. It will look huge. This needs investigation.
 
 *** TODO there are aliasing artifacts :minor:
 
