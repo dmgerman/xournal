@@ -85,6 +85,19 @@ void xo_page_canvas_group_new(Page *pg)
 
 }
 
+void xo_background_set_canvas_pixbuf(Page *pg, GdkPixbuf *pix, gboolean scale)
+{
+  pg->bg->canvas_group = goo_canvas_image_new(pg->group,
+					      pix,
+					      0, 0,   // x,y coordinate in canvas
+					      "width", pg->width,
+					      "height", pg->height,
+					      "scale-to-fit", scale,
+					      NULL);
+  
+  pg->bg->canvas_pixbuf = pix;
+}
+
 
 
 struct Page *new_page(struct Page *template)
@@ -169,6 +182,7 @@ struct Page *new_page_with_bg(struct Background *bg, double width, double height
   struct Page *pg = g_new(struct Page, 1);
   struct Layer *l = g_new(struct Layer, 1);
   
+  TRACE_1("Starting new page-----------------------------\n");
   l->items = NULL;
   l->nitems = 0;
   pg->layers = g_list_append(NULL, l);
@@ -899,7 +913,6 @@ void xo_page_background_ruling(struct Page *pg)
 void update_canvas_bg(struct Page *pg)
 {
   GooCanvasItem *group;
-  GdkPixbuf *pix;
   GdkPixbuf *scaled_pix;
   double x, y;
   int w, h;
@@ -921,25 +934,8 @@ void update_canvas_bg(struct Page *pg)
     pg->bg->pixbuf_scale = 0;
     assert(pg->bg->pixbuf != NULL);
 
-    pix = pg->bg->pixbuf;
+    xo_background_set_canvas_pixbuf(pg, pg->bg->pixbuf, TRUE);
 
-    pg->bg->canvas_group = goo_canvas_image_new(pg->group,
-						pix,
-						0, 0,   // x,y coordinate in canvas
-						"width", pg->width,
-						"height", pg->height,
-						"scale-to-fit", TRUE,
-						NULL);
-
-    pg->bg->canvas_pixbuf = pix;
-    /*
-    pg->bg->canvas_item = gnome_canvas_item_new(pg->group, 
-        gnome_canvas_pixbuf_get_type(), 
-        "pixbuf", pg->bg->pixbuf,
-        "width", pg->width, "height", pg->height, 
-        "width-set", TRUE, "height-set", TRUE, 
-        NULL);
-    */
     lower_canvas_item_to(pg->group, pg->bg->canvas_group, NULL);
   } else if (pg->bg->type == BG_PDF) {
 
@@ -955,32 +951,11 @@ void update_canvas_bg(struct Page *pg)
     if (is_well_scaled) {
       // then don't resize
       TRACE_1("We are not resizing\n");
-      pg->bg->canvas_group = goo_canvas_image_new(pg->group,
-						  pg->bg->pixbuf,
-						  0, 0,
-						  "width", pg->width,
-						  "height", pg->height,
-						  "scale-to-fit", TRUE,
-						  NULL);
+      xo_background_set_canvas_pixbuf(pg, pg->bg->pixbuf, TRUE);
     } else {
       // insert resizing
-      pg->bg->canvas_group = goo_canvas_image_new(pg->group,
-						  pg->bg->pixbuf,
-						  0, 0,
-						  "width", pg->width,
-						  "height", pg->height,
-						  "scale-to-fit", TRUE,
-						  NULL);
-
-      /*
-	pg->bg->canvas_item = gnome_canvas_item_new(pg->group, 
-	gnome_canvas_pixbuf_get_type(), 
-	"pixbuf", pg->bg->pixbuf,
-	"width", pg->width, "height", pg->height, 
-	"width-set", TRUE, "height-set", TRUE, 
-	NULL);
-	
-      */
+      TRACE_1("We are resizing\n");
+      xo_background_set_canvas_pixbuf(pg, pg->bg->pixbuf, TRUE);
     }
     lower_canvas_item_to(pg->group, GOO_CANVAS_ITEM(pg->bg->canvas_group), NULL);
   } else {
@@ -2117,6 +2092,7 @@ void process_paperstyle_activate(GtkMenuItem *menuitem, int style)
         pg->bg->color_rgba = predef_bgcolors_rgba[COLOR_WHITE];
         pg->bg->filename = NULL;
         pg->bg->pixbuf = NULL;
+	pg->bg->canvas_pixbuf = NULL;
         must_upd = TRUE;
       }
       pg->bg->ruling = style;
@@ -2761,19 +2737,22 @@ xo_wrapper_copy_cairo_surface_to_pixbuf (cairo_surface_t *surface,
 GdkPixbuf* xo_wrapper_poppler_page_render_to_pixbuf (PopplerPage *page,
 					  int src_x, int src_y,
 					  int src_width, int src_height,
-					  double scale,
-					  int rotation,
-					  gboolean copyDirect)
+						     double scale, 
+						     int rotation)
 {
   cairo_t *cr;
   cairo_surface_t *surface;
   GdkPixbuf *pixbuf;
 
+  TRACE_3("width [%d] height [%d]\n", src_width, src_height);
+  TRACE_2("scale [%f]\n", scale);
 
   surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
 					src_width, src_height);
   cr = cairo_create (surface);
-  cairo_save (cr);
+  cairo_set_source_rgb(cr, 1., 1., 1.);
+  cairo_paint (cr);
+
   switch (rotation) {
   case 90:
 	  cairo_translate (cr, src_x + src_width, -src_y);
@@ -2787,30 +2766,23 @@ GdkPixbuf* xo_wrapper_poppler_page_render_to_pixbuf (PopplerPage *page,
   default:
 	  cairo_translate (cr, -src_x, -src_y);
   }
-
   if (scale != 1.0)
 	  cairo_scale (cr, scale, scale);
-
   if (rotation != 0)
 	  cairo_rotate (cr, rotation * G_PI / 180.0);
 
   poppler_page_render (page, cr);
-  cairo_restore (cr);
-
-  cairo_set_operator (cr, CAIRO_OPERATOR_DEST_OVER);
-  cairo_set_source_rgb (cr, 1., 1., 1.);
-  cairo_paint (cr);
 
   cairo_destroy (cr);
 
-  if (copyDirect) {
-    pixbuf = gdk_pixbuf_new(GDK_COLORSPACE_RGB,
-			  FALSE, 8, src_width, src_height);
-    xo_wrapper_copy_cairo_surface_to_pixbuf (surface, pixbuf);
-  } else {
+  if (ui.poppler_force_cairo) {
     pixbuf = gdk_pixbuf_get_from_surface (surface,
 					  0,0,
 					  src_width, src_height);
+  } else  {
+    pixbuf = gdk_pixbuf_new(GDK_COLORSPACE_RGB,
+			  FALSE, 8, src_width, src_height);
+    xo_wrapper_copy_cairo_surface_to_pixbuf (surface, pixbuf);
   }
 
   cairo_surface_destroy (surface);

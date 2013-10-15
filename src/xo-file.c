@@ -361,6 +361,7 @@ void xoj_parser_start_element(GMarkupParseContext *context,
     tmpPage->bg->type = -1;
     tmpPage->bg->canvas_group = NULL;
     tmpPage->bg->pixbuf = NULL;
+    tmpPage->bg->canvas_pixbuf = NULL;
     tmpPage->bg->filename = NULL;
     tmpJournal.pages = g_list_append(tmpJournal.pages, tmpPage);
     tmpJournal.npages++;
@@ -915,12 +916,7 @@ gboolean open_journal(char *filename)
 
     new_journal();
     ui.zoom = ui.startup_zoom;
-#ifdef ABC
-    gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
-#else
     xo_canvas_set_pixels_per_unit();
-#endif
-
     update_page_stuff();
     return init_bgpdf(filename, TRUE, DOMAIN_ABSOLUTE);
   }
@@ -1171,7 +1167,7 @@ gboolean bgpdf_scheduler_callback(gpointer data)
   GdkPixbuf *pixbuf;
   GtkWidget *dialog;
   PopplerPage *pdfpage;
-  gdouble heightInInches, widthInInches;
+  gdouble heightInPoints, widthInPoints;
   int heightInPixels, widthInPixels;
 #ifdef ABC
   GdkPixmap *pixmap;
@@ -1203,52 +1199,16 @@ gboolean bgpdf_scheduler_callback(gpointer data)
     // the requested dpi is the default PDF dpi (72) * zoom
 
     set_cursor_busy(TRUE);
-    poppler_page_get_size(pdfpage, &widthInInches, &heightInInches);
+    poppler_page_get_size(pdfpage, &widthInPoints, &heightInPoints);
     
     // compute the desired size of the page... 
-    // 
+    widthInPixels = (int) (req->dpi * widthInPoints/72);
+    heightInPixels = (int) (req->dpi * heightInPoints/72);
 
-    widthInPixels = (int) (req->dpi * widthInInches/72);
-    heightInPixels = (int) (req->dpi * heightInInches/72);
-
-
-
-    if (ui.poppler_force_cairo) { // poppler -> cairo -> pixbuf
-
-#ifdef ABC
-      pixmap = gdk_pixmap_new(GTK_WIDGET(canvas)->window, widthInPixels, heightInPixels, -1);
-
-      cr = gdk_cairo_create(pixmap);
-      cairo_set_source_rgb(cr, 1., 1., 1.);
-      cairo_paint(cr);
-      cairo_scale(cr, widthInPixels/widthInInches, heightInPixels/heightInInches);
-      //  render the PDF page  in the pixbuf pdfpage struct
-      //  render the PDF page  in the pixbuf pdfpage struct
-					    
-      poppler_page_render(pdfpage, cr);
-      cairo_set_operator (cr, CAIRO_OPERATOR_DEST_OVER);
-      cairo_set_source_rgb(cr, 1., 1., 1.);
-      cairo_paint(cr);
-      cairo_destroy(cr);
-      pixbuf = gdk_pixbuf_get_from_drawable(NULL, GDK_DRAWABLE(pixmap),
-        NULL, 0, 0, 0, 0, widthInPixels, heightInPixels);
-
-      g_object_unref(pixmap);
-#else
-      pixbuf = xo_wrapper_poppler_page_render_to_pixbuf(pdfpage, 0, 0, widthInPixels, heightInPixels,
-							req->dpi/72, 0, FALSE);
-
-#endif
-    } else { // directly poppler -> pixbuf: faster, but bitmap font bug
-#ifdef ABC
-      wrapper_poppler_page_render_to_pixbuf(
-						     pdfpage, 0, 0, widthInPixels, heightInPixels,
-						     req->dpi/72, 0, pixbuf);
-#else
-      pixbuf = xo_wrapper_poppler_page_render_to_pixbuf(pdfpage, 0, 0, widthInPixels, heightInPixels,
-							req->dpi/72, 0, TRUE);
-#endif
-    }
+    printf("-------------------------->         size in inches [%f] [%f]\n", widthInPoints, heightInPoints);
+    printf("-------------------------->         dpi [%f]\n", req->dpi);
+    printf("-------------------------->         width [%d] height [%d]\n", widthInPixels, heightInPixels);
+    pixbuf = xo_wrapper_poppler_page_render_to_pixbuf(pdfpage, 0, 0, widthInPixels, heightInPixels, req->dpi/72, 0);
     g_object_unref(pdfpage);
     set_cursor_busy(FALSE);
   }
@@ -1372,7 +1332,8 @@ gboolean init_bgpdf(char *pdfname, gboolean create_pages, int file_domain)
   gdouble width, height;
   gchar *uri;
   
-  if (bgpdf.status != STATUS_NOT_INIT) return FALSE;
+  if (bgpdf.status != STATUS_NOT_INIT) 
+    return FALSE;
   
   // make a copy of the file in memory and check it's a PDF
   if (!g_file_get_contents(pdfname, &(bgpdf.file_contents), &(bgpdf.file_length), NULL))
@@ -1401,21 +1362,26 @@ gboolean init_bgpdf(char *pdfname, gboolean create_pages, int file_domain)
   bgpdf.document = poppler_document_new_from_data(bgpdf.file_contents, 
                           bgpdf.file_length, NULL, NULL);
 */
-  if (bgpdf.document == NULL) { shutdown_bgpdf(); return FALSE; }
+  if (bgpdf.document == NULL) { 
+    shutdown_bgpdf(); 
+    return FALSE; 
+  }
   
   if (pdfname[0]=='/' && ui.filename == NULL) {
-    if (ui.default_path!=NULL) g_free(ui.default_path);
+    if (ui.default_path!=NULL) 
+      g_free(ui.default_path);
     ui.default_path = g_path_get_dirname(pdfname);
   }
-  printf(">>>>>>>>>>>>>>>>> pages created with bg\n");
 
-  if (!create_pages) return TRUE; // we're done
+  if (!create_pages) 
+    return TRUE; // we're done
   
   // create pages with correct sizes if requested
   n_pages = poppler_document_get_n_pages(bgpdf.document);
   for (i=1; i<=n_pages; i++) {
     pdfpage = poppler_document_get_page(bgpdf.document, i-1);
-    if (!pdfpage) continue;
+    if (!pdfpage) 
+      continue;
     if (journal.npages < i) {
       bg = g_new(struct Background, 1);
       bg->canvas_group = NULL;
@@ -1424,12 +1390,13 @@ gboolean init_bgpdf(char *pdfname, gboolean create_pages, int file_domain)
       pg = (struct Page *)g_list_nth_data(journal.pages, i-1);
       bg = pg->bg;
     }
-    printf(">>>>>>>>>>>>>>>>> page being created with bg\n");
+    TRACE_2(">>>>>>>>>>>>>>>>> page being created with bg [%d]\n", i);
     bg->type = BG_PDF;
     bg->filename = refstring_ref(bgpdf.filename);
     bg->file_domain = bgpdf.file_domain;
     bg->file_page_seq = i;
     bg->pixbuf = NULL;
+    bg->canvas_pixbuf = NULL;
     bg->pixbuf_scale = 0;
     poppler_page_get_size(pdfpage, &width, &height);
     g_object_unref(pdfpage);
@@ -1471,7 +1438,6 @@ void bgpdf_update_bg(int pageno, struct BgPdfPage *bgpg)
 
       pg->bg->pixel_width = bgpg->pixel_width;
       pg->bg->pixel_height = bgpg->pixel_height;
-        
       update_canvas_bg(pg);
     }
   }

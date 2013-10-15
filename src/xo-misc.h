@@ -168,11 +168,10 @@ void xo_goo_canvas_item_reposition(GooCanvasItem *item, gdouble x, gdouble y);
 void xo_canvas_set_pixels_per_unit(void);
 
 GdkPixbuf* xo_wrapper_poppler_page_render_to_pixbuf (PopplerPage *page,
-					  int src_x, int src_y,
-					  int src_width, int src_height,
-					  double scale,
-					  int rotation,
-					  gboolean copyDirect);
+						     int src_x, int src_y,
+						     int src_width, int src_height,
+						     double scale,
+						     int rotation);
 
 
 

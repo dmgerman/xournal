@@ -751,8 +751,7 @@ int pdf_draw_bitmap_background(struct Page *pg, GString *str,
        pdfpage, 0, 0, width, height, PDFTOPPM_PRINTING_DPI/72.0, 0, pix);
 #else
     pix = xo_wrapper_poppler_page_render_to_pixbuf(pdfpage, 0, 0, 
-						   width, height, PDFTOPPM_PRINTING_DPI/72.0, 0,
-						   TRUE);
+						   width, height, PDFTOPPM_PRINTING_DPI/72.0, 0);
 #endif
     g_object_unref(pdfpage);
   }
