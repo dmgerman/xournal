@@ -14,8 +14,28 @@ AC_HEADER_STDC
 LDFLAGS="$LDFLAGS -lz -lm"
 
 #pkg_modules="gail >= 1.9.0 libart-2.0 >= 2.3.21 gtk+-3.0 >= 3.0.0 poppler-glib >= 0.5.4 pangoft2 >= 1.0 libgrip" 
-pkg_modules="gtk+-3.0 >= 3.0.0 poppler-glib >= 0.5.4 pangoft2 >= 1.0 libgrip goocanvas-2.0"
+pkg_modules="gtk+-3.0 >= 3.0.0 poppler-glib >= 0.5.4 pangoft2 >= 1.0 goocanvas-2.0"
 # libgrip goocanvas>=3"
+
+
+dnl libgrip gestures: automatically detect but allow override --with/--without
+dnl https://www.flameeyes.eu/autotools-mythbuster/autoconf/arguments.html
+AC_ARG_WITH([libgrip],
+  AS_HELP_STRING([--without-libgrip],
+    [Disable use of libgrip for gestures (pinch-to-zoom, etc) (default: autodetect)])
+)
+
+AS_IF([test "x$with_libgrip" != "xno"],
+  [AC_CHECK_HEADERS([libgrip/grip.h], [have_libgrip=yes], [have_libgrip=no])],
+  [have_libgrip=no])
+
+AS_IF([test "x$have_libgrip" = "xyes"],
+  [AC_DEFINE([HAVE_GRIP_GESTURES], [1], [define if libgrip is present])],
+  [AS_IF([test "x$with_libgrip" = "xyes"],
+    [AC_MSG_ERROR([libgrip/grip.h for gestures requested but not found])
+  ])
+])
+
 
 PKG_CHECK_MODULES(PACKAGE, [$pkg_modules])
 AC_SUBST(PACKAGE_CFLAGS)

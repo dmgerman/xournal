@@ -15,7 +15,9 @@
 
 
 #include <gtk/gtk.h>
+#ifdef HAVE_GRIP_GESTURES
 #include<libgrip/grip.h>
+#endif
 
 void
 on_fileNew_activate                    (GtkMenuItem     *menuitem,
@@ -666,6 +668,9 @@ void
 on_optionsPenCursor_activate           (GtkCheckMenuItem *checkmenuitem,
                                         gpointer         user_data);
 
-void 
+
+#ifdef HAVE_GRIP_GESTURES
+void
 xo_gesture_callback (GtkWidget        *widget, GripTimeType time_type, GripGestureEvent  *event, gpointer           user_data);
+#endif
 
