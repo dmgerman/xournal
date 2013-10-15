@@ -27,18 +27,9 @@ The menu item seems to be created, but it is not rendered... needs investigation
   
 - they are broken
 
-*** TODO Pdfs
-
-- Works properly in one-page mode
-- it misbehaves in multipage (ie. crashes, it is probably related to pixbuf backgrounds )
-
 *** TODO Selection
 
 - Lasso selection needs to be reimplemented...
-
-*** TODO screenshots
-
-- They don't work. Probably related to pixbufs sizes and scaling
 
 ** Minor issues that need to be looked at
 

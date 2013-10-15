@@ -2515,10 +2515,6 @@ void hide_unimplemented(void)
     gtk_widget_hide(GET_COMPONENT("optionsAutoSavePrefs"));
     gtk_widget_hide(GET_COMPONENT("optionsSavePreferences"));
   }
-  /* gtkprint only works with gtk+ 2.10 and beyond */
-  if (gtk_check_version(2, 10, 0)) {
-    gtk_widget_hide(GET_COMPONENT("filePrint"));
-  }  
   
   /* screenshot feature doesn't work yet in Win32 */
 #ifdef WIN32

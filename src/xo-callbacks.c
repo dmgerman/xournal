@@ -329,7 +329,6 @@ void
 on_filePrint_activate                  (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-#if GTK_CHECK_VERSION(2, 10, 0)
   GtkPrintOperation *print;
   GtkPrintOperationResult res;
   
@@ -339,43 +338,40 @@ on_filePrint_activate                  (GtkMenuItem     *menuitem,
   char *p;
 
   end_text();
-  if (!gtk_check_version(2, 10, 0)) {
-    print = gtk_print_operation_new();
-/*
+  print = gtk_print_operation_new();
+  /*
     if (!ui.print_settings)
-      ui.print_settings = gtk_print_settings_new();
+    ui.print_settings = gtk_print_settings_new();
     if (ui.filename!=NULL) {
-      if (g_str_has_suffix(ui.filename, ".xoj")) {
-        in_fn = g_strdup(ui.filename);
-        g_strlcpy(g_strrstr(in_fn, "xoj"), "pdf", 4);
-      } 
-      else in_fn = g_strdup_printf("%s.pdf", ui.filename);
-      gtk_print_settings_set(ui.print_settings, GTK_PRINT_SETTINGS_OUTPUT_URI,
-         g_filename_to_uri(in_fn, NULL, NULL));
-      g_free(in_fn);
+    if (g_str_has_suffix(ui.filename, ".xoj")) {
+    in_fn = g_strdup(ui.filename);
+    g_strlcpy(g_strrstr(in_fn, "xoj"), "pdf", 4);
+    } 
+    else in_fn = g_strdup_printf("%s.pdf", ui.filename);
+    gtk_print_settings_set(ui.print_settings, GTK_PRINT_SETTINGS_OUTPUT_URI,
+    g_filename_to_uri(in_fn, NULL, NULL));
+    g_free(in_fn);
     }
-*/
-    if (ui.print_settings!=NULL)
-       gtk_print_operation_set_print_settings (print, ui.print_settings);
-    gtk_print_operation_set_n_pages(print, journal.npages);
-    gtk_print_operation_set_current_page(print, ui.pageno);
-    gtk_print_operation_set_show_progress(print, TRUE);
-    if (ui.filename!=NULL) {
-      p = g_utf8_strrchr(ui.filename, -1, '/');
-      if (p==NULL) p = ui.filename;
-      else p++;
-      gtk_print_operation_set_job_name(print, p);
-    }
-    g_signal_connect (print, "draw_page", G_CALLBACK (print_job_render_page), NULL);
-    res = gtk_print_operation_run(print, GTK_PRINT_OPERATION_ACTION_PRINT_DIALOG,
-                                  GTK_WINDOW(winMain), NULL);
-    if (res == GTK_PRINT_OPERATION_RESULT_APPLY) {
-      if (ui.print_settings!=NULL) g_object_unref(ui.print_settings);
-      ui.print_settings = g_object_ref(gtk_print_operation_get_print_settings(print));
-    }
-    g_object_unref(print);
+  */
+  if (ui.print_settings!=NULL)
+    gtk_print_operation_set_print_settings (print, ui.print_settings);
+  gtk_print_operation_set_n_pages(print, journal.npages);
+  gtk_print_operation_set_current_page(print, ui.pageno);
+  gtk_print_operation_set_show_progress(print, TRUE);
+  if (ui.filename!=NULL) {
+    p = g_utf8_strrchr(ui.filename, -1, '/');
+    if (p==NULL) p = ui.filename;
+    else p++;
+    gtk_print_operation_set_job_name(print, p);
   }
-#endif
+  g_signal_connect (print, "draw_page", G_CALLBACK (print_job_render_page), NULL);
+  res = gtk_print_operation_run(print, GTK_PRINT_OPERATION_ACTION_PRINT_DIALOG,
+				GTK_WINDOW(winMain), NULL);
+  if (res == GTK_PRINT_OPERATION_RESULT_APPLY) {
+    if (ui.print_settings!=NULL) g_object_unref(ui.print_settings);
+    ui.print_settings = g_object_ref(gtk_print_operation_get_print_settings(print));
+  }
+  g_object_unref(print);
 }
 
 

@@ -453,19 +453,20 @@ create_winMain (void)
   gtk_widget_show (image624);
   gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (filePrintOptions), image624);
 
-//  filePrint = gtk_image_menu_item_new_from_stock (GTK_STOCK_PRINT, accel_group);
-  filePrint = gtk_menu_item_new_with_mnemonic (_("_Print"));
-  gtk_widget_show (filePrint);
-  gtk_container_add (GTK_CONTAINER (menuFile_menu), filePrint);
-  gtk_widget_add_accelerator (filePrint, "activate", accel_group,
-                              GDK_P, (GdkModifierType) GDK_CONTROL_MASK,
-                              GTK_ACCEL_VISIBLE);
 
   filePrintPDF = gtk_menu_item_new_with_mnemonic (_("_Export to PDF"));
   gtk_widget_show (filePrintPDF);
   gtk_container_add (GTK_CONTAINER (menuFile_menu), filePrintPDF);
   gtk_widget_add_accelerator (filePrintPDF, "activate", accel_group,
                               GDK_E, (GdkModifierType) GDK_CONTROL_MASK,
+                              GTK_ACCEL_VISIBLE);
+
+  filePrint = gtk_image_menu_item_new_from_stock (GTK_STOCK_PRINT, accel_group);
+  //  filePrint = gtk_menu_item_new_with_mnemonic (_("_Print"));
+  gtk_widget_show (filePrint);
+  gtk_container_add (GTK_CONTAINER (menuFile_menu), filePrint);
+  gtk_widget_add_accelerator (filePrint, "activate", accel_group,
+                              GDK_P, (GdkModifierType) GDK_CONTROL_MASK,
                               GTK_ACCEL_VISIBLE);
 
   separator2 = gtk_separator_menu_item_new ();
