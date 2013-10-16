@@ -261,7 +261,7 @@ void init_stuff (int argc, char *argv[])
   g_object_set(canvas,
 	       "anchor", GOO_CANVAS_ANCHOR_CENTER, 
 	       "background-color", "lightgrey",
-	       "integer-layout",   TRUE,
+	       //"integer-layout",   TRUE,
 	       //	       "redraw-when-scrolled", TRUE,
 	       NULL);
 #endif

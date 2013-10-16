@@ -216,6 +216,7 @@ void xo_goo_canvas_item_move_to(GooCanvasItem *item, gdouble x, gdouble y)
   gdouble xold;
   gdouble yold;
   g_object_get(item, "x", &xold, "y", &yold, NULL);
+  
   if (fabs(x - xold) > 1e-10 || 
       fabs(y - yold) > 1e-10)
     g_object_set(G_OBJECT(item), "x",x,"y",y, NULL);
@@ -1744,6 +1745,7 @@ void update_page_stuff(void)
 	pg->voffset = vertpos;
 
 	xo_goo_canvas_item_move_to(pg->group, pg->hoffset, pg->voffset);
+	xo_goo_canvas_item_move_to_pixel_boundary(pg->group);
 
 //        gnome_canvas_item_set(GNOME_CANVAS_ITEM(pg->group), 
 //            "x", pg->hoffset, "y", pg->voffset, NULL);
