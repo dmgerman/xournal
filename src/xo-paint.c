@@ -670,7 +670,7 @@ void resize_textview(gpointer *toplevel, gpointer *data)
   width = gtk_widget_get_allocated_width(GTK_WIDGET(w)) + WIDGET_RIGHT_MARGIN;
   height = gtk_widget_get_allocated_height(GTK_WIDGET(w));
 
-  TRACE_3("To set width %f %f\n", width, height);
+  TRACE_3("To set width of text widget %f %f\n", width, height);
   TRACE_4("Zoom %f [%f] [%f]\n", ui.zoom, width/ui.zoom, height/ui.zoom);
 
 #ifdef ABC
@@ -678,15 +678,12 @@ void resize_textview(gpointer *toplevel, gpointer *data)
     "size-pixels", TRUE, 
     "width", (gdouble)width, "height", (gdouble)height, NULL);
 #else
-  TRACE_1("resizing of the GtkTextView does not work!!!!. Needs fixing\n");
   /*
-  g_object_set(ui.cur_item->canvas_item,
-	       //	       "size-pixels", TRUE, 
-	       "width", width, 
-	       "height", height, NULL);
+  xo_canvas_item_resize(ui.cur_item->canvas_item,
+			200/ui.zoom,50.0/ui.zoom);
   */
 #endif
-  ui.cur_item->bbox.right = ui.cur_item->bbox.left + width/ui.zoom;
+  ui.cur_item->bbox.right = ui.cur_item->bbox.left + width /ui.zoom;
   ui.cur_item->bbox.bottom = ui.cur_item->bbox.top + height/ui.zoom;
 
 }

@@ -1012,13 +1012,8 @@ on_viewContinuous_activate             (GtkMenuItem     *menuitem,
 
   pg = ui.cur_page;
 
-#ifdef ABC
-  v_adj = gtk_layout_get_vadjustment(GTK_LAYOUT(canvas));
-  yscroll = gtk_adjustment_get_value(v_adj) - pg->voffset*ui.zoom;
-#else
   v_adj = gtk_scrollable_get_vadjustment(GTK_SCROLLABLE(canvas));
   yscroll = gtk_adjustment_get_value(v_adj) - pg->voffset*ui.zoom;
-#endif
 
   update_page_stuff();
 

@@ -109,14 +109,24 @@ void xo_page_canvas_group_new(Page *pg)
 
 }
 
-void xo_page_set_canvas_pixbuf(Page *pg, GdkPixbuf *pix, gboolean scale)
+void xo_page_set_canvas_pixbuf(Page *pg, GdkPixbuf *pix)
 {
+  double w, h;
+
+  w = gdk_pixbuf_get_width (pix);
+  h = gdk_pixbuf_get_height (pix);
+  w /= pg->bg->pixbuf_scale;
+  h /= pg->bg->pixbuf_scale;
+  if ( pg->bg->canvas_group != NULL) {
+    TRACE_1("--------------We have data\n\n in canvas_group\n");
+  }
+
   pg->bg->canvas_group = goo_canvas_image_new(pg->group,
 					      pix,
 					      0, 0,   // x,y coordinate in canvas
-					      "width", pg->width,
-					      "height", pg->height,
-					      "scale-to-fit", scale,
+					      "width", w,
+					      "height", h,
+					      "scale-to-fit", TRUE,
 					      NULL);
   
   if (pg->bg->canvas_pixbuf != NULL) {
@@ -187,6 +197,20 @@ void xo_goo_canvas_item_hide(GooCanvasItem *item)
   }
 }
 
+void xo_canvas_round_position_to_pixel(gdouble *x, gdouble *y)
+{
+  
+  // we need to place pages exactly in a pixel boundary
+  // otherwise the PDF backgrounds are antialised --and look blurry--
+  // so we convert canvas dimensions to pixels
+  // round the pixel, and convert it back to canvas
+
+  goo_canvas_convert_to_pixels(canvas, x, y);
+  *y = round(*y);
+  *x = round(*x);
+  goo_canvas_convert_from_pixels(canvas, x, y);
+}
+
 void xo_goo_canvas_item_move_to(GooCanvasItem *item, gdouble x, gdouble y)
 {
   gdouble xold;
@@ -196,6 +220,22 @@ void xo_goo_canvas_item_move_to(GooCanvasItem *item, gdouble x, gdouble y)
       fabs(y - yold) > 1e-10)
     g_object_set(G_OBJECT(item), "x",x,"y",y, NULL);
 }
+
+void xo_goo_canvas_item_move_to_pixel_boundary(GooCanvasItem *item)
+{
+  gdouble x;
+  gdouble y;
+  gdouble xold;
+  gdouble yold;
+  g_object_get(item, "x", &x, "y", &y, NULL);
+  xold = x;
+  yold = y;
+  xo_canvas_round_position_to_pixel(&x, &y);
+
+  if (x != xold || y != yold) 
+    g_object_set(G_OBJECT(item), "x",x,"y",y, NULL);
+}
+
 
 
 GdkPixbuf  *xo_goo_canvas_item_pixbuf_get(GooCanvasItem *item)
@@ -752,14 +792,13 @@ void make_page_clipbox(struct Page *pg)
   gnome_canvas_item_set(GNOME_CANVAS_ITEM(pg->group), "path", pg_clip, NULL);
   gnome_canvas_path_def_unref(pg_clip);
 #else
-  /*
-    
-  TRACE_1("usikng a rectangle... what about this?, used for resizing... I think I have to use ");
+  /*    
+  printf("------->What the heck\n\n");
   goo_canvas_rect_new(pg->group, 0, 0, pg->width, pg->height, 
-		      "line-width", 5.0,
+		      "line-width", 1.0,
+		      "stroke-color", "red", 
 		      NULL);
   */
-
   goo_canvas_set_bounds(canvas, 0, 0, pg->width, pg->height);
 #endif
 
@@ -967,31 +1006,26 @@ void update_canvas_bg(struct Page *pg)
     pg->bg->pixbuf_scale = 0;
     assert(pg->bg->pixbuf != NULL);
 
-    xo_page_set_canvas_pixbuf(pg, pg->bg->pixbuf, TRUE);
+    xo_page_set_canvas_pixbuf(pg, pg->bg->pixbuf);
 
     lower_canvas_item_to(pg->group, pg->bg->canvas_group, NULL);
   } else if (pg->bg->type == BG_PDF) {
 
-    TRACE_2("------------In bgpdf [%p]\n", pg->bg->pixbuf);
     if (pg->bg->pixbuf == NULL) 
       return;
     
     is_well_scaled = (fabs(pg->bg->pixel_width - pg->width*ui.zoom) < 2.
 		      && fabs(pg->bg->pixel_height - pg->height*ui.zoom) < 2.);
     
-    TRACE_2("In bgpdf well scaled? [%d]\n", is_well_scaled);
-    
     // dmg: the following code is a port from the old one
     // the problem is that in both cases it needs to be resized!!! 
     // So I don't get why we do this.   XXXXXXXXX
     if (is_well_scaled) {
       // then don't resize
-      TRACE_1("We are not resizing\n");
-      xo_page_set_canvas_pixbuf(pg, pg->bg->pixbuf, TRUE);
+      xo_page_set_canvas_pixbuf(pg, pg->bg->pixbuf);
     } else {
       // insert resizing
-      TRACE_1("We are resizing\n");
-      xo_page_set_canvas_pixbuf(pg, pg->bg->pixbuf, TRUE);
+      xo_page_set_canvas_pixbuf(pg, pg->bg->pixbuf);
     }
     lower_canvas_item_to(pg->group, GOO_CANVAS_ITEM(pg->bg->canvas_group), NULL);
   } else {
@@ -1030,7 +1064,14 @@ void rescale_bg_pixmaps(void)
     // in progressive mode we scale only visible pages
     if (ui.progressive_bg && !is_visible(pg)) 
       continue;
-    
+
+    // goo_canvas supports subpixel rendering. that is means we are
+    // capable of placing items in subpixel locations. This problematic
+    // because it antialises the backgrounds.
+    // to solve this problem we need to move the pages to precise 
+    // pixel boundaries
+    xo_goo_canvas_item_move_to_pixel_boundary(ui.cur_page->group);
+
     if (pg->bg->type == BG_PIXMAP && pg->bg->canvas_group!=NULL) {
 
       xo_background_update_pixbuf(pg->bg);
@@ -1699,7 +1740,8 @@ void update_page_stuff(void)
     for (i=0, pglist = journal.pages; pglist!=NULL; i++, pglist = pglist->next) {
       pg = (struct Page *)pglist->data;
       if (pg->group!=NULL) {
-        pg->hoffset = 0.; pg->voffset = vertpos;
+        pg->hoffset = 0.; 
+	pg->voffset = vertpos;
 
 	xo_goo_canvas_item_move_to(pg->group, pg->hoffset, pg->voffset);
 
@@ -1708,31 +1750,28 @@ void update_page_stuff(void)
         xo_goo_canvas_item_show(pg->group);
 
       }
+
       vertpos += pg->height + VIEW_CONTINUOUS_SKIP;
-      if (pg->width > maxwidth) maxwidth = pg->width;
+
+      if (pg->width > maxwidth) 
+	maxwidth = pg->width;
     }
     vertpos -= VIEW_CONTINUOUS_SKIP;
-#ifdef ABC
-    //    gnome_canvas_set_scroll_region(canvas, 0, 0, maxwidth, vertpos);
-#else
     goo_canvas_set_bounds(canvas, 0, 0, maxwidth, vertpos);
-#endif
 
   } else {
     for (pglist = journal.pages; pglist!=NULL; pglist = pglist->next) {
       pg = (struct Page *)pglist->data;
       if (pg == ui.cur_page && pg->group!=NULL) {
-        pg->hoffset = 0.; pg->voffset = 0.;
+        pg->hoffset = 0.; 
+	pg->voffset = 0.;
 	xo_goo_canvas_item_move_to(pg->group, pg->hoffset, pg->voffset);
-	//        gnome_canvas_item_set(GNOME_CANVAS_ITEM(pg->group), 
-	//            "x", pg->hoffset, "y", pg->voffset, NULL);
         xo_goo_canvas_item_show(pg->group);
       } else {
         if (pg->group!=NULL) 
 	  xo_goo_canvas_item_hide(pg->group);
       }
     }
-    //gnome_canvas_set_scroll_region(canvas, 0, 0, ui.cur_page->width, ui.cur_page->height);
     goo_canvas_set_bounds(canvas, 0, 0, ui.cur_page->width, ui.cur_page->height);
   }
 
@@ -2755,17 +2794,14 @@ xo_wrapper_copy_cairo_surface_to_pixbuf (cairo_surface_t *surface,
 
 
 GdkPixbuf* xo_wrapper_poppler_page_render_to_pixbuf (PopplerPage *page,
-					  int src_x, int src_y,
-					  int src_width, int src_height,
+						     int src_x, int src_y,
+						     int src_width, int src_height,
 						     double scale, 
 						     int rotation)
 {
   cairo_t *cr;
   cairo_surface_t *surface;
   GdkPixbuf *pixbuf;
-
-  TRACE_3("width [%d] height [%d]\n", src_width, src_height);
-  TRACE_2("scale [%f]\n", scale);
 
   surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
 					src_width, src_height);
@@ -2796,6 +2832,8 @@ GdkPixbuf* xo_wrapper_poppler_page_render_to_pixbuf (PopplerPage *page,
   cairo_destroy (cr);
 
   if (ui.poppler_force_cairo) {
+    GError *error;
+
     pixbuf = gdk_pixbuf_get_from_surface (surface,
 					  0,0,
 					  src_width, src_height);

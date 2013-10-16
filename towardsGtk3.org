@@ -27,6 +27,8 @@ Nothing, as far as I know.
 
 - The resizing of the GtkTextView does not work. It will look huge. This needs investigation.
 
+[[file:src/xo-paint.c::void%20resize_textview(gpointer%20*toplevel,%20gpointer%20*data)][file:src/xo-paint.c::void resize_textview(gpointer *toplevel, gpointer *data)]]
+
 *** TODO there are aliasing artifacts :minor:
 
 - Sometimes during drawing artifacts appear in the screen. 

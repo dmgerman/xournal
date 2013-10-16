@@ -1202,10 +1202,10 @@ gboolean bgpdf_scheduler_callback(gpointer data)
     poppler_page_get_size(pdfpage, &widthInPoints, &heightInPoints);
     
     // compute the desired size of the page... 
-    widthInPixels = (int) (req->dpi * widthInPoints/72);
-    heightInPixels = (int) (req->dpi * heightInPoints/72);
-
-    pixbuf = xo_wrapper_poppler_page_render_to_pixbuf(pdfpage, 0, 0, widthInPixels, heightInPixels, req->dpi/72, 0);
+    widthInPixels = (int) ((req->dpi * widthInPoints) /72.0);
+    heightInPixels = (int) ((req->dpi * heightInPoints)/72.0);
+    
+    pixbuf = xo_wrapper_poppler_page_render_to_pixbuf(pdfpage, 0, 0, widthInPixels, heightInPixels, req->dpi/72.0, 0);
     g_object_unref(pdfpage);
     set_cursor_busy(FALSE);
   }
