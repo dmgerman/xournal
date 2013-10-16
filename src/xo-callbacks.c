@@ -1689,6 +1689,8 @@ on_journalScreenshot_activate          (GtkMenuItem     *menuitem,
   
   end_text();
   reset_selection();
+
+
   gtk_window_iconify(GTK_WINDOW(winMain)); // hide ourselves
   gdk_display_sync(gdk_display_get_default());
 
@@ -1719,13 +1721,14 @@ on_journalScreenshot_activate          (GtkMenuItem     *menuitem,
   ui.cur_page->width = gdk_pixbuf_get_width(bg->pixbuf)/bg->pixbuf_scale;
   ui.cur_page->height = gdk_pixbuf_get_height(bg->pixbuf)/bg->pixbuf_scale;
 
-  make_page_clipbox(ui.cur_page);
-  update_canvas_bg(ui.cur_page);
 
   if (ui.zoom != DEFAULT_ZOOM) {
     ui.zoom = DEFAULT_ZOOM;
     xo_rescale();
   }
+  make_page_clipbox(ui.cur_page);
+  update_canvas_bg(ui.cur_page);
+
   do_switch_page(ui.pageno, TRUE, TRUE);
 
 

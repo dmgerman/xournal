@@ -111,12 +111,21 @@ void xo_page_canvas_group_new(Page *pg)
 
 void xo_page_set_canvas_pixbuf(Page *pg, GdkPixbuf *pix)
 {
-  double w, h;
+  gdouble w, h;
 
   w = gdk_pixbuf_get_width (pix);
   h = gdk_pixbuf_get_height (pix);
+
+  w /= ui.zoom;
+  h /= ui.zoom;
+  
+  /*
   w /= pg->bg->pixbuf_scale;
   h /= pg->bg->pixbuf_scale;
+  */
+
+  //  goo_canvas_convert_from_pixels(canvas, &w2, &h2);
+
   if ( pg->bg->canvas_group != NULL) {
     TRACE_1("--------------We have data\n\n in canvas_group\n");
   }
@@ -131,6 +140,7 @@ void xo_page_set_canvas_pixbuf(Page *pg, GdkPixbuf *pix)
   
   if (pg->bg->canvas_pixbuf != NULL) {
     g_object_unref(pg->bg->canvas_pixbuf);
+    pg->bg->canvas_pixbuf = NULL;
   }
   pg->bg->canvas_pixbuf = pix;
   g_object_ref(pix);
@@ -139,11 +149,13 @@ void xo_page_set_canvas_pixbuf(Page *pg, GdkPixbuf *pix)
 void xo_background_update_pixbuf(Background *bg)
 {
   // we need to keep two pixbufs, the one already rendered, and the one that is being rescaled
+  // if the one being scaled changes, update the one being displayed
   if (bg->canvas_pixbuf != bg->pixbuf) {
     g_object_set(G_OBJECT(bg->canvas_group), "pixbuf" , bg->pixbuf, NULL);
 
     if (bg->canvas_pixbuf != NULL) {
       g_object_unref(bg->canvas_pixbuf);
+      bg->canvas_pixbuf = NULL;
     }
     
     bg->canvas_pixbuf = bg->pixbuf;
@@ -528,6 +540,9 @@ void delete_page(struct Page *pg)
       g_object_unref(pg->bg->canvas_pixbuf);
     if (pg->bg->filename != NULL) 
       refstring_unref(pg->bg->filename);
+    pg->bg->pixbuf = NULL;
+    pg->bg->canvas_pixbuf = NULL;
+    pg->bg->filename = NULL;
   }
   g_free(pg->bg);
   g_free(pg);
@@ -793,7 +808,8 @@ void make_page_clipbox(struct Page *pg)
   gnome_canvas_item_set(GNOME_CANVAS_ITEM(pg->group), "path", pg_clip, NULL);
   gnome_canvas_path_def_unref(pg_clip);
 #else
-  /*    
+
+  /*
   printf("------->What the heck\n\n");
   goo_canvas_rect_new(pg->group, 0, 0, pg->width, pg->height, 
 		      "line-width", 1.0,
@@ -1000,8 +1016,8 @@ void update_canvas_bg(struct Page *pg)
   }
 
   if (pg->bg->type == BG_SOLID) {
-
     xo_page_background_ruling(pg);
+    assert(pg->bg->canvas_pixbuf == NULL);
 
   } else if (pg->bg->type == BG_PIXMAP) {
     pg->bg->pixbuf_scale = 0;

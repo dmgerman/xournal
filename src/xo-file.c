@@ -1129,9 +1129,10 @@ struct Background *attempt_screenshot_bg(void)
   if (pix == NULL) 
     return NULL;
   
-  bg = g_new(struct Background, 1);
+  bg = g_new0(struct Background, 1);
   bg->type = BG_PIXMAP;
   bg->canvas_group = NULL;
+  bg->canvas_pixbuf = NULL;
   bg->pixbuf = pix;
   bg->pixbuf_scale = DEFAULT_ZOOM;
   bg->filename = new_refstring(NULL);
