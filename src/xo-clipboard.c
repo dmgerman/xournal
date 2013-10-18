@@ -254,7 +254,7 @@ void clipboard_paste_from_xournal(GtkSelectionData *sel_data)
   ui.selection->bbox.bottom += voffset;
 
   xo_selection_rectangle_draw();
-  xo_canvas_item_set_dashed(ui.selection->canvas_item);
+  xo_ui_selection_set_dashed();
 
   while (nitems-- > 0) {
     item = g_new(struct Item, 1);

@@ -40,6 +40,38 @@ void xo_canvas_item_reparent(GooCanvasItem *item, GooCanvasItem *newParent)
   
 }
 
+void xo_selection_bbox_print(void)
+{
+  if (ui.selection != NULL) {
+    printf("  Selection box [%f][%f] [%f][%f]\n", ui.selection->bbox.left, ui.selection->bbox.top, 
+	   ui.selection->bbox.right, ui.selection->bbox.bottom);
+  }
+
+}
+
+void xo_selection_rectangle_draw(gboolean dashed)
+{
+#define PARMS ui.selection->bbox.left, ui.selection->bbox.top, \
+                ui.selection->bbox.right - ui.selection->bbox.left,\
+                ui.selection->bbox.bottom - ui.selection->bbox.top,\
+                "line-width", 1.0,\
+                 /* "stroke-color-rgba", 0x000000ff,	*/	\
+                 "fill-color-rgba", 0x80808040
+
+  if (dashed) {
+    GooCanvasLineDash *dash = goo_canvas_line_dash_new (2, 10.0, 10.0);
+    ui.selection->canvas_item = goo_canvas_rect_new(ui.cur_layer->group, PARMS,
+						    "line-dash", dash,
+						    NULL);
+    
+    goo_canvas_line_dash_unref (dash);  
+  } else {
+    ui.selection->canvas_item = goo_canvas_rect_new(ui.cur_layer->group, PARMS,
+						    NULL);
+  }
+#undef PARMS
+}
+
 
 void xo_canvas_item_resize_bounding_box(GooCanvasItem *item, 
 					gdouble x1, gdouble y1,
@@ -71,7 +103,7 @@ void xo_canvas_item_resize_bounding_box(GooCanvasItem *item,
 			 
 
 
-void xo_canvas_item_set_dashed(GooCanvasItem *item)
+void xo_ui_selection_set_dashed(void)
 {
 #ifdef ABC
   double dashlen[2];
@@ -84,11 +116,15 @@ void xo_canvas_item_set_dashed(GooCanvasItem *item)
 
   gnome_canvas_item_set(item, "dash", &dash, NULL);
 #else
-  // we can hack this by removing the rectangle and drawing it again in dashed
-  TRACE_1("We need to do this dashed, not red, but we need to learn how. Goo canvas people say they need to implement it. ");
-  g_object_set(item, 
-	       "stroke-color", "red", 
-	       NULL);
+  // goo canvas doesn't let us change the type of line of a rect
+  // we need to reomve and redraw
+  if (GOO_IS_CANVAS_RECT(ui.selection->canvas_item)) {
+    goo_canvas_item_remove(ui.selection->canvas_item);
+    xo_selection_rectangle_draw(TRUE);
+  } else {
+    TRACE_1("We have to implement set-dashed of the selection\n");
+  }
+
 #endif
 
 }
@@ -109,20 +145,6 @@ void xo_selection_rectangle_resize(gdouble x, gdouble y)
 
 }
 
-void xo_selection_rectangle_draw(void)
-{
-  
-  ui.selection->canvas_item = goo_canvas_rect_new(ui.cur_layer->group, 
-						  ui.selection->bbox.left, ui.selection->bbox.top, 
-						  ui.selection->bbox.right - ui.selection->bbox.left,
-						  ui.selection->bbox.bottom - ui.selection->bbox.top,
-						  "line-width", 1.0,
-						  //						  "stroke-color-rgba", 0x000000ff,
-						  "fill-color-rgba", 0x80808040,
-						  NULL);
-
-}
-
 void xo_selection_rectangle_create(gdouble x, gdouble y)
 {
 
@@ -131,7 +153,7 @@ void xo_selection_rectangle_create(gdouble x, gdouble y)
   ui.selection->create_width = 0;
   ui.selection->create_height = 0;
   
-  xo_selection_rectangle_draw();
+  xo_selection_rectangle_draw(FALSE);
 
 #ifdef ABC  
   ui.selection->canvas_item = gnome_canvas_item_new(ui.cur_layer->group,
@@ -230,7 +252,7 @@ void finalize_selectrect(void)
   if (ui.selection->items == NULL) 
     reset_selection();
   else 
-    xo_canvas_item_set_dashed(ui.selection->canvas_item);
+    xo_ui_selection_set_dashed();
   update_cursor();
   update_copy_paste_enabled();
   update_font_button();
@@ -273,7 +295,7 @@ void start_selectregion(GdkEvent *event)
       NULL);
   make_dashed(ui.selection->canvas_item);
   */
-  xo_canvas_item_set_dashed(ui.selection->canvas_item);
+  xo_ui_selection_set_dashed();
   update_cursor();
 
 }
@@ -392,7 +414,7 @@ void finalize_selectregion(void)
   else {
     // make a selection rectangle instead of the lasso shape
     goo_canvas_remove(ui.selection->canvas_item);
-    xo_selection_rectangle_draw();
+    xo_selection_rectangle_draw(FALSE);
     /*
     ui.selection->canvas_item = gnome_canvas_item_new(ui.cur_layer->group,
       gnome_canvas_rect_get_type(), "width-pixels", 1, 
@@ -402,7 +424,7 @@ void finalize_selectregion(void)
       "y1", ui.selection->bbox.top, "y2", ui.selection->bbox.bottom, NULL);
     make_dashed(ui.selection->canvas_item);
     */
-    xo_canvas_item_set_dashed(ui.selection->canvas_item);
+    xo_ui_selection_set_dashed();
     ui.selection->type = ITEM_SELECTRECT;
   }
 
@@ -420,9 +442,11 @@ gboolean start_movesel(GdkEvent *event)
 {
 
   double pt[2];
-  
-  if (ui.selection==NULL) return FALSE;
-  if (ui.cur_layer != ui.selection->layer) return FALSE;
+
+  if (ui.selection==NULL) 
+    return FALSE;
+  if (ui.cur_layer != ui.selection->layer) 
+    return FALSE;
   
   xo_event_get_pointer_coords(event, pt);
   if (ui.selection->type == ITEM_SELECTRECT || ui.selection->type == ITEM_SELECTREGION) {
@@ -439,7 +463,7 @@ gboolean start_movesel(GdkEvent *event)
 #ifdef ABC
     gnome_canvas_item_set(ui.selection->canvas_item, "dash", NULL, NULL);
 #else
-    xo_canvas_item_set_dashed(ui.selection->canvas_item);
+    xo_ui_selection_set_dashed();
 #endif
     update_cursor();
     return TRUE;
@@ -455,11 +479,12 @@ gboolean start_resizesel(GdkEvent *event)
   if (ui.selection==NULL) return FALSE;
   if (ui.cur_layer != ui.selection->layer) return FALSE;
 
+  /*
   printf("remove this...VVVVV\n");
   xo_canvas_item_resize_bounding_box(ui.selection->canvas_item, 
 				     ui.selection->bbox.left, ui.selection->bbox.top,
 				     ui.selection->bbox.right, ui.selection->bbox.bottom);
-
+  */
 
   xo_event_get_pointer_coords(event, pt);
 
@@ -497,7 +522,7 @@ gboolean start_resizesel(GdkEvent *event)
 #ifdef ABC
     gnome_canvas_item_set(ui.selection->canvas_item, "dash", NULL, NULL);
 #else
-    xo_canvas_item_set_dashed(ui.selection->canvas_item);
+    xo_ui_selection_set_dashed();
 #endif
     update_cursor_for_resize(pt);
     return TRUE;
@@ -735,14 +760,12 @@ void finalize_movesel(void)
     reset_selection();
   else {
 
-    /* we have been moving the bounding box all along.. so really, why is this code ehere?
-
     ui.selection->bbox.left += undo->val_x;
     ui.selection->bbox.right += undo->val_x;
     ui.selection->bbox.top += undo->val_y;
     ui.selection->bbox.bottom += undo->val_y;
-    xo_canvas_item_set_dashed(ui.selection->canvas_item);
-    */
+
+    xo_ui_selection_set_dashed();
 
     /* update selection box object's offset to be trivial, and its internal 
        coordinates to agree with those of the bbox; need this since resize
@@ -811,7 +834,7 @@ void finalize_resizesel(void)
     ui.selection->bbox.top = ui.selection->new_y2;
     ui.selection->bbox.bottom = ui.selection->new_y1;
   }
-  xo_canvas_item_set_dashed(ui.selection->canvas_item);
+  xo_ui_selection_set_dashed();
 
   ui.cur_item_type = ITEM_NONE;
   update_cursor();
