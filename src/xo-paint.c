@@ -382,6 +382,9 @@ void continue_stroke(GdkEvent *event)
     // on the canvas. This is not going to be "saved' in the canvas, but it does not matter
     // as soon as the stroke is finished, we create the proper polygon
     // it is a nice hack :)
+
+    // XXXX this code can be speed up if we save also the x,y coordinates in pixels
+    // so we don't have to convert back and forth... is it worth it? i don't think so
     {
 
       cairo_t               *cr;
