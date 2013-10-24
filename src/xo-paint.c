@@ -324,7 +324,6 @@ void continue_stroke(GdkEvent *event)
 {
   GooCanvasPoints seg;
   double *pt, current_width;
-  static int i = 0;
 
   if (ui.cur_brush->ruler) {
     pt = ui.cur_path.coords;
@@ -384,12 +383,13 @@ void continue_stroke(GdkEvent *event)
     // as soon as the stroke is finished, we create the proper polygon
     // it is a nice hack :)
     {
+
       cairo_t               *cr;
       gdouble c[4];
-      c[0] = pt[0];
-      c[1] = pt[1];
-      c[2] = pt[2];
-      c[3] = pt[3];
+      c[0] = pt[0] + ui.cur_page->hoffset;
+      c[1] = pt[1] + ui.cur_page->voffset;
+      c[2] = pt[2] + ui.cur_page->hoffset;
+      c[3] = pt[3] + ui.cur_page->voffset;
 
 
       cr =  goo_canvas_create_cairo_context(canvas);
