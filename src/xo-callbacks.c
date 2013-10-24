@@ -28,8 +28,9 @@
 #include <gdk/gdkkeysyms.h>
 #include <gdk/gdkkeysyms-compat.h>
 
-
-#include <libgrip/grip.h>
+#ifdef HAVE_GRIP_GESTURES
+#  include <libgrip/grip.h>
+#endif
 #include <goocanvas.h>
 #include <assert.h>
 
@@ -3102,6 +3103,7 @@ on_vscroll_changed                     (GtkAdjustment   *adjustment,
     return;
   
   if (ui.progressive_bg)  {
+    TRACE("Going to rescale background\n");
     rescale_bg_pixmaps();
   }
   need_update = FALSE;
@@ -3876,6 +3878,8 @@ on_optionsPenCursor_activate           (GtkCheckMenuItem *checkmenuitem,
   update_cursor();
 }
 
+
+#ifdef HAVE_GRIP_GESTURES
 void
 xo_gesture_callback (GtkWidget        *widget,
                     GripTimeType      time_type,
@@ -3896,3 +3900,4 @@ xo_gesture_callback (GtkWidget        *widget,
     printf("We are pinching, we are pinching\n");
 
 }
+#endif

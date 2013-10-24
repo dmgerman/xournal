@@ -24,8 +24,9 @@
 #include <gdk/gdk.h> 
 #include <gtk/gtk.h>
 #include <goocanvas.h>
-#include<libgrip/grip.h>
-
+#ifdef HAVE_GRIP_GESTURES
+#  include<libgrip/grip.h>
+#endif
 
 #include "xournal.h"
 #include "xo-interface.h"
@@ -48,6 +49,8 @@ struct UndoItem *undo, *redo; // the undo and redo stacks
 
 double DEFAULT_ZOOM;
 
+
+#ifdef HAVE_GRIP_GESTURES
 void
 xo_subscribe_gestures(GtkWidget *window, GtkWidget *scroller) {
 
@@ -69,7 +72,7 @@ xo_subscribe_gestures(GtkWidget *window, GtkWidget *scroller) {
             xo_gesture_callback,
             scroller, NULL);
 }
-
+#endif
 
 
 void xo_describe_device(GdkDevice* device)
@@ -276,7 +279,9 @@ void init_stuff (int argc, char *argv[])
   gtk_adjustment_set_step_increment(adj, ui.scrollbar_step_increment);
 
 
+#ifdef HAVE_GRIP_GESTURES
   xo_subscribe_gestures(GTK_WIDGET(canvas), GTK_WIDGET(canvas));
+#endif
 
 
   // set up the page size and canvas size
