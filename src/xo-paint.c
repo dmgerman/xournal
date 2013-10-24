@@ -378,12 +378,14 @@ void continue_stroke(GdkEvent *event)
 
     */
 #ifndef do_not_speedup_strokes
-    // goocanvas is slow at drawing, so we go directly to the heart and do the rendering
-    // on the canvas. This is not going to be "saved' in the canvas, but it does not matter
+    // goocanvas is slow at drawing, so we go directly to the heart
+    // and do the rendering on the canvas using cairo. This drawing is
+    // not going to be "saved' in the canvas, but it does not matter.
     // as soon as the stroke is finished, we create the proper polygon
     // it is a nice hack :)
 
-    // XXXX this code can be speed up if we save also the x,y coordinates in pixels
+    // XXXX this code can be speed up if we save also the x,y coordinates in pixels in the
+    // canvas of the previous event, and we extract it from the current event.
     // so we don't have to convert back and forth... is it worth it? i don't think so
     {
 
