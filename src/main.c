@@ -52,7 +52,7 @@ void
 xo_subscribe_gestures(GtkWidget *window, GtkWidget *scroller) {
 
     GripGestureManager *manager = grip_gesture_manager_get();
-
+    
     grip_gesture_manager_register_window (manager,
             window,
             GRIP_GESTURE_PINCH,

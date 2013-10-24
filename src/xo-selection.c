@@ -480,7 +480,7 @@ gboolean start_resizesel(GdkEvent *event)
   if (ui.cur_layer != ui.selection->layer) return FALSE;
 
   /*
-  printf("remove this...VVVVV\n");
+  printf("remove this...VVVVV\n"); // used for debugging
   xo_canvas_item_resize_bounding_box(ui.selection->canvas_item, 
 				     ui.selection->bbox.left, ui.selection->bbox.top,
 				     ui.selection->bbox.right, ui.selection->bbox.bottom);

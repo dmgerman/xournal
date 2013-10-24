@@ -324,7 +324,7 @@ void continue_stroke(GdkEvent *event)
 {
   GooCanvasPoints seg;
   double *pt, current_width;
-
+  static int i = 0;
 
   if (ui.cur_brush->ruler) {
     pt = ui.cur_path.coords;
@@ -342,11 +342,12 @@ void continue_stroke(GdkEvent *event)
   }
   else current_width = ui.cur_item->brush.thickness;
   
-  if (ui.cur_brush->ruler)
+  if (ui.cur_brush->ruler) {
     ui.cur_path.num_points = 2;
-  else {
-    if (hypot(pt[0]-pt[2], pt[1]-pt[3]) < PIXEL_MOTION_THRESHOLD/ui.zoom)
+  } else {
+    if (hypot(pt[0]-pt[2], pt[1]-pt[3]) < PIXEL_MOTION_THRESHOLD/ui.zoom) {
       return;  // not a meaningful motion
+    }
     ui.cur_path.num_points++;
   }
 
@@ -370,13 +371,52 @@ void continue_stroke(GdkEvent *event)
 			  "fill-color-rgba", ui.cur_item->brush.color_rgba,
 			  "width-units", current_width, NULL);
 #else
-    goo_canvas_polyline_new(ui.cur_item->canvas_item, FALSE, 0,
-			    "points", &seg,
+    /*
+    goo_canvas_polyline_new_line(ui.cur_item->canvas_item, 
+				 pt[0], pt[1], pt[2], pt[3],
+				 "line-width", current_width, 
+				 NULL);
+
+    */
+#ifndef do_not_speedup_strokes
+    // goocanvas is slow at drawing, so we go directly to the heart and do the rendering
+    // on the canvas. This is not going to be "saved' in the canvas, but it does not matter
+    // as soon as the stroke is finished, we create the proper polygon
+    // it is a nice hack :)
+    {
+      cairo_t               *cr;
+      gdouble c[4];
+      c[0] = pt[0];
+      c[1] = pt[1];
+      c[2] = pt[2];
+      c[3] = pt[3];
+
+
+      cr =  goo_canvas_create_cairo_context(canvas);
+      cairo_new_path(cr);
+      goo_canvas_convert_to_pixels(canvas, &c[0], &c[1]);
+      goo_canvas_convert_to_pixels(canvas, &c[2], &c[3]);
+      cairo_set_line_width(cr, current_width * ui.zoom);
+      cairo_set_source_rgba(cr, 
+			    ((ui.cur_item->brush.color_rgba & 0xFF000000) >> 24) / 255.0,
+			    ((ui.cur_item->brush.color_rgba & 0x00FF0000) >> 16) /255.0,
+			    ((ui.cur_item->brush.color_rgba & 0x0000FF00) >> 8) / 255.0,
+			    (ui.cur_item->brush.color_rgba & 0x000000FF)/ 255.0);
+			   
+      cairo_move_to(cr, c[0] , c[1]);
+      cairo_line_to(cr, c[2] , c[3]);
+      cairo_stroke (cr);
+      cairo_destroy(cr);
+    }
+#else    
+      goo_canvas_polyline_new(ui.cur_item->canvas_item, FALSE, 0,
+                           "points", &seg,
 			    "line-cap", CAIRO_LINE_CAP_ROUND, 
 			    "line-join", CAIRO_LINE_JOIN_ROUND,
 			    "stroke-color-rgba", ui.cur_item->brush.color_rgba,
 			    "line-width", current_width, 
 			    NULL);
+#endif
 #endif
   }
 }
