@@ -402,6 +402,7 @@ void continue_stroke(GdkEvent *event)
       goo_canvas_convert_to_pixels(canvas, &c[0], &c[1]);
       goo_canvas_convert_to_pixels(canvas, &c[2], &c[3]);
       cairo_set_line_width(cr, current_width * ui.zoom);
+      cairo_set_line_cap(cr, CAIRO_LINE_CAP_ROUND);
       cairo_set_source_rgba(cr, 
 			    ((ui.cur_item->brush.color_rgba & 0xFF000000) >> 24) / 255.0,
 			    ((ui.cur_item->brush.color_rgba & 0x00FF0000) >> 16) /255.0,
