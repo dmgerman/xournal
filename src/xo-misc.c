@@ -20,6 +20,7 @@
 #include <math.h>
 #include <string.h>
 #include <gtk/gtk.h>
+#include <gdk/gdk.h>
 #include <gdk/gdkkeysyms.h>
 #include <gdk/gdkkeysyms-compat.h>
 #include <assert.h>
@@ -628,28 +629,32 @@ void xo_event_get_pointer_coords(GdkEvent *event, gdouble *ret)
 
 void xo_pointer_get_current_coords(gdouble *ret)
 {
-  gdouble sx, sy;
-  gint wx, wy;
+  GdkEvent *event;
   gdouble x, y;
   GdkModifierType modifier_mask;
-
-#ifdef ABC
-  gtk_widget_get_pointer(GTK_WIDGET(canvas), &wx, &wy);
-  gnome_canvas_get_scroll_offsets(canvas, &sx, &sy);
-  gnome_canvas_window_to_world(canvas, (double)(wx + sx), (double)(wy + sy), ret, ret+1);
-#else
+  gint ix, iy;
 
   // gets it in pixels units
-  gdk_window_get_device_position(gtk_widget_get_window (GTK_WIDGET(canvas)),  
-				 gtk_get_current_event_device (),  &wx, &wy, &modifier_mask);
 
-  xo_canvas_get_scroll_offsets_in_pixels(canvas, &sx, &sy);
-  ret[0] = sx + wx;
-  ret[1] = sy + wy;
-  goo_canvas_convert_from_pixels(canvas, ret, ret+1);
-#endif
-  ret[0] -= ui.cur_page->hoffset;
-  ret[1] -= ui.cur_page->voffset;
+  GdkWindow *w;
+  w = gtk_widget_get_window(GTK_WIDGET(canvas));
+  GdkDeviceManager* manager =  gdk_display_get_device_manager(gdk_window_get_display(w));
+
+  gdk_window_get_device_position(gtk_widget_get_window (GTK_WIDGET(canvas)),  gdk_device_manager_get_client_pointer(manager),
+				 &ix, &iy, &modifier_mask);
+
+  x =ix;
+  y =iy;
+
+  goo_canvas_convert_from_pixels(canvas, &x, &y);
+
+  if (x < 0) 
+    x = 0;
+  if (y < 0 )
+    y = 0;
+
+  ret[0] = x - ui.cur_page->hoffset;
+  ret[1] = y - ui.cur_page->voffset;
 }
 
 void fix_xinput_coords(GdkEvent *event)
@@ -877,24 +882,15 @@ void make_canvas_item_one(GooCanvasItem *group, struct Item *item)
 
   }
   if (item->type == ITEM_IMAGE) {
-    /*
-    item->canvas_item = gnome_canvas_item_new(group,
-          gnome_canvas_pixbuf_get_type(),
-          "pixbuf", item->image,
-          "x", item->bbox.left, "y", item->bbox.top,
-          "width", item->bbox.right - item->bbox.left,
-          "height", item->bbox.bottom - item->bbox.top,
-          "width-set", TRUE, "height-set", TRUE,
-          NULL);
-    */
     assert(item->image != NULL);
+    /*
     printf("   image left %f right %f top %f bottm %f\n",
 	   item->bbox.left,
 	   item->bbox.right,
 	   item->bbox.top,
 	   item->bbox.bottom);
 	   
-
+    */
     item->canvas_item = goo_canvas_image_new(group, item->image,
 					     item->bbox.left, 
 					     item->bbox.top, 

@@ -25,6 +25,7 @@
 #include "xo-callbacks.h"
 #include "xo-interface.h"
 #include "xo-support.h"
+#include "xo-selection.h"
 #include "xo-misc.h"
 #include "xo-paint.h"
 #include "xo-image.h"
@@ -253,8 +254,7 @@ void clipboard_paste_from_xournal(GtkSelectionData *sel_data)
   ui.selection->bbox.top += voffset;
   ui.selection->bbox.bottom += voffset;
 
-  xo_selection_rectangle_draw();
-  xo_ui_selection_set_dashed();
+  xo_selection_rectangle_draw(TRUE);
 
   while (nitems-- > 0) {
     item = g_new(struct Item, 1);

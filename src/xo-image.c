@@ -71,8 +71,31 @@ void create_image_from_pixbuf(GdkPixbuf *pixbuf, double *pt)
   item->image_png = NULL;
   item->image_png_len = 0;
 
-  // Scale at native size, unless that won't fit, in which case we shrink it down.
+
   scale = 1 / ui.zoom;
+
+  // let us make sure we are within boundaries, if not, place it at the edge
+  // TODO:
+  // there is a bug in calculating the location when the pointer is outside boundary for one of the dimensions
+  // either x or y will be ok but not both.
+  // too lazy to do now
+  // and current xournal crashes with this use case anyways
+  if (ui.cur_page->width < item->bbox.left) {
+    item->bbox.left = ui.cur_page->width - (scale * gdk_pixbuf_get_width(item->image));
+  }
+  if (ui.cur_page->height < item->bbox.top) {
+    item->bbox.top = ui.cur_page->height - (scale * gdk_pixbuf_get_height(item->image));
+  }
+  if (item->bbox.left < 0) {
+    item->bbox.left  = 0;
+  }
+  if (item->bbox.top  < 0) {
+    item->bbox.top  = 0;
+  }
+
+
+  // Scale at native size, unless that won't fit, in which case we shrink it down.
+
   if ((scale * gdk_pixbuf_get_width(item->image)) > ui.cur_page->width - item->bbox.left)
     scale = (ui.cur_page->width - item->bbox.left) / gdk_pixbuf_get_width(item->image);
   if ((scale * gdk_pixbuf_get_height(item->image)) > ui.cur_page->height - item->bbox.top)
@@ -110,7 +133,7 @@ void create_image_from_pixbuf(GdkPixbuf *pixbuf, double *pt)
       "x1", ui.selection->bbox.left, "x2", ui.selection->bbox.right, 
       "y1", ui.selection->bbox.top, "y2", ui.selection->bbox.bottom, NULL);
 #else
-  xo_selection_rectangle_draw();
+  xo_selection_rectangle_draw(TRUE);
 #endif
   //  make_dashed(ui.selection->canvas_item);
   update_copy_paste_enabled();

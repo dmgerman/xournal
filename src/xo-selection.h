@@ -37,6 +37,7 @@ void recolor_selection(int color_no, guint color_rgba);
 void rethicken_selection(int val);
 void xo_selection_rectangle_resize(gdouble x, gdouble y);
 void xo_ui_selection_set_dashed(void);
+void xo_selection_rectangle_draw(gboolean dashed);
 
 
 #endif
