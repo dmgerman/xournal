@@ -1768,6 +1768,7 @@ void init_config_default(void)
   ui.autosave_loop_running = FALSE;
   ui.autosave_need_catchup = FALSE;
   ui.fix_stroke_origin = FALSE;
+  ui.lockHorizontalScroll = FALSE;
   
   // the default UI vertical order
   ui.vertical_order[0][0] = 1; 

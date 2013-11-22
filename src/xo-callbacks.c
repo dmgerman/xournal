@@ -943,7 +943,7 @@ on_viewContinuous_activate             (GtkMenuItem     *menuitem,
   do_view_modeswitch(VIEW_MODE_CONTINUOUS);
 }
 
-void
+G_MODULE_EXPORT void
 on_viewHorizontal_activate             (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -3702,6 +3702,14 @@ on_optionsLeftHanded_activate          (GtkMenuItem     *menuitem,
   ui.left_handed = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem));
   gtk_scrolled_window_set_placement(GTK_SCROLLED_WINDOW(GET_COMPONENT("scrolledwindowMain")),
     ui.left_handed?GTK_CORNER_TOP_RIGHT:GTK_CORNER_TOP_LEFT);
+}
+
+G_MODULE_EXPORT void
+on_optionsLockHorizontalScroll_activate     (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+  end_text();
+  ui.lockHorizontalScroll = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem));
 }
 
 void
