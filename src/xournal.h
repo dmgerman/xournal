@@ -316,6 +316,7 @@ typedef struct UIData {
   guint hiliter_alpha_mask;
   gboolean left_handed; // left-handed mode?
   gboolean touch_as_handtool; // do we always use the touch screen as handtool
+  gboolean lockHorizontalScroll; // do now allow scroll horizontally
   gboolean auto_save_prefs; // auto-save preferences ?
   gboolean shorten_menus; // shorten menus ?
   gchar *shorten_menu_items; // which items to hide

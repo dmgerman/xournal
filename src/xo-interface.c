@@ -252,6 +252,7 @@ create_winMain (void)
   GtkWidget *optionsShortenMenus;
   GtkWidget *optionsPenCursor;
   GtkWidget *optionsTouchAsHandTool;
+  GtkWidget *optionsLockHorizontalScroll;
   GtkWidget *separator21;
   GtkWidget *optionsAutoSavePrefs;
   GtkWidget *optionsSavePreferences;
@@ -1408,6 +1409,10 @@ create_winMain (void)
   gtk_widget_show (optionsShortenMenus);
   gtk_container_add (GTK_CONTAINER (menuOptions_menu), optionsShortenMenus);
 
+  optionsLockHorizontalScroll = gtk_check_menu_item_new_with_mnemonic (_("Do not allow horizontal scroll"));
+  gtk_widget_show (optionsLockHorizontalScroll);
+  gtk_container_add (GTK_CONTAINER (menuOptions_menu), optionsLockHorizontalScroll);
+
   optionsPenCursor = gtk_check_menu_item_new_with_mnemonic (_("Pencil Cursor"));
   gtk_widget_show (optionsPenCursor);
   gtk_container_add (GTK_CONTAINER (menuOptions_menu), optionsPenCursor);
@@ -2409,6 +2414,9 @@ create_winMain (void)
   g_signal_connect ((gpointer) optionsPenCursor, "toggled",
                     G_CALLBACK (on_optionsPenCursor_activate),
                     NULL);
+  g_signal_connect ((gpointer) optionsLockHorizontalScroll, "activate",
+                    G_CALLBACK (on_optionsLockHorizontalScroll_activate),
+                    NULL);
   g_signal_connect ((gpointer) optionsAutoSavePrefs, "toggled",
                     G_CALLBACK (on_optionsAutoSavePrefs_activate),
                     NULL);
@@ -2780,6 +2788,7 @@ create_winMain (void)
   GLADE_HOOKUP_OBJECT (winMain, optionsTouchAsHandTool, "optionsTouchAsHandTool");
   GLADE_HOOKUP_OBJECT (winMain, optionsShortenMenus, "optionsShortenMenus");
   GLADE_HOOKUP_OBJECT (winMain, optionsPenCursor, "optionsPenCursor");
+  GLADE_HOOKUP_OBJECT (winMain, optionsLockHorizontalScroll, "optionsLockHorizontalScroll");
   GLADE_HOOKUP_OBJECT (winMain, separator21, "separator21");
   GLADE_HOOKUP_OBJECT (winMain, optionsAutoSavePrefs, "optionsAutoSavePrefs");
   GLADE_HOOKUP_OBJECT (winMain, optionsSavePreferences, "optionsSavePreferences");

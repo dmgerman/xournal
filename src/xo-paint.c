@@ -514,7 +514,12 @@ void do_hand(GdkEvent *event)
   pt[0] += ui.cur_page->hoffset;
   pt[1] += ui.cur_page->voffset;
   gnome_canvas_get_scroll_offsets(canvas, &cx, &cy);
-  ui.hand_scrollto_cx = cx - (pt[0]-ui.hand_refpt[0])*ui.zoom;
+
+  if (ui.lockHorizontalScroll)
+    ui.hand_scrollto_cx = cx;
+  else
+    ui.hand_scrollto_cx = cx - (pt[0]-ui.hand_refpt[0])*ui.zoom;
+
   ui.hand_scrollto_cy = cy - (pt[1]-ui.hand_refpt[1])*ui.zoom;
   if (!ui.hand_scrollto_pending) g_idle_add(do_hand_scrollto, NULL);
   ui.hand_scrollto_pending = TRUE;

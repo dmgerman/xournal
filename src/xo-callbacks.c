@@ -3614,6 +3614,14 @@ on_optionsTouchAsHandTool_activate     (GtkMenuItem     *menuitem,
 }
 
 void
+on_optionsLockHorizontalScroll_activate     (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+  end_text();
+  ui.lockHorizontalScroll = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem));
+}
+
+void
 on_optionsShortenMenus_activate        (GtkMenuItem     *menuitem,  
                                         gpointer         user_data)
 {
