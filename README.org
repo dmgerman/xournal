@@ -1,3 +1,5 @@
+#+STARTUP: showall
+
 * This is next branch  of Xournal
 
 This repository is to host features of xournal that are considered
@@ -8,3 +10,9 @@ It should *not be used* for code intended for further distribution.
 See https://github.com/dmgerman/xournal/blob/master/README.org for an
 explanation of the development model of xournal, and the role of this
 branch
+
+* Currently integrated branches not in upstream
+
+- jp-translations: translations to japanese
+- touchscreen-as-hand-tool: Use the touchscreen as a handtool exclusively
+- horizontal-scroll-lock: do not allow hand tool to scroll horizontally
