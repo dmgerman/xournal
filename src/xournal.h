@@ -43,8 +43,10 @@
 
 #ifdef WIN32
 #define VERSION_STRING VERSION "-win32"
+#define DEVICE_FOR_TOUCH  "Core Pointer"
 #else
 #define VERSION_STRING VERSION
+#define DEVICE_FOR_TOUCH  "touch"
 #endif
 
 // DATA STRUCTURES AND CONSTANTS
@@ -313,6 +315,7 @@ typedef struct UIData {
   gdouble hiliter_opacity;
   guint hiliter_alpha_mask;
   gboolean left_handed; // left-handed mode?
+  gboolean touch_as_handtool; // do we always use the touch screen as handtool
   gboolean auto_save_prefs; // auto-save preferences ?
   gboolean shorten_menus; // shorten menus ?
   gchar *shorten_menu_items; // which items to hide

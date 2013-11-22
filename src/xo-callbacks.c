@@ -2525,7 +2525,8 @@ on_canvas_button_press_event           (GtkWidget       *widget,
 
   // process the event
   
-  if (ui.toolno[mapping] == TOOL_HAND) {
+  if (ui.toolno[mapping] == TOOL_HAND ||
+      (ui.touch_as_handtool && strstr(event->device->name, DEVICE_FOR_TOUCH) != NULL)) {
     ui.cur_item_type = ITEM_HAND;
     get_pointer_coords((GdkEvent *)event, ui.hand_refpt);
     ui.hand_refpt[0] += ui.cur_page->hoffset;
@@ -3602,6 +3603,14 @@ on_optionsLeftHanded_activate          (GtkMenuItem     *menuitem,
   ui.left_handed = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem));
   gtk_scrolled_window_set_placement(GTK_SCROLLED_WINDOW(GET_COMPONENT("scrolledwindowMain")),
     ui.left_handed?GTK_CORNER_TOP_RIGHT:GTK_CORNER_TOP_LEFT);
+}
+
+void
+on_optionsTouchAsHandTool_activate     (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+  end_text();
+  ui.touch_as_handtool = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem));
 }
 
 void

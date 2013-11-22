@@ -251,6 +251,7 @@ create_winMain (void)
   GtkWidget *optionsLeftHanded;
   GtkWidget *optionsShortenMenus;
   GtkWidget *optionsPenCursor;
+  GtkWidget *optionsTouchAsHandTool;
   GtkWidget *separator21;
   GtkWidget *optionsAutoSavePrefs;
   GtkWidget *optionsSavePreferences;
@@ -1399,6 +1400,10 @@ create_winMain (void)
   gtk_widget_show (optionsLeftHanded);
   gtk_container_add (GTK_CONTAINER (menuOptions_menu), optionsLeftHanded);
 
+  optionsTouchAsHandTool = gtk_check_menu_item_new_with_mnemonic (_("Always use _Touch screen as hand tool"));
+  gtk_widget_show (optionsTouchAsHandTool);
+  gtk_container_add (GTK_CONTAINER (menuOptions_menu), optionsTouchAsHandTool);
+
   optionsShortenMenus = gtk_check_menu_item_new_with_mnemonic (_("Shorten _Menus"));
   gtk_widget_show (optionsShortenMenus);
   gtk_container_add (GTK_CONTAINER (menuOptions_menu), optionsShortenMenus);
@@ -2395,6 +2400,9 @@ create_winMain (void)
   g_signal_connect ((gpointer) optionsLeftHanded, "toggled",
                     G_CALLBACK (on_optionsLeftHanded_activate),
                     NULL);
+  g_signal_connect ((gpointer) optionsTouchAsHandTool, "activate",
+                    G_CALLBACK (on_optionsTouchAsHandTool_activate),
+                    NULL);
   g_signal_connect ((gpointer) optionsShortenMenus, "toggled",
                     G_CALLBACK (on_optionsShortenMenus_activate),
                     NULL);
@@ -2769,6 +2777,7 @@ create_winMain (void)
   GLADE_HOOKUP_OBJECT (winMain, optionsPrintRuling, "optionsPrintRuling");
   GLADE_HOOKUP_OBJECT (winMain, optionsAutoloadPdfXoj, "optionsAutoloadPdfXoj");
   GLADE_HOOKUP_OBJECT (winMain, optionsLeftHanded, "optionsLeftHanded");
+  GLADE_HOOKUP_OBJECT (winMain, optionsTouchAsHandTool, "optionsTouchAsHandTool");
   GLADE_HOOKUP_OBJECT (winMain, optionsShortenMenus, "optionsShortenMenus");
   GLADE_HOOKUP_OBJECT (winMain, optionsPenCursor, "optionsPenCursor");
   GLADE_HOOKUP_OBJECT (winMain, separator21, "separator21");
