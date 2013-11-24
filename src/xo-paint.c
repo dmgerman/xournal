@@ -750,7 +750,7 @@ void resize_textview(gpointer *toplevel, gpointer *data)
   width = iwidth *1.0;
   height = iheight *1.0;
 
-  xo_canvas_item_resize(ui.cur_item->canvas_item, width, height);
+  xo_canvas_item_resize(ui.cur_item->canvas_item, width, height, FALSE);
 
   ui.cur_item->bbox.right = ui.cur_item->bbox.left + 200.0;
   ui.cur_item->bbox.bottom = ui.cur_item->bbox.top + 50.0;

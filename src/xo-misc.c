@@ -67,7 +67,7 @@ void xo_canvas_scroll_to_y_pixels(gdouble y)
 
 }
 
-void xo_canvas_item_resize(GooCanvasItem  *item, gdouble newWidth, gdouble newHeight)
+void xo_canvas_item_resize(GooCanvasItem  *item, gdouble newWidth, gdouble newHeight, gboolean scaleToFit)
 {
   gdouble currentWidth;
   gdouble currentHeight;
@@ -85,8 +85,11 @@ void xo_canvas_item_resize(GooCanvasItem  *item, gdouble newWidth, gdouble newHe
     g_object_set(item,
 		 "width", newWidth, 
 		 "height", newHeight, 
-		 "scale-to-fit", TRUE,
 		 NULL);
+    if (scaleToFit) {
+      g_object_set(item, "scale-to-fit", TRUE, 
+		   NULL);
+    }
   } 
 }
 
@@ -1103,7 +1106,7 @@ void rescale_bg_pixmaps(void)
 	if (width > 0) {
 	  // I think it means the canvas has been instantiated...
 	  // so resize
-	  xo_canvas_item_resize(pg->bg->canvas_group, pg->width, pg->height);
+	  xo_canvas_item_resize(pg->bg->canvas_group, pg->width, pg->height, TRUE);
 	  // dmg: should we update pixel_width and pixel_height in bg? XXX
 	  // ahh, this is the autorescaling in case that we don't have 
 	  // progressive backgrounds. pixel_width is only changed when the actual
@@ -2922,7 +2925,9 @@ void xo_canvas_set_pixels_per_unit(void)
 #ifdef ABC
   gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
 #else
-  goo_canvas_set_scale(canvas, ui.zoom);
+  if (fabs(goo_canvas_get_scale(canvas) - ui.zoom) > 0.02) {
+    goo_canvas_set_scale(canvas, ui.zoom);
+  }
 #endif
 }
 
