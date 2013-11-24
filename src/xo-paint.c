@@ -698,11 +698,39 @@ void do_hand(GdkEvent *event)
 // to make it easier to copy/paste at end of text box
 #define WIDGET_RIGHT_MARGIN 10
 
+void xo_textview_calculate_text_size(GtkTextView *w, int *width, int *height)
+{
+  PangoLayout *layout;
+  GtkTextBuffer *buffer;
+  PangoFontDescription *font_desc;
+  gchar *text;
+  GtkTextIter start, end;
+  gchar *font;
+
+  buffer = gtk_text_view_get_buffer(w);
+  gtk_text_buffer_get_bounds(buffer, &start, &end);
+  text = gtk_text_buffer_get_text(buffer, &start, &end, TRUE);
+  
+  layout = gtk_widget_create_pango_layout (GTK_WIDGET(w), text);
+
+  font = g_strdup_printf("%s %f", ui.cur_item->font_name, ui.cur_item->font_size);
+  font_desc = pango_font_description_from_string(font);
+
+  pango_layout_set_font_description (layout, font_desc);
+  pango_layout_get_pixel_size (layout, width, height);
+  pango_font_description_free (font_desc);
+
+  g_object_unref (layout);
+  g_free(text);
+  g_free(font);
+
+}
+
+
 void resize_textview(gpointer *toplevel, gpointer *data)
 {
-
-  GtkTextView *w;
   gdouble width, height;
+  int iwidth, iheight;
   
   /* when the text changes, resize the GtkTextView accordingly */
   if (ui.cur_item_type!=ITEM_TEXT) 
@@ -711,26 +739,21 @@ void resize_textview(gpointer *toplevel, gpointer *data)
   // XXXX: the problem is that we do not know
   //       how to compute the width of the text in the GtkTextView
   //       
-
+  /*
   w = GTK_TEXT_VIEW(ui.cur_item->widget);
   width = gtk_widget_get_allocated_width(GTK_WIDGET(w)) + WIDGET_RIGHT_MARGIN;
   height = gtk_widget_get_allocated_height(GTK_WIDGET(w));
-
-  TRACE_3("To set width of text widget %f %f\n", width, height);
-  TRACE_4("Zoom %f [%f] [%f]\n", ui.zoom, width/ui.zoom, height/ui.zoom);
-
-#ifdef ABC
-  gnome_canvas_item_set(ui.cur_item->canvas_item, 
-    "size-pixels", TRUE, 
-    "width", (gdouble)width, "height", (gdouble)height, NULL);
-#else
-  /*
-  xo_canvas_item_resize(ui.cur_item->canvas_item,
-			200/ui.zoom,50.0/ui.zoom);
   */
-#endif
-  ui.cur_item->bbox.right = ui.cur_item->bbox.left + width /ui.zoom;
-  ui.cur_item->bbox.bottom = ui.cur_item->bbox.top + height/ui.zoom;
+
+  xo_textview_calculate_text_size(GTK_TEXT_VIEW(ui.cur_item->widget), &iwidth, &iheight);
+  
+  width = iwidth *1.0;
+  height = iheight *1.0;
+
+  xo_canvas_item_resize(ui.cur_item->canvas_item, width, height);
+
+  ui.cur_item->bbox.right = ui.cur_item->bbox.left + 200.0;
+  ui.cur_item->bbox.bottom = ui.cur_item->bbox.top + 50.0;
 
 }
 

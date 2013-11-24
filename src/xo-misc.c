@@ -25,7 +25,6 @@
 #include <gdk/gdkkeysyms-compat.h>
 #include <assert.h>
 #include <stdlib.h>
-
 #include "xournal.h"
 #include "xo-interface.h"
 #include "xo-support.h"
@@ -80,6 +79,7 @@ void xo_canvas_item_resize(GooCanvasItem  *item, gdouble newWidth, gdouble newHe
 	       "width", &currentWidth,
 	       "height", &currentHeight,
 	       NULL);
+
   if (fabs(currentWidth - newWidth) >= 2.0 ||
       fabs(currentHeight - newHeight) >= 2.0) {
     g_object_set(item,
@@ -87,9 +87,9 @@ void xo_canvas_item_resize(GooCanvasItem  *item, gdouble newWidth, gdouble newHe
 		 "height", newHeight, 
 		 "scale-to-fit", TRUE,
 		 NULL);
-  }
-
+  } 
 }
+
 
 
 
@@ -871,7 +871,7 @@ void make_canvas_item_one(GooCanvasItem *group, struct Item *item)
     item->canvas_item = goo_canvas_text_new(group, item->text,
 					    item->bbox.left, 
 					    item->bbox.top, 
-					    item->bbox.right - item->bbox.left,
+					    -1,
 					    GOO_CANVAS_ANCHOR_NORTH_WEST,
 					    "font", font, 
 					    "fill-color-rgba", item->brush.color_rgba,
