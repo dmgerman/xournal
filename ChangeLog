@@ -8,6 +8,7 @@ This version:
   - pencil cursor option (patch by Luciano Siqueira)
   - Chinese (traditional) translation (William Chao)
   - fix configure.in for automake-1.13 (Florian Bruhin, Andreas Huettel)
+  - Japanese translation (by Hiroshi Saito)
 
 Version 0.4.7 (July 4, 2012):
   - insert image tool (based on patches by Victor Saase and Simon Guest)
