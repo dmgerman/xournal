@@ -24,8 +24,6 @@
 
 #include "xournal.h"
 #include "xo-callbacks.h"
-#include "xo-interface.h"
-#include "xo-support.h"
 #include "xo-misc.h"
 #include "xo-paint.h"
 
@@ -602,8 +600,8 @@ void start_text(GdkEvent *event, struct Item *item)
     g_signal_connect((gpointer) winMain, "check_resize",
        G_CALLBACK(resize_textview), NULL);
   update_font_button();
-  gtk_widget_set_sensitive(GET_COMPONENT("editPaste"), FALSE);
-  gtk_widget_set_sensitive(GET_COMPONENT("buttonPaste"), FALSE);
+  gtk_widget_set_sensitive(GTK_WIDGET(GET_COMPONENT("editPaste")), FALSE);
+  gtk_widget_set_sensitive(GTK_WIDGET(GET_COMPONENT("buttonPaste")), FALSE);
   gtk_widget_grab_focus(item->widget); 
 }
 
@@ -623,8 +621,8 @@ void end_text(void)
   ui.cur_item->type = ITEM_TEXT;
   new_text = gtk_text_buffer_get_text(buffer, &start, &end, TRUE);
   ui.cur_item_type = ITEM_NONE;
-  gtk_widget_set_sensitive(GET_COMPONENT("editPaste"), TRUE);
-  gtk_widget_set_sensitive(GET_COMPONENT("buttonPaste"), TRUE);
+  gtk_widget_set_sensitive(GTK_WIDGET(GET_COMPONENT("editPaste")), TRUE);
+  gtk_widget_set_sensitive(GTK_WIDGET(GET_COMPONENT("buttonPaste")), TRUE);
   
   if (strlen(new_text)==0) { // erase object and cancel
     g_free(new_text);
