@@ -111,21 +111,6 @@ and other contributors
     <property name="can_focus">False</property>
     <property name="pixbuf">pixmaps/recycled.png</property>
   </object>
-  <object class="GtkImage" id="default_tool_icon1">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="pixbuf">pixmaps/recycled.png</property>
-  </object>
-  <object class="GtkImage" id="default_tool_icon2">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="pixbuf">pixmaps/recycled.png</property>
-  </object>
-  <object class="GtkImage" id="default_tool_icon3">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="pixbuf">pixmaps/recycled.png</property>
-  </object>
   <object class="GtkImage" id="eraser_icon">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
