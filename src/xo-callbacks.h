@@ -674,3 +674,8 @@ void
 xo_gesture_callback (GtkWidget        *widget, GripTimeType time_type, GripGestureEvent  *event, gpointer           user_data);
 #endif
 
+gboolean
+on_test           (GtkWidget       *widget,
+		   GdkEventTouch    *event,
+		   gpointer         user_data);
+

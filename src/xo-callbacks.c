@@ -2516,27 +2516,54 @@ on_canvas_button_press_event           (GtkWidget       *widget,
   double pt[2];
   GtkWidget *dialog;
   int mapping;
+#ifdef adfadf
   gboolean is_core;
+#endif
   struct Item *item;
   GdkEvent scroll_event;
   
 #ifdef INPUT_DEBUG
-  printf("DEBUG: ButtonPress (%s) (x,y)=(%.2f,%.2f), button %d, modifier %x\n", 
-    event->device->name, event->x, event->y, event->button, event->state);
+  printf("DEBUG: ButtonPress (%s) type %d (x,y)=(%.2f,%.2f), button %d, modifier %x\n", 
+	 event->device->name, 
+	 event->type,
+	 event->x, event->y, event->button, event->state);
 #endif
 
+  gdouble coor[2];
+  xo_event_get_pointer_coords(event, coor);
+
+  printf("DEBUG: ButtonPress (%s) type [%d] (x,y)=(%.2f,%.2f), button %d, state %x\n", 
+	 gdk_device_get_name(event->device),
+	 event->type,
+	 coor[0],coor[1], event->button, 
+	 event->state);
+  
+  GdkDevice *slave = gdk_event_get_source_device((GdkEvent*)event);
+  
+  if (slave == NULL) {
+    fprintf(stderr, "the slave is null. how can that happen. Bail out\n");
+    return FALSE;
+  }
+  GdkInputSource inputSource = gdk_device_get_source(slave);
+  printf("DEBUG: slave device [%s] input source [%d]\n",
+ 	 gdk_device_get_name(slave), inputSource);
   // abort any page changes pending in the spin button, and take the focus
   gtk_spin_button_set_value(GTK_SPIN_BUTTON(GET_COMPONENT("spinPageNo")), ui.pageno+1);
   reset_focus();
     
+#ifdef asdfasdf
   //  is_core = (event->device == gdk_device_get_core_pointer());
   is_core = xo_event_button_device_is_core(event);
 
   if (!ui.use_xinput && !is_core) return FALSE;
   if (ui.use_xinput && is_core && ui.discard_corepointer) return FALSE;
+#endif
+
   if (event->type != GDK_BUTTON_PRESS) return FALSE; 
+
     // double-clicks may have broken axes member (free'd) due to a bug in GDK
 
+#ifdef asdfsa
   if (event->button > 3) { // scroll wheel events! don't paint...
     if (ui.use_xinput && !gtk_check_version(2, 17, 0) && event->button <= 7) {
       /* with GTK+ 2.17 and later, the entire widget hierarchy is xinput-aware,
@@ -2561,19 +2588,31 @@ on_canvas_button_press_event           (GtkWidget       *widget,
     }
     return FALSE;
   }
-  if ((event->state & (GDK_CONTROL_MASK|GDK_MOD1_MASK)) != 0) return FALSE;
-    // no control-clicking or alt-clicking
+#endif
+
+  // no control-clicking or alt-clicking
+  if ((event->state & (GDK_CONTROL_MASK|GDK_MOD1_MASK)) != 0) 
+    return FALSE;
+
+#ifdef adsfdsaf
   if (!is_core) gdk_device_get_state(event->device, event->window, event->axes, NULL);
     // synaptics touchpads send bogus axis values with ButtonDown
   if (!is_core)
     fix_xinput_coords((GdkEvent *)event);
+#endif
 
-  if (!finite_sized(event->x) || !finite_sized(event->y)) return FALSE; // Xorg 7.3 bug
+  if (!finite_sized(event->x) || !finite_sized(event->y)) 
+    return FALSE; // Xorg 7.3 bug
 
+  // if we are editing text.. 
   if (ui.cur_item_type == ITEM_TEXT) {
-    if (!is_event_within_textview(event)) end_text();
-    else return FALSE;
+    if (is_event_within_textview(event)) 
+      return FALSE;
+    else 
+      end_text();
   }
+#ifdef asdfasdf
+  // we should not this any more... gtk3 fixes it
   if (ui.cur_item_type == ITEM_STROKE && ui.is_corestroke && !is_core &&
       ui.cur_path.num_points == 1) { 
       // Xorg 7.3+ sent core event before XInput event: fix initial point 
@@ -2581,7 +2620,11 @@ on_canvas_button_press_event           (GtkWidget       *widget,
     ui.stroke_device = event->device;
     xo_event_get_pointer_coords((GdkEvent *)event, ui.cur_path.coords);
   }
-  if (ui.cur_item_type != ITEM_NONE) return FALSE; // we're already doing something
+#endif
+  // this check seems to be a safety one to make sure we don't get into
+  // weird recursive changes
+  if (ui.cur_item_type != ITEM_NONE) 
+    return FALSE; // we're already doing something
 
   // if button_switch_mapping enabled, button 2 or 3 clicks only switch mapping
   if (ui.button_switch_mapping && event->button > 1) {
@@ -2590,7 +2633,9 @@ on_canvas_button_press_event           (GtkWidget       *widget,
     return FALSE;
   }
 
+#ifdef adfadsf
   ui.is_corestroke = is_core;
+#endif
   ui.stroke_device = event->device;
 
   if (ui.use_erasertip && gdk_device_get_source(event->device) == GDK_SOURCE_ERASER)
@@ -2648,7 +2693,7 @@ on_canvas_button_press_event           (GtkWidget       *widget,
 
   // process the event
   
-  if (ui.toolno[mapping] == TOOL_HAND) {
+  if (ui.toolno[mapping] == TOOL_HAND || inputSource ==  GDK_SOURCE_TOUCHPAD) {
     ui.cur_item_type = ITEM_HAND;
 
     // we save it in coordinates
@@ -3900,4 +3945,29 @@ xo_gesture_callback (GtkWidget        *widget,
     printf("We are pinching, we are pinching\n");
 
 }
+
+
 #endif
+
+gboolean
+on_test           (GtkWidget       *widget,
+		   GdkEventTouch    *event,
+		   gpointer         user_data)
+{
+  printf(">>> ----------------testing a callback\n");
+
+  gdouble coor[2];
+  xo_event_get_pointer_coords((GdkEvent*)event, coor);
+
+  GdkDevice *slave = gdk_event_get_source_device((GdkEvent*)event);
+
+
+  printf("DEBUG: ButtonPress (%s) type [%d] (x,y)=(%.2f,%.2f), modifier %x\n", 
+	 gdk_device_get_name(event->device),
+	 event->type,
+	 coor[0],coor[1], event->state);
+
+  printf("DEBUG: slave device [%s]\n", 	 gdk_device_get_name(event->device));
+  printf("<<< ----------------testing a callback\n");
+}
+

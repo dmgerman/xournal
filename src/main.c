@@ -77,7 +77,24 @@ xo_subscribe_gestures(GtkWidget *window, GtkWidget *scroller) {
 
 void xo_describe_device(GdkDevice* device)
 {
-  printf("->    device  [%s]\n", gdk_device_get_name(device));
+
+  char *labels[] = {"AXIS IGNORE",
+		    "AXIS X",
+		    "AXIS Y",
+		    "AXIS PRESSUE",
+		    "AXIS X TILT",
+		    "AXIS Y TILT",
+		    "AXIS WHEEL",
+		    "AXIS LAST"};
+
+  char *inputSourceLabels[] = {
+    "MOUSE", "PEN", "ERASER", "CURSOR", "KEYBOARD", "TOUCHSCREEN", "TOUCHPAD"
+  };
+
+
+  GdkInputSource inputSource = gdk_device_get_source(device);
+  printf("Describing device\n");
+  printf("->    device  [%s] Source [%d [%s]]\n", gdk_device_get_name(device),  inputSource, inputSourceLabels[inputSource]);
 
   int countAxes = gdk_device_get_n_axes(device);
   // check if we need to dispose it after we use it XXXXXXXXXXX
@@ -85,8 +102,10 @@ void xo_describe_device(GdkDevice* device)
   GList *list = gdk_device_list_axes(device);
   int i=0;
   while (list != NULL) {
+
     GdkAxisUse use = gdk_device_get_axis_use(device, i);
-    printf("Use of this device %d Use [%d]\n", i, use);
+
+    printf("Axis use of this device %d Use [%d][%s]\n", i, use, labels[i]);
     /*
       gtk_device_get_axis_value(device, XXXX, label, minAxis);
       gtk_device_get_axis_value(device, XXXX, label, maxAxis);
@@ -94,24 +113,20 @@ void xo_describe_device(GdkDevice* device)
       gtk_device_get_axis_value(device, XXXX, label, maxValue);
       gtk_device_get_axis_value(device, XXXX, label, resolution);
 	    
-      gdouble min_axis = 
-      gdouble max_axis;
-      gdouble min_value;
-      gdouble max_value;
-      gdouble resolution;
     */
     i++;
     list = list->next;
   }
   switch (gdk_device_get_device_type(device)) {
     case GDK_DEVICE_TYPE_MASTER:
-      printf("   master device\n");
+      printf("This is a master device\n");
 
       list = gdk_device_list_slave_devices(device);
       i = 0;
       while (list != NULL) {
-	printf("       Listing slave device [%d] XXXXXXXXXXXXXXXX\n",i);
+	printf(">>> Now we describe a slave device [%d] XXXXXXXXXXXXXXXX\n",i);
 	xo_describe_device((GdkDevice*)list->data);
+	printf("<<< ended the slave\n");
 	i++;
 	list = list->next;
       }
@@ -122,7 +137,7 @@ void xo_describe_device(GdkDevice* device)
       printf("   slave device\n");
       break;
     case GDK_DEVICE_TYPE_FLOATING:
-      printf("   slave device\n");
+      printf("   floating device---------------------------------------------->\n");
       break;
     default:
       printf("   unknown type device\n");
@@ -287,6 +302,10 @@ void init_stuff (int argc, char *argv[])
   // set up the page size and canvas size
   update_page_stuff();
 
+  g_signal_connect ((gpointer) canvas, "touch_event",
+                    G_CALLBACK (on_test),
+                    NULL);
+
   g_signal_connect ((gpointer) canvas, "button_press_event",
                     G_CALLBACK (on_canvas_button_press_event),
                     NULL);
@@ -319,7 +338,15 @@ void init_stuff (int argc, char *argv[])
   ui.screen_height = gdk_screen_get_height(screen);
   
   can_xinput = FALSE;
+
   dev_list = xo_devices_list(NULL);
+  while (dev_list != NULL) {
+    printf("--------------------------------------------------------------------\n");
+    device = (GdkDevice *)dev_list->data;
+    xo_describe_device(device);
+    dev_list = dev_list->next;
+  }
+
   while (dev_list != NULL) {
     device = (GdkDevice *)dev_list->data;
 
@@ -436,6 +463,7 @@ void init_stuff (int argc, char *argv[])
       GET_COMPONENT("statusbar"),
       "event", G_CALLBACK (filter_extended_events),
       NULL);
+    /*
     g_signal_connect (
       (gpointer)(gtk_scrolled_window_get_vscrollbar(GTK_SCROLLED_WINDOW(w))),
       "event", G_CALLBACK (filter_extended_events),
@@ -444,7 +472,16 @@ void init_stuff (int argc, char *argv[])
       (gpointer)(gtk_scrolled_window_get_hscrollbar(GTK_SCROLLED_WINDOW(w))),
       "event", G_CALLBACK (filter_extended_events),
       NULL);
+    */
   }
+  
+  gboolean doesIt = gtk_scrolled_window_get_kinetic_scrolling (  GTK_SCROLLED_WINDOW(w));
+  printf(">>>>>>>>Scrolling Before kinetic [%d]\n", doesIt);
+
+  gtk_scrolled_window_set_kinetic_scrolling(GTK_SCROLLED_WINDOW(w), TRUE);
+  doesIt = gtk_scrolled_window_get_kinetic_scrolling (  GTK_SCROLLED_WINDOW(w));
+  printf("Scrolling, kinetic [%d]\n", doesIt);
+
 
   // load the MRU
   
