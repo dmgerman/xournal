@@ -2215,18 +2215,20 @@ on_toolsTextFont_activate              (GtkMenuItem     *menuitem,
   GtkWidget *dialog;
   gchar *str;
   
+  dialog =gtk_font_chooser_dialog_new(_("Select Font"), NULL);
+  /*
   dialog = gtk_font_selection_dialog_new(_("Select Font"));
+  */
   str = make_cur_font_name();
-  gtk_font_selection_dialog_set_font_name(GTK_FONT_SELECTION_DIALOG(dialog), str);
+  gtk_font_chooser_set_font(GTK_FONT_CHOOSER(dialog), str);
   g_free(str);
   if (gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_OK) {
     gtk_widget_destroy(dialog);
     return;
   }
-  str = gtk_font_selection_dialog_get_font_name(GTK_FONT_SELECTION_DIALOG(dialog));
+  str = gtk_font_chooser_get_font(GTK_FONT_CHOOSER(dialog));
   gtk_widget_destroy(dialog);
   process_font_sel(str);
-
 
 }    
 
