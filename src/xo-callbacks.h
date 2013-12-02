@@ -645,7 +645,7 @@ on_optionsPressureSensitive_activate   (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
 
 void
-on_buttonColorChooser_set              (GtkColorButton  *colorbutton,
+on_buttonColorChooser_set              (GtkColorChooser  *colorbutton,
                                         gpointer         user_data);
 
 void

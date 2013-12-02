@@ -1489,32 +1489,23 @@ on_papercolorGreen_activate            (GtkMenuItem     *menuitem,
 }
 
 
+
 void
 on_papercolorOther_activate            (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  GtkWidget *dialog;
-  GtkColorSelection *colorsel;
-  gint result;
   guint rgba;
-  GdkColor gdkcolor;
 
   end_text();
-  dialog =    gtk_color_selection_dialog_new(_("Pick a Paper Color"));
 
-  //  dialog = gtk_color_selection_dialog_new(_("Pick a Paper Color"));
-  colorsel =  gtk_color_selection_dialog_get_color_selection(GTK_COLOR_SELECTION_DIALOG(dialog));
+  if (ui.cur_page->bg->type == BG_SOLID) 
+    rgba = ui.cur_page->bg->color_rgba;
+  else 
+    rgba = ui.default_page.bg->color_rgba;
 
-  if (ui.cur_page->bg->type == BG_SOLID) rgba = ui.cur_page->bg->color_rgba;
-  else rgba = ui.default_page.bg->color_rgba;
-  xo_rgb_to_GdkColor(rgba, &gdkcolor);
-  gtk_color_selection_set_current_color(colorsel, &gdkcolor);
-  
-  if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_OK) {
-    gtk_color_selection_get_current_color(colorsel, &gdkcolor);
-    process_papercolor_activate(menuitem, COLOR_OTHER, xo_GdkColor_to_rgba(gdkcolor, 0xffff));
-  }
-  gtk_widget_destroy(dialog);
+  if ( xo_dialog_select_color(_("Pick a Paper Color"), &rgba, TRUE)) {
+    process_papercolor_activate(menuitem, COLOR_OTHER, rgba);
+  } 
 
 }
 
@@ -3888,14 +3879,15 @@ on_optionsPressureSensitive_activate   (GtkMenuItem     *menuitem,
 
 
 void
-on_buttonColorChooser_set              (GtkColorButton  *colorbutton,
+on_buttonColorChooser_set              (GtkColorChooser  *colorbutton,
                                         gpointer         user_data)
 {
   GdkRGBA gdkcolor;
   //  GdkColor gdkcolor;
   //  guint16 alpha;
   TRACE_1("ente-------------------------------------------------------------r");
-  gtk_color_button_get_rgba(colorbutton, &gdkcolor);
+  gtk_color_chooser_get_rgba(colorbutton, &gdkcolor);
+  //gtk_color_button_get_rgba(colorbutton, &gdkcolor);
   //  alpha = gtk_color_button_get_alpha(colorbutton);
   
 

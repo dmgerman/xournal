@@ -1192,13 +1192,12 @@ guint32 xo_GdkColor_to_rgba(GdkColor gdkcolor, guint16 alpha)
   return rgba;
 }
 
-
 void xo_rgba_to_GdkRGBA(guint rgba, GdkRGBA *color)
 {
   color->red =   ((rgba>>24) & 0xff) / 255.0;
   color->green = ((rgba>>16) & 0xff) / 255.0;
   color->blue =  ((rgba>>8) & 0xff) / 255.0;
-  color->alpha = (rgba && 0xff) / 255.0;
+  color->alpha = (rgba & 0xff) / 255.0;
 }
 
 guint32 xo_GdkRGBA_to_rgba(GdkRGBA *gdkcolor)
@@ -1247,7 +1246,7 @@ void update_thickness_buttons(void)
 void update_color_buttons(void)
 {
   GdkRGBA gdkcolor;
-  GtkColorButton *colorbutton;
+  GtkColorChooser *colorbutton;
   
   if (ui.selection!=NULL || (ui.toolno[ui.cur_mapping] != TOOL_PEN 
       && ui.toolno[ui.cur_mapping] != TOOL_HIGHLIGHTER && ui.toolno[ui.cur_mapping] != TOOL_TEXT)) {
@@ -1304,22 +1303,32 @@ void update_color_buttons(void)
         GTK_TOGGLE_TOOL_BUTTON(GET_COMPONENT("buttonColorOther")), TRUE);
   }
 
-  colorbutton = GTK_COLOR_BUTTON(GET_COMPONENT("buttonColorChooser"));
+  colorbutton = GTK_COLOR_CHOOSER(GET_COMPONENT("buttonColorChooser"));
+  assert(colorbutton != NULL);
   if ((ui.toolno[ui.cur_mapping] != TOOL_PEN && 
        ui.toolno[ui.cur_mapping] != TOOL_HIGHLIGHTER && 
        ui.toolno[ui.cur_mapping] != TOOL_TEXT))
     gdkcolor.red = gdkcolor.blue = gdkcolor.green = 0;
-  else 
+  else  {
     xo_rgba_to_GdkRGBA(ui.cur_brush->color_rgba, &gdkcolor);
+  }
 
-  gtk_color_button_set_rgba(colorbutton, &gdkcolor);
+  gtk_color_chooser_set_rgba(colorbutton, &gdkcolor);
   if (ui.toolno[ui.cur_mapping] == TOOL_HIGHLIGHTER) {
-    gtk_color_button_set_alpha(colorbutton,
+    /*
+      //We don't need this any more. it should be an assertions
+      //rather than a set 
+    gtk_color_chooser_set_alpha(colorbutton,
       (ui.cur_brush->color_rgba&0xff)*0x101);
-    gtk_color_button_set_use_alpha(colorbutton, TRUE);
+    */
+    gtk_color_chooser_set_use_alpha(colorbutton, TRUE);
   } else {
-    gtk_color_button_set_alpha(colorbutton, 0xffff);
-    gtk_color_button_set_use_alpha(colorbutton, FALSE);
+    /*
+      //We don't need this any more. it should be an assertions
+      //rather than a set 
+    gtk_color_chooser_set_alpha(colorbutton, 0xffff);
+    */
+    gtk_color_chooser_set_use_alpha(colorbutton, FALSE);
   }
 
 
@@ -2964,3 +2973,26 @@ void xo_canvas_get_scroll_offsets_in_pixels(GooCanvas *canvas, gdouble *x, gdoub
 }
 
 
+gboolean xo_dialog_select_color(gchar *title, guint32 *rgbaColor, gboolean ignoreAlpha)
+{
+  GdkRGBA gdkcolor;
+  gboolean isOk;
+  GtkWidget *dialog;
+
+  dialog = gtk_color_chooser_dialog_new (title, NULL);
+  xo_rgba_to_GdkRGBA(*rgbaColor, &gdkcolor);
+  gtk_color_chooser_set_rgba (GTK_COLOR_CHOOSER (dialog), &gdkcolor);
+  
+  isOk = (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_OK);
+  if (isOk) {
+    gtk_color_chooser_get_rgba (GTK_COLOR_CHOOSER (dialog), &gdkcolor);
+    *rgbaColor = xo_GdkRGBA_to_rgba(&gdkcolor);
+    if (ignoreAlpha) {
+      *rgbaColor &= 0xFFFFFFFF;
+    }
+  } else {
+    ;
+  }
+  gtk_widget_destroy(dialog);
+  return isOk;
+}

@@ -181,5 +181,7 @@ void xo_canvas_get_scroll_offsets_in_world(GooCanvas *canvas, gdouble *x, gdoubl
 void xo_pointer_get_current_coords(double *ret);
 void xo_canvas_item_resize(GooCanvasItem  *item, gdouble newWidth, gdouble newHeight, gboolean scaleToFit);
 
+gboolean xo_dialog_select_color(gchar *title, guint32 *rgbaColor, gboolean ignoreAlpha);
+
 
 #endif
