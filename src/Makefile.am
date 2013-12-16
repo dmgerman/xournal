@@ -22,10 +22,9 @@ xournal_SOURCES = \
 	xo-clipboard.c xo-clipboard.h \
 	xo-image.c xo-image.h \
 	xo-print.c xo-print.h \
-	xo-support.c xo-support.h \
-	xo-interface.c xo-interface.h \
 	xo-callbacks.c xo-callbacks.h \
-	xo-shapes.c xo-shapes.h
+	xo-shapes.c xo-shapes.h \
+	intl.h
 
 if WIN32
   xournal_LDFLAGS = -mwindows

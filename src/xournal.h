@@ -13,6 +13,9 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef XOURNAL_H
+#define XOURNAL_H
+
 #include <gtk/gtk.h>
 #include <libgnomecanvas/libgnomecanvas.h>
 #include <poppler/glib/poppler.h>
@@ -394,7 +397,7 @@ typedef struct BgPdf {
 // UTILITY MACROS
 
 // getting a component of the interface by name
-#define GET_COMPONENT(a)  GTK_WIDGET (g_object_get_data(G_OBJECT (winMain), a))
+#define GET_COMPONENT(a)  gtk_builder_get_object(GTK_BUILDER(builder), a)
 
 // the margin between consecutive pages in continuous view
 #define VIEW_CONTINUOUS_SKIP 20.0
@@ -406,6 +409,9 @@ typedef struct BgPdf {
 
 extern GtkWidget *winMain;
 extern GnomeCanvas *canvas;
+
+// the GtkBuilder used to load the Glade XML UI
+extern GtkBuilder *builder;
 
 // the data
 
@@ -420,3 +426,5 @@ extern double DEFAULT_ZOOM;
 #define UNIT_IN 1
 #define UNIT_PX 2
 #define UNIT_PT 3
+
+#endif /* XOURNAL_H */

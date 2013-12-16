@@ -5,7 +5,7 @@
  *  version 2 of the License, or (at your option) any later version.
  *
  *  This software is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of  
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  *  General Public License for more details.
  *
@@ -37,13 +37,12 @@
 #endif
 
 #include "xournal.h"
-#include "xo-interface.h"
-#include "xo-support.h"
 #include "xo-callbacks.h"
 #include "xo-misc.h"
 #include "xo-file.h"
 #include "xo-paint.h"
 #include "xo-image.h"
+#include "intl.h"
 
 const char *tool_names[NUM_TOOLS] = {"pen", "eraser", "highlighter", "text", "selectregion", "selectrect", "vertspace", "hand", "image"};
 const char *color_names[COLOR_MAX] = {"black", "blue", "red", "green",
@@ -78,7 +77,7 @@ void chk_attach_names(void)
 {
   GList *list;
   struct Background *bg;
-  
+
   for (list = journal.pages; list!=NULL; list = list->next) {
     bg = ((struct Page *)list->data)->bg;
     if (bg->type == BG_SOLID || bg->file_domain != DOMAIN_ATTACH ||
@@ -142,20 +141,20 @@ gboolean save_journal(const char *filename)
   FILE *tmpf;
   GList *pagelist, *layerlist, *itemlist, *list;
   GtkWidget *dialog;
-  
+
   f = gzopen(filename, "wb");
   if (f==NULL) return FALSE;
   chk_attach_names();
 
   setlocale(LC_NUMERIC, "C");
-  
+
   gzprintf(f, "<?xml version=\"1.0\" standalone=\"no\"?>\n"
      "<xournal version=\"" VERSION "\">\n"
      "<title>Xournal document - see http://math.mit.edu/~auroux/software/xournal/</title>\n");
   for (pagelist = journal.pages; pagelist!=NULL; pagelist = pagelist->next) {
     pg = (struct Page *)pagelist->data;
     gzprintf(f, "<page width=\"%.2f\" height=\"%.2f\">\n", pg->width, pg->height);
-    gzprintf(f, "<background type=\"%s\" ", bgtype_names[pg->bg->type]); 
+    gzprintf(f, "<background type=\"%s\" ", bgtype_names[pg->bg->type]);
     if (pg->bg->type == BG_SOLID) {
       gzputs(f, "color=\"");
       if (pg->bg->color_no >= 0) gzputs(f, bgcolor_names[pg->bg->color_no]);
@@ -166,7 +165,7 @@ gboolean save_journal(const char *filename)
       is_clone = -1;
       for (list = journal.pages, i = 0; list!=pagelist; list = list->next, i++) {
         tmppg = (struct Page *)list->data;
-        if (tmppg->bg->type == BG_PIXMAP && 
+        if (tmppg->bg->type == BG_PIXMAP &&
             tmppg->bg->pixbuf == pg->bg->pixbuf &&
             tmppg->bg->filename == pg->bg->filename)
           { is_clone = i; break; }
@@ -178,7 +177,7 @@ gboolean save_journal(const char *filename)
           tmpfn = g_strdup_printf("%s.%s", filename, pg->bg->filename->s);
           if (!gdk_pixbuf_save(pg->bg->pixbuf, tmpfn, "png", NULL, NULL)) {
             dialog = gtk_message_dialog_new(GTK_WINDOW(winMain), GTK_DIALOG_MODAL,
-              GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, 
+              GTK_MESSAGE_ERROR, GTK_BUTTONS_OK,
               _("Could not write background '%s'. Continuing anyway."), tmpfn);
             gtk_dialog_run(GTK_DIALOG(dialog));
             gtk_widget_destroy(dialog);
@@ -186,7 +185,7 @@ gboolean save_journal(const char *filename)
           g_free(tmpfn);
         }
         tmpstr = g_markup_escape_text(pg->bg->filename->s, -1);
-        gzprintf(f, "domain=\"%s\" filename=\"%s\" ", 
+        gzprintf(f, "domain=\"%s\" filename=\"%s\" ",
           file_domain_names[pg->bg->file_domain], tmpstr);
         g_free(tmpstr);
       }
@@ -210,7 +209,7 @@ gboolean save_journal(const char *filename)
           }
           if (!success) {
             dialog = gtk_message_dialog_new(GTK_WINDOW(winMain), GTK_DIALOG_MODAL,
-              GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, 
+              GTK_MESSAGE_ERROR, GTK_BUTTONS_OK,
               _("Could not write background '%s'. Continuing anyway."), tmpfn);
             gtk_dialog_run(GTK_DIALOG(dialog));
             gtk_widget_destroy(dialog);
@@ -218,7 +217,7 @@ gboolean save_journal(const char *filename)
           g_free(tmpfn);
         }
         tmpstr = g_markup_escape_text(pg->bg->filename->s, -1);
-        gzprintf(f, "domain=\"%s\" filename=\"%s\" ", 
+        gzprintf(f, "domain=\"%s\" filename=\"%s\" ",
           file_domain_names[pg->bg->file_domain], tmpstr);
         g_free(tmpstr);
       }
@@ -231,7 +230,7 @@ gboolean save_journal(const char *filename)
       for (itemlist = layer->items; itemlist!=NULL; itemlist = itemlist->next) {
         item = (struct Item *)itemlist->data;
         if (item->type == ITEM_STROKE) {
-          gzprintf(f, "<stroke tool=\"%s\" color=\"", 
+          gzprintf(f, "<stroke tool=\"%s\" color=\"",
                           tool_names[item->brush.tool_type]);
           if (item->brush.color_no >= 0)
             gzputs(f, color_names[item->brush.color_no]);
@@ -262,7 +261,7 @@ gboolean save_journal(const char *filename)
           g_free(tmpstr);
         }
         if (item->type == ITEM_IMAGE) {
-          gzprintf(f, "<image left=\"%.2f\" top=\"%.2f\" right=\"%.2f\" bottom=\"%.2f\">", 
+          gzprintf(f, "<image left=\"%.2f\" top=\"%.2f\" right=\"%.2f\" bottom=\"%.2f\">",
             item->bbox.left, item->bbox.top, item->bbox.right, item->bbox.bottom);
           if (!write_image(f, item)) success = FALSE;
           gzprintf(f, "</image>\n");
@@ -284,7 +283,7 @@ gboolean save_journal(const char *filename)
 gboolean close_journal(void)
 {
   if (!ok_to_close()) return FALSE;
-  
+
   // free everything...
   reset_selection();
   reset_recognizer();
@@ -293,7 +292,7 @@ gboolean close_journal(void)
 
   shutdown_bgpdf();
   delete_journal(&journal);
-  
+
   return TRUE;
   /* note: various members of ui and journal are now in invalid states,
      use new_journal() to reinitialize them */
@@ -304,11 +303,11 @@ gboolean close_journal(void)
 
 void cleanup_numeric(char *s)
 {
-  while (*s!=0) { 
-    if (*s==',') *s='.'; 
-    if (*s=='1' && s[1]=='.' && s[2]=='#' && s[3]=='J') 
+  while (*s!=0) {
+    if (*s==',') *s='.';
+    if (*s=='1' && s[1]=='.' && s[2]=='#' && s[3]=='J')
       { *s='i'; s[1]='n'; s[2]='f'; s[3]=' '; }
-    s++; 
+    s++;
   }
 }
 
@@ -327,7 +326,7 @@ GError *xoj_invalid(void)
 }
 
 void xoj_parser_start_element(GMarkupParseContext *context,
-   const gchar *element_name, const gchar **attribute_names, 
+   const gchar *element_name, const gchar **attribute_names,
    const gchar **attribute_values, gpointer user_data, GError **error)
 {
   int has_attr, i;
@@ -336,7 +335,7 @@ void xoj_parser_start_element(GMarkupParseContext *context,
   char *tmpbg_filename;
   gdouble val;
   GtkWidget *dialog;
-  
+
   if (!strcmp(element_name, "title") || !strcmp(element_name, "xournal")) {
     if (tmpPage != NULL) {
       *error = xoj_invalid();
@@ -444,7 +443,7 @@ void xoj_parser_start_element(GMarkupParseContext *context,
         has_attr |= 8;
       }
       else if (!strcmp(*attribute_names, "filename")) {
-        if (tmpPage->bg->type <= BG_SOLID || (has_attr != 9)) 
+        if (tmpPage->bg->type <= BG_SOLID || (has_attr != 9))
           { *error = xoj_invalid(); return; }
         if (tmpPage->bg->file_domain == DOMAIN_CLONE) {
           // filename is a page number
@@ -465,14 +464,14 @@ void xoj_parser_start_element(GMarkupParseContext *context,
             if (tmpPage->bg->file_domain == DOMAIN_ATTACH) {
               tmpbg_filename = g_strdup_printf("%s.%s", tmpFilename, *attribute_values);
               if (sscanf(*attribute_values, "bg_%d.png", &i) == 1)
-                if (i > tmpJournal.last_attach_no) 
+                if (i > tmpJournal.last_attach_no)
                   tmpJournal.last_attach_no = i;
             }
             else tmpbg_filename = g_strdup(*attribute_values);
             tmpPage->bg->pixbuf = gdk_pixbuf_new_from_file(tmpbg_filename, NULL);
             if (tmpPage->bg->pixbuf == NULL) {
               dialog = gtk_message_dialog_new(GTK_WINDOW(winMain), GTK_DIALOG_MODAL,
-                GTK_MESSAGE_WARNING, GTK_BUTTONS_OK, 
+                GTK_MESSAGE_WARNING, GTK_BUTTONS_OK,
                 _("Could not open background '%s'. Setting background to white."),
                 tmpbg_filename);
               gtk_dialog_run(GTK_DIALOG(dialog));
@@ -748,7 +747,7 @@ void xoj_parser_text(GMarkupParseContext *context,
 {
   const gchar *element_name, *ptr;
   int n;
-  
+
   element_name = g_markup_parse_context_get_element(context);
   if (element_name == NULL) return;
   if (!strcmp(element_name, "stroke")) {
@@ -767,8 +766,8 @@ void xoj_parser_text(GMarkupParseContext *context,
       }
       n++;
     }
-    if (n<4 || n&1 || 
-        (tmpItem->brush.variable_width && (n!=2*ui.cur_path.num_points))) 
+    if (n<4 || n&1 ||
+        (tmpItem->brush.variable_width && (n!=2*ui.cur_path.num_points)))
       { *error = xoj_invalid(); return; } // wrong number of points
     tmpItem->path = gnome_canvas_points_new(n/2);
     g_memmove(tmpItem->path->coords, ui.cur_path.coords, n*sizeof(double));
@@ -790,7 +789,7 @@ gboolean user_wants_second_chance(char **filename)
   GtkResponseType response;
 
   dialog = gtk_message_dialog_new(GTK_WINDOW(winMain), GTK_DIALOG_MODAL,
-    GTK_MESSAGE_ERROR, GTK_BUTTONS_YES_NO, 
+    GTK_MESSAGE_ERROR, GTK_BUTTONS_YES_NO,
     _("Could not open background '%s'.\nSelect another file?"),
     *filename);
   response = gtk_dialog_run(GTK_DIALOG(dialog));
@@ -802,7 +801,7 @@ gboolean user_wants_second_chance(char **filename)
 #ifdef FILE_DIALOG_SIZE_BUGFIX
   gtk_window_set_default_size(GTK_WINDOW(dialog), 500, 400);
 #endif
-  
+
   filt_all = gtk_file_filter_new();
   gtk_file_filter_set_name(filt_all, _("All files"));
   gtk_file_filter_add_pattern(filt_all, "*");
@@ -821,13 +820,13 @@ gboolean user_wants_second_chance(char **filename)
   g_free(*filename);
   *filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
   gtk_widget_destroy(dialog);
-  return TRUE;    
+  return TRUE;
 }
 
 gboolean open_journal(char *filename)
 {
-  const GMarkupParser parser = { xoj_parser_start_element, 
-                                 xoj_parser_end_element, 
+  const GMarkupParser parser = { xoj_parser_start_element,
+                                 xoj_parser_end_element,
                                  xoj_parser_text, NULL, NULL};
   GMarkupParseContext *context;
   GError *error;
@@ -838,7 +837,7 @@ gboolean open_journal(char *filename)
   int len;
   gchar *tmpfn, *tmpfn2, *p, *q;
   gboolean maybe_pdf;
-  
+
   tmpfn = g_strdup_printf("%s.xoj", filename);
   if (ui.autoload_pdf_xoj && g_file_test(tmpfn, G_FILE_TEST_EXISTS) &&
       (g_str_has_suffix(filename, ".pdf") || g_str_has_suffix(filename, ".PDF")))
@@ -855,7 +854,7 @@ gboolean open_journal(char *filename)
     if (ui.default_path != NULL) g_free(ui.default_path);
     ui.default_path = g_path_get_dirname(filename);
   }
-  
+
   context = g_markup_parse_context_new(&parser, 0, NULL, NULL);
   valid = TRUE;
   tmpJournal.npages = 0;
@@ -882,7 +881,7 @@ gboolean open_journal(char *filename)
   if (valid) valid = g_markup_parse_context_end_parse(context, &error);
   if (tmpJournal.npages == 0) valid = FALSE;
   g_markup_parse_context_free(context);
-  
+
   if (!valid) {
     delete_journal(&tmpJournal);
     if (!maybe_pdf) return FALSE;
@@ -896,13 +895,13 @@ gboolean open_journal(char *filename)
     update_page_stuff();
     return init_bgpdf(filename, TRUE, DOMAIN_ABSOLUTE);
   }
-  
+
   ui.saved = TRUE; // force close_journal() to do its job
   close_journal();
   g_memmove(&journal, &tmpJournal, sizeof(struct Journal));
-  
+
   // if we need to initialize a fresh pdf loader
-  if (tmpBg_pdf!=NULL) { 
+  if (tmpBg_pdf!=NULL) {
     while (bgpdf.status != STATUS_NOT_INIT) gtk_main_iteration();
     if (tmpBg_pdf->file_domain == DOMAIN_ATTACH)
       tmpfn = g_strdup_printf("%s.%s", filename, tmpBg_pdf->filename->s);
@@ -944,7 +943,7 @@ gboolean open_journal(char *filename)
     }
     g_free(tmpfn);
   }
-  
+
   ui.pageno = 0;
   ui.cur_page = (struct Page *)journal.pages->data;
   ui.layerno = ui.cur_page->nlayers-1;
@@ -966,10 +965,10 @@ struct Background *attempt_load_pix_bg(char *filename, gboolean attach)
 {
   struct Background *bg;
   GdkPixbuf *pix;
-  
+
   pix = gdk_pixbuf_new_from_file(filename, NULL);
   if (pix == NULL) return NULL;
-  
+
   bg = g_new(struct Background, 1);
   bg->type = BG_PIXMAP;
   bg->canvas_item = NULL;
@@ -997,7 +996,7 @@ GList *attempt_load_gv_bg(char *filename)
   unsigned char *buf;
   char *pipename;
   int buflen, remnlen, file_pageno;
-  
+
   f = fopen(filename, "rb");
   if (f == NULL) return NULL;
   buf = g_malloc(BUFSIZE); // a reasonable buffer size
@@ -1007,12 +1006,12 @@ GList *attempt_load_gv_bg(char *filename)
     g_free(buf);
     return NULL;
   }
-  
+
   fclose(f);
   pipename = g_strdup_printf(GS_CMDLINE, (double)GS_BITMAP_DPI, filename);
   gs_pipe = popen(pipename, "rb");
   g_free(pipename);
-  
+
   bg_list = NULL;
   remnlen = 0;
   file_pageno = 0;
@@ -1065,8 +1064,8 @@ struct Background *attempt_screenshot_bg(void)
   Window x_root, x_win;
 
   x_root = gdk_x11_get_default_root_xwindow();
-  
-  if (!XGrabButton(GDK_DISPLAY(), AnyButton, AnyModifier, x_root, 
+
+  if (!XGrabButton(GDK_DISPLAY(), AnyButton, AnyModifier, x_root,
       False, ButtonReleaseMask, GrabModeAsync, GrabModeSync, None, None))
     return NULL;
 
@@ -1077,14 +1076,14 @@ struct Background *attempt_screenshot_bg(void)
   if (x_win == None) x_win = x_root;
 
   window = gdk_window_foreign_new_for_display(gdk_display_get_default(), x_win);
-    
+
   gdk_window_get_geometry(window, &x, &y, &w, &h, NULL);
-  
+
   pix = gdk_pixbuf_get_from_drawable(NULL, window,
     gdk_colormap_get_system(), 0, 0, 0, 0, w, h);
-    
+
   if (pix == NULL) return NULL;
-  
+
   bg = g_new(struct Background, 1);
   bg->type = BG_PIXMAP;
   bg->canvas_item = NULL;
@@ -1106,7 +1105,7 @@ struct Background *attempt_screenshot_bg(void)
 void cancel_bgpdf_request(struct BgPdfRequest *req)
 {
   GList *list_link;
-  
+
   list_link = g_list_find(bgpdf.requests, req);
   if (list_link == NULL) return;
   // remove the request
@@ -1235,7 +1234,7 @@ void shutdown_bgpdf(void)
   struct BgPdfRequest *req;
 
   if (bgpdf.status == STATUS_NOT_INIT) return;
-  
+
   // cancel all requests and free data structures
   refstring_unref(bgpdf.filename);
   for (list = bgpdf.pages; list != NULL; list = list->next) {
@@ -1251,7 +1250,7 @@ void shutdown_bgpdf(void)
   g_list_free(bgpdf.requests);
 
   if (bgpdf.file_contents!=NULL) {
-    g_free(bgpdf.file_contents); 
+    g_free(bgpdf.file_contents);
     bgpdf.file_contents = NULL;
   }
   if (bgpdf.document!=NULL) {
@@ -1263,7 +1262,7 @@ void shutdown_bgpdf(void)
 }
 
 
-// initialize PDF background rendering 
+// initialize PDF background rendering
 
 gboolean init_bgpdf(char *pdfname, gboolean create_pages, int file_domain)
 {
@@ -1273,9 +1272,9 @@ gboolean init_bgpdf(char *pdfname, gboolean create_pages, int file_domain)
   PopplerPage *pdfpage;
   gdouble width, height;
   gchar *uri;
-  
+
   if (bgpdf.status != STATUS_NOT_INIT) return FALSE;
-  
+
   // make a copy of the file in memory and check it's a PDF
   if (!g_file_get_contents(pdfname, &(bgpdf.file_contents), &(bgpdf.file_length), NULL))
     return FALSE;
@@ -1299,18 +1298,18 @@ gboolean init_bgpdf(char *pdfname, gboolean create_pages, int file_domain)
   bgpdf.document = poppler_document_new_from_file(uri, NULL, NULL);
   g_free(uri);
 /*    with poppler 0.6.1 or later, can replace the above 4 lines by:
-  bgpdf.document = poppler_document_new_from_data(bgpdf.file_contents, 
+  bgpdf.document = poppler_document_new_from_data(bgpdf.file_contents,
                           bgpdf.file_length, NULL, NULL);
 */
   if (bgpdf.document == NULL) { shutdown_bgpdf(); return FALSE; }
-  
+
   if (pdfname[0]=='/' && ui.filename == NULL) {
     if (ui.default_path!=NULL) g_free(ui.default_path);
     ui.default_path = g_path_get_dirname(pdfname);
   }
 
   if (!create_pages) return TRUE; // we're done
-  
+
   // create pages with correct sizes if requested
   n_pages = poppler_document_get_n_pages(bgpdf.document);
   for (i=1; i<=n_pages; i++) {
@@ -1337,7 +1336,7 @@ gboolean init_bgpdf(char *pdfname, gboolean create_pages, int file_domain)
       journal.pages = g_list_append(journal.pages, pg);
       journal.npages++;
     } else {
-      pg->width = width; 
+      pg->width = width;
       pg->height = height;
       make_page_clipbox(pg);
       update_canvas_bg(pg);
@@ -1354,7 +1353,7 @@ void bgpdf_update_bg(int pageno, struct BgPdfPage *bgpg)
 {
   GList *list;
   struct Page *pg;
-  
+
   for (list = journal.pages; list!= NULL; list = list->next) {
     pg = (struct Page *)list->data;
     if (pg->bg->type == BG_PDF && pg->bg->file_page_seq == pageno) {
@@ -1376,10 +1375,10 @@ void init_mru(void)
   GIOChannel *f;
   gchar *str;
   GIOStatus status;
-  
+
   g_strlcpy(s, "mru0", 5);
   for (s[3]='0', i=0; i<MRU_SIZE; s[3]++, i++) {
-    ui.mrumenu[i] = GET_COMPONENT(s);
+    ui.mrumenu[i] = GTK_WIDGET(GET_COMPONENT(s));
     ui.mru[i] = NULL;
   }
   f = g_io_channel_new_file(ui.mrufile, "r", NULL);
@@ -1407,7 +1406,7 @@ void update_mru_menu(void)
   int i;
   gboolean anyone = FALSE;
   gchar *tmp;
-  
+
   for (i=0; i<MRU_SIZE; i++) {
     if (ui.mru[i]!=NULL) {
       tmp = g_strdup_printf("_%d %s", i+1,
@@ -1420,14 +1419,14 @@ void update_mru_menu(void)
     }
     else gtk_widget_hide(ui.mrumenu[i]);
   }
-  gtk_widget_set_sensitive(GET_COMPONENT("fileRecentFiles"), anyone);
+  gtk_widget_set_sensitive(GTK_WIDGET(GET_COMPONENT("fileRecentFiles")), anyone);
 }
 
 void new_mru_entry(char *name)
 {
   int i, j;
-  
-  for (i=0;i<MRU_SIZE;i++) 
+
+  for (i=0;i<MRU_SIZE;i++)
     if (ui.mru[i]!=NULL && !strcmp(ui.mru[i], name)) {
       g_free(ui.mru[i]);
       for (j=i+1; j<MRU_SIZE; j++) ui.mru[j-1] = ui.mru[j];
@@ -1442,9 +1441,9 @@ void new_mru_entry(char *name)
 void delete_mru_entry(int which)
 {
   int i;
-  
+
   if (ui.mru[which]!=NULL) g_free(ui.mru[which]);
-  for (i=which+1;i<MRU_SIZE;i++) 
+  for (i=which+1;i<MRU_SIZE;i++)
     ui.mru[i-1] = ui.mru[i];
   ui.mru[MRU_SIZE-1] = NULL;
   update_mru_menu();
@@ -1454,7 +1453,7 @@ void save_mru_list(void)
 {
   FILE *f;
   int i;
-  
+
   f = fopen(ui.mrufile, "w");
   if (f==NULL) return;
   for (i=0; i<MRU_SIZE; i++)
@@ -1506,12 +1505,12 @@ void init_config_default(void)
   ui.poppler_force_cairo = FALSE;
   ui.touch_as_handtool = FALSE;
   ui.lockHorizontalScroll = FALSE;
-  
+
   // the default UI vertical order
-  ui.vertical_order[0][0] = 1; 
-  ui.vertical_order[0][1] = 2; 
-  ui.vertical_order[0][2] = 3; 
-  ui.vertical_order[0][3] = 0; 
+  ui.vertical_order[0][0] = 1;
+  ui.vertical_order[0][1] = 2;
+  ui.vertical_order[0][2] = 3;
+  ui.vertical_order[0][3] = 0;
   ui.vertical_order[0][4] = 4;
   ui.vertical_order[1][0] = 2;
   ui.vertical_order[1][1] = 3;
@@ -1541,14 +1540,14 @@ void init_config_default(void)
   // predef_thickness is already initialized as a global variable
   GS_BITMAP_DPI = 144;
   PDFTOPPM_PRINTING_DPI = 150;
-  
+
   ui.hiliter_opacity = 0.5;
   ui.pen_cursor = FALSE;
-  
+
 #if GTK_CHECK_VERSION(2,10,0)
   ui.print_settings = NULL;
 #endif
-  
+
 }
 
 #if GLIB_CHECK_VERSION(2,6,0)
@@ -1565,15 +1564,15 @@ void update_keyval(const gchar *group_name, const gchar *key,
 
 #endif
 
-const char *vorder_usernames[VBOX_MAIN_NITEMS+1] = 
+const char *vorder_usernames[VBOX_MAIN_NITEMS+1] =
   {"drawarea", "menu", "main_toolbar", "pen_toolbar", "statusbar", NULL};
-  
+
 gchar *verbose_vertical_order(int *order)
 {
   gchar buf[80], *p; // longer than needed
   int i;
 
-  p = buf;  
+  p = buf;
   for (i=0; i<VBOX_MAIN_NITEMS; i++) {
     if (order[i]<0 || order[i]>=VBOX_MAIN_NITEMS) continue;
     if (p!=buf) *(p++) = ' ';
@@ -1589,12 +1588,12 @@ void save_config_to_file(void)
 
 #if GLIB_CHECK_VERSION(2,6,0)
   // no support for keyval files before Glib 2.6.0
-  if (glib_minor_version<6) return; 
+  if (glib_minor_version<6) return;
 
   // save some data...
   ui.maximize_at_start = (gdk_window_get_state(winMain->window) & GDK_WINDOW_STATE_MAXIMIZED);
   if (!ui.maximize_at_start && !ui.fullscreen)
-    gdk_drawable_get_size(winMain->window, 
+    gdk_drawable_get_size(winMain->window,
       &ui.window_default_width, &ui.window_default_height);
 
   update_keyval("general", "display_dpi",
@@ -1817,18 +1816,18 @@ void save_config_to_file(void)
 
   update_keyval("tools", "pen_thicknesses",
     _(" thickness of the various pens (in points, 1 pt = 1/72 in)"),
-    g_strdup_printf("%.2f;%.2f;%.2f;%.2f;%.2f", 
+    g_strdup_printf("%.2f;%.2f;%.2f;%.2f;%.2f",
       predef_thickness[TOOL_PEN][0], predef_thickness[TOOL_PEN][1],
       predef_thickness[TOOL_PEN][2], predef_thickness[TOOL_PEN][3],
       predef_thickness[TOOL_PEN][4]));
   update_keyval("tools", "eraser_thicknesses",
     _(" thickness of the various erasers (in points, 1 pt = 1/72 in)"),
-    g_strdup_printf("%.2f;%.2f;%.2f", 
+    g_strdup_printf("%.2f;%.2f;%.2f",
       predef_thickness[TOOL_ERASER][1], predef_thickness[TOOL_ERASER][2],
       predef_thickness[TOOL_ERASER][3]));
   update_keyval("tools", "highlighter_thicknesses",
     _(" thickness of the various highlighters (in points, 1 pt = 1/72 in)"),
-    g_strdup_printf("%.2f;%.2f;%.2f", 
+    g_strdup_printf("%.2f;%.2f;%.2f",
       predef_thickness[TOOL_HIGHLIGHTER][1], predef_thickness[TOOL_HIGHLIGHTER][2],
       predef_thickness[TOOL_HIGHLIGHTER][3]));
   update_keyval("tools", "default_font",
@@ -1853,7 +1852,7 @@ gboolean parse_keyval_float(const gchar *group, const gchar *key, double *val, d
 {
   gchar *ret, *end;
   double conv;
-  
+
   ret = g_key_file_get_value(ui.config_data, group, key, NULL);
   if (ret==NULL) return FALSE;
   conv = g_ascii_strtod(ret, &end);
@@ -1889,7 +1888,7 @@ gboolean parse_keyval_int(const gchar *group, const gchar *key, int *val, int in
 {
   gchar *ret, *end;
   int conv;
-  
+
   ret = g_key_file_get_value(ui.config_data, group, key, NULL);
   if (ret==NULL) return FALSE;
   conv = strtol(ret, &end, 10);
@@ -1904,7 +1903,7 @@ gboolean parse_keyval_enum(const gchar *group, const gchar *key, int *val, const
 {
   gchar *ret;
   int i;
-  
+
   ret = g_key_file_get_value(ui.config_data, group, key, NULL);
   if (ret==NULL) return FALSE;
   for (i=0; i<n; i++) {
@@ -1915,12 +1914,12 @@ gboolean parse_keyval_enum(const gchar *group, const gchar *key, int *val, const
   return FALSE;
 }
 
-gboolean parse_keyval_enum_color(const gchar *group, const gchar *key, int *val, guint *val_rgba, 
+gboolean parse_keyval_enum_color(const gchar *group, const gchar *key, int *val, guint *val_rgba,
                                  const char **names, const guint *predef_rgba, int n)
 {
   gchar *ret;
   int i;
-  
+
   ret = g_key_file_get_value(ui.config_data, group, key, NULL);
   if (ret==NULL) return FALSE;
   for (i=0; i<n; i++) {
@@ -1940,12 +1939,12 @@ gboolean parse_keyval_enum_color(const gchar *group, const gchar *key, int *val,
 gboolean parse_keyval_boolean(const gchar *group, const gchar *key, gboolean *val)
 {
   gchar *ret;
-  
+
   ret = g_key_file_get_value(ui.config_data, group, key, NULL);
   if (ret==NULL) return FALSE;
-  if (!g_ascii_strcasecmp(ret, "true")) 
+  if (!g_ascii_strcasecmp(ret, "true"))
     { *val = TRUE; g_free(ret); return TRUE; }
-  if (!g_ascii_strcasecmp(ret, "false")) 
+  if (!g_ascii_strcasecmp(ret, "false"))
     { *val = FALSE; g_free(ret); return TRUE; }
   g_free(ret);
   return FALSE;
@@ -1954,13 +1953,13 @@ gboolean parse_keyval_boolean(const gchar *group, const gchar *key, gboolean *va
 gboolean parse_keyval_string(const gchar *group, const gchar *key, gchar **val)
 {
   gchar *ret;
-  
+
   ret = g_key_file_get_value(ui.config_data, group, key, NULL);
   if (ret==NULL) return FALSE;
   if (strlen(ret) == 0) {
     *val = NULL;
     g_free(ret);
-  } 
+  }
   else *val = ret;
   return TRUE;
 }
@@ -1973,7 +1972,7 @@ gboolean parse_keyval_vorderlist(const gchar *group, const gchar *key, int *orde
 
   ret = g_key_file_get_value(ui.config_data, group, key, NULL);
   if (ret==NULL) return FALSE;
-  
+
   for (i=0; i<VBOX_MAIN_NITEMS; i++) tmp[i] = -1;
   n = 0; p = ret;
   while (*p==' ') p++;
@@ -1989,7 +1988,7 @@ gboolean parse_keyval_vorderlist(const gchar *group, const gchar *key, int *orde
     tmp[n++] = i;
     while (*p==' ') p++;
   }
-  
+
   for (n=0; n<VBOX_MAIN_NITEMS; n++) order[n] = tmp[n];
   g_free(ret);
   return TRUE;
@@ -2003,16 +2002,16 @@ void load_config_from_file(void)
   gboolean b;
   int i, j;
   gchar *str;
-  
+
 #if GLIB_CHECK_VERSION(2,6,0)
   // no support for keyval files before Glib 2.6.0
-  if (glib_minor_version<6) return; 
+  if (glib_minor_version<6) return;
   ui.config_data = g_key_file_new();
-  if (!g_key_file_load_from_file(ui.config_data, ui.configfile, 
+  if (!g_key_file_load_from_file(ui.config_data, ui.configfile,
          G_KEY_FILE_KEEP_COMMENTS, NULL)) {
     g_key_file_free(ui.config_data);
     ui.config_data = g_key_file_new();
-    g_key_file_set_comment(ui.config_data, NULL, NULL, 
+    g_key_file_set_comment(ui.config_data, NULL, NULL,
          _(" Xournal configuration file.\n"
            " This file is generated automatically upon saving preferences.\n"
            " Use caution when editing this file manually.\n"), NULL);
@@ -2022,7 +2021,7 @@ void load_config_from_file(void)
   // parse keys from the keyfile to set defaults
   if (parse_keyval_float("general", "display_dpi", &f, 10., 500.))
     DEFAULT_ZOOM = f/72.0;
-  if (parse_keyval_float("general", "initial_zoom", &f, 
+  if (parse_keyval_float("general", "initial_zoom", &f,
               MIN_ZOOM*100/DEFAULT_ZOOM, MAX_ZOOM*100/DEFAULT_ZOOM))
     ui.zoom = ui.startup_zoom = DEFAULT_ZOOM*f/100.0;
   parse_keyval_boolean("general", "window_maximize", &ui.maximize_at_start);
@@ -2054,11 +2053,11 @@ void load_config_from_file(void)
   parse_keyval_float("general", "highlighter_opacity", &ui.hiliter_opacity, 0., 1.);
   parse_keyval_boolean("general", "autosave_prefs", &ui.auto_save_prefs);
   parse_keyval_boolean("general", "poppler_force_cairo", &ui.poppler_force_cairo);
-  
+
   parse_keyval_float("paper", "width", &ui.default_page.width, 1., 5000.);
   parse_keyval_float("paper", "height", &ui.default_page.height, 1., 5000.);
-  parse_keyval_enum_color("paper", "color", 
-     &(ui.default_page.bg->color_no), &(ui.default_page.bg->color_rgba), 
+  parse_keyval_enum_color("paper", "color",
+     &(ui.default_page.bg->color_no), &(ui.default_page.bg->color_rgba),
      bgcolor_names, predef_bgcolors_rgba, COLOR_MAX);
   parse_keyval_enum("paper", "style", &(ui.default_page.bg->ruling), bgstyle_names, 4);
   parse_keyval_boolean("paper", "apply_all", &ui.bg_apply_all_pages);
@@ -2071,7 +2070,7 @@ void load_config_from_file(void)
   parse_keyval_enum("tools", "startup_tool", &ui.startuptool, tool_names, NUM_TOOLS);
   ui.toolno[0] = ui.startuptool;
   parse_keyval_boolean("tools", "pen_cursor", &ui.pen_cursor);
-  parse_keyval_enum_color("tools", "pen_color", 
+  parse_keyval_enum_color("tools", "pen_color",
      &(ui.brushes[0][TOOL_PEN].color_no), &(ui.brushes[0][TOOL_PEN].color_rgba),
      color_names, predef_colors_rgba, COLOR_MAX);
   parse_keyval_int("tools", "pen_thickness", &(ui.brushes[0][TOOL_PEN].thickness_no), 0, 4);
@@ -2079,7 +2078,7 @@ void load_config_from_file(void)
   parse_keyval_boolean("tools", "pen_recognizer", &(ui.brushes[0][TOOL_PEN].recognizer));
   parse_keyval_int("tools", "eraser_thickness", &(ui.brushes[0][TOOL_ERASER].thickness_no), 1, 3);
   parse_keyval_int("tools", "eraser_mode", &(ui.brushes[0][TOOL_ERASER].tool_options), 0, 2);
-  parse_keyval_enum_color("tools", "highlighter_color", 
+  parse_keyval_enum_color("tools", "highlighter_color",
      &(ui.brushes[0][TOOL_HIGHLIGHTER].color_no), &(ui.brushes[0][TOOL_HIGHLIGHTER].color_rgba),
      color_names, predef_colors_rgba, COLOR_MAX);
   parse_keyval_int("tools", "highlighter_thickness", &(ui.brushes[0][TOOL_HIGHLIGHTER].thickness_no), 0, 4);
@@ -2100,8 +2099,8 @@ void load_config_from_file(void)
     if (ui.toolno[1]==TOOL_PEN || ui.toolno[1]==TOOL_HIGHLIGHTER) {
       parse_keyval_boolean("tools", "btn2_ruler", &(ui.brushes[1][ui.toolno[1]].ruler));
       parse_keyval_boolean("tools", "btn2_recognizer", &(ui.brushes[1][ui.toolno[1]].recognizer));
-      parse_keyval_enum_color("tools", "btn2_color", 
-         &(ui.brushes[1][ui.toolno[1]].color_no), &(ui.brushes[1][ui.toolno[1]].color_rgba), 
+      parse_keyval_enum_color("tools", "btn2_color",
+         &(ui.brushes[1][ui.toolno[1]].color_no), &(ui.brushes[1][ui.toolno[1]].color_rgba),
          color_names, predef_colors_rgba, COLOR_MAX);
     }
     if (ui.toolno[1]<NUM_STROKE_TOOLS)
@@ -2113,8 +2112,8 @@ void load_config_from_file(void)
     if (ui.toolno[2]==TOOL_PEN || ui.toolno[2]==TOOL_HIGHLIGHTER) {
       parse_keyval_boolean("tools", "btn3_ruler", &(ui.brushes[2][ui.toolno[2]].ruler));
       parse_keyval_boolean("tools", "btn3_recognizer", &(ui.brushes[2][ui.toolno[2]].recognizer));
-      parse_keyval_enum_color("tools", "btn3_color", 
-         &(ui.brushes[2][ui.toolno[2]].color_no), &(ui.brushes[2][ui.toolno[2]].color_rgba), 
+      parse_keyval_enum_color("tools", "btn3_color",
+         &(ui.brushes[2][ui.toolno[2]].color_no), &(ui.brushes[2][ui.toolno[2]].color_rgba),
          color_names, predef_colors_rgba, COLOR_MAX);
     }
     if (ui.toolno[2]<NUM_STROKE_TOOLS)

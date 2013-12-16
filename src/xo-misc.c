@@ -5,7 +5,7 @@
  *  version 2 of the License, or (at your option) any later version.
  *
  *  This software is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of  
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  *  General Public License for more details.
  *
@@ -16,7 +16,7 @@
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
-
+#include <assert.h>
 #include <math.h>
 #include <string.h>
 #include <gtk/gtk.h>
@@ -24,14 +24,13 @@
 #include <gdk/gdkkeysyms.h>
 
 #include "xournal.h"
-#include "xo-interface.h"
-#include "xo-support.h"
 #include "xo-callbacks.h"
 #include "xo-misc.h"
 #include "xo-file.h"
 #include "xo-paint.h"
 #include "xo-shapes.h"
 #include "xo-image.h"
+#include "intl.h"
 
 // some global constants
 
@@ -57,7 +56,7 @@ struct Page *new_page(struct Page *template)
 {
   struct Page *pg = (struct Page *) g_memdup(template, sizeof(struct Page));
   struct Layer *l = g_new(struct Layer, 1);
-  
+
   l->items = NULL;
   l->nitems = 0;
   pg->layers = g_list_append(NULL, l);
@@ -74,11 +73,11 @@ struct Page *new_page(struct Page *template)
   update_canvas_bg(pg);
   l->group = (GnomeCanvasGroup *) gnome_canvas_item_new(
       pg->group, gnome_canvas_group_get_type(), NULL);
-  
+
   return pg;
 }
 
-/* Create a page from a background. 
+/* Create a page from a background.
    Note: bg should be an UNREFERENCED background.
    If needed, first duplicate it and increase the refcount of the pixbuf.
 */
@@ -86,7 +85,7 @@ struct Page *new_page_with_bg(struct Background *bg, double width, double height
 {
   struct Page *pg = g_new(struct Page, 1);
   struct Layer *l = g_new(struct Layer, 1);
-  
+
   l->items = NULL;
   l->nitems = 0;
   pg->layers = g_list_append(NULL, l);
@@ -101,7 +100,7 @@ struct Page *new_page_with_bg(struct Background *bg, double width, double height
   update_canvas_bg(pg);
   l->group = (GnomeCanvasGroup *) gnome_canvas_item_new(
       pg->group, gnome_canvas_group_get_type(), NULL);
-  
+
   return pg;
 }
 
@@ -149,7 +148,7 @@ void realloc_cur_widths(int n)
 void prepare_new_undo(void)
 {
   struct UndoItem *u;
-  // add a new UndoItem on the stack  
+  // add a new UndoItem on the stack
   u = (struct UndoItem *)g_malloc(sizeof(struct UndoItem));
   u->next = undo;
   u->multiop = 0;
@@ -160,7 +159,7 @@ void prepare_new_undo(void)
 
 void clear_redo_stack(void)
 {
-  struct UndoItem *u;  
+  struct UndoItem *u;
   GList *list, *repl;
   struct UndoErasureData *erasure;
   struct Item *it;
@@ -169,7 +168,7 @@ void clear_redo_stack(void)
      which have been destroyed before them. Be careful! As a rule, it's
      safe to destroy data which has been created at the current history step,
      it's unsafe to refer to any data from previous history steps */
-  
+
   while (redo!=NULL) {
     if (redo->type == ITEM_STROKE) {
       gnome_canvas_points_free(redo->item->path);
@@ -250,7 +249,7 @@ void clear_undo_stack(void)
   struct UndoItem *u;
   GList *list;
   struct UndoErasureData *erasure;
-  
+
   while (undo!=NULL) {
     // for strokes, items are already in the journal, so we don't free them
     // for erasures, we need to free the dead items
@@ -310,7 +309,7 @@ void clear_undo_stack(void)
   update_undo_redo_enabled();
 }
 
-// free data structures 
+// free data structures
 
 void delete_journal(struct Journal *j)
 {
@@ -323,7 +322,7 @@ void delete_journal(struct Journal *j)
 void delete_page(struct Page *pg)
 {
   struct Layer *l;
-  
+
   while (pg->layers!=NULL) {
     l = (struct Layer *)pg->layers->data;
     l->group = NULL;
@@ -343,10 +342,10 @@ void delete_page(struct Page *pg)
 void delete_layer(struct Layer *l)
 {
   struct Item *item;
-  
+
   while (l->items!=NULL) {
     item = (struct Item *)l->items->data;
-    if (item->type == ITEM_STROKE && item->path != NULL) 
+    if (item->type == ITEM_STROKE && item->path != NULL)
       gnome_canvas_points_free(item->path);
     if (item->type == ITEM_TEXT) {
       g_free(item->font_name); g_free(item->text);
@@ -446,11 +445,11 @@ void fix_xinput_coords(GdkEvent *event)
   // fix broken events with the core pointer's location
   if (!finite_sized(axes[0]) || !finite_sized(axes[1]) || axes[0]==0. || axes[1]==0.) {
     gdk_window_get_pointer(GTK_WIDGET(canvas)->window, &ix, &iy, NULL);
-    *px = ix + sx; 
+    *px = ix + sx;
     *py = iy + sy;
   }
   else {
-    gdk_window_get_origin(GTK_WIDGET(canvas)->window, &wx, &wy);  
+    gdk_window_get_origin(GTK_WIDGET(canvas)->window, &wx, &wy);
     axis_width = device->axes[0].max - device->axes[0].min;
     if (axis_width>EPSILON)
       *px = (axes[0]/axis_width)*ui.screen_width + sx - wx;
@@ -461,7 +460,7 @@ void fix_xinput_coords(GdkEvent *event)
 #else
   if (!finite_sized(*px) || !finite_sized(*py) || *px==0. || *py==0.) {
     gdk_window_get_pointer(GTK_WIDGET(canvas)->window, &ix, &iy, NULL);
-    *px = ix + sx; 
+    *px = ix + sx;
     *py = iy + sy;
   }
   else {
@@ -496,7 +495,7 @@ double get_pressure_multiplier(GdkEvent *event)
     axes = event->button.axes;
     device = event->button.device;
   }
-  
+
   if (device == gdk_device_get_core_pointer()
       || device->num_axes <= 2) return 1.0;
 
@@ -510,7 +509,7 @@ void update_item_bbox(struct Item *item)
 {
   int i;
   gdouble *p, h, w;
-  
+
   if (item->type == ITEM_STROKE) {
     item->bbox.left = item->bbox.right = item->path->coords[0];
     item->bbox.top = item->bbox.bottom = item->path->coords[1];
@@ -533,7 +532,7 @@ void update_item_bbox(struct Item *item)
 void make_page_clipbox(struct Page *pg)
 {
   GnomeCanvasPathDef *pg_clip;
-  
+
   pg_clip = gnome_canvas_path_def_new_sized(4);
   gnome_canvas_path_def_moveto(pg_clip, 0., 0.);
   gnome_canvas_path_def_lineto(pg_clip, 0., pg->height);
@@ -553,9 +552,9 @@ void make_canvas_item_one(GnomeCanvasGroup *group, struct Item *item)
   if (item->type == ITEM_STROKE) {
     if (!item->brush.variable_width)
       item->canvas_item = gnome_canvas_item_new(group,
-            gnome_canvas_line_get_type(), "points", item->path,   
+            gnome_canvas_line_get_type(), "points", item->path,
             "cap-style", GDK_CAP_ROUND, "join-style", GDK_JOIN_ROUND,
-            "fill-color-rgba", item->brush.color_rgba,  
+            "fill-color-rgba", item->brush.color_rgba,
             "width-units", item->brush.thickness, NULL);
     else {
       item->canvas_item = gnome_canvas_item_new(group,
@@ -565,8 +564,8 @@ void make_canvas_item_one(GnomeCanvasGroup *group, struct Item *item)
       for (j = 0; j < item->path->num_points-1; j++) {
         points.coords = item->path->coords+2*j;
         gnome_canvas_item_new((GnomeCanvasGroup *) item->canvas_item,
-              gnome_canvas_line_get_type(), "points", &points, 
-              "cap-style", GDK_CAP_ROUND, "join-style", GDK_JOIN_ROUND, 
+              gnome_canvas_line_get_type(), "points", &points,
+              "cap-style", GDK_CAP_ROUND, "join-style", GDK_JOIN_ROUND,
               "fill-color-rgba", item->brush.color_rgba,
               "width-units", item->widths[j], NULL);
       }
@@ -574,7 +573,7 @@ void make_canvas_item_one(GnomeCanvasGroup *group, struct Item *item)
   }
   if (item->type == ITEM_TEXT) {
     font_desc = pango_font_description_from_string(item->font_name);
-    pango_font_description_set_absolute_size(font_desc, 
+    pango_font_description_set_absolute_size(font_desc,
             item->font_size*ui.zoom*PANGO_SCALE);
     item->canvas_item = gnome_canvas_item_new(group,
           gnome_canvas_text_get_type(),
@@ -601,7 +600,7 @@ void make_canvas_items(void)
   struct Layer *l;
   struct Item *item;
   GList *pagelist, *layerlist, *itemlist;
-  
+
   for (pagelist = journal.pages; pagelist!=NULL; pagelist = pagelist->next) {
     pg = (struct Page *)pagelist->data;
     if (pg->group == NULL) {
@@ -633,11 +632,11 @@ void update_canvas_bg(struct Page *pg)
   double x, y;
   int w, h;
   gboolean is_well_scaled;
-  
+
   if (pg->bg->canvas_item != NULL)
     gtk_object_destroy(GTK_OBJECT(pg->bg->canvas_item));
   pg->bg->canvas_item = NULL;
-  
+
   if (pg->bg->type == BG_SOLID)
   {
     pg->bg->canvas_item = gnome_canvas_item_new(pg->group,
@@ -657,14 +656,14 @@ void update_canvas_bg(struct Page *pg)
         gnome_canvas_item_new(group, gnome_canvas_line_get_type(),
            "points", seg, "fill-color-rgba", RULING_COLOR,
            "width-units", RULING_THICKNESS, NULL);
-      }      
+      }
       pt[0] = 0; pt[2] = pg->width;
       for (y=RULING_GRAPHSPACING; y<pg->height-1; y+=RULING_GRAPHSPACING) {
         pt[1] = pt[3] = y;
         gnome_canvas_item_new(group, gnome_canvas_line_get_type(),
            "points", seg, "fill-color-rgba", RULING_COLOR,
            "width-units", RULING_THICKNESS, NULL);
-      }      
+      }
       gnome_canvas_points_free(seg);
       return;
     }
@@ -674,7 +673,7 @@ void update_canvas_bg(struct Page *pg)
       gnome_canvas_item_new(group, gnome_canvas_line_get_type(),
          "points", seg, "fill-color-rgba", RULING_COLOR,
          "width-units", RULING_THICKNESS, NULL);
-    }      
+    }
     if (pg->bg->ruling == RULING_LINED) {
       pt[0] = pt[2] = RULING_LEFTMARGIN;
       pt[1] = 0; pt[3] = pg->height;
@@ -685,15 +684,15 @@ void update_canvas_bg(struct Page *pg)
     gnome_canvas_points_free(seg);
     return;
   }
-  
+
   if (pg->bg->type == BG_PIXMAP)
   {
     pg->bg->pixbuf_scale = 0;
-    pg->bg->canvas_item = gnome_canvas_item_new(pg->group, 
-        gnome_canvas_pixbuf_get_type(), 
+    pg->bg->canvas_item = gnome_canvas_item_new(pg->group,
+        gnome_canvas_pixbuf_get_type(),
         "pixbuf", pg->bg->pixbuf,
-        "width", pg->width, "height", pg->height, 
-        "width-set", TRUE, "height-set", TRUE, 
+        "width", pg->width, "height", pg->height,
+        "width-set", TRUE, "height-set", TRUE,
         NULL);
     lower_canvas_item_to(pg->group, pg->bg->canvas_item, NULL);
   }
@@ -704,17 +703,17 @@ void update_canvas_bg(struct Page *pg)
     is_well_scaled = (fabs(pg->bg->pixel_width - pg->width*ui.zoom) < 2.
                    && fabs(pg->bg->pixel_height - pg->height*ui.zoom) < 2.);
     if (is_well_scaled)
-      pg->bg->canvas_item = gnome_canvas_item_new(pg->group, 
-          gnome_canvas_pixbuf_get_type(), 
+      pg->bg->canvas_item = gnome_canvas_item_new(pg->group,
+          gnome_canvas_pixbuf_get_type(),
           "pixbuf", pg->bg->pixbuf,
-          "width-in-pixels", TRUE, "height-in-pixels", TRUE, 
+          "width-in-pixels", TRUE, "height-in-pixels", TRUE,
           NULL);
     else
-      pg->bg->canvas_item = gnome_canvas_item_new(pg->group, 
-          gnome_canvas_pixbuf_get_type(), 
+      pg->bg->canvas_item = gnome_canvas_item_new(pg->group,
+          gnome_canvas_pixbuf_get_type(),
           "pixbuf", pg->bg->pixbuf,
-          "width", pg->width, "height", pg->height, 
-          "width-set", TRUE, "height-set", TRUE, 
+          "width", pg->width, "height", pg->height,
+          "width-set", TRUE, "height-set", TRUE,
           NULL);
     lower_canvas_item_to(pg->group, pg->bg->canvas_item, NULL);
   }
@@ -724,7 +723,7 @@ gboolean is_visible(struct Page *pg)
 {
   GtkAdjustment *v_adj;
   double ytop, ybot;
-  
+
   if (!ui.view_continuous) return (pg == ui.cur_page);
   v_adj = gtk_layout_get_vadjustment(GTK_LAYOUT(canvas));
   ytop = v_adj->value/ui.zoom;
@@ -739,7 +738,7 @@ void rescale_bg_pixmaps(void)
   GdkPixbuf *pix;
   gboolean is_well_scaled;
   gdouble zoom_to_request;
-  
+
   for (pglist = journal.pages; pglist!=NULL; pglist = pglist->next) {
     pg = (struct Page *)pglist->data;
     // in progressive mode we scale only visible pages
@@ -751,7 +750,7 @@ void rescale_bg_pixmaps(void)
         gnome_canvas_item_set(pg->bg->canvas_item, "pixbuf", pg->bg->pixbuf, NULL);
       pg->bg->pixbuf_scale = 0;
     }
-    if (pg->bg->type == BG_PDF) { 
+    if (pg->bg->type == BG_PDF) {
       // make pixmap scale to correct size if current one is wrong
       is_well_scaled = (fabs(pg->bg->pixel_width - pg->width*ui.zoom) < 2.
                      && fabs(pg->bg->pixel_height - pg->height*ui.zoom) < 2.);
@@ -759,9 +758,9 @@ void rescale_bg_pixmaps(void)
         g_object_get(pg->bg->canvas_item, "width-in-pixels", &is_well_scaled, NULL);
         if (is_well_scaled)
           gnome_canvas_item_set(pg->bg->canvas_item,
-            "width", pg->width, "height", pg->height, 
-            "width-in-pixels", FALSE, "height-in-pixels", FALSE, 
-            "width-set", TRUE, "height-set", TRUE, 
+            "width", pg->width, "height", pg->height,
+            "width-in-pixels", FALSE, "height-in-pixels", FALSE,
+            "width-set", TRUE, "height-set", TRUE,
             NULL);
       }
       // request an asynchronous update to a better pixmap if needed
@@ -786,16 +785,16 @@ gboolean have_intersect(struct BBox *a, struct BBox *b)
 void lower_canvas_item_to(GnomeCanvasGroup *g, GnomeCanvasItem *item, GnomeCanvasItem *after)
 {
   int i1, i2;
-  
+
   i1 = g_list_index(g->item_list, item);
   if (i1 == -1) return;
-  
+
   if (after == NULL) i2 = -1;
   else i2 = g_list_index(g->item_list, after);
 
   if (i1 < i2) gnome_canvas_item_raise(item, i2-i1);
   if (i1 > i2+1) gnome_canvas_item_lower(item, i1-i2-1);
-  
+
   // BUGFIX for libgnomecanvas
   g->item_list_end = g_list_last(g->item_list);
 }
@@ -808,7 +807,7 @@ void rgb_to_gdkcolor(guint rgba, GdkColor *color)
   color->blue = ((rgba>>8)&0xff)*0x101;
 }
 
-guint32 gdkcolor_to_rgba(GdkColor gdkcolor, guint16 alpha) 
+guint32 gdkcolor_to_rgba(GdkColor gdkcolor, guint16 alpha)
 {
   guint32 rgba =  ((gdkcolor.red   & 0xff00) << 16) |
                   ((gdkcolor.green & 0xff00) << 8)  |
@@ -825,7 +824,7 @@ void update_thickness_buttons(void)
   if (ui.selection!=NULL || ui.toolno[ui.cur_mapping] >= NUM_STROKE_TOOLS) {
     gtk_toggle_tool_button_set_active(
       GTK_TOGGLE_TOOL_BUTTON(GET_COMPONENT("buttonThicknessOther")), TRUE);
-  } else 
+  } else
   switch (ui.cur_brush->thickness_no) {
     case THICKNESS_FINE:
       gtk_toggle_tool_button_set_active(
@@ -849,8 +848,8 @@ void update_color_buttons(void)
 {
   GdkColor gdkcolor;
   GtkColorButton *colorbutton;
-  
-  if (ui.selection!=NULL || (ui.toolno[ui.cur_mapping] != TOOL_PEN 
+
+  if (ui.selection!=NULL || (ui.toolno[ui.cur_mapping] != TOOL_PEN
       && ui.toolno[ui.cur_mapping] != TOOL_HIGHLIGHTER && ui.toolno[ui.cur_mapping] != TOOL_TEXT)) {
     gtk_toggle_tool_button_set_active(
       GTK_TOGGLE_TOOL_BUTTON(GET_COMPONENT("buttonColorOther")), TRUE);
@@ -906,8 +905,8 @@ void update_color_buttons(void)
   }
 
   colorbutton = GTK_COLOR_BUTTON(GET_COMPONENT("buttonColorChooser"));
-  if ((ui.toolno[ui.cur_mapping] != TOOL_PEN && 
-       ui.toolno[ui.cur_mapping] != TOOL_HIGHLIGHTER && 
+  if ((ui.toolno[ui.cur_mapping] != TOOL_PEN &&
+       ui.toolno[ui.cur_mapping] != TOOL_HIGHLIGHTER &&
        ui.toolno[ui.cur_mapping] != TOOL_TEXT))
     gdkcolor.red = gdkcolor.blue = gdkcolor.green = 0;
   else rgb_to_gdkcolor(ui.cur_brush->color_rgba, &gdkcolor);
@@ -962,12 +961,11 @@ void update_tool_buttons(void)
         GTK_TOGGLE_TOOL_BUTTON(GET_COMPONENT("buttonHand")), TRUE);
       break;
   }
-    
   gtk_toggle_tool_button_set_active(
-      GTK_TOGGLE_TOOL_BUTTON(GET_COMPONENT("buttonRuler")), 
+      GTK_TOGGLE_TOOL_BUTTON(GET_COMPONENT("buttonRuler")),
       ui.toolno[ui.cur_mapping]<NUM_STROKE_TOOLS && ui.cur_brush->ruler);
   gtk_toggle_tool_button_set_active(
-      GTK_TOGGLE_TOOL_BUTTON(GET_COMPONENT("buttonReco")), 
+      GTK_TOGGLE_TOOL_BUTTON(GET_COMPONENT("buttonReco")),
       ui.toolno[ui.cur_mapping]<NUM_STROKE_TOOLS && ui.cur_brush->recognizer);
 
   update_thickness_buttons();
@@ -1016,32 +1014,32 @@ void update_tool_menu(void)
   }
 
   gtk_check_menu_item_set_active(
-      GTK_CHECK_MENU_ITEM(GET_COMPONENT("toolsRuler")), 
+      GTK_CHECK_MENU_ITEM(GET_COMPONENT("toolsRuler")),
       ui.toolno[0]<NUM_STROKE_TOOLS && ui.brushes[0][ui.toolno[0]].ruler);
   gtk_check_menu_item_set_active(
-      GTK_CHECK_MENU_ITEM(GET_COMPONENT("toolsReco")), 
+      GTK_CHECK_MENU_ITEM(GET_COMPONENT("toolsReco")),
       ui.toolno[0]<NUM_STROKE_TOOLS && ui.brushes[0][ui.toolno[0]].recognizer);
 }
 
 void update_ruler_indicator(void)
 {
   gtk_toggle_tool_button_set_active(
-      GTK_TOGGLE_TOOL_BUTTON(GET_COMPONENT("buttonRuler")), 
+      GTK_TOGGLE_TOOL_BUTTON(GET_COMPONENT("buttonRuler")),
       ui.toolno[ui.cur_mapping]<NUM_STROKE_TOOLS && ui.cur_brush->ruler);
   gtk_toggle_tool_button_set_active(
-      GTK_TOGGLE_TOOL_BUTTON(GET_COMPONENT("buttonReco")), 
+      GTK_TOGGLE_TOOL_BUTTON(GET_COMPONENT("buttonReco")),
       ui.toolno[ui.cur_mapping]<NUM_STROKE_TOOLS && ui.cur_brush->recognizer);
   gtk_check_menu_item_set_active(
-      GTK_CHECK_MENU_ITEM(GET_COMPONENT("toolsRuler")), 
+      GTK_CHECK_MENU_ITEM(GET_COMPONENT("toolsRuler")),
       ui.toolno[0]<NUM_STROKE_TOOLS && ui.brushes[0][ui.toolno[0]].ruler);
   gtk_check_menu_item_set_active(
-      GTK_CHECK_MENU_ITEM(GET_COMPONENT("toolsReco")), 
+      GTK_CHECK_MENU_ITEM(GET_COMPONENT("toolsReco")),
       ui.toolno[0]<NUM_STROKE_TOOLS && ui.brushes[0][ui.toolno[0]].recognizer);
 }
 
 void update_color_menu(void)
 {
-  if (ui.selection!=NULL || (ui.toolno[ui.cur_mapping] != TOOL_PEN 
+  if (ui.selection!=NULL || (ui.toolno[ui.cur_mapping] != TOOL_PEN
     && ui.toolno[ui.cur_mapping] != TOOL_HIGHLIGHTER && ui.toolno[ui.cur_mapping] != TOOL_TEXT)) {
     gtk_check_menu_item_set_active(
       GTK_CHECK_MENU_ITEM(GET_COMPONENT("colorNA")), TRUE);
@@ -1139,7 +1137,7 @@ void update_eraser_props_menu(void)
         GTK_CHECK_MENU_ITEM(GET_COMPONENT("eraserThick")), TRUE);
       break;
   }
-  
+
   gtk_check_menu_item_set_active(
     GTK_CHECK_MENU_ITEM(GET_COMPONENT("eraserStandard")),
     ui.brushes[0][TOOL_ERASER].tool_options == TOOLOPT_ERASER_STANDARD);
@@ -1203,8 +1201,8 @@ void update_mappings_menu_linkings(void)
 
 void update_mappings_menu(void)
 {
-  gtk_widget_set_sensitive(GET_COMPONENT("optionsButtonMappings"), ui.use_xinput);
-  gtk_widget_set_sensitive(GET_COMPONENT("optionsPressureSensitive"), ui.use_xinput);
+  gtk_widget_set_sensitive(GTK_WIDGET(GET_COMPONENT("optionsButtonMappings")), ui.use_xinput);
+  gtk_widget_set_sensitive(GTK_WIDGET(GET_COMPONENT("optionsPressureSensitive")), ui.use_xinput);
   gtk_check_menu_item_set_active(
     GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsButtonMappings")), ui.use_erasertip);
   gtk_check_menu_item_set_active(
@@ -1286,7 +1284,7 @@ void do_switch_page(int pg, gboolean rescroll, gboolean refresh_all)
   int i, cx, cy;
   struct Layer *layer;
   GList *list;
-  
+
   ui.pageno = pg;
 
   /* re-show all the layers of the old page */
@@ -1296,13 +1294,13 @@ void do_switch_page(int pg, gboolean rescroll, gboolean refresh_all)
       if (layer->group!=NULL)
         gnome_canvas_item_show(GNOME_CANVAS_ITEM(layer->group));
     }
-  
+
   ui.cur_page = g_list_nth_data(journal.pages, ui.pageno);
   ui.layerno = ui.cur_page->nlayers-1;
   ui.cur_layer = (struct Layer *)(g_list_last(ui.cur_page->layers)->data);
   update_page_stuff();
   if (ui.progressive_bg) rescale_bg_pixmaps();
- 
+
   if (rescroll) { // scroll and force a refresh
 /* -- this seems to cause some display bugs ??
     gtk_adjustment_set_value(gtk_layout_get_vadjustment(GTK_LAYOUT(canvas)),
@@ -1310,8 +1308,8 @@ void do_switch_page(int pg, gboolean rescroll, gboolean refresh_all)
     gnome_canvas_get_scroll_offsets(canvas, &cx, &cy);
     cy = ui.cur_page->voffset*ui.zoom;
     gnome_canvas_scroll_to(canvas, cx, cy);
-    
-    if (refresh_all) 
+
+    if (refresh_all)
       gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
     else if (!ui.view_continuous)
       gnome_canvas_item_move(GNOME_CANVAS_ITEM(ui.cur_page->group), 0., 0.);
@@ -1330,13 +1328,13 @@ void update_page_stuff(void)
 
   // move the page groups to their rightful locations or hide them
   if (ui.view_continuous) {
-    vertpos = 0.; 
+    vertpos = 0.;
     maxwidth = 0.;
     for (i=0, pglist = journal.pages; pglist!=NULL; i++, pglist = pglist->next) {
       pg = (struct Page *)pglist->data;
       if (pg->group!=NULL) {
         pg->hoffset = 0.; pg->voffset = vertpos;
-        gnome_canvas_item_set(GNOME_CANVAS_ITEM(pg->group), 
+        gnome_canvas_item_set(GNOME_CANVAS_ITEM(pg->group),
             "x", pg->hoffset, "y", pg->voffset, NULL);
         gnome_canvas_item_show(GNOME_CANVAS_ITEM(pg->group));
       }
@@ -1350,7 +1348,7 @@ void update_page_stuff(void)
       pg = (struct Page *)pglist->data;
       if (pg == ui.cur_page && pg->group!=NULL) {
         pg->hoffset = 0.; pg->voffset = 0.;
-        gnome_canvas_item_set(GNOME_CANVAS_ITEM(pg->group), 
+        gnome_canvas_item_set(GNOME_CANVAS_ITEM(pg->group),
             "x", pg->hoffset, "y", pg->voffset, NULL);
         gnome_canvas_item_show(GNOME_CANVAS_ITEM(pg->group));
       } else {
@@ -1385,11 +1383,11 @@ void update_page_stuff(void)
   }
   gtk_combo_box_set_active(layerbox, ui.cur_page->nlayers-1-ui.layerno);
   ui.in_update_page_stuff = FALSE;
-  
+
   gtk_container_forall(GTK_CONTAINER(layerbox), unset_flags, (gpointer)GTK_CAN_FOCUS);
-  
+
   // update the paper-style menu radio buttons
-  
+
   if (ui.view_continuous)
     gtk_check_menu_item_set_active(
        GTK_CHECK_MENU_ITEM(GET_COMPONENT("viewContinuous")), TRUE);
@@ -1452,33 +1450,33 @@ void update_page_stuff(void)
     gtk_check_menu_item_set_active(
       GTK_CHECK_MENU_ITEM(GET_COMPONENT("paperstyleNA")), TRUE);
   }
-  
+
   // enable/disable the page/layer menu items and toolbar buttons
 
-  gtk_widget_set_sensitive(GET_COMPONENT("journalPaperColor"), 
+  gtk_widget_set_sensitive(GTK_WIDGET(GET_COMPONENT("journalPaperColor")),
      ui.cur_page->bg->type == BG_SOLID || ui.bg_apply_all_pages);
-  gtk_widget_set_sensitive(GET_COMPONENT("journalSetAsDefault"),
+  gtk_widget_set_sensitive(GTK_WIDGET(GET_COMPONENT("journalSetAsDefault")),
      ui.cur_page->bg->type == BG_SOLID);
-  
-  gtk_widget_set_sensitive(GET_COMPONENT("viewFirstPage"), ui.pageno!=0);
-  gtk_widget_set_sensitive(GET_COMPONENT("viewPreviousPage"), ui.pageno!=0);
-  gtk_widget_set_sensitive(GET_COMPONENT("viewNextPage"), TRUE);
-  gtk_widget_set_sensitive(GET_COMPONENT("viewLastPage"), ui.pageno!=journal.npages-1);
-  gtk_widget_set_sensitive(GET_COMPONENT("buttonFirstPage"), ui.pageno!=0);
-  gtk_widget_set_sensitive(GET_COMPONENT("buttonPreviousPage"), ui.pageno!=0);
-  gtk_widget_set_sensitive(GET_COMPONENT("buttonNextPage"), TRUE);
-  gtk_widget_set_sensitive(GET_COMPONENT("buttonLastPage"), ui.pageno!=journal.npages-1);
-  
-  gtk_widget_set_sensitive(GET_COMPONENT("viewShowLayer"), ui.layerno!=ui.cur_page->nlayers-1);
-  gtk_widget_set_sensitive(GET_COMPONENT("viewHideLayer"), ui.layerno>=0);
 
-  gtk_widget_set_sensitive(GET_COMPONENT("editPaste"), ui.cur_layer!=NULL);
-  gtk_widget_set_sensitive(GET_COMPONENT("buttonPaste"), ui.cur_layer!=NULL);
+  gtk_widget_set_sensitive(GTK_WIDGET(GET_COMPONENT("viewFirstPage")), ui.pageno!=0);
+  gtk_widget_set_sensitive(GTK_WIDGET(GET_COMPONENT("viewPreviousPage")), ui.pageno!=0);
+  gtk_widget_set_sensitive(GTK_WIDGET(GET_COMPONENT("viewNextPage")), TRUE);
+  gtk_widget_set_sensitive(GTK_WIDGET(GET_COMPONENT("viewLastPage")), ui.pageno!=journal.npages-1);
+  gtk_widget_set_sensitive(GTK_WIDGET(GET_COMPONENT("buttonFirstPage")), ui.pageno!=0);
+  gtk_widget_set_sensitive(GTK_WIDGET(GET_COMPONENT("buttonPreviousPage")), ui.pageno!=0);
+  gtk_widget_set_sensitive(GTK_WIDGET(GET_COMPONENT("buttonNextPage")), TRUE);
+  gtk_widget_set_sensitive(GTK_WIDGET(GET_COMPONENT("buttonLastPage")), ui.pageno!=journal.npages-1);
+
+  gtk_widget_set_sensitive(GTK_WIDGET(GET_COMPONENT("viewShowLayer")), ui.layerno!=ui.cur_page->nlayers-1);
+  gtk_widget_set_sensitive(GTK_WIDGET(GET_COMPONENT("viewHideLayer")), ui.layerno>=0);
+
+  gtk_widget_set_sensitive(GTK_WIDGET(GET_COMPONENT("editPaste")), ui.cur_layer!=NULL);
+  gtk_widget_set_sensitive(GTK_WIDGET(GET_COMPONENT("buttonPaste")), ui.cur_layer!=NULL);
 }
 
 void update_toolbar_and_menu(void)
 {
-  update_tool_buttons(); // takes care of other toolbar buttons as well  
+  update_tool_buttons(); // takes care of other toolbar buttons as well
   update_tool_menu();
   update_color_menu();
   update_pen_props_menu();
@@ -1502,7 +1500,7 @@ void update_file_name(char *filename)
     return;
   }
   p = g_utf8_strrchr(filename, -1, '/');
-  if (p == NULL) p = filename; 
+  if (p == NULL) p = filename;
   else p = g_utf8_next_char(p);
   g_snprintf(tmp, 100, _("Xournal - %s"), p);
   gtk_window_set_title(GTK_WINDOW (winMain), tmp);
@@ -1516,27 +1514,27 @@ void update_file_name(char *filename)
 
 void update_undo_redo_enabled(void)
 {
-  gtk_widget_set_sensitive(GET_COMPONENT("editUndo"), undo!=NULL);
-  gtk_widget_set_sensitive(GET_COMPONENT("editRedo"), redo!=NULL);
-  gtk_widget_set_sensitive(GET_COMPONENT("buttonUndo"), undo!=NULL);
-  gtk_widget_set_sensitive(GET_COMPONENT("buttonRedo"), redo!=NULL);
+  gtk_widget_set_sensitive(GTK_WIDGET(GET_COMPONENT("editUndo")), undo!=NULL);
+  gtk_widget_set_sensitive(GTK_WIDGET(GET_COMPONENT("editRedo")), redo!=NULL);
+  gtk_widget_set_sensitive(GTK_WIDGET(GET_COMPONENT("buttonUndo")), undo!=NULL);
+  gtk_widget_set_sensitive(GTK_WIDGET(GET_COMPONENT("buttonRedo")), redo!=NULL);
 }
 
 void update_copy_paste_enabled(void)
 {
-  gtk_widget_set_sensitive(GET_COMPONENT("editCut"), ui.selection!=NULL);
-  gtk_widget_set_sensitive(GET_COMPONENT("editCopy"), ui.selection!=NULL);
-  gtk_widget_set_sensitive(GET_COMPONENT("editPaste"), ui.cur_item_type!=ITEM_TEXT);
-  gtk_widget_set_sensitive(GET_COMPONENT("editDelete"), ui.selection!=NULL);
-  gtk_widget_set_sensitive(GET_COMPONENT("buttonCut"), ui.selection!=NULL);
-  gtk_widget_set_sensitive(GET_COMPONENT("buttonCopy"), ui.selection!=NULL);
-  gtk_widget_set_sensitive(GET_COMPONENT("buttonPaste"), ui.cur_item_type!=ITEM_TEXT);
+  gtk_widget_set_sensitive(GTK_WIDGET(GET_COMPONENT("editCut")), ui.selection!=NULL);
+  gtk_widget_set_sensitive(GTK_WIDGET(GET_COMPONENT("editCopy")), ui.selection!=NULL);
+  gtk_widget_set_sensitive(GTK_WIDGET(GET_COMPONENT("editPaste")), ui.cur_item_type!=ITEM_TEXT);
+  gtk_widget_set_sensitive(GTK_WIDGET(GET_COMPONENT("editDelete")), ui.selection!=NULL);
+  gtk_widget_set_sensitive(GTK_WIDGET(GET_COMPONENT("buttonCut")), ui.selection!=NULL);
+  gtk_widget_set_sensitive(GTK_WIDGET(GET_COMPONENT("buttonCopy")), ui.selection!=NULL);
+  gtk_widget_set_sensitive(GTK_WIDGET(GET_COMPONENT("buttonPaste")), ui.cur_item_type!=ITEM_TEXT);
 }
 
 void update_mapping_linkings(int toolno)
 {
   int i;
-  
+
   for (i = 1; i<=NUM_BUTTONS; i++) {
     if (ui.linked_brush[i] == BRUSH_LINKED) {
       if (toolno >= 0 && toolno < NUM_STROKE_TOOLS)
@@ -1552,7 +1550,7 @@ void update_mapping_linkings(int toolno)
 void set_cur_color(int color_no, guint color_rgba)
 {
   int which_mapping, tool;
-  
+
   if (ui.toolno[ui.cur_mapping] == TOOL_HIGHLIGHTER) tool = TOOL_HIGHLIGHTER;
   else tool = TOOL_PEN;
   if (ui.cur_mapping>0 && ui.linked_brush[ui.cur_mapping]!=BRUSH_LINKED)
@@ -1570,7 +1568,7 @@ void set_cur_color(int color_no, guint color_rgba)
 void recolor_temp_text(int color_no, guint color_rgba)
 {
   GdkColor gdkcolor;
-  
+
   if (ui.cur_item_type!=ITEM_TEXT) return;
   if (ui.cur_item->text!=NULL && ui.cur_item->brush.color_rgba != color_rgba) {
     prepare_new_undo();
@@ -1592,7 +1590,7 @@ void process_color_activate(GtkMenuItem *menuitem, int color_no, guint color_rgb
   if (GTK_OBJECT_TYPE(menuitem) == GTK_TYPE_RADIO_MENU_ITEM) {
     if (!gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem)))
       return;
-  } 
+  }
   else if (GTK_OBJECT_TYPE(menuitem) == GTK_TYPE_RADIO_TOOL_BUTTON) {
     if (!gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON (menuitem)))
       return;
@@ -1608,7 +1606,7 @@ void process_color_activate(GtkMenuItem *menuitem, int color_no, guint color_rgb
     update_color_buttons();
     update_color_menu();
   }
-  
+
   if (ui.toolno[ui.cur_mapping] != TOOL_PEN && ui.toolno[ui.cur_mapping] != TOOL_HIGHLIGHTER
       && ui.toolno[ui.cur_mapping] != TOOL_TEXT) {
     if (ui.selection != NULL) return;
@@ -1619,7 +1617,7 @@ void process_color_activate(GtkMenuItem *menuitem, int color_no, guint color_rgb
     update_tool_buttons();
     update_tool_menu();
   }
-  
+
   set_cur_color(color_no, color_rgba);
   update_color_buttons();
   update_color_menu();
@@ -1629,7 +1627,7 @@ void process_color_activate(GtkMenuItem *menuitem, int color_no, guint color_rgb
 void process_thickness_activate(GtkMenuItem *menuitem, int tool, int val)
 {
   int which_mapping;
-  
+
   if (GTK_OBJECT_TYPE(menuitem) == GTK_TYPE_RADIO_MENU_ITEM) {
     if (!gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem)))
       return;
@@ -1658,7 +1656,7 @@ void process_thickness_activate(GtkMenuItem *menuitem, int tool, int val)
   ui.brushes[which_mapping][tool].thickness_no = val;
   ui.brushes[which_mapping][tool].thickness = predef_thickness[tool][val];
   update_mapping_linkings(tool);
-  
+
   update_thickness_buttons();
   if (tool == TOOL_PEN) update_pen_props_menu();
   if (tool == TOOL_ERASER) update_eraser_props_menu();
@@ -1768,7 +1766,7 @@ gboolean ok_to_close(void)
   gtk_dialog_set_default_response(GTK_DIALOG (dialog), GTK_RESPONSE_YES);
   response = gtk_dialog_run(GTK_DIALOG (dialog));
   gtk_widget_destroy(dialog);
-  if (response == GTK_RESPONSE_CANCEL || response == GTK_RESPONSE_DELETE_EVENT) 
+  if (response == GTK_RESPONSE_CANCEL || response == GTK_RESPONSE_DELETE_EVENT)
     return FALSE; // aborted
   if (response == GTK_RESPONSE_YES) {
     on_fileSave_activate(NULL, NULL);
@@ -1792,7 +1790,7 @@ void reset_focus(void)
 void reset_selection(void)
 {
   if (ui.selection == NULL) return;
-  if (ui.selection->canvas_item != NULL) 
+  if (ui.selection->canvas_item != NULL)
     gtk_object_destroy(GTK_OBJECT(ui.selection->canvas_item));
   g_list_free(ui.selection->items);
   g_free(ui.selection);
@@ -1813,13 +1811,13 @@ void move_journal_items_by(GList *itemlist, double dx, double dy,
   GList *link;
   int i;
   double *pt;
-  
+
   while (itemlist!=NULL) {
     item = (struct Item *)itemlist->data;
     if (item->type == ITEM_STROKE)
       for (pt=item->path->coords, i=0; i<item->path->num_points; i++, pt+=2)
         { pt[0] += dx; pt[1] += dy; }
-    if (item->type == ITEM_STROKE || item->type == ITEM_TEXT || 
+    if (item->type == ITEM_STROKE || item->type == ITEM_TEXT ||
         item->type == ITEM_TEMP_TEXT || item->type == ITEM_IMAGE) {
       item->bbox.left += dx;
       item->bbox.right += dx;
@@ -1862,8 +1860,8 @@ void resize_journal_items_by(GList *itemlist, double scaling_x, double scaling_y
   double mean_scaling, temp;
   double *pt, *wid;
   GnomeCanvasGroup *group;
-  int i; 
-  
+  int i;
+
   /* geometric mean of x and y scalings = rescaling for stroke widths
      and for text font sizes */
   mean_scaling = sqrt(fabs(scaling_x * scaling_y));
@@ -1940,12 +1938,12 @@ void switch_mapping(int m)
   if (ui.cur_mapping == m) return;
 
   ui.cur_mapping = m;
-  if (ui.toolno[m] < NUM_STROKE_TOOLS) 
+  if (ui.toolno[m] < NUM_STROKE_TOOLS)
     ui.cur_brush = &(ui.brushes[m][ui.toolno[m]]);
   if (ui.toolno[m] == TOOL_TEXT)
     ui.cur_brush = &(ui.brushes[m][TOOL_PEN]);
   if (m==0) ui.which_unswitch_button = 0;
-  
+
   update_tool_buttons();
   update_color_menu();
   update_cursor();
@@ -1958,7 +1956,7 @@ void process_mapping_activate(GtkMenuItem *menuitem, int m, int tool)
   if (ui.toolno[m] == tool) return;
   switch_mapping(0);
   end_text();
-    
+
   ui.toolno[m] = tool;
   if (ui.linked_brush[m] == BRUSH_COPIED) {
     ui.linked_brush[m] = BRUSH_STATIC;
@@ -1969,7 +1967,7 @@ void process_mapping_activate(GtkMenuItem *menuitem, int m, int tool)
 // update the ordering of components in the main vbox
 
 const char *vbox_component_names[VBOX_MAIN_NITEMS]=
- {"scrolledwindowMain", "menubar", "toolbarMain", "toolbarPen", "hbox1"};
+ {"scrolledwindowMain", "menubar", "toolbarMain", "toolbarPen", "statusbar_hbox"};
 
 void update_vbox_order(int *order)
 {
@@ -1977,18 +1975,18 @@ void update_vbox_order(int *order)
   GtkWidget *child;
   GtkBox *vboxMain = GTK_BOX(GET_COMPONENT("vboxMain"));
   gboolean present[VBOX_MAIN_NITEMS];
-  
+
   for (i=0; i<VBOX_MAIN_NITEMS; i++) present[i] = FALSE;
   j=0;
   for (i=0; i<VBOX_MAIN_NITEMS; i++) {
     if (order[i]<0 || order[i]>=VBOX_MAIN_NITEMS) continue;
     present[order[i]] = TRUE;
-    child = GET_COMPONENT(vbox_component_names[order[i]]);
+    child = GTK_WIDGET(GET_COMPONENT(vbox_component_names[order[i]]));
     gtk_box_reorder_child(vboxMain, child, j++);
     gtk_widget_show(child);
   }
   for (i=1; i<VBOX_MAIN_NITEMS; i++) // hide others, but not the drawing area!
-    if (!present[i]) gtk_widget_hide(GET_COMPONENT(vbox_component_names[i]));
+    if (!present[i]) gtk_widget_hide(GTK_WIDGET(GET_COMPONENT(vbox_component_names[i])));
 }
 
 gchar *make_cur_font_name(void)
@@ -2032,108 +2030,108 @@ gboolean can_accel_except_text(GtkWidget *widget, guint id, gpointer data)
 
 void allow_all_accels(void)
 {
-  g_signal_connect((gpointer) GET_COMPONENT("fileNew"),
+  g_signal_connect((gpointer) GTK_WIDGET(GET_COMPONENT("fileNew")),
       "can-activate-accel", G_CALLBACK(can_accel), NULL);
-  g_signal_connect((gpointer) GET_COMPONENT("fileOpen"),
+  g_signal_connect((gpointer) GTK_WIDGET(GET_COMPONENT("fileOpen")),
       "can-activate-accel", G_CALLBACK(can_accel), NULL);
-  g_signal_connect((gpointer) GET_COMPONENT("fileSave"),
+  g_signal_connect((gpointer) GTK_WIDGET(GET_COMPONENT("fileSave")),
       "can-activate-accel", G_CALLBACK(can_accel), NULL);
-  g_signal_connect((gpointer) GET_COMPONENT("filePrint"),
+  g_signal_connect((gpointer) GTK_WIDGET(GET_COMPONENT("filePrint")),
       "can-activate-accel", G_CALLBACK(can_accel), NULL);
-  g_signal_connect((gpointer) GET_COMPONENT("filePrintPDF"),
+  g_signal_connect((gpointer) GTK_WIDGET(GET_COMPONENT("filePrintPDF")),
       "can-activate-accel", G_CALLBACK(can_accel), NULL);
-  g_signal_connect((gpointer) GET_COMPONENT("fileQuit"),
+  g_signal_connect((gpointer) GTK_WIDGET(GET_COMPONENT("fileQuit")),
       "can-activate-accel", G_CALLBACK(can_accel), NULL);
-  g_signal_connect((gpointer) GET_COMPONENT("editUndo"),
+  g_signal_connect((gpointer) GTK_WIDGET(GET_COMPONENT("editUndo")),
       "can-activate-accel", G_CALLBACK(can_accel), NULL);
-  g_signal_connect((gpointer) GET_COMPONENT("editRedo"),
+  g_signal_connect((gpointer) GTK_WIDGET(GET_COMPONENT("editRedo")),
       "can-activate-accel", G_CALLBACK(can_accel), NULL);
-  g_signal_connect((gpointer) GET_COMPONENT("editCut"),
+  g_signal_connect((gpointer) GTK_WIDGET(GET_COMPONENT("editCut")),
       "can-activate-accel", G_CALLBACK(can_accel), NULL);
-  g_signal_connect((gpointer) GET_COMPONENT("editCopy"),
+  g_signal_connect((gpointer) GTK_WIDGET(GET_COMPONENT("editCopy")),
       "can-activate-accel", G_CALLBACK(can_accel), NULL);
-  g_signal_connect((gpointer) GET_COMPONENT("editPaste"),
+  g_signal_connect((gpointer) GTK_WIDGET(GET_COMPONENT("editPaste")),
       "can-activate-accel", G_CALLBACK(can_accel), NULL);
-  g_signal_connect((gpointer) GET_COMPONENT("editDelete"),
+  g_signal_connect((gpointer) GTK_WIDGET(GET_COMPONENT("editDelete")),
       "can-activate-accel", G_CALLBACK(can_accel), NULL);
-  g_signal_connect((gpointer) GET_COMPONENT("viewFullscreen"),
+  g_signal_connect((gpointer) GTK_WIDGET(GET_COMPONENT("viewFullscreen")),
       "can-activate-accel", G_CALLBACK(can_accel), NULL);
-  g_signal_connect((gpointer) GET_COMPONENT("viewZoomIn"),
+  g_signal_connect((gpointer) GTK_WIDGET(GET_COMPONENT("viewZoomIn")),
       "can-activate-accel", G_CALLBACK(can_accel), NULL);
-  g_signal_connect((gpointer) GET_COMPONENT("viewZoomOut"),
+  g_signal_connect((gpointer) GTK_WIDGET(GET_COMPONENT("viewZoomOut")),
       "can-activate-accel", G_CALLBACK(can_accel), NULL);
-  g_signal_connect((gpointer) GET_COMPONENT("viewNormalSize"),
+  g_signal_connect((gpointer) GTK_WIDGET(GET_COMPONENT("viewNormalSize")),
       "can-activate-accel", G_CALLBACK(can_accel), NULL);
-  g_signal_connect((gpointer) GET_COMPONENT("viewPageWidth"),
+  g_signal_connect((gpointer) GTK_WIDGET(GET_COMPONENT("viewPageWidth")),
       "can-activate-accel", G_CALLBACK(can_accel), NULL);
-  g_signal_connect((gpointer) GET_COMPONENT("viewFirstPage"),
+  g_signal_connect((gpointer) GTK_WIDGET(GET_COMPONENT("viewFirstPage")),
       "can-activate-accel", G_CALLBACK(can_accel), NULL);
-  g_signal_connect((gpointer) GET_COMPONENT("viewPreviousPage"),
+  g_signal_connect((gpointer) GTK_WIDGET(GET_COMPONENT("viewPreviousPage")),
       "can-activate-accel", G_CALLBACK(can_accel_except_text), NULL);
-  g_signal_connect((gpointer) GET_COMPONENT("viewNextPage"),
+  g_signal_connect((gpointer) GTK_WIDGET(GET_COMPONENT("viewNextPage")),
       "can-activate-accel", G_CALLBACK(can_accel_except_text), NULL);
-  g_signal_connect((gpointer) GET_COMPONENT("viewLastPage"),
+  g_signal_connect((gpointer) GTK_WIDGET(GET_COMPONENT("viewLastPage")),
       "can-activate-accel", G_CALLBACK(can_accel), NULL);
-  g_signal_connect((gpointer) GET_COMPONENT("toolsPen"),
+  g_signal_connect((gpointer) GTK_WIDGET(GET_COMPONENT("toolsPen")),
       "can-activate-accel", G_CALLBACK(can_accel), NULL);
-  g_signal_connect((gpointer) GET_COMPONENT("toolsEraser"),
+  g_signal_connect((gpointer) GTK_WIDGET(GET_COMPONENT("toolsEraser")),
       "can-activate-accel", G_CALLBACK(can_accel), NULL);
-  g_signal_connect((gpointer) GET_COMPONENT("toolsHighlighter"),
+  g_signal_connect((gpointer) GTK_WIDGET(GET_COMPONENT("toolsHighlighter")),
       "can-activate-accel", G_CALLBACK(can_accel), NULL);
-  g_signal_connect((gpointer) GET_COMPONENT("toolsText"),
+  g_signal_connect((gpointer) GTK_WIDGET(GET_COMPONENT("toolsText")),
       "can-activate-accel", G_CALLBACK(can_accel), NULL);
-  g_signal_connect((gpointer) GET_COMPONENT("toolsSelectRegion"),
+  g_signal_connect((gpointer) GTK_WIDGET(GET_COMPONENT("toolsSelectRegion")),
       "can-activate-accel", G_CALLBACK(can_accel), NULL);
-  g_signal_connect((gpointer) GET_COMPONENT("toolsSelectRectangle"),
+  g_signal_connect((gpointer) GTK_WIDGET(GET_COMPONENT("toolsSelectRectangle")),
       "can-activate-accel", G_CALLBACK(can_accel), NULL);
-  g_signal_connect((gpointer) GET_COMPONENT("toolsVerticalSpace"),
+  g_signal_connect((gpointer) GTK_WIDGET(GET_COMPONENT("toolsVerticalSpace")),
       "can-activate-accel", G_CALLBACK(can_accel), NULL);
-  g_signal_connect((gpointer) GET_COMPONENT("toolsHand"),
+  g_signal_connect((gpointer) GTK_WIDGET(GET_COMPONENT("toolsHand")),
       "can-activate-accel", G_CALLBACK(can_accel), NULL);
-  g_signal_connect((gpointer) GET_COMPONENT("toolsTextFont"),
+  g_signal_connect((gpointer) GTK_WIDGET(GET_COMPONENT("toolsTextFont")),
       "can-activate-accel", G_CALLBACK(can_accel), NULL);
-  g_signal_connect((gpointer) GET_COMPONENT("toolsRuler"),
+  g_signal_connect((gpointer) GTK_WIDGET(GET_COMPONENT("toolsRuler")),
       "can-activate-accel", G_CALLBACK(can_accel), NULL);
-  g_signal_connect((gpointer) GET_COMPONENT("toolsReco"),
+  g_signal_connect((gpointer) GTK_WIDGET(GET_COMPONENT("toolsReco")),
       "can-activate-accel", G_CALLBACK(can_accel), NULL);
 }
 
 void add_scroll_bindings(void)
 {
   GtkBindingSet *binding_set;
-  
+
   binding_set = gtk_binding_set_by_class(
      G_OBJECT_GET_CLASS(GET_COMPONENT("scrolledwindowMain")));
   gtk_binding_entry_add_signal(binding_set, GDK_Up, 0,
-    "scroll_child", 2, GTK_TYPE_SCROLL_TYPE, GTK_SCROLL_STEP_BACKWARD, 
-    G_TYPE_BOOLEAN, FALSE);  
+    "scroll_child", 2, GTK_TYPE_SCROLL_TYPE, GTK_SCROLL_STEP_BACKWARD,
+    G_TYPE_BOOLEAN, FALSE);
   gtk_binding_entry_add_signal(binding_set, GDK_KP_Up, 0,
-    "scroll_child", 2, GTK_TYPE_SCROLL_TYPE, GTK_SCROLL_STEP_BACKWARD, 
-    G_TYPE_BOOLEAN, FALSE);  
+    "scroll_child", 2, GTK_TYPE_SCROLL_TYPE, GTK_SCROLL_STEP_BACKWARD,
+    G_TYPE_BOOLEAN, FALSE);
   gtk_binding_entry_add_signal(binding_set, GDK_Down, 0,
-    "scroll_child", 2, GTK_TYPE_SCROLL_TYPE, GTK_SCROLL_STEP_FORWARD, 
-    G_TYPE_BOOLEAN, FALSE);  
+    "scroll_child", 2, GTK_TYPE_SCROLL_TYPE, GTK_SCROLL_STEP_FORWARD,
+    G_TYPE_BOOLEAN, FALSE);
   gtk_binding_entry_add_signal(binding_set, GDK_KP_Down, 0,
-    "scroll_child", 2, GTK_TYPE_SCROLL_TYPE, GTK_SCROLL_STEP_FORWARD, 
-    G_TYPE_BOOLEAN, FALSE);  
+    "scroll_child", 2, GTK_TYPE_SCROLL_TYPE, GTK_SCROLL_STEP_FORWARD,
+    G_TYPE_BOOLEAN, FALSE);
   gtk_binding_entry_add_signal(binding_set, GDK_Left, 0,
-    "scroll_child", 2, GTK_TYPE_SCROLL_TYPE, GTK_SCROLL_STEP_BACKWARD, 
-    G_TYPE_BOOLEAN, TRUE);  
+    "scroll_child", 2, GTK_TYPE_SCROLL_TYPE, GTK_SCROLL_STEP_BACKWARD,
+    G_TYPE_BOOLEAN, TRUE);
   gtk_binding_entry_add_signal(binding_set, GDK_KP_Left, 0,
-    "scroll_child", 2, GTK_TYPE_SCROLL_TYPE, GTK_SCROLL_STEP_BACKWARD, 
-    G_TYPE_BOOLEAN, TRUE);  
+    "scroll_child", 2, GTK_TYPE_SCROLL_TYPE, GTK_SCROLL_STEP_BACKWARD,
+    G_TYPE_BOOLEAN, TRUE);
   gtk_binding_entry_add_signal(binding_set, GDK_Right, 0,
-    "scroll_child", 2, GTK_TYPE_SCROLL_TYPE, GTK_SCROLL_STEP_FORWARD, 
-    G_TYPE_BOOLEAN, TRUE);  
+    "scroll_child", 2, GTK_TYPE_SCROLL_TYPE, GTK_SCROLL_STEP_FORWARD,
+    G_TYPE_BOOLEAN, TRUE);
   gtk_binding_entry_add_signal(binding_set, GDK_KP_Right, 0,
-    "scroll_child", 2, GTK_TYPE_SCROLL_TYPE, GTK_SCROLL_STEP_FORWARD, 
-    G_TYPE_BOOLEAN, TRUE);  
+    "scroll_child", 2, GTK_TYPE_SCROLL_TYPE, GTK_SCROLL_STEP_FORWARD,
+    G_TYPE_BOOLEAN, TRUE);
 }
 
 gboolean is_event_within_textview(GdkEventButton *event)
 {
   double pt[2];
-  
+
   if (ui.cur_item_type!=ITEM_TEXT) return FALSE;
   get_pointer_coords((GdkEvent *)event, pt);
   if (pt[0]<ui.cur_item->bbox.left || pt[0]>ui.cur_item->bbox.right) return FALSE;
@@ -2143,25 +2141,25 @@ gboolean is_event_within_textview(GdkEventButton *event)
 
 void hide_unimplemented(void)
 {
-  gtk_widget_hide(GET_COMPONENT("filePrintOptions"));
-  gtk_widget_hide(GET_COMPONENT("journalFlatten"));  
-  gtk_widget_hide(GET_COMPONENT("helpIndex")); 
+  gtk_widget_hide(GTK_WIDGET(GET_COMPONENT("filePrintOptions")));
+  gtk_widget_hide(GTK_WIDGET(GET_COMPONENT("journalFlatten")));
+  gtk_widget_hide(GTK_WIDGET(GET_COMPONENT("helpIndex")));
 
   /* config file only works with glib 2.6 and beyond */
   if (glib_minor_version<6) {
-    gtk_widget_hide(GET_COMPONENT("optionsAutoSavePrefs"));
-    gtk_widget_hide(GET_COMPONENT("optionsSavePreferences"));
+    gtk_widget_hide(GTK_WIDGET(GET_COMPONENT("optionsAutoSavePrefs")));
+    gtk_widget_hide(GTK_WIDGET(GET_COMPONENT("optionsSavePreferences")));
   }
   /* gtkprint only works with gtk+ 2.10 and beyond */
   if (gtk_check_version(2, 10, 0)) {
-    gtk_widget_hide(GET_COMPONENT("filePrint"));
-  }  
-  
+    gtk_widget_hide(GTK_WIDGET(GET_COMPONENT("filePrint")));
+  }
+
   /* screenshot feature doesn't work yet in Win32 */
 #ifdef WIN32
-  gtk_widget_hide(GET_COMPONENT("journalScreenshot"));
+  gtk_widget_hide(GTK_WIDGET(GET_COMPONENT("journalScreenshot")));
 #endif
-}  
+}
 
 // toggle fullscreen mode
 void do_fullscreen(gboolean active)
@@ -2218,7 +2216,7 @@ gboolean filter_extended_events (GtkWidget *widget, GdkEvent *event,
    this isn't needed any more... but could become useful again someday!
 */
 
-/*  
+/*
 gboolean fix_extended_events (GtkWidget *widget, GdkEvent *event,
                                    gpointer user_data)
 {
@@ -2278,24 +2276,24 @@ void unset_flags(GtkWidget *w, gpointer flag)
 
 gboolean intercept_activate_events(GtkWidget *w, GdkEvent *ev, gpointer data)
 {
-  if (w == GET_COMPONENT("hbox1")) {
+  if (w == GTK_WIDGET(GET_COMPONENT("hbox1"))) {
     /* the event won't be processed since the hbox1 doesn't know what to do with it,
        so we might as well kill it and avoid confusing ourselves when it gets
        propagated further ... */
     return TRUE;
   }
-  if (w == GET_COMPONENT("spinPageNo")) {
+  if (w == GTK_WIDGET(GET_COMPONENT("spinPageNo"))) {
     /* we let the spin button take care of itself, and don't steal its focus,
        unless the user presses Esc or Tab (in those cases we intervene) */
     if (ev->type != GDK_KEY_PRESS) return FALSE;
-    if (ev->key.keyval == GDK_Escape) 
+    if (ev->key.keyval == GDK_Escape)
        gtk_spin_button_set_value(GTK_SPIN_BUTTON(w), ui.pageno+1); // abort
     else if (ev->key.keyval != GDK_Tab && ev->key.keyval != GDK_ISO_Left_Tab)
        return FALSE; // let the spin button process it
   }
 
   // otherwise, we want to make sure the canvas or text item gets focus back...
-  reset_focus();  
+  reset_focus();
   return FALSE;
 }
 
@@ -2341,10 +2339,10 @@ wrapper_copy_cairo_surface_to_pixbuf (cairo_surface_t *surface,
     {
       src = (unsigned int *) (cairo_data + y * cairo_rowstride);
       dst = pixbuf_data + y * pixbuf_rowstride;
-      for (x = 0; x < cairo_width; x++) 
+      for (x = 0; x < cairo_width; x++)
 	{
 	  dst[0] = (*src >> 16) & 0xff;
-	  dst[1] = (*src >> 8) & 0xff; 
+	  dst[1] = (*src >> 8) & 0xff;
 	  dst[2] = (*src >> 0) & 0xff;
 	  if (pixbuf_n_channels == 4)
 	      dst[3] = (*src >> 24) & 0xff;
@@ -2352,7 +2350,7 @@ wrapper_copy_cairo_surface_to_pixbuf (cairo_surface_t *surface,
 	  src++;
 	}
     }
-}	
+}
 
 void
 wrapper_poppler_page_render_to_pixbuf (PopplerPage *page,
