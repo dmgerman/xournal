@@ -27,6 +27,7 @@
 #include <gdk/gdkkeysyms.h>
 
 #include "xournal.h"
+#include "xo-bookmarks.h"
 #include "xo-callbacks.h"
 #include "xo-misc.h"
 #include "xo-file.h"
@@ -3695,4 +3696,260 @@ on_optionsPenCursor_activate           (GtkCheckMenuItem *checkmenuitem,
 {
   ui.pen_cursor = gtk_check_menu_item_get_active(checkmenuitem);
   update_cursor();
+}
+
+
+void
+on_add_bookmark_button_clicked         (GtkButton       *button,
+                                        gpointer         userdata)
+{
+  GtkWidget *dialog;
+  GtkWidget *label;
+  GtkWidget *content_area;
+  GtkWidget *entry;
+  gchar *buff = NULL;
+  Item * bkmrk = NULL;
+
+  // Create the dialog widget and content
+  dialog = gtk_dialog_new_with_buttons (_("New Bookmark"),
+      GTK_WINDOW(GET_COMPONENT("winMain")),
+      GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
+      GTK_STOCK_OK,
+      GTK_RESPONSE_OK,
+      GTK_STOCK_CANCEL,
+      GTK_RESPONSE_CANCEL,
+      NULL);
+
+  content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+  gtk_box_set_spacing(GTK_BOX(content_area), 6);
+
+  label = gtk_label_new("Bookmark Title:");
+  gtk_container_add(GTK_CONTAINER(content_area), label);
+
+  entry = gtk_entry_new();
+  gtk_entry_set_activates_default(GTK_ENTRY(entry), TRUE);
+  gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_OK);
+  gtk_container_add(GTK_CONTAINER(content_area), entry);
+
+  // Pre-populate the entry with a default name
+  
+  buff = g_strdup_printf("Page %d", ui.pageno + 1);
+  gtk_entry_set_text(GTK_ENTRY(entry), buff);
+  gtk_widget_show_all(dialog);
+
+  // Get non-empty text input from the user
+  do {
+    if (gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_OK) {
+      // User canceled
+      goto end;
+    }
+  } while (gtk_entry_get_text_length(GTK_ENTRY(entry)) == 0);
+  
+  // Create the bookmark using the user-entered text for a title
+  double pos;
+  gboolean jump = FALSE;
+
+  pos = XO_BOOKMARK_PAGE_OFFSET_IN_POINTS;
+  if (ui.cur_page->voffset > XO_BOOKMARK_PAGE_OFFSET_IN_POINTS) {
+    jump = TRUE;
+  }
+
+  bkmrk = xo_bookmark_create(gtk_entry_get_text(GTK_ENTRY(entry)), pos);
+
+  if(jump) {
+    /// XXXX
+    //    scroll_to_item(bkmrk);
+  }
+
+end:
+  g_free(buff);
+  gtk_widget_destroy(dialog);
+}
+
+
+void
+on_remove_bookmark_button_clicked      (GtkButton       *button,
+                                        gpointer         userdata)
+{
+  xo_bookmark_delete_selected();
+}
+
+
+void
+on_sidebar_size_allocate       (GtkWidget *widget,
+                                gpointer  userdata)
+{
+
+  GtkCheckMenuItem *viewSidebar = GTK_CHECK_MENU_ITEM(GET_COMPONENT("viewSidebar"));
+  GtkPaned *paned = GTK_PANED(GET_COMPONENT("winMainPaned"));
+  gint new_size = gtk_paned_get_position(paned);
+
+  // *** BLOCK SIGNAL HANDLERS
+  g_signal_handlers_block_by_func(viewSidebar, on_viewSidebar_toggled, NULL);
+  g_signal_handlers_block_by_func(widget, on_sidebar_size_allocate, NULL);
+
+  if (new_size <= 0) {
+    gtk_check_menu_item_set_active(viewSidebar, FALSE);
+    ui.sidebar_is_open = FALSE;
+  } else if (new_size < 100) {
+    // Keep at 100 size - prevent user from making it smaller
+    gtk_paned_set_position(paned, 100);
+    // Save the size and update the menu item status
+    ui.sidebar_width = 100;
+    gtk_check_menu_item_set_active(viewSidebar, TRUE);
+    ui.sidebar_is_open = TRUE;
+  } else {
+    // Save the size and update the menu item status
+    ui.sidebar_width = gtk_paned_get_position(paned);
+    gtk_check_menu_item_set_active(viewSidebar, TRUE);
+    ui.sidebar_is_open = TRUE;
+  }
+
+  // *** UNBLOCK SIGNAL HANDLERS
+  g_signal_handlers_unblock_by_func(viewSidebar, on_viewSidebar_toggled, NULL);
+  g_signal_handlers_unblock_by_func(widget, on_sidebar_size_allocate, NULL);
+}
+
+
+void
+on_close_sidebar_clicked               (GtkButton *button,
+                                        gpointer  user_data)
+{
+  GtkCheckMenuItem *check_item = GTK_CHECK_MENU_ITEM(GET_COMPONENT("viewSidebar"));
+  // Set the checkbox menu item state - it's callback function updates the sidebar
+  gtk_check_menu_item_set_active(check_item, FALSE);
+}
+
+void
+on_viewSidebar_toggled   (GtkCheckMenuItem *menuitem,
+                          gpointer         userdata)
+{
+  GtkPaned * paned = GTK_PANED(GET_COMPONENT("winMainPaned"));
+  GtkWidget *sidebar = GTK_WIDGET(GET_COMPONENT("sidebar"));
+
+  // *** BLOCK SIGNAL HANDLER
+  g_signal_handlers_block_by_func(sidebar, on_sidebar_size_allocate, NULL);
+
+  if (!gtk_check_menu_item_get_active(menuitem)) {
+    // Save the size of the sidebar, then close/minimize it
+    ui.sidebar_width = gtk_paned_get_position(paned);
+    gtk_paned_set_position(paned, 0);
+    ui.sidebar_is_open = FALSE;
+  } else {
+    // Display the sidebar from the saved width
+    gtk_paned_set_position(paned, ui.sidebar_width);
+    ui.sidebar_is_open = TRUE;
+  }
+
+  // *** UNBLOCK SIGNAL HANDLER
+  g_signal_handlers_unblock_by_func(sidebar, on_sidebar_size_allocate, NULL);
+}
+
+void
+on_index_tree_cursor_changed           (GtkTreeView     *tree,
+                                        gpointer        userdata)
+{
+  GtkTreeSelection *selection = gtk_tree_view_get_selection(tree);
+  GtkTreeModel *tree_model;
+  GtkTreeIter tree_iter;
+
+  if (!gtk_tree_selection_get_selected(selection, &tree_model, &tree_iter)) {
+    // No selection
+    return;
+  }
+
+  gint pdf_page;
+  gtk_tree_model_get(tree_model, &tree_iter, 1, &pdf_page, -1);
+  gint jump_page = 0;
+
+  // Search through the Journal Pages to find and
+  // jump the first occurance of the background PDF's page
+  GList *page;
+  for (page = journal.pages; page != NULL; page=page->next, jump_page++) {
+    Page * pg = (Page *) page->data;
+    if(pg->bg == NULL || pg->bg->type != BG_PDF) {
+      continue;
+    }
+    if (pg->bg->file_page_seq == pdf_page) {
+      do_switch_page(jump_page, TRUE, TRUE);
+      return;
+    }
+  }
+
+  // PDF Page not found (user deleted it?)
+  GtkWidget * dialog = gtk_message_dialog_new(GTK_WINDOW(GET_COMPONENT("winMain")),
+      GTK_DIALOG_DESTROY_WITH_PARENT | GTK_DIALOG_MODAL,
+      GTK_MESSAGE_WARNING,
+      GTK_BUTTONS_OK,
+      _("Page not found."));
+  gtk_dialog_run(GTK_DIALOG(dialog));
+  gtk_widget_destroy(dialog);
+}
+
+
+void
+on_bookmark_tree_cursor_changed           (GtkTreeView     *tree,
+                                           gpointer        userdata)
+{
+  GtkWidget * removeButton = GTK_WIDGET(GET_COMPONENT("remove_bookmark_button"));
+
+  GtkTreeSelection *selection = gtk_tree_view_get_selection(tree);
+  GtkTreeModel *tree_model;
+  GtkTreeIter tree_iter;
+
+  gboolean is_selected = gtk_tree_selection_get_selected(selection, &tree_model, &tree_iter);
+  // Enable/disable the "Remove" button based on selection
+  gtk_widget_set_sensitive(removeButton, is_selected);
+
+  if (!is_selected) {
+    // No selection - nothing to do
+    return;
+  }
+
+  gint page_num;
+  Item * bookmark;
+  gtk_tree_model_get(tree_model, &tree_iter, XO_BOOKMARK_COL_PAGENUM, &page_num, XO_BOOKMARK_COL_ITEM, &bookmark, -1);
+
+  if(page_num > journal.npages) {
+    // NOP - bookmark past last page
+    return;
+  }
+  // Jump to the page
+  do_switch_page(page_num - 1, TRUE, TRUE);
+  // Scroll to the location on the page
+  
+  // have to find it XXXX
+  // xo_scroll_to_item(bookmark);
+  
+}
+
+void
+on_bookmark_name_cellrenderer_edited   (GtkCellRendererText  *text,
+                                        gchar                *path,
+                                        gchar                *new_text,
+                                        gpointer             userdata)
+{
+  GtkTreeIter iter;
+  if(!gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(bookmark_liststore), &iter, path)) {
+    g_error("on_bookmark_name_cellrenderer_edited() could not get a valid iterator from the bookmark liststore");
+  } else {
+    // Set the new title
+    gtk_list_store_set(bookmark_liststore, &iter, XO_BOOKMARK_COL_TITLE, new_text, -1);
+  }
+}
+
+gboolean
+on_bookmark_tree_key_press_event    (GtkWidget       *widget,
+                                        GdkEvent        *event,
+                                        gpointer        userdata)
+{
+  // Prevent the key press event from propagating
+  return TRUE;
+}
+
+void
+on_buttonAddBookmark_clicked           (GtkToolButton   *toolbutton,
+                                        gpointer         user_data)
+{
+  on_add_bookmark_button_clicked(NULL, NULL);
 }

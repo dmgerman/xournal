@@ -672,3 +672,26 @@ on_button3Image_activate               (GtkMenuItem     *menuitem,
 void
 on_optionsPenCursor_activate           (GtkCheckMenuItem *checkmenuitem,
                                         gpointer         user_data);
+
+void
+on_add_bookmark_button_clicked         (GtkButton       *button,
+                                        gpointer         userdata);
+
+void
+on_remove_bookmark_button_clicked      (GtkButton       *button,
+                                        gpointer         userdata);
+
+void
+on_sidebar_size_allocate       (GtkWidget *widget,
+                                gpointer  userdata);
+
+void
+on_close_sidebar_clicked               (GtkButton *button,
+                                        gpointer  user_data);
+
+
+
+void
+on_viewSidebar_toggled   (GtkCheckMenuItem *menuitem,
+                          gpointer         userdata);
+

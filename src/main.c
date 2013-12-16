@@ -25,6 +25,7 @@
 
 #include "xournal.h"
 #include "xo-callbacks.h"
+#include "xo-bookmarks.h"
 #include "xo-misc.h"
 #include "xo-file.h"
 #include "xo-paint.h"
@@ -34,6 +35,8 @@
 GtkWidget *winMain;
 GnomeCanvas *canvas;
 GtkBuilder *builder;
+GtkListStore *bookmark_liststore;
+
 
 struct Journal journal; // the journal
 struct BgPdf bgpdf;  // the PDF loader stuff
@@ -69,6 +72,11 @@ void init_stuff (int argc, char *argv[])
   ui.font_name = g_strdup(ui.default_font_name);
   ui.font_size = ui.default_font_size;
   ui.hiliter_alpha_mask = 0xffffff00 + (guint)(255*ui.hiliter_opacity);
+
+  // create/set the list store that will hold all the bookmark entries displayed in the sidebar
+  bookmark_liststore = xo_bookmark_liststore_create();
+  gtk_tree_view_set_model(GTK_TREE_VIEW(GET_COMPONENT("bookmark_tree")), GTK_TREE_MODEL(bookmark_liststore));
+
 
   // we need an empty canvas prior to creating the journal structures
   canvas = GNOME_CANVAS (gnome_canvas_new_aa ());
@@ -123,6 +131,8 @@ void init_stuff (int argc, char *argv[])
   reset_recognizer();
 
   // initialize various interface elements
+
+
 
   gtk_window_set_default_size(GTK_WINDOW (winMain), ui.window_default_width, ui.window_default_height);
   if (ui.maximize_at_start) gtk_window_maximize(GTK_WINDOW (winMain));
@@ -217,6 +227,7 @@ void init_stuff (int argc, char *argv[])
     }
     dev_list = dev_list->next;
   }
+
   if (!can_xinput)
     gtk_widget_set_sensitive(GTK_WIDGET(GET_COMPONENT("optionsUseXInput")), FALSE);
 
@@ -239,16 +250,20 @@ void init_stuff (int argc, char *argv[])
   gtk_check_menu_item_set_active(
     GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsPenCursor")), ui.pen_cursor);
   
+
   hide_unimplemented();
 
   update_undo_redo_enabled();
   update_copy_paste_enabled();
+
   update_vbox_order(ui.vertical_order[ui.fullscreen?1:0]);
+
   gtk_widget_grab_focus(GTK_WIDGET(canvas));
 
   // show everything...
   
   gtk_widget_show (winMain);
+  
   update_cursor();
 
   /* this will cause extension events to get enabled/disabled, but
@@ -287,12 +302,13 @@ void init_stuff (int argc, char *argv[])
   }
 
   // load the MRU
-  
   init_mru();
 
   // and finally, open a file specified on the command line
   // (moved here because display parameters weren't initialized yet...)
   
+
+
   if (argc == 1) return;
   set_cursor_busy(TRUE);
   if (g_path_is_absolute(argv[1]))
@@ -311,6 +327,7 @@ void init_stuff (int argc, char *argv[])
     gtk_dialog_run(GTK_DIALOG(w));
     gtk_widget_destroy(w);
   }
+
 }
 
 

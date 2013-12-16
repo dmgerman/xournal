@@ -864,6 +864,16 @@ and other contributors
                       </object>
                     </child>
                     <child>
+                      <object class="GtkCheckMenuItem" id="viewSidebar">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Sidebar</property>
+                        <property name="use_underline">True</property>
+                        <accelerator key="F9" signal="activate"/>
+                        <signal name="toggled" handler="on_viewSidebar_toggled" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
                       <object class="GtkSeparatorMenuItem" id="separator4">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
@@ -3222,8 +3232,10 @@ and other contributors
                           <object class="GtkVBox" id="vbox3">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
+                            <property name="homogeneous">True</property>
                             <child>
                               <object class="GtkVBox" id="bookmarks">
+                                <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <child>
                                   <object class="GtkTreeView" id="bookmark_tree">

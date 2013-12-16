@@ -24,6 +24,7 @@ xournal_SOURCES = \
 	xo-print.c xo-print.h \
 	xo-callbacks.c xo-callbacks.h \
 	xo-shapes.c xo-shapes.h \
+	xo-bookmarks.c 	xo-bookmarks.h \
 	intl.h
 
 if WIN32

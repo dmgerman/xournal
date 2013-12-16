@@ -213,6 +213,7 @@ typedef struct Item {
 #define ITEM_RECOGNIZER 23
 #define ITEM_IMAGE 24
 #define ITEM_SELECTREGION 25
+#define ITEM_BOOKMARK     26
 
 typedef struct Layer {
   GList *items; // the items on the layer, from bottom to top
@@ -329,6 +330,8 @@ typedef struct UIData {
   GtkPrintSettings *print_settings;
 #endif
   gboolean poppler_force_cairo; // force poppler to use cairo
+  gboolean sidebar_is_open;
+  gint    sidebar_width;
 } UIData;
 
 #define BRUSH_LINKED 0
@@ -426,5 +429,10 @@ extern double DEFAULT_ZOOM;
 #define UNIT_IN 1
 #define UNIT_PX 2
 #define UNIT_PT 3
+
+//bookmarks
+
+GtkListStore *bookmark_liststore;
+
 
 #endif /* XOURNAL_H */

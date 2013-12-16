@@ -13,7 +13,12 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef XO_IMAGE_H
 GdkPixbuf *pixbuf_from_buffer(const gchar *buf, gsize buflen);
 void create_image_from_pixbuf(GdkPixbuf *pixbuf, double *pt);
 void insert_image(GdkEvent *event);
 void rescale_images(void);
+GdkPixbuf* create_pixbuf                          (const gchar     *filename);
+
+#define XO_IMAGE_H
+#endif
