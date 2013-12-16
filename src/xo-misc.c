@@ -24,6 +24,7 @@
 #include <gdk/gdkkeysyms.h>
 
 #include "xournal.h"
+#include "xo-bookmarks.h"
 #include "xo-callbacks.h"
 #include "xo-misc.h"
 #include "xo-file.h"
@@ -354,6 +355,9 @@ void delete_layer(struct Layer *l)
       g_object_unref(item->image);
       g_free(item->image_png);
     }
+    if (item->type == ITEM_BOOKMARK) {
+      xo_bookmark_resources_free(item);
+    }
     // don't need to delete the canvas_item, as it's part of the group destroyed below
     g_free(item);
     l->items = g_list_delete_link(l->items, l->items);
@@ -591,6 +595,9 @@ void make_canvas_item_one(GnomeCanvasGroup *group, struct Item *item)
           "height", item->bbox.bottom - item->bbox.top,
           "width-set", TRUE, "height-set", TRUE,
           NULL);
+  }
+  if (item->type == ITEM_BOOKMARK) {
+    item->canvas_item = xo_bookmark_canvas_item_create(item, group);
   }
 }
 
@@ -1824,6 +1831,18 @@ void move_journal_items_by(GList *itemlist, double dx, double dy,
       item->bbox.top += dy;
       item->bbox.bottom += dy;
     }
+    if (item->type == ITEM_BOOKMARK) {
+              item->bbox.top += dy;
+        item->bbox.bottom += dy;
+        {
+        //XXX: Hacky trigger a re-sorting of the bookmark tree in the sidebar
+          gint sort_col;
+          GtkSortType order;
+          gtk_tree_sortable_get_sort_column_id(GTK_TREE_SORTABLE(bookmark_liststore), &sort_col, &order);
+          gtk_tree_sortable_set_sort_column_id(GTK_TREE_SORTABLE(bookmark_liststore), GTK_TREE_SORTABLE_UNSORTED_SORT_COLUMN_ID, order);
+          gtk_tree_sortable_set_sort_column_id(GTK_TREE_SORTABLE(bookmark_liststore), sort_col, order);
+        }
+    }
     if (l1 != l2) {
       // find out where to insert
       if (depths != NULL) {
@@ -1916,6 +1935,10 @@ void resize_journal_items_by(GList *itemlist, double scaling_x, double scaling_y
         item->bbox.top = item->bbox.bottom;
         item->bbox.bottom = temp;
       }
+    }
+    if (item->type == ITEM_BOOKMARK) {
+      // do nothing, we can resize it
+      ;
     }
     // redraw the item
     if (item->canvas_item!=NULL) {
