@@ -391,8 +391,9 @@ void continue_movesel(GdkEvent *event)
   struct Page *tmppage;
   
   get_pointer_coords(event, pt);
+  if (ui.view_continuous == VIEW_MODE_CONTINUOUS) pt[1] += ui.selection->move_pagedelta;
+  if (ui.view_continuous == VIEW_MODE_HORIZONTAL) pt[0] += ui.selection->move_pagedelta;
   if (ui.cur_item_type == ITEM_MOVESEL_VERT) pt[0] = 0;
-  pt[1] += ui.selection->move_pagedelta;
 
   // check for page jumps
   if (ui.cur_item_type == ITEM_MOVESEL_VERT)
@@ -400,19 +401,37 @@ void continue_movesel(GdkEvent *event)
   else upmargin = VIEW_CONTINUOUS_SKIP;
   tmppageno = ui.selection->move_pageno;
   tmppage = g_list_nth_data(journal.pages, tmppageno);
-  while (ui.view_continuous && (pt[1] < - upmargin)) {
-    if (tmppageno == 0) break;
-    tmppageno--;
-    tmppage = g_list_nth_data(journal.pages, tmppageno);
-    pt[1] += tmppage->height + VIEW_CONTINUOUS_SKIP;
-    ui.selection->move_pagedelta += tmppage->height + VIEW_CONTINUOUS_SKIP;
+  if (ui.view_continuous == VIEW_MODE_CONTINUOUS) {
+    while (pt[1] < - upmargin) {
+      if (tmppageno == 0) break;
+      tmppageno--;
+      tmppage = g_list_nth_data(journal.pages, tmppageno);
+      pt[1] += tmppage->height + VIEW_CONTINUOUS_SKIP;
+      ui.selection->move_pagedelta += tmppage->height + VIEW_CONTINUOUS_SKIP;
+    }
+    while (pt[1] > tmppage->height+VIEW_CONTINUOUS_SKIP) {
+      if (tmppageno == journal.npages-1) break;
+      pt[1] -= tmppage->height + VIEW_CONTINUOUS_SKIP;
+      ui.selection->move_pagedelta -= tmppage->height + VIEW_CONTINUOUS_SKIP;
+      tmppageno++;
+      tmppage = g_list_nth_data(journal.pages, tmppageno);
+    }
   }
-  while (ui.view_continuous && (pt[1] > tmppage->height+VIEW_CONTINUOUS_SKIP)) {
-    if (tmppageno == journal.npages-1) break;
-    pt[1] -= tmppage->height + VIEW_CONTINUOUS_SKIP;
-    ui.selection->move_pagedelta -= tmppage->height + VIEW_CONTINUOUS_SKIP;
-    tmppageno++;
-    tmppage = g_list_nth_data(journal.pages, tmppageno);
+  if (ui.view_continuous == VIEW_MODE_HORIZONTAL) {
+    while (pt[0] < -VIEW_CONTINUOUS_SKIP) {
+      if (tmppageno == 0) break;
+      tmppageno--;
+      tmppage = g_list_nth_data(journal.pages, tmppageno);
+      pt[0] += tmppage->width + VIEW_CONTINUOUS_SKIP;
+      ui.selection->move_pagedelta += tmppage->width + VIEW_CONTINUOUS_SKIP;
+    }
+    while (pt[0] > tmppage->width+VIEW_CONTINUOUS_SKIP) {
+      if (tmppageno == journal.npages-1) break;
+      pt[0] -= tmppage->width + VIEW_CONTINUOUS_SKIP;
+      ui.selection->move_pagedelta -= tmppage->width + VIEW_CONTINUOUS_SKIP;
+      tmppageno++;
+      tmppage = g_list_nth_data(journal.pages, tmppageno);
+    }
   }
   
   if (tmppageno != ui.selection->move_pageno) {
@@ -435,6 +454,7 @@ void continue_movesel(GdkEvent *event)
       gnome_canvas_item_set(ui.selection->canvas_item,
         "x2", tmppage->width+100, 
         "y1", ui.selection->anchor_y+ui.selection->move_pagedelta, NULL);
+            /* note: moving across pages for vert. space only works in vertical continuous mode */
   }
   
   // now, process things normally

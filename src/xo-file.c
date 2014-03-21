@@ -54,6 +54,7 @@ const char *bgcolor_names[COLOR_MAX] = {"", "blue", "pink", "green",
 const char *bgstyle_names[4] = {"plain", "lined", "ruled", "graph"};
 const char *file_domain_names[3] = {"absolute", "attach", "clone"};
 const char *unit_names[4] = {"cm", "in", "px", "pt"};
+const char *view_mode_names[3] = {"false", "true", "horiz"}; // need 'false' & 'true' for backward compatibility
 int PDFTOPPM_PRINTING_DPI, GS_BITMAP_DPI;
 
 // creates a new empty journal
@@ -1474,7 +1475,7 @@ void init_config_default(void)
   ui.default_page.bg->color_no = COLOR_WHITE;
   ui.default_page.bg->color_rgba = predef_bgcolors_rgba[COLOR_WHITE];
   ui.default_page.bg->ruling = RULING_LINED;
-  ui.view_continuous = TRUE;
+  ui.view_continuous = VIEW_MODE_CONTINUOUS;
   ui.allow_xinput = TRUE;
   ui.discard_corepointer = FALSE;
   ui.ignore_other_devices = TRUE;
@@ -1623,8 +1624,8 @@ void save_config_to_file(void)
     _(" the multiplicative factor for zoom in/out"),
     g_strdup_printf("%.3f", ui.zoom_step_factor));
   update_keyval("general", "view_continuous",
-    _(" document view (true = continuous, false = single page)"),
-    g_strdup(ui.view_continuous?"true":"false"));
+    _(" continuous view (false = one page, true = continuous, horiz = horizontal)"),
+    g_strdup(view_mode_names[ui.view_continuous]));
   update_keyval("general", "use_xinput",
     _(" use XInput extensions (true/false)"),
     g_strdup(ui.allow_xinput?"true":"false"));
@@ -2027,7 +2028,7 @@ void load_config_from_file(void)
   parse_keyval_int("general", "scrollbar_speed", &ui.scrollbar_step_increment, 1, 5000);
   parse_keyval_int("general", "zoom_dialog_increment", &ui.zoom_step_increment, 1, 500);
   parse_keyval_float("general", "zoom_step_factor", &ui.zoom_step_factor, 1., 5.);
-  parse_keyval_boolean("general", "view_continuous", &ui.view_continuous);
+  parse_keyval_enum("general", "view_continuous", &ui.view_continuous, view_mode_names, 3);
   parse_keyval_boolean("general", "use_xinput", &ui.allow_xinput);
   parse_keyval_boolean("general", "discard_corepointer", &ui.discard_corepointer);
   parse_keyval_boolean("general", "ignore_other_devices", &ui.ignore_other_devices);

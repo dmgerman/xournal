@@ -71,6 +71,7 @@ create_winMain (void)
   GtkWidget *menuView_menu;
   GSList *viewContinuous_group = NULL;
   GtkWidget *viewContinuous;
+  GtkWidget *viewHorizontal;
   GtkWidget *viewOnePage;
   GtkWidget *separator20;
   GtkWidget *viewFullscreen;
@@ -530,6 +531,12 @@ create_winMain (void)
   gtk_widget_show (viewContinuous);
   gtk_container_add (GTK_CONTAINER (menuView_menu), viewContinuous);
   gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (viewContinuous), TRUE);
+
+  viewHorizontal = gtk_radio_menu_item_new_with_mnemonic (viewContinuous_group, _("Horizontal"));
+  viewContinuous_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (viewHorizontal));
+  gtk_widget_show (viewHorizontal);
+  gtk_container_add (GTK_CONTAINER (menuView_menu), viewHorizontal);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (viewHorizontal), TRUE);
 
   viewOnePage = gtk_radio_menu_item_new_with_mnemonic (viewContinuous_group, _("_One Page"));
   viewContinuous_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (viewOnePage));
@@ -2065,6 +2072,9 @@ create_winMain (void)
   g_signal_connect ((gpointer) viewContinuous, "toggled",
                     G_CALLBACK (on_viewContinuous_activate),
                     NULL);
+  g_signal_connect ((gpointer) viewHorizontal, "toggled",
+                    G_CALLBACK (on_viewHorizontal_activate),
+                    NULL);
   g_signal_connect ((gpointer) viewOnePage, "toggled",
                     G_CALLBACK (on_viewOnePage_activate),
                     NULL);
@@ -2603,6 +2613,7 @@ create_winMain (void)
   GLADE_HOOKUP_OBJECT (winMain, menuView, "menuView");
   GLADE_HOOKUP_OBJECT (winMain, menuView_menu, "menuView_menu");
   GLADE_HOOKUP_OBJECT (winMain, viewContinuous, "viewContinuous");
+  GLADE_HOOKUP_OBJECT (winMain, viewHorizontal, "viewHorizontal");
   GLADE_HOOKUP_OBJECT (winMain, viewOnePage, "viewOnePage");
   GLADE_HOOKUP_OBJECT (winMain, separator20, "separator20");
   GLADE_HOOKUP_OBJECT (winMain, viewFullscreen, "viewFullscreen");

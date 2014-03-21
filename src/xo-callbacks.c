@@ -919,44 +919,48 @@ on_editDelete_activate                 (GtkMenuItem     *menuitem,
   selection_delete();
 }
 
+void do_view_modeswitch(int view_mode)
+{
+  GtkAdjustment *v_adj, *h_adj;
+  double xscroll, yscroll;
+  struct Page *pg;
+
+  if (ui.view_continuous == view_mode) return;
+  ui.view_continuous = view_mode;
+  v_adj = gtk_layout_get_vadjustment(GTK_LAYOUT(canvas));
+  h_adj = gtk_layout_get_hadjustment(GTK_LAYOUT(canvas));
+  pg = ui.cur_page;
+  yscroll = gtk_adjustment_get_value(v_adj) - pg->voffset*ui.zoom;
+  xscroll = gtk_adjustment_get_value(h_adj) - pg->hoffset*ui.zoom;
+  update_page_stuff();
+  gtk_adjustment_set_value(v_adj, yscroll + pg->voffset*ui.zoom);
+  gtk_adjustment_set_value(h_adj, xscroll + pg->hoffset*ui.zoom);
+  // force a refresh
+  gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
+}
 
 void
 on_viewContinuous_activate             (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  GtkAdjustment *v_adj;
-  double yscroll;
-  struct Page *pg;
-
   if (!gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem))) return;
-  if (ui.view_continuous) return;
-  ui.view_continuous = TRUE;
-  v_adj = gtk_layout_get_vadjustment(GTK_LAYOUT(canvas));
-  pg = ui.cur_page;
-  yscroll = gtk_adjustment_get_value(v_adj) - pg->voffset*ui.zoom;
-  update_page_stuff();
-  gtk_adjustment_set_value(v_adj, yscroll + pg->voffset*ui.zoom);
-  // force a refresh
-  gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
+  do_view_modeswitch(VIEW_MODE_CONTINUOUS);
 }
 
+void
+on_viewHorizontal_activate             (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+  if (!gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem))) return;
+  do_view_modeswitch(VIEW_MODE_HORIZONTAL);
+}
 
 void
 on_viewOnePage_activate                (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  GtkAdjustment *v_adj;
-  double yscroll;
-  
   if (!gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem))) return;
-  if (!ui.view_continuous) return;
-  ui.view_continuous = FALSE;
-  v_adj = gtk_layout_get_vadjustment(GTK_LAYOUT(canvas));
-  yscroll = gtk_adjustment_get_value(v_adj) - ui.cur_page->voffset*ui.zoom;
-  update_page_stuff();
-  gtk_adjustment_set_value(v_adj, yscroll + ui.cur_page->voffset*ui.zoom);
-  // force a refresh
-  gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
+  do_view_modeswitch(VIEW_MODE_ONE_PAGE);
 }
 
 
@@ -2672,7 +2676,7 @@ on_canvas_expose_event                 (GtkWidget       *widget,
                                         GdkEventExpose  *event,
                                         gpointer         user_data)
 {
-  if (ui.view_continuous && ui.progressive_bg) rescale_bg_pixmaps();
+  if (ui.view_continuous!=0 && ui.progressive_bg) rescale_bg_pixmaps();
   return FALSE;
 }
 
@@ -2698,26 +2702,28 @@ on_canvas_key_press_event              (GtkWidget       *widget,
     else return FALSE;
   }
   
-  /* In single page mode, switch pages with PgUp/PgDn (or Up/Dn) 
+  /* In single page or horizontal mode, switch pages with PgUp/PgDn (or Up/Dn) 
      when there's nowhere else to go. */
   pgheight = GTK_WIDGET(canvas)->allocation.height;
   adj = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(GET_COMPONENT("scrolledwindowMain")));
 
   if (event->keyval == GDK_Page_Down || event->keyval == GDK_Down) {
-    if (!ui.view_continuous && 
+    if (ui.view_continuous!=VIEW_MODE_CONTINUOUS && 
          (0.96 * ui.zoom * ui.cur_page->height < pgheight ||
           adj->value == adj->upper-pgheight)) 
     {
       end_text();
-      if (ui.pageno < journal.npages-1)
+      if (ui.pageno < journal.npages-1) {
         do_switch_page(ui.pageno+1, TRUE, FALSE);
+        gtk_adjustment_set_value(adj, 0.);
+      }
       return TRUE;
     }
     if (adj->value == adj->upper-pgheight) return TRUE; // don't send focus away
   }
 
   if (event->keyval == GDK_Page_Up || event->keyval == GDK_Up) {
-    if (!ui.view_continuous && 
+    if (ui.view_continuous!=VIEW_MODE_CONTINUOUS && 
          (0.96 * ui.zoom * ui.cur_page->height < pgheight ||
           adj->value == adj->lower))
     {
@@ -2941,7 +2947,7 @@ on_vscroll_changed                     (GtkAdjustment   *adjustment,
   double viewport_top, viewport_bottom;
   struct Page *tmppage;
   
-  if (!ui.view_continuous) return;
+  if (ui.view_continuous!=VIEW_MODE_CONTINUOUS) return;
   
   if (ui.progressive_bg) rescale_bg_pixmaps();
   need_update = FALSE;
@@ -2964,8 +2970,41 @@ on_vscroll_changed                     (GtkAdjustment   *adjustment,
     end_text();
     do_switch_page(ui.pageno, FALSE, FALSE);
   }
-  return;
 }
+
+void
+on_hscroll_changed                     (GtkAdjustment   *adjustment,
+                                        gpointer         user_data)
+{
+  gboolean need_update;
+  double viewport_left, viewport_right;
+  struct Page *tmppage;
+  
+  if (ui.view_continuous!=VIEW_MODE_HORIZONTAL) return;
+  
+  if (ui.progressive_bg) rescale_bg_pixmaps();
+  need_update = FALSE;
+  viewport_left = adjustment->value / ui.zoom;
+  viewport_right = (adjustment->value + adjustment->page_size) / ui.zoom;
+  tmppage = ui.cur_page;
+  while (viewport_left > tmppage->hoffset + tmppage->width) {
+    if (ui.pageno == journal.npages-1) break;
+    need_update = TRUE;
+    ui.pageno++;
+    tmppage = g_list_nth_data(journal.pages, ui.pageno);
+  }
+  while (viewport_right < tmppage->hoffset) {
+    if (ui.pageno == 0) break;
+    need_update = TRUE;
+    ui.pageno--;
+    tmppage = g_list_nth_data(journal.pages, ui.pageno);
+  }
+  if (need_update) {
+    end_text();
+    do_switch_page(ui.pageno, FALSE, FALSE);
+  }
+}
+
 
 void
 on_spinPageNo_value_changed            (GtkSpinButton   *spinbutton,

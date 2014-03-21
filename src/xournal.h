@@ -284,7 +284,8 @@ typedef struct UIData {
   char *filename;
   gchar *default_path; // default path for new notes
   gchar *default_image; // path for previous image
-  gboolean view_continuous, fullscreen, maximize_at_start;
+  gboolean fullscreen, maximize_at_start;
+  int view_continuous; // view mode is continuous ?
   gboolean in_update_page_stuff; // semaphore to avoid scrollbar retroaction
   struct Selection *selection;
   GdkCursor *cursor;
@@ -395,6 +396,9 @@ typedef struct BgPdf {
 // the margin between consecutive pages in continuous view
 #define VIEW_CONTINUOUS_SKIP 20.0
 
+#define VIEW_MODE_ONE_PAGE 0 
+#define VIEW_MODE_CONTINUOUS 1
+#define VIEW_MODE_HORIZONTAL 2
 
 // GLOBAL VARIABLES
 

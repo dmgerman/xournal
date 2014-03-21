@@ -113,19 +113,37 @@ void set_current_page(gdouble *pt)
 
   page_change = FALSE;
   tmppage = ui.cur_page;
-  while (ui.view_continuous && (pt[1] < - VIEW_CONTINUOUS_SKIP)) {
-    if (ui.pageno == 0) break;
-    page_change = TRUE;
-    ui.pageno--;
-    tmppage = g_list_nth_data(journal.pages, ui.pageno);
-    pt[1] += tmppage->height + VIEW_CONTINUOUS_SKIP;
+  if (ui.view_continuous == VIEW_MODE_CONTINUOUS) {
+    while (pt[1] < - VIEW_CONTINUOUS_SKIP) {
+      if (ui.pageno == 0) break;
+      page_change = TRUE;
+      ui.pageno--;
+      tmppage = g_list_nth_data(journal.pages, ui.pageno);
+      pt[1] += tmppage->height + VIEW_CONTINUOUS_SKIP;
+    }
+    while (pt[1] > tmppage->height + VIEW_CONTINUOUS_SKIP) {
+      if (ui.pageno == journal.npages-1) break;
+      pt[1] -= tmppage->height + VIEW_CONTINUOUS_SKIP;
+      page_change = TRUE;
+      ui.pageno++;
+      tmppage = g_list_nth_data(journal.pages, ui.pageno);
+    }
   }
-  while (ui.view_continuous && (pt[1] > tmppage->height + VIEW_CONTINUOUS_SKIP)) {
-    if (ui.pageno == journal.npages-1) break;
-    pt[1] -= tmppage->height + VIEW_CONTINUOUS_SKIP;
-    page_change = TRUE;
-    ui.pageno++;
-    tmppage = g_list_nth_data(journal.pages, ui.pageno);
+  if (ui.view_continuous == VIEW_MODE_HORIZONTAL) {
+    while (pt[0] < - VIEW_CONTINUOUS_SKIP) {
+      if (ui.pageno == 0) break;
+      page_change = TRUE;
+      ui.pageno--;
+      tmppage = g_list_nth_data(journal.pages, ui.pageno);
+      pt[0] += tmppage->width + VIEW_CONTINUOUS_SKIP;
+    }
+    while (pt[0] > tmppage->width + VIEW_CONTINUOUS_SKIP) {
+      if (ui.pageno == journal.npages-1) break;
+      pt[0] -= tmppage->width + VIEW_CONTINUOUS_SKIP;
+      page_change = TRUE;
+      ui.pageno++;
+      tmppage = g_list_nth_data(journal.pages, ui.pageno);
+    }
   }
   if (page_change) do_switch_page(ui.pageno, FALSE, FALSE);
 }
@@ -722,14 +740,25 @@ void update_canvas_bg(struct Page *pg)
 
 gboolean is_visible(struct Page *pg)
 {
-  GtkAdjustment *v_adj;
-  double ytop, ybot;
+  GtkAdjustment *adj;
+  double top, bottom;
   
-  if (!ui.view_continuous) return (pg == ui.cur_page);
-  v_adj = gtk_layout_get_vadjustment(GTK_LAYOUT(canvas));
-  ytop = v_adj->value/ui.zoom;
-  ybot = (v_adj->value + v_adj->page_size) / ui.zoom;
-  return (MAX(ytop, pg->voffset) < MIN(ybot, pg->voffset+pg->height));
+  switch (ui.view_continuous) {
+    case VIEW_MODE_ONE_PAGE: 
+      return (pg == ui.cur_page);
+    case VIEW_MODE_CONTINUOUS:
+      adj = gtk_layout_get_vadjustment(GTK_LAYOUT(canvas));
+      top = adj->value/ui.zoom;
+      bottom = (adj->value + adj->page_size) / ui.zoom;
+      return (MAX(top, pg->voffset) < MIN(bottom, pg->voffset+pg->height));
+    case VIEW_MODE_HORIZONTAL:
+      adj = gtk_layout_get_hadjustment(GTK_LAYOUT(canvas));
+      top = adj->value/ui.zoom;
+      bottom = (adj->value + adj->page_size) / ui.zoom;
+      return (MAX(top, pg->hoffset) < MIN(bottom, pg->hoffset+pg->width));
+  }
+  // uh? not a known case
+  return FALSE;
 }
 
 void rescale_bg_pixmaps(void)
@@ -1304,11 +1333,11 @@ void do_switch_page(int pg, gboolean rescroll, gboolean refresh_all)
   if (ui.progressive_bg) rescale_bg_pixmaps();
  
   if (rescroll) { // scroll and force a refresh
-/* -- this seems to cause some display bugs ??
-    gtk_adjustment_set_value(gtk_layout_get_vadjustment(GTK_LAYOUT(canvas)),
-      ui.cur_page->voffset*ui.zoom);  */
     gnome_canvas_get_scroll_offsets(canvas, &cx, &cy);
-    cy = ui.cur_page->voffset*ui.zoom;
+    if (ui.view_continuous == VIEW_MODE_HORIZONTAL)
+      cx = ui.cur_page->hoffset*ui.zoom;
+    else
+      cy = ui.cur_page->voffset*ui.zoom;
     gnome_canvas_scroll_to(canvas, cx, cy);
     
     if (refresh_all) 
@@ -1326,10 +1355,10 @@ void update_page_stuff(void)
   GList *pglist;
   GtkSpinButton *spin;
   struct Page *pg;
-  double vertpos, maxwidth;
+  double vertpos, maxwidth, horizpos, maxheight;
 
   // move the page groups to their rightful locations or hide them
-  if (ui.view_continuous) {
+  if (ui.view_continuous == VIEW_MODE_CONTINUOUS) {
     vertpos = 0.; 
     maxwidth = 0.;
     for (i=0, pglist = journal.pages; pglist!=NULL; i++, pglist = pglist->next) {
@@ -1345,7 +1374,25 @@ void update_page_stuff(void)
     }
     vertpos -= VIEW_CONTINUOUS_SKIP;
     gnome_canvas_set_scroll_region(canvas, 0, 0, maxwidth, vertpos);
-  } else {
+  } 
+  else if (ui.view_continuous == VIEW_MODE_HORIZONTAL) {
+    horizpos = 0.; 
+    maxheight = 0.;
+    for (i=0, pglist = journal.pages; pglist!=NULL; i++, pglist = pglist->next) {
+      pg = (struct Page *)pglist->data;
+      if (pg->group!=NULL) {
+        pg->hoffset = horizpos; pg->voffset = 0.;
+        gnome_canvas_item_set(GNOME_CANVAS_ITEM(pg->group), 
+            "x", pg->hoffset, "y", pg->voffset, NULL);
+        gnome_canvas_item_show(GNOME_CANVAS_ITEM(pg->group));
+      }
+      horizpos += pg->width + VIEW_CONTINUOUS_SKIP;
+      if (pg->height > maxheight) maxheight = pg->height;
+    }
+    horizpos -= VIEW_CONTINUOUS_SKIP;
+    gnome_canvas_set_scroll_region(canvas, 0, 0, horizpos, maxheight);
+  } 
+  else { // VIEW_MODE_ONE_PAGE
     for (pglist = journal.pages; pglist!=NULL; pglist = pglist->next) {
       pg = (struct Page *)pglist->data;
       if (pg == ui.cur_page && pg->group!=NULL) {
@@ -1390,9 +1437,12 @@ void update_page_stuff(void)
   
   // update the paper-style menu radio buttons
   
-  if (ui.view_continuous)
+  if (ui.view_continuous == VIEW_MODE_CONTINUOUS)
     gtk_check_menu_item_set_active(
        GTK_CHECK_MENU_ITEM(GET_COMPONENT("viewContinuous")), TRUE);
+  else if (ui.view_continuous == VIEW_MODE_HORIZONTAL)
+    gtk_check_menu_item_set_active(
+       GTK_CHECK_MENU_ITEM(GET_COMPONENT("viewHorizontal")), TRUE);
   else
     gtk_check_menu_item_set_active(
        GTK_CHECK_MENU_ITEM(GET_COMPONENT("viewOnePage")), TRUE);

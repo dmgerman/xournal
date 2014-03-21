@@ -10,6 +10,7 @@ This version:
   - fix configure.in for automake-1.13 (Florian Bruhin, Andreas Huettel)
   - Japanese translation (by Hiroshi Saito)
   - smoother icons for eraser and shapes buttons (by Colin Macdonald)
+  - horizontal view mode
 
 Version 0.4.7 (July 4, 2012):
   - insert image tool (based on patches by Victor Saase and Simon Guest)

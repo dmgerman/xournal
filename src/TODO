@@ -12,24 +12,18 @@ List of features to be implemented (not in any particular order)
 - cleanup of undo history (keep track of refcounts, delete old undo)
   save-and-clear-undo ?
 
-- RandR / recalibration awareness? - NOT NEEDED ANYMORE?
-  (e.g. if xinput events are far away from core events, re-query geometry?)
-   or see if removing the GTK bugfix would help? -- e.g. by recalling an
-   internal gtk init function?
-  Also allow for SIGUSR1 to recalibrate (so rotate scripts could pkill
-  xournal). (cf #2944459). Recalibration probably requires talking directly 
-  to X server to query input device geometry and compensate for GTK.
-
-
 - image patch related:
   - paste and selresize don't put rectangle at top
   - need option for image mode to revert to previous tool?
   - optimize storage of embedded images by detecting duplicates (D. German)
+  - paste images should resize/position sensibly, e.g. not paste at location
+      of paste button!
 
 BUGS:
 - lingering issues with synaptics touchpads? (#2872667)
  (todo) - set device to Absolute mode at startup? (GDK doesn't expose API,
           cf XSetDeviceMode() in /usr/include/X11/extensions/XInput.h)
+- lingering issues with Fujitsu, touch, etc. - ButtonPress wrong coordinates
 - color picker into canvas doesn't work in GTK+ 2.16 (should disable
    xinput first?)
 - export to PDF should see cropbox size if smaller, and map the
@@ -64,9 +58,6 @@ https://sourceforge.net/tracker/index.php?func=detail&aid=3447356&group_id=16343
 
 ** patch: ortho/snap (revised Apr 13 2009)
    xournal_ortho_snap_patch_4 (by Josef Pavlicek)
-
-** patch (Ian-Woo Kim): multicolumn mode + LASSO SELECTION
-   xournal_lasso_multipage_zoom_button_20090620.patch
 
 ** autosave patch (Edward Yang) (should fix: optional only, w/ menu + cfgfile
    entries; fix: should clean up autosave.xoj.bg* files too; config interval)
@@ -127,7 +118,6 @@ https://sourceforge.net/tracker/index.php?func=detail&aid=3447356&group_id=16343
 ** UI update (Bob McElrath) -- eliminating status bar, compact layout,
    "compact interface" by default; themes, with line in config file
    to load pixmaps from pixmaps/$THEME/ (see Jan 9, 2009 emails)
-- horizontal mode instead of dual-view / multicolumn ?
 ** "new page before/after" on a PDF bg page should ask: same page, other page of
   PDF file, default paper
 ** should also have in Journal -> Paper style the option "Pdf page ..."
@@ -184,7 +174,6 @@ https://sourceforge.net/tracker/index.php?func=detail&aid=3447356&group_id=16343
   can be extracted
 
 - smoothing of strokes (for users without tablets / with deficient drivers)
-- lasso tool
 - add config option to limit total memory usage for PDF bitmaps
 - ability to select entire page for copy-paste (as bitmap / reorder xournal)
 - copy/paste of an entire page (beware if PDF bg is not compatible!)
@@ -209,8 +198,6 @@ https://sourceforge.net/tracker/index.php?func=detail&aid=3447356&group_id=16343
 - xoj2pdf on command line
 - 'insert blank page after' command (more useful in PDF annot !)
 - load images as bg if given on command-line (as with PDF on commandline)
-- lasso selection tool (see shoffsta patch)
-     (http://shoffsta.afraid.org/Projects/Xournal/)
 - flatten (incl undo/redo...) - enabled only if nlayers>1
 - color chooser (papercolor, pen color); have default colors and a history
   appear as palette in there!
@@ -260,7 +247,7 @@ https://sourceforge.net/tracker/index.php?func=detail&aid=3447356&group_id=16343
   (correlate inertia-normalized strokes in lift to unit cotangent bundle?)
 - option: export to PDF with incremental pages for successive layers
     (for presentations) (Daniel Brugarth 8/18/07)
-- Samuel Hoffstaetter: lasso, gettext localization, sidebar thumbnails, ...
+- Samuel Hoffstaetter: sidebar thumbnails, ...
 - YoYo Siska patch for desktop mode ??
 - Vivek Ayer: rotate paper wrt screen (for environments where display
   rotation doesn't work): gnome_canvas_item_affine_relative(canvas->root, ...)

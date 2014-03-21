@@ -81,6 +81,10 @@ on_viewContinuous_activate             (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
 
 void
+on_viewHorizontal_activate             (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
 on_viewOnePage_activate                (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
 
@@ -454,6 +458,10 @@ on_optionsUseXInput_activate           (GtkMenuItem     *menuitem,
 
 void
 on_vscroll_changed                     (GtkAdjustment   *adjustment,
+                                        gpointer        user_data);
+
+void
+on_hscroll_changed                     (GtkAdjustment   *adjustment,
                                         gpointer        user_data);
 
 void

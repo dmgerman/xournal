@@ -351,6 +351,17 @@
 		  </child>
 
 		  <child>
+		    <widget class="GtkRadioMenuItem" id="viewHorizontal">
+		      <property name="visible">True</property>
+		      <property name="label" translatable="yes">Horizontal</property>
+		      <property name="use_underline">True</property>
+		      <property name="active">True</property>
+		      <property name="group">viewContinuous</property>
+		      <signal name="toggled" handler="on_viewHorizontal_activate" last_modification_time="Wed, 30 Nov 2005 19:31:48 GMT"/>
+		    </widget>
+		  </child>
+
+		  <child>
 		    <widget class="GtkRadioMenuItem" id="viewOnePage">
 		      <property name="visible">True</property>
 		      <property name="label" translatable="yes">_One Page</property>
