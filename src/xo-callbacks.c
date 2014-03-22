@@ -226,14 +226,14 @@ on_fileSaveAs_activate                 (GtkMenuItem     *menuitem,
      
   if (ui.filename!=NULL) {
     gtk_file_chooser_set_filename(GTK_FILE_CHOOSER (dialog), ui.filename);
-    gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (dialog), g_basename(ui.filename));
+    gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (dialog), xo_basename(ui.filename, FALSE));
   } 
   else
   if (bgpdf.status!=STATUS_NOT_INIT && bgpdf.file_domain == DOMAIN_ABSOLUTE 
       && bgpdf.filename != NULL) {
     filename = g_strdup_printf("%s.xoj", bgpdf.filename->s);
     gtk_file_chooser_set_filename(GTK_FILE_CHOOSER (dialog), filename);
-    gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (dialog), g_basename(filename));
+    gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (dialog), xo_basename(filename, FALSE));
     g_free(filename); 
   }
   else {
@@ -342,10 +342,7 @@ on_filePrint_activate                  (GtkMenuItem     *menuitem,
     gtk_print_operation_set_current_page(print, ui.pageno);
     gtk_print_operation_set_show_progress(print, TRUE);
     if (ui.filename!=NULL) {
-      p = g_utf8_strrchr(ui.filename, -1, '/');
-      if (p==NULL) p = ui.filename;
-      else p++;
-      gtk_print_operation_set_job_name(print, p);
+      gtk_print_operation_set_job_name(print, xo_basename(ui.filename, FALSE));
     }
     g_signal_connect (print, "draw_page", G_CALLBACK (print_job_render_page), NULL);
     res = gtk_print_operation_run(print, GTK_PRINT_OPERATION_ACTION_PRINT_DIALOG,
@@ -388,7 +385,7 @@ on_filePrintPDF_activate               (GtkMenuItem     *menuitem,
     else
       in_fn = g_strdup_printf("%s.pdf", ui.filename);
     gtk_file_chooser_set_filename(GTK_FILE_CHOOSER (dialog), in_fn);
-    gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (dialog), g_basename(in_fn));
+    gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (dialog), xo_basename(in_fn, FALSE));
   } else {
     curtime = time(NULL);
     strftime(stime, 30, "%Y-%m-%d-Note-%H-%M.pdf", localtime(&curtime));

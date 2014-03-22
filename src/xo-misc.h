@@ -13,6 +13,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+gchar *xo_basename(gchar *s, gboolean xplatform);
+
 // data manipulation misc functions
 
 struct Page *new_page(struct Page *template);

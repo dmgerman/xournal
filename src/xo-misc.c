@@ -51,6 +51,22 @@ double predef_thickness[NUM_STROKE_TOOLS][THICKNESS_MAX] =
     { 2.83, 2.83, 8.50, 19.84, 19.84 }, // highlighter thicknesses = 1, 3, 7 mm
   };
 
+// my own basename() replacement; allows windows filenames even on linux
+
+gchar *xo_basename(gchar *s, gboolean xplatform)
+{
+  gchar *p;
+
+  p = strrchr(s, G_DIR_SEPARATOR);
+  if (p == NULL && G_DIR_SEPARATOR != '/') p = strrchr(s, '/');
+  if (xplatform && p == NULL && G_DIR_SEPARATOR != '\\') p = strrchr(s, '\\');
+  if (p != NULL) return p+1; // dir separator found
+  if (xplatform || G_DIR_SEPARATOR == '\\') { // windows drive letters
+    if (g_ascii_isalpha(s[0]) && s[1]==':') return s+2;
+  }
+  return s; // whole string
+}
+
 // some manipulation functions
 
 struct Page *new_page(struct Page *template)
@@ -1551,14 +1567,12 @@ void update_file_name(char *filename)
     gtk_window_set_title(GTK_WINDOW (winMain), _("Xournal"));
     return;
   }
-  p = g_utf8_strrchr(filename, -1, '/');
-  if (p == NULL) p = filename; 
-  else p = g_utf8_next_char(p);
+  p = xo_basename(filename, FALSE);
   g_snprintf(tmp, 100, _("Xournal - %s"), p);
   gtk_window_set_title(GTK_WINDOW (winMain), tmp);
   new_mru_entry(filename);
 
-  if (filename[0]=='/') {
+  if (p!=filename) {
     if (ui.default_path!=NULL) g_free(ui.default_path);
     ui.default_path = g_path_get_dirname(filename);
   }

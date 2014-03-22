@@ -913,12 +913,12 @@ gboolean open_journal(char *filename)
     // if file name is invalid: first try in xoj file's directory
     if (!valid && tmpBg_pdf->file_domain != DOMAIN_ATTACH) {
       p = g_path_get_dirname(filename);
-      q = g_path_get_basename(tmpfn);
+      q = xo_basename(tmpfn, TRUE); // xoj may specify a cross-platform file path
       tmpfn2 = g_strdup_printf("%s/%s", p, q);
-      g_free(p); g_free(q);
+      g_free(p);
       valid = init_bgpdf(tmpfn2, FALSE, tmpBg_pdf->file_domain);
       if (valid) {  // change the file name...
-        printf("substituting %s -> %s\n", tmpfn, tmpfn2);
+//      printf("substituting %s -> %s\n", tmpfn, tmpfn2);
         g_free(tmpBg_pdf->filename->s);
         tmpBg_pdf->filename->s = tmpfn2;
       }
@@ -1412,7 +1412,7 @@ void update_mru_menu(void)
   for (i=0; i<MRU_SIZE; i++) {
     if (ui.mru[i]!=NULL) {
       tmp = g_strdup_printf("_%d %s", i+1,
-               g_strjoinv("__", g_strsplit_set(g_basename(ui.mru[i]),"_",-1)));
+               g_strjoinv("__", g_strsplit_set(xo_basename(ui.mru[i], FALSE),"_",-1)));
       gtk_label_set_text_with_mnemonic(GTK_LABEL(gtk_bin_get_child(GTK_BIN(ui.mrumenu[i]))),
           tmp);
       g_free(tmp);
