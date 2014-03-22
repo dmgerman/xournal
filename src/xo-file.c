@@ -38,6 +38,7 @@
 
 #include "xournal.h"
 #include "xo-callbacks.h"
+#include "xo-bookmarks.h"
 #include "xo-misc.h"
 #include "xo-file.h"
 #include "xo-paint.h"
@@ -69,6 +70,7 @@ void new_journal(void)
   ui.saved = TRUE;
   ui.filename = NULL;
   update_file_name(NULL);
+  xo_bookmarks_(bookmark_liststore);
 }
 
 // check attachment names
@@ -265,6 +267,19 @@ gboolean save_journal(const char *filename)
             item->bbox.left, item->bbox.top, item->bbox.right, item->bbox.bottom);
           if (!write_image(f, item)) success = FALSE;
           gzprintf(f, "</image>\n");
+        }
+        if (item->type == ITEM_BOOKMARK) {
+            gzprintf(f, "<bookmark position=\"%.2f\" pageno=\"%d\">",
+                item->item->bbox.top, item->bookmarkPage);
+            // Sanitize the user-input title and save it
+            tmpstr = g_markup_escape_text(item->bookmarkTitle, -1);
+            gzputs(f, tmpstr);
+            g_free(tmpstr);
+            gzprintf(f, "</bookmark>\n");
+          } else {
+            // Unable to find list store entry
+            success = FALSE;
+          }
         }
       }
       gzprintf(f, "</layer>\n");
@@ -697,6 +712,47 @@ void xoj_parser_start_element(GMarkupParseContext *context,
       attribute_values++;
     }
     if (has_attr!=15) *error = xoj_invalid();
+  }  else if (!strcmp(element_name, "bookmark")) { // start of a bookmark item
+    if (tmpLayer == NULL || tmpItem != NULL) {
+      *error = xoj_invalid();
+      return;
+    }
+    tmpItem = (struct Item *)g_malloc0(sizeof(struct Item));
+    tmpItem->type = ITEM_BOOKMARK;
+    tmpItem->canvas_item = NULL;
+    tmpLayer->items = g_list_append(tmpLayer->items, tmpItem);
+    tmpLayer->nitems++;
+
+    gint page_num;
+    // scan for bookmark attributes
+    has_attr = 0;
+    while (*attribute_names!=NULL) {
+      if (!strcmp(*attribute_names, "position")) {
+        if (has_attr & 2) *error = xoj_invalid();
+        cleanup_numeric((gchar *)*attribute_values);
+        tmpItem->bbox.left = g_ascii_strtod(*attribute_values, &ptr);
+        if (ptr == *attribute_values) *error = xoj_invalid();
+        has_attr |= 2;
+      } else if (!strcmp(*attribute_names, "pageno")) {
+        if (has_attr & 1) *error = xoj_invalid();
+        cleanup_numeric((gchar *)*attribute_values);
+        page_num = g_ascii_strtod(*attribute_values, &ptr);
+        if (ptr == *attribute_values) *error = xoj_invalid();
+        has_attr |= 1;
+      } else {
+        *error = xoj_invalid();
+      }
+      attribute_names++;
+      attribute_values++;
+    }
+    if (has_attr!=3) {
+      *error = xoj_invalid();
+      return;
+    }
+    // Make the bookmark liststore entry with a temporary title (gets set later in load process)
+
+    tmpItem = xo_bookmark_create("", page_num.... see README.org
+    add_bookmark_liststore_entry(tmpBookmarkStore, tmpItem, "", page_num, tmpLayer);
   }
 }
 
@@ -740,6 +796,14 @@ void xoj_parser_end_element(GMarkupParseContext *context,
     }
     tmpItem = NULL;
   }
+  if (strcmp(element_name, "bookmark") == 0) {
+    if (tmpItem == NULL) {
+      *error = xoj_invalid();
+      return;
+    }
+    tmpItem = NULL;
+  }
+
 }
 
 void xoj_parser_text(GMarkupParseContext *context,
@@ -779,6 +843,10 @@ void xoj_parser_text(GMarkupParseContext *context,
   }
   if (!strcmp(element_name, "image")) {
     tmpItem->image = read_pixbuf(text, text_len);
+  }
+  if (!strcmp(element_name, "bookmark")) {
+    // Set the title of the bookmark as saved in the XOJ file
+    xo_bookmark_title_update(tmpItem, text);
   }
 }
 

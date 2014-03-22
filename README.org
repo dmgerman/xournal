@@ -1,5 +1,12 @@
 #+STARTUP: showall
 
+* TODO: bookmarks
+
+- where do we keep the state of the bookmarks? in the bookmark or somewhere else?
+- if the bookmark, the bookmark must know the location
+- if in the interface, then the bookmark does not need to know its location
+
+
 * This is next branch  of Xournal
 
 This repository is to host features of xournal that are considered
