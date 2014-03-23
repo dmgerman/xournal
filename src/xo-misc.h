@@ -151,3 +151,8 @@ gint wrapper_gtk_dialog_run(GtkDialog *dialog);
 #define RULING_SPACING 24.0
 #define RULING_BOTTOMMARGIN RULING_SPACING
 #define RULING_GRAPHSPACING 14.17
+
+void
+xo_display_error(gchar *message);
+void
+xo_layer_active_set(gint value);

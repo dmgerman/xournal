@@ -25,6 +25,7 @@
 #include <time.h>
 #include <glib/gstdio.h>
 #include <gdk/gdkkeysyms.h>
+#include <assert.h>
 
 #include "xournal.h"
 #include "xo-callbacks.h"
@@ -38,6 +39,8 @@
 #include "xo-shapes.h"
 #include "xo-clipboard.h"
 #include "xo-image.h"
+
+
 
 void
 on_fileNew_activate                    (GtkMenuItem     *menuitem,
@@ -582,6 +585,19 @@ on_editUndo_activate                   (GtkMenuItem     *menuitem,
     undo->page->nlayers--;
     do_switch_page(ui.pageno, FALSE, FALSE); // don't stay with bad cur_layer info
   }
+  else if (undo->type == ITEM_MOVE_LAYER_DOWN) {
+    // move the layer up one
+    struct Layer *otherL;
+
+    otherL = g_list_nth_data(undo->page->layers, undo->val);
+    undo->page->layers = g_list_remove(undo->page->layers, undo->layer);
+    undo->page->layers = g_list_insert(undo->page->layers, undo->layer, undo->val);
+    lower_canvas_item_to(undo->page->group, GNOME_CANVAS_ITEM(undo->layer->group), GNOME_CANVAS_ITEM(otherL->group));
+
+    if (ui.pageno != undo->pageNumber)
+      do_switch_page(undo->pageNumber, TRUE, TRUE);
+    xo_layer_active_set(undo->val);
+  }
   else if (undo->type == ITEM_DELETE_LAYER) {
     // special case of -1: deleted the last layer, created a new one
     if (undo->val == -1) {
@@ -804,6 +820,20 @@ on_editRedo_activate                   (GtkMenuItem     *menuitem,
     redo->page->layers = g_list_insert(redo->page->layers, redo->layer, redo->val);
     redo->page->nlayers++;
     do_switch_page(ui.pageno, FALSE, FALSE);
+  }
+  else if (redo->type == ITEM_MOVE_LAYER_DOWN) {
+    // move it down
+    struct Layer *otherL;
+
+    otherL = g_list_nth_data(redo->page->layers, redo->val-1);
+    redo->page->layers = g_list_remove(redo->page->layers, redo->layer);
+    redo->page->layers = g_list_insert(redo->page->layers, redo->layer, redo->val-1);
+    lower_canvas_item_to(redo->page->group, GNOME_CANVAS_ITEM(otherL->group),GNOME_CANVAS_ITEM(redo->layer->group));
+
+    if (ui.pageno != undo->pageNumber)
+      do_switch_page(undo->pageNumber, TRUE, TRUE);
+    xo_layer_active_set(redo->val-1);
+
   }
   else if (redo->type == ITEM_DELETE_LAYER) {
     gtk_object_destroy(GTK_OBJECT(redo->layer->group));
@@ -1204,6 +1234,45 @@ on_journalNewLayer_activate            (GtkMenuItem     *menuitem,
   undo->page = ui.cur_page;  
 }
 
+G_MODULE_EXPORT void
+on_journalMoveLayerDown_activate            (GtkMenuItem     *menuitem,
+					     gpointer         user_data)
+{
+  struct Layer *l;
+  struct Layer *otherL;
+
+  reset_focus();
+
+  if (ui.layerno < 1) {
+    xo_display_error(_("Background layer cannot be replaced"));
+    return;
+  }
+  // we only need to reorder layers in list
+  // and change their stacking
+  fprintf(stderr, "Current layer %d\n", ui.layerno);
+  l = g_list_nth_data(ui.cur_page->layers, ui.layerno);
+  otherL = g_list_nth_data(ui.cur_page->layers, ui.layerno-1);
+
+  ui.layerno--;
+
+  ui.cur_page->layers = g_list_remove(ui.cur_page->layers,l);
+  ui.cur_page->layers = g_list_insert(ui.cur_page->layers, l, ui.layerno);
+
+//  lower_canvas_item_to(ui.cur_page->group, GNOME_CANVAS_ITEM(l->group), GNOME_CANVAS_ITEM(otherL->group));
+  lower_canvas_item_to(ui.cur_page->group, GNOME_CANVAS_ITEM(otherL->group), GNOME_CANVAS_ITEM(l->group));
+
+
+  prepare_new_undo();
+  undo->type = ITEM_MOVE_LAYER_DOWN;
+  undo->val = ui.layerno+1;
+  undo->layer = l;
+  undo->page = ui.cur_page;
+  undo->pageNumber = ui.pageno;
+
+  xo_layer_active_set(ui.layerno);
+
+
+}
 
 void
 on_journalDeleteLayer_activate         (GtkMenuItem     *menuitem,
@@ -2914,22 +2983,11 @@ on_comboLayer_changed                  (GtkComboBox     *combobox,
   end_text();
 
   val = gtk_combo_box_get_active(combobox);
-  if (val == -1) return;
-  val = ui.cur_page->nlayers-1-val;
-  if (val == ui.layerno) return;
 
-  reset_selection();
-  while (val>ui.layerno) {
-    ui.layerno++;
-    ui.cur_layer = g_list_nth_data(ui.cur_page->layers, ui.layerno);
-    gnome_canvas_item_show(GNOME_CANVAS_ITEM(ui.cur_layer->group));
-  }
-  while (val<ui.layerno) {
-    gnome_canvas_item_hide(GNOME_CANVAS_ITEM(ui.cur_layer->group));
-    ui.layerno--;
-    if (ui.layerno<0) ui.cur_layer = NULL;
-    else ui.cur_layer = g_list_nth_data(ui.cur_page->layers, ui.layerno);
-  }
+  val = ui.cur_page->nlayers - 1 - val;
+
+  xo_layer_active_set(val);
+
   update_page_stuff();
 }
 
@@ -3745,6 +3803,33 @@ on_optionsAutoSavePrefs_activate       (GtkMenuItem     *menuitem,
   end_text();
   ui.auto_save_prefs = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem));
 }
+
+
+G_MODULE_EXPORT void
+on_viewDisplayLayersAbovePrefs_activate       (GtkMenuItem     *menuitem,
+                                               gpointer         user_data)
+{
+  int i = 0;
+  struct Layer *layer;
+
+  ui.display_layers_above = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem));
+
+  end_text();
+  reset_selection();
+
+  // layers below should be visible, so only update those above
+  i = ui.layerno+1;
+  while (i < ui.cur_page->nlayers) {
+    layer = g_list_nth_data(ui.cur_page->layers, i);
+    if (ui.display_layers_above) {
+      gnome_canvas_item_show(GNOME_CANVAS_ITEM(layer->group));
+    } else {
+      gnome_canvas_item_hide(GNOME_CANVAS_ITEM(layer->group));
+    }
+    i++;
+  }
+}
+
 
 void
 on_optionsPressureSensitive_activate   (GtkMenuItem     *menuitem,

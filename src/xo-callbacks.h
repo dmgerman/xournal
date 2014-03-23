@@ -153,6 +153,10 @@ on_journalDeleteLayer_activate         (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
 
 void
+on_journalMoveLayerDown_activate            (GtkMenuItem     *menuitem,
+					     gpointer         user_data);
+
+void
 on_journalFlatten_activate             (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
 
@@ -645,6 +649,10 @@ on_optionsShortenMenus_activate        (GtkMenuItem     *menuitem,
 void
 on_optionsAutoSavePrefs_activate       (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
+
+void
+on_viewDisplayLayersAbovePrefs_activate       (GtkMenuItem     *menuitem,
+						  gpointer         user_data);
 
 void
 on_toolsReco_activate                  (GtkMenuItem     *menuitem,

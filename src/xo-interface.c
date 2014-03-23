@@ -63,6 +63,7 @@ create_winMain (void)
   GtkWidget *editUndo;
   GtkWidget *editRedo;
   GtkWidget *separator3;
+  GtkWidget *separator30;
   GtkWidget *editCut;
   GtkWidget *editCopy;
   GtkWidget *editPaste;
@@ -108,6 +109,7 @@ create_winMain (void)
   GtkWidget *separator7;
   GtkWidget *journalNewLayer;
   GtkWidget *journalDeleteLayer;
+  GtkWidget *journalMoveLayerDown;
   GtkWidget *journalFlatten;
   GtkWidget *separator8;
   GtkWidget *journalPaperSize;
@@ -263,6 +265,7 @@ create_winMain (void)
   GtkWidget *optionsPenCursor;
   GtkWidget *separator21;
   GtkWidget *optionsAutoSavePrefs;
+  GtkWidget *optionsDisplayLayersAbovePrefs;
   GtkWidget *optionsSavePreferences;
   GtkWidget *menuHelp;
   GtkWidget *menuHelp_menu;
@@ -722,6 +725,10 @@ create_winMain (void)
   journalDeleteLayer = gtk_menu_item_new_with_mnemonic (_("Delete La_yer"));
   gtk_widget_show (journalDeleteLayer);
   gtk_container_add (GTK_CONTAINER (menuJournal_menu), journalDeleteLayer);
+
+  journalMoveLayerDown = gtk_menu_item_new_with_mnemonic (_("Move Layer Down"));
+  gtk_widget_show (journalMoveLayerDown);
+  gtk_container_add (GTK_CONTAINER (menuJournal_menu), journalMoveLayerDown);
 
   journalFlatten = gtk_menu_item_new_with_mnemonic (_("_Flatten"));
   gtk_widget_show (journalFlatten);
@@ -1463,6 +1470,15 @@ create_winMain (void)
   gtk_container_add (GTK_CONTAINER (menuOptions_menu), separator21);
   gtk_widget_set_sensitive (separator21, FALSE);
 
+  optionsDisplayLayersAbovePrefs = gtk_check_menu_item_new_with_mnemonic (_("Display Layers Above"));
+  gtk_widget_show (optionsDisplayLayersAbovePrefs);
+  gtk_container_add (GTK_CONTAINER (menuOptions_menu), optionsDisplayLayersAbovePrefs);
+
+  separator30 = gtk_separator_menu_item_new ();
+  gtk_widget_show (separator30);
+  gtk_container_add (GTK_CONTAINER (menuOptions_menu), separator30);
+  gtk_widget_set_sensitive (separator30, FALSE);
+
   optionsAutoSavePrefs = gtk_check_menu_item_new_with_mnemonic (_("A_uto-Save Preferences"));
   gtk_widget_show (optionsAutoSavePrefs);
   gtk_container_add (GTK_CONTAINER (menuOptions_menu), optionsAutoSavePrefs);
@@ -2179,6 +2195,11 @@ create_winMain (void)
   g_signal_connect ((gpointer) journalDeleteLayer, "activate",
                     G_CALLBACK (on_journalDeleteLayer_activate),
                     NULL);
+
+  g_signal_connect ((gpointer) journalMoveLayerDown, "activate",
+                    G_CALLBACK (on_journalMoveLayerDown_activate),
+                    NULL);
+
   g_signal_connect ((gpointer) journalFlatten, "activate",
                     G_CALLBACK (on_journalFlatten_activate),
                     NULL);
@@ -2479,6 +2500,9 @@ create_winMain (void)
   g_signal_connect ((gpointer) optionsAutoSavePrefs, "toggled",
                     G_CALLBACK (on_optionsAutoSavePrefs_activate),
                     NULL);
+  g_signal_connect ((gpointer) optionsDisplayLayersAbovePrefs, "toggled",
+                    G_CALLBACK (on_viewDisplayLayersAbovePrefs_activate),
+                    NULL);
   g_signal_connect ((gpointer) optionsSavePreferences, "activate",
                     G_CALLBACK (on_optionsSavePreferences_activate),
                     NULL);
@@ -2715,6 +2739,7 @@ create_winMain (void)
   GLADE_HOOKUP_OBJECT (winMain, separator7, "separator7");
   GLADE_HOOKUP_OBJECT (winMain, journalNewLayer, "journalNewLayer");
   GLADE_HOOKUP_OBJECT (winMain, journalDeleteLayer, "journalDeleteLayer");
+  GLADE_HOOKUP_OBJECT (winMain, journalMoveLayerDown, "journalMoveLayerDown");
   GLADE_HOOKUP_OBJECT (winMain, journalFlatten, "journalFlatten");
   GLADE_HOOKUP_OBJECT (winMain, separator8, "separator8");
   GLADE_HOOKUP_OBJECT (winMain, journalPaperSize, "journalPaperSize");
@@ -2857,6 +2882,7 @@ create_winMain (void)
   GLADE_HOOKUP_OBJECT (winMain, optionsShortenMenus, "optionsShortenMenus");
   GLADE_HOOKUP_OBJECT (winMain, optionsPenCursor, "optionsPenCursor");
   GLADE_HOOKUP_OBJECT (winMain, separator21, "separator21");
+  GLADE_HOOKUP_OBJECT (winMain, optionsDisplayLayersAbovePrefs, "optionsDisplayLayersAbovePrefs");
   GLADE_HOOKUP_OBJECT (winMain, optionsAutoSavePrefs, "optionsAutoSavePrefs");
   GLADE_HOOKUP_OBJECT (winMain, optionsSavePreferences, "optionsSavePreferences");
   GLADE_HOOKUP_OBJECT (winMain, menuHelp, "menuHelp");

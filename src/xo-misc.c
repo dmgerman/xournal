@@ -23,6 +23,7 @@
 #include <libgnomecanvas/libgnomecanvas.h>
 #include <gdk/gdkkeysyms.h>
 #include <time.h>
+#include <assert.h>
 
 #include "xournal.h"
 #include "xo-interface.h"
@@ -2554,4 +2555,70 @@ gint wrapper_gtk_dialog_run(GtkDialog *dialog)
     emergency_enable_xinput(GDK_MODE_DISABLED);
   response = gtk_dialog_run(dialog);
   return response;            
+}
+
+void
+xo_display_error(gchar *message)
+{
+  GtkWidget *dialog;
+
+  dialog = gtk_message_dialog_new(GTK_WINDOW(winMain), GTK_DIALOG_MODAL,
+				  GTK_MESSAGE_WARNING, GTK_BUTTONS_OK, "%s", message);
+  gtk_dialog_run(GTK_DIALOG(dialog));
+  gtk_widget_destroy(dialog);
+}
+
+void
+xo_layer_active_set(gint layerIndex)
+{
+  GtkWidget     *comboBox =  GET_COMPONENT("comboLayer");
+  int val;
+  int save = ui.in_update_page_stuff;
+  int i;
+  Layer *l = NULL;
+  assert(comboBox != NULL);
+
+  // IF layerindex == -1 then set the layer to NULL (background)
+  //
+
+  // avoid recursion due to callback of combobox
+  if (ui.in_update_page_stuff)
+    return;
+
+  if (layerIndex < -1 ||
+      layerIndex >= ui.cur_page->nlayers) {
+    fprintf(stderr,"illegal value [%d][%d]\n", ui.cur_page->nlayers, layerIndex);
+    return;
+  }
+
+  ui.in_update_page_stuff = TRUE;
+
+  // show layers below
+
+  for(i=0;i<=layerIndex;i++) {
+    l = g_list_nth_data(ui.cur_page->layers, i);
+    gnome_canvas_item_show(GNOME_CANVAS_ITEM(l->group));
+  }
+
+  ui.layerno = layerIndex;
+  ui.cur_layer = l;
+
+  for(i=layerIndex+1;i<ui.cur_page->nlayers;i++) {
+    l = g_list_nth_data(ui.cur_page->layers, i);
+    if (!ui.display_layers_above)  {
+      gnome_canvas_item_hide(GNOME_CANVAS_ITEM(l->group));
+    } else {
+      gnome_canvas_item_show(GNOME_CANVAS_ITEM(l->group));
+    }
+  }
+
+  // now update combo box
+
+  val = ui.cur_page->nlayers - 1 - layerIndex;
+  gtk_combo_box_set_active(GTK_COMBO_BOX(comboBox), val);
+
+
+ end:
+  ui.in_update_page_stuff = save;
+
 }
