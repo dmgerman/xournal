@@ -467,6 +467,12 @@ void get_pointer_coords(GdkEvent *event, gdouble *ret)
   gnome_canvas_window_to_world(canvas, x, y, ret, ret+1);
   ret[0] -= ui.cur_page->hoffset;
   ret[1] -= ui.cur_page->voffset;
+
+  if (ui.snap_to_grid) {
+    // this means we have to "round" the values to the closest grid intersection.
+    ret[0] = round(ret[0] / ui.grid_separation) * ui.grid_separation;
+    ret[1] = round(ret[1] / ui.grid_separation) * ui.grid_separation;
+  }
 }
 
 void get_current_pointer_coords(gdouble *ret)

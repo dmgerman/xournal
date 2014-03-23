@@ -2267,6 +2267,19 @@ on_toolsRuler_activate                 (GtkMenuItem     *menuitem,
   update_ruler_indicator();
 }
 
+G_MODULE_EXPORT void
+on_toolsSnapToGrid_activate                 (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+
+  if (GTK_OBJECT_TYPE(menuitem) == GTK_TYPE_CHECK_MENU_ITEM)
+    ui.snap_to_grid = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem));
+  else
+    return; // get ready to have a button (to be implemented XXXX)
+
+}
+
+
 
 void
 on_toolsReco_activate                  (GtkMenuItem *menuitem,

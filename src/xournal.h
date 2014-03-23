@@ -350,6 +350,8 @@ typedef struct UIData {
 #endif
   gboolean poppler_force_cairo; // force poppler to use cairo
   gboolean warned_generate_fontconfig; // for win32 fontconfig cache
+  gboolean snap_to_grid;        // force points to snap to a given grid
+  gdouble grid_separation;        // distance between grip in point
 } UIData;
 
 #define BRUSH_LINKED 0
