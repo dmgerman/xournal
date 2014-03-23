@@ -217,6 +217,7 @@ typedef struct Item {
 #define ITEM_RECOGNIZER 23
 #define ITEM_IMAGE 24
 #define ITEM_SELECTREGION 25
+#define ITEM_MOVE_LAYER_DOWN 26
 
 typedef struct Layer {
   GList *items; // the items on the layer, from bottom to top
@@ -346,6 +347,7 @@ typedef struct UIData {
 #endif
   gboolean poppler_force_cairo; // force poppler to use cairo
   gboolean warned_generate_fontconfig; // for win32 fontconfig cache
+  gboolean display_layers_above; // if true displays all layers above currently selected one
 } UIData;
 
 #define BRUSH_LINKED 0
@@ -369,8 +371,9 @@ typedef struct UndoItem {
   GList *itemlist;  // for ITEM_MOVESEL, ITEM_PASTE, ITEM_REPAINTSEL, ITEM_RESIZESEL
   GList *auxlist;   // for ITEM_REPAINTSEL (brushes), ITEM_MOVESEL (depths)
   struct Background *bg;  // for ITEM_NEW_BG_ONE/RESIZE, ITEM_NEW_DEFAULT_BG
-  int val; // for ITEM_NEW_PAGE, ITEM_NEW_LAYER, ITEM_DELETE_LAYER, ITEM_DELETE_PAGE
+  int val; // for ITEM_NEW_PAGE, ITEM_NEW_LAYER, ITEM_DELETE_LAYER, ITEM_DELETE_PAGE, ITEM_MOVE_LAYER_DOWN
   double val_x, val_y; // for ITEM_MOVESEL, ITEM_NEW_BG_RESIZE, ITEM_PAPER_RESIZE, ITEM_NEW_DEFAULT_BG, ITEM_TEXT_ATTRIB, ITEM_RESIZESEL
+  int pageNumber; //ITEM_MOVE_LAYER_DOWN
   double scaling_x, scaling_y; // for ITEM_RESIZESEL
   gchar *str; // for ITEM_TEXT_EDIT, ITEM_TEXT_ATTRIB
   struct Brush *brush; // for ITEM_TEXT_ATTRIB
