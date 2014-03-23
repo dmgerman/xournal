@@ -149,6 +149,7 @@ create_winMain (void)
   GtkWidget *separator15;
   GtkWidget *toolsReco;
   GtkWidget *toolsRuler;
+  GtkWidget *toolsSnapToGrid;
   GtkWidget *separator9;
   GtkWidget *toolsSelectRegion;
   GtkWidget *toolsSelectRectangle;
@@ -928,6 +929,15 @@ create_winMain (void)
   gtk_widget_add_accelerator (toolsRuler, "activate", accel_group,
                               GDK_L, (GdkModifierType) GDK_CONTROL_MASK | GDK_SHIFT_MASK,
                               GTK_ACCEL_VISIBLE);
+
+  toolsSnapToGrid = gtk_check_menu_item_new_with_mnemonic (_("Snap to Gri_d"));
+  gtk_widget_show (toolsSnapToGrid);
+  gtk_container_add (GTK_CONTAINER (menuTools_menu), toolsSnapToGrid);
+  gtk_widget_add_accelerator (toolsSnapToGrid, "activate", accel_group,
+                              GDK_D, (GdkModifierType) GDK_CONTROL_MASK | GDK_SHIFT_MASK,
+                              GTK_ACCEL_VISIBLE);
+
+
 
   separator9 = gtk_separator_menu_item_new ();
   gtk_widget_show (separator9);
@@ -2253,6 +2263,9 @@ create_winMain (void)
                     NULL);
   g_signal_connect ((gpointer) toolsRuler, "toggled",
                     G_CALLBACK (on_toolsRuler_activate),
+                    NULL);
+  g_signal_connect ((gpointer) toolsSnapToGrid, "toggled",
+                    G_CALLBACK (on_toolsSnapToGrid_activate),
                     NULL);
   g_signal_connect ((gpointer) toolsSelectRegion, "toggled",
                     G_CALLBACK (on_toolsSelectRegion_activate),

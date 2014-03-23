@@ -377,6 +377,10 @@ on_toolsRuler_activate                 (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
 
 void
+on_toolsSnapToGrid_activate                 (GtkMenuItem     *menuitem,
+					     gpointer         user_data);
+
+void
 on_optionsSavePreferences_activate     (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
 
