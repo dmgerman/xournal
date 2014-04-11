@@ -1505,6 +1505,8 @@ void init_config_default(void)
   ui.button_switch_mapping = FALSE;
   ui.autoload_pdf_xoj = FALSE;
   ui.poppler_force_cairo = FALSE;
+  ui.touch_as_handtool = FALSE;
+  ui.device_for_touch = DEFAULT_DEVICE_FOR_TOUCH;
   
   // the default UI vertical order
   ui.vertical_order[0][0] = 1; 
@@ -1521,6 +1523,7 @@ void init_config_default(void)
   for (i=1; i<=NUM_BUTTONS; i++) {
     ui.toolno[i] = TOOL_ERASER;
   }
+  ui.toolno[NUM_BUTTONS+1] = TOOL_HAND; // special hand mapping
   for (i=0; i<=NUM_BUTTONS; i++)
     ui.linked_brush[i] = BRUSH_LINKED;
   ui.brushes[0][TOOL_PEN].color_no = COLOR_BLACK;
@@ -1638,6 +1641,12 @@ void save_config_to_file(void)
   update_keyval("general", "use_erasertip",
     _(" always map eraser tip to eraser (true/false)"),
     g_strdup(ui.use_erasertip?"true":"false"));
+  update_keyval("general", "touchscreen_as_hand_tool",
+    _(" always map touchscreen device to hand tool (true/false) (requires separate pen and touch devices)"),
+    g_strdup(ui.touch_as_handtool?"true":"false"));
+  update_keyval("general", "touchscreen_device_name",
+    _(" name of touchscreen device for touchscreen_as_hand_tool"),
+    g_strdup(ui.device_for_touch));
   update_keyval("general", "buttons_switch_mappings",
     _(" buttons 2 and 3 switch mappings instead of drawing (useful for some tablets) (true/false)"),
     g_strdup(ui.button_switch_mapping?"true":"false"));
@@ -1944,7 +1953,7 @@ gboolean parse_keyval_boolean(const gchar *group, const gchar *key, gboolean *va
   if (!g_ascii_strcasecmp(ret, "false")) 
     { *val = FALSE; g_free(ret); return TRUE; }
   g_free(ret);
-  return FALSE;
+  return TRUE;
 }
 
 gboolean parse_keyval_string(const gchar *group, const gchar *key, gchar **val)
@@ -2033,6 +2042,9 @@ void load_config_from_file(void)
   parse_keyval_boolean("general", "discard_corepointer", &ui.discard_corepointer);
   parse_keyval_boolean("general", "ignore_other_devices", &ui.ignore_other_devices);
   parse_keyval_boolean("general", "use_erasertip", &ui.use_erasertip);
+  parse_keyval_boolean("general", "touchscreen_as_hand_tool", &ui.touch_as_handtool);
+  if (parse_keyval_string("general", "touchscreen_device_name", &str))
+    if (str!=NULL) ui.device_for_touch = str;
   parse_keyval_boolean("general", "buttons_switch_mappings", &ui.button_switch_mapping);
   parse_keyval_boolean("general", "autoload_pdf_xoj", &ui.autoload_pdf_xoj);
   parse_keyval_string("general", "default_path", &ui.default_path);

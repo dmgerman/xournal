@@ -2474,7 +2474,9 @@ on_canvas_button_press_event           (GtkWidget       *widget,
   ui.stroke_device = event->device;
 
   if (ui.use_erasertip && event->device->source == GDK_SOURCE_ERASER)
-    mapping = NUM_BUTTONS;
+    mapping = NUM_BUTTONS; // eraser mapping
+  else if (ui.touch_as_handtool && strstr(event->device->name, ui.device_for_touch) != NULL)
+    mapping = NUM_BUTTONS+1; // hand mapping
   else if (ui.button_switch_mapping) {
     mapping = ui.cur_mapping;
     if (!mapping && (event->state & GDK_BUTTON2_MASK)) mapping = 1;
@@ -2521,12 +2523,15 @@ on_canvas_button_press_event           (GtkWidget       *widget,
   if (start_resizesel((GdkEvent *)event)) return FALSE;
   if (start_movesel((GdkEvent *)event)) return FALSE;
   
-  if (ui.toolno[mapping] != TOOL_SELECTREGION && ui.toolno[mapping] != TOOL_SELECTRECT)
+  if (ui.toolno[mapping] != TOOL_SELECTREGION && 
+      ui.toolno[mapping] != TOOL_SELECTRECT &&
+      ui.toolno[mapping] != TOOL_HAND)
     reset_selection();
 
   // process the event
   
   if (ui.toolno[mapping] == TOOL_HAND) {
+
     ui.cur_item_type = ITEM_HAND;
     get_pointer_coords((GdkEvent *)event, ui.hand_refpt);
     ui.hand_refpt[0] += ui.cur_page->hoffset;
@@ -3727,3 +3732,13 @@ on_optionsPenCursor_activate           (GtkCheckMenuItem *checkmenuitem,
   ui.pen_cursor = gtk_check_menu_item_get_active(checkmenuitem);
   update_cursor();
 }
+
+
+void
+on_optionsTouchAsHandTool_activate     (GtkMenuItem     *menuitem,  
+                                        gpointer         user_data)
+{
+  end_text();
+  ui.touch_as_handtool = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem));
+}
+

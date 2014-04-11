@@ -60,6 +60,14 @@
 
 #define VBOX_MAIN_NITEMS 5 // number of interface items in vboxMain
 
+// default touch device
+// (FIXME: in Windows, "touch as hand tool" will kill all devices except stylus)
+#ifdef WIN32
+#define DEFAULT_DEVICE_FOR_TOUCH "Core Pointer"
+#else
+#define DEFAULT_DEVICE_FOR_TOUCH "touch"
+#endif
+
 /* a string (+ aux data) that maintains a refcount */
 
 typedef struct Refstring {
@@ -250,13 +258,15 @@ typedef struct UIData {
   struct Layer *cur_layer;
   gboolean saved; // is file saved ?
   struct Brush *cur_brush;  // the brush in use (one of brushes[...])
-  int toolno[NUM_BUTTONS+1];  // the number of the currently selected tool
+  int toolno[NUM_BUTTONS+2];  // the number of the currently selected tool; two more reserved for eraser tip and touch device
   struct Brush brushes[NUM_BUTTONS+1][NUM_STROKE_TOOLS]; // the current pen, eraser, hiliter
   struct Brush default_brushes[NUM_STROKE_TOOLS]; // the default ones
   int linked_brush[NUM_BUTTONS+1]; // whether brushes are linked across buttons
   int cur_mapping; // the current button number for mappings
   gboolean button_switch_mapping; // button clicks switch button 1 mappings
   gboolean use_erasertip;
+  gboolean touch_as_handtool; // always map touch device to hand tool?
+  char *device_for_touch;
   int which_mouse_button; // the mouse button drawing the current path
   int which_unswitch_button; // if button_switch_mapping, the mouse button that switched the mapping
   struct Page default_page;  // the model for the default page

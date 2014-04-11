@@ -209,6 +209,7 @@ create_winMain (void)
   GtkWidget *menuOptions_menu;
   GtkWidget *optionsUseXInput;
   GtkWidget *optionsButtonMappings;
+  GtkWidget *optionsTouchAsHandTool;
   GtkWidget *optionsPressureSensitive;
   GtkWidget *button2_mapping;
   GtkWidget *button2_mapping_menu;
@@ -1212,6 +1213,10 @@ create_winMain (void)
   optionsButtonMappings = gtk_check_menu_item_new_with_mnemonic (_("_Eraser Tip"));
   gtk_widget_show (optionsButtonMappings);
   gtk_container_add (GTK_CONTAINER (menuOptions_menu), optionsButtonMappings);
+
+  optionsTouchAsHandTool = gtk_check_menu_item_new_with_mnemonic (_("_Touchscreen as Hand Tool"));
+  gtk_widget_show (optionsTouchAsHandTool);
+  gtk_container_add (GTK_CONTAINER (menuOptions_menu), optionsTouchAsHandTool);
 
   optionsPressureSensitive = gtk_check_menu_item_new_with_mnemonic (_("_Pressure sensitivity"));
   gtk_widget_show (optionsPressureSensitive);
@@ -2321,6 +2326,9 @@ create_winMain (void)
   g_signal_connect ((gpointer) optionsButtonMappings, "activate",
                     G_CALLBACK (on_optionsButtonMappings_activate),
                     NULL);
+  g_signal_connect ((gpointer) optionsTouchAsHandTool, "activate",
+                    G_CALLBACK (on_optionsTouchAsHandTool_activate),
+                    NULL);
   g_signal_connect ((gpointer) optionsPressureSensitive, "activate",
                     G_CALLBACK (on_optionsPressureSensitive_activate),
                     NULL);
@@ -2743,6 +2751,7 @@ create_winMain (void)
   GLADE_HOOKUP_OBJECT (winMain, menuOptions_menu, "menuOptions_menu");
   GLADE_HOOKUP_OBJECT (winMain, optionsUseXInput, "optionsUseXInput");
   GLADE_HOOKUP_OBJECT (winMain, optionsButtonMappings, "optionsButtonMappings");
+  GLADE_HOOKUP_OBJECT (winMain, optionsTouchAsHandTool, "optionsTouchAsHandTool");
   GLADE_HOOKUP_OBJECT (winMain, optionsPressureSensitive, "optionsPressureSensitive");
   GLADE_HOOKUP_OBJECT (winMain, button2_mapping, "button2_mapping");
   GLADE_HOOKUP_OBJECT (winMain, button2_mapping_menu, "button2_mapping_menu");

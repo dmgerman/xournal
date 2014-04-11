@@ -1570,6 +1570,16 @@
 		  </child>
 
 		  <child>
+		    <widget class="GtkCheckMenuItem" id="optionsTouchAsHandTool">
+		      <property name="visible">True</property>
+		      <property name="label" translatable="yes">_Touchscreen as Hand Tool</property>
+		      <property name="use_underline">True</property>
+		      <property name="active">False</property>
+		      <signal name="activate" handler="on_optionsTouchAsHandTool_activate" last_modification_time="Thu, 23 Mar 2014 03:45:32 GMT"/>
+		    </widget>
+		  </child>
+
+		  <child>
 		    <widget class="GtkCheckMenuItem" id="optionsPressureSensitive">
 		      <property name="visible">True</property>
 		      <property name="label" translatable="yes">_Pressure sensitivity</property>

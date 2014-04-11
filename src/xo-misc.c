@@ -1250,8 +1250,11 @@ void update_mappings_menu(void)
 {
   gtk_widget_set_sensitive(GET_COMPONENT("optionsButtonMappings"), ui.use_xinput);
   gtk_widget_set_sensitive(GET_COMPONENT("optionsPressureSensitive"), ui.use_xinput);
+  gtk_widget_set_sensitive(GET_COMPONENT("optionsTouchAsHandTool"), ui.use_xinput);
   gtk_check_menu_item_set_active(
     GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsButtonMappings")), ui.use_erasertip);
+  gtk_check_menu_item_set_active(
+    GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsTouchAsHandTool")), ui.touch_as_handtool);
   gtk_check_menu_item_set_active(
     GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsPressureSensitive")), ui.pressure_sensitivity);
 

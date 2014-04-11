@@ -11,6 +11,8 @@ This version:
   - Japanese translation (by Hiroshi Saito)
   - smoother icons for eraser and shapes buttons (by Colin Macdonald)
   - horizontal view mode
+  - fix a cross-platform g_basename() issue (after Daniel German)
+  - "touchscreen as hand tool" option (after Rumen Zarev and Daniel German)
 
 Version 0.4.7 (July 4, 2012):
   - insert image tool (based on patches by Victor Saase and Simon Guest)
