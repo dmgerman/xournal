@@ -2461,7 +2461,8 @@ on_canvas_button_press_event           (GtkWidget       *widget,
     ui.stroke_device = event->device;
     get_pointer_coords((GdkEvent *)event, ui.cur_path.coords);
   }
-  if (ui.cur_item_type != ITEM_NONE) return FALSE; // we're already doing something
+  if (ui.cur_item_type != ITEM_NONE && !(ui.cur_item_type == ITEM_HAND && ui.cur_mapping == NUM_BUTTONS+1)) 
+    return FALSE; // we're already doing something, other than touch-as-hand
 
   // if button_switch_mapping enabled, button 2 or 3 clicks only switch mapping
   if (ui.button_switch_mapping && event->button > 1) {
@@ -2490,7 +2491,7 @@ on_canvas_button_press_event           (GtkWidget       *widget,
   
   // can't paint on the background...
 
-  if (ui.cur_layer == NULL) {
+  if (ui.cur_layer == NULL && ui.toolno[mapping]!=TOOL_HAND) {
     /* warn */
     dialog = gtk_message_dialog_new(GTK_WINDOW(winMain), GTK_DIALOG_MODAL,
       GTK_MESSAGE_WARNING, GTK_BUTTONS_OK, _("Drawing is not allowed on the "
@@ -2531,7 +2532,6 @@ on_canvas_button_press_event           (GtkWidget       *widget,
   // process the event
   
   if (ui.toolno[mapping] == TOOL_HAND) {
-
     ui.cur_item_type = ITEM_HAND;
     get_pointer_coords((GdkEvent *)event, ui.hand_refpt);
     ui.hand_refpt[0] += ui.cur_page->hoffset;
