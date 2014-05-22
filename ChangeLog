@@ -13,6 +13,7 @@ This version:
   - horizontal view mode
   - fix a cross-platform g_basename() issue (after Daniel German)
   - "touchscreen as hand tool" option (after Rumen Zarev and Daniel German)
+  - bugfixes for broken touchscreen device drivers
 
 Version 0.4.7 (July 4, 2012):
   - insert image tool (based on patches by Victor Saase and Simon Guest)

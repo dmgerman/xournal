@@ -65,7 +65,7 @@
 #ifdef WIN32
 #define DEFAULT_DEVICE_FOR_TOUCH "Core Pointer"
 #else
-#define DEFAULT_DEVICE_FOR_TOUCH "touch"
+#define DEFAULT_DEVICE_FOR_TOUCH "Touchscr"
 #endif
 
 /* a string (+ aux data) that maintains a refcount */
@@ -287,6 +287,7 @@ typedef struct UIData {
   gboolean saved_is_corestroke;
   GdkDevice *stroke_device; // who's painting this stroke
   gboolean ignore_other_devices;
+  gboolean ignore_btn_reported_up;
   int screen_width, screen_height; // initial screen size, for XInput events
   double hand_refpt[2];
   int hand_scrollto_cx, hand_scrollto_cy;

@@ -1479,14 +1479,15 @@ void init_config_default(void)
   ui.allow_xinput = TRUE;
   ui.discard_corepointer = FALSE;
   ui.ignore_other_devices = TRUE;
+  ui.ignore_btn_reported_up = TRUE;
   ui.left_handed = FALSE;
   ui.shorten_menus = FALSE;
   ui.shorten_menu_items = g_strdup(DEFAULT_SHORTEN_MENUS);
   ui.auto_save_prefs = FALSE;
   ui.bg_apply_all_pages = FALSE;
   ui.use_erasertip = FALSE;
-  ui.window_default_width = 720;
-  ui.window_default_height = 480;
+  ui.window_default_width = 1000;
+  ui.window_default_height = 700;
   ui.maximize_at_start = FALSE;
   ui.fullscreen = FALSE;
   ui.scrollbar_step_increment = 30;
@@ -1638,6 +1639,9 @@ void save_config_to_file(void)
   update_keyval("general", "ignore_other_devices",
     _(" ignore events from other devices while drawing (true/false)"),
     g_strdup(ui.ignore_other_devices?"true":"false"));
+  update_keyval("general", "ignore_btn_reported_up",
+    _(" do not worry if device reports button isn't pressed while drawing (true/false)"),
+    g_strdup(ui.ignore_btn_reported_up?"true":"false"));
   update_keyval("general", "use_erasertip",
     _(" always map eraser tip to eraser (true/false)"),
     g_strdup(ui.use_erasertip?"true":"false"));
@@ -2041,6 +2045,7 @@ void load_config_from_file(void)
   parse_keyval_boolean("general", "use_xinput", &ui.allow_xinput);
   parse_keyval_boolean("general", "discard_corepointer", &ui.discard_corepointer);
   parse_keyval_boolean("general", "ignore_other_devices", &ui.ignore_other_devices);
+  parse_keyval_boolean("general", "ignore_btn_reported_up", &ui.ignore_btn_reported_up);
   parse_keyval_boolean("general", "use_erasertip", &ui.use_erasertip);
   parse_keyval_boolean("general", "touchscreen_as_hand_tool", &ui.touch_as_handtool);
   if (parse_keyval_string("general", "touchscreen_device_name", &str))

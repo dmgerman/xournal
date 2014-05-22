@@ -292,6 +292,16 @@ void continue_stroke(GdkEvent *event)
        "width-units", current_width, NULL);
 }
 
+void abort_stroke(void)
+{
+  if (ui.cur_item_type != ITEM_STROKE || ui.cur_item == NULL) return;
+  ui.cur_path.num_points = 0;
+  gtk_object_destroy(GTK_OBJECT(ui.cur_item->canvas_item));
+  g_free(ui.cur_item);
+  ui.cur_item = NULL;
+  ui.cur_item_type = ITEM_NONE;
+}
+
 void finalize_stroke(void)
 {
   if (ui.cur_path.num_points == 1) { // GnomeCanvas doesn't like num_points=1

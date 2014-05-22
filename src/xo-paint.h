@@ -21,6 +21,7 @@ void update_cursor_for_resize(double *pt);
 void create_new_stroke(GdkEvent *event);
 void continue_stroke(GdkEvent *event);
 void finalize_stroke(void);
+void abort_stroke(void);
 
 void do_eraser(GdkEvent *event, double radius, gboolean whole_strokes);
 void finalize_erasure(void);

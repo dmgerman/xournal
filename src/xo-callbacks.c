@@ -2580,7 +2580,7 @@ on_canvas_button_release_event         (GtkWidget       *widget,
   is_core = (event->device == gdk_device_get_core_pointer());
   if (!ui.use_xinput && !is_core) return FALSE;
   if (ui.use_xinput && is_core && !ui.is_corestroke) return FALSE;
-  if (ui.ignore_other_devices && ui.stroke_device!=event->device) return FALSE;
+  if (ui.ignore_other_devices && !is_core && ui.stroke_device!=event->device) return FALSE;
   if (!is_core) fix_xinput_coords((GdkEvent *)event);
 
   if (event->button != ui.which_mouse_button && 
@@ -2773,6 +2773,11 @@ on_canvas_motion_notify_event          (GtkWidget       *widget,
   if (!is_core && ui.is_corestroke) {
     ui.is_corestroke = FALSE;
     ui.stroke_device = event->device;
+    // what if touchscreen is mapped to hand or disabled and was initially received as Core Pointer?
+    if (ui.touch_as_handtool && strstr(event->device->name, ui.device_for_touch) != NULL) {
+      abort_stroke(); // in case we were doing a stroke this aborts it; otherwise nothing happens
+      return FALSE;
+    }
   }
   if (ui.ignore_other_devices && ui.stroke_device!=event->device) return FALSE;
 
@@ -2787,7 +2792,7 @@ on_canvas_motion_notify_event          (GtkWidget       *widget,
     looks_wrong = !(mask & (1<<(7+ui.which_mouse_button)));
   }
   
-  if (looks_wrong) { /* mouse button shouldn't be up... give up */
+  if (looks_wrong && !ui.ignore_btn_reported_up) { /* mouse button shouldn't be up... give up */
     if (ui.cur_item_type == ITEM_STROKE) {
       finalize_stroke();
       if (ui.cur_brush->recognizer) recognize_patterns();
