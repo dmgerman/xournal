@@ -61,12 +61,7 @@
 #define VBOX_MAIN_NITEMS 5 // number of interface items in vboxMain
 
 // default touch device
-// (FIXME: in Windows, "touch as hand tool" will kill all devices except stylus)
-#ifdef WIN32
-#define DEFAULT_DEVICE_FOR_TOUCH "Core Pointer"
-#else
 #define DEFAULT_DEVICE_FOR_TOUCH "Touchscr"
-#endif
 
 /* a string (+ aux data) that maintains a refcount */
 
@@ -266,6 +261,8 @@ typedef struct UIData {
   gboolean button_switch_mapping; // button clicks switch button 1 mappings
   gboolean use_erasertip;
   gboolean touch_as_handtool; // always map touch device to hand tool?
+  gboolean pen_disables_touch; // pen proximity should disable touch device?
+  gboolean in_proximity;
   char *device_for_touch;
   int which_mouse_button; // the mouse button drawing the current path
   int which_unswitch_button; // if button_switch_mapping, the mouse button that switched the mapping

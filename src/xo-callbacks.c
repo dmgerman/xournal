@@ -2398,7 +2398,7 @@ on_canvas_button_press_event           (GtkWidget       *widget,
   double pt[2];
   GtkWidget *dialog;
   int mapping;
-  gboolean is_core;
+  gboolean is_core, is_touch;
   struct Item *item;
   GdkEvent scroll_event;
 
@@ -2474,9 +2474,12 @@ on_canvas_button_press_event           (GtkWidget       *widget,
   ui.is_corestroke = is_core;
   ui.stroke_device = event->device;
 
+  is_touch = (strstr(event->device->name, ui.device_for_touch) != NULL);
+  if (is_touch && ui.pen_disables_touch && ui.in_proximity) return FALSE;
+
   if (ui.use_erasertip && event->device->source == GDK_SOURCE_ERASER)
     mapping = NUM_BUTTONS; // eraser mapping
-  else if (ui.touch_as_handtool && strstr(event->device->name, ui.device_for_touch) != NULL)
+  else if (ui.touch_as_handtool && is_touch)
     mapping = NUM_BUTTONS+1; // hand mapping
   else if (ui.button_switch_mapping) {
     mapping = ui.cur_mapping;
@@ -2627,6 +2630,8 @@ on_canvas_enter_notify_event           (GtkWidget       *widget,
 
 #ifdef INPUT_DEBUG
   printf("DEBUG: enter notify\n");
+  if (ui.cur_item_type!=ITEM_NONE)
+    printf("DEBUG:  current item type is %d (device %s) \n", ui.cur_item_type, ui.stroke_device->name);
 #endif
     /* re-enable input devices after they've been emergency-disabled
        by leave_notify */
@@ -2669,6 +2674,21 @@ on_canvas_leave_notify_event           (GtkWidget       *widget,
     gdk_flush();
     gdk_error_trap_pop();
   }
+  // set pen proximity to false (we won't receive prox out event)
+  ui.in_proximity = FALSE;
+  return FALSE;
+}
+
+gboolean
+on_canvas_proximity_event              (GtkWidget       *widget,
+                                        GdkEventProximity *event,
+                                        gpointer         user_data)
+{
+#ifdef INPUT_DEBUG
+  printf("DEBUG: proximity %s (%s)\n", 
+     (event->type == GDK_PROXIMITY_IN)?"in":"out", event->device->name);
+#endif
+  ui.in_proximity = (event->type==GDK_PROXIMITY_IN);
   return FALSE;
 }
 
@@ -2748,10 +2768,13 @@ on_canvas_motion_notify_event          (GtkWidget       *widget,
                                         GdkEventMotion  *event,
                                         gpointer         user_data)
 {
-  gboolean looks_wrong, is_core;
+  gboolean looks_wrong, we_have_no_clue, is_core;
   double pt[2];
   GdkModifierType mask;
 
+  // if pen is sending motion events then it's in proximity
+  if (event->device->source == GDK_SOURCE_PEN) ui.in_proximity = TRUE;
+  
   /* we don't care about this event unless some operation is in progress;
      or if there's a selection (then we might want to change the mouse
      cursor to indicate the possibility of resizing) */  
@@ -2769,33 +2792,45 @@ on_canvas_motion_notify_event          (GtkWidget       *widget,
     return FALSE;
   }
 
+  // check if the button is reported as pressed...
+  looks_wrong = !(event->state & (1<<(7+ui.which_mouse_button)));
+  we_have_no_clue = !is_core && ui.is_corestroke && looks_wrong; 
+    // we have no clue who sent the core event initially, so we'll abort
+
   if (ui.use_xinput && is_core && !ui.is_corestroke) return FALSE;
-  if (!is_core && ui.is_corestroke) {
+  if (!is_core && ui.is_corestroke && !looks_wrong) {
     ui.is_corestroke = FALSE;
     ui.stroke_device = event->device;
     // what if touchscreen is mapped to hand or disabled and was initially received as Core Pointer?
-    if (ui.touch_as_handtool && strstr(event->device->name, ui.device_for_touch) != NULL) {
+    if ((ui.touch_as_handtool || (ui.pen_disables_touch && ui.in_proximity))
+        && strstr(event->device->name, ui.device_for_touch) != NULL) {
       abort_stroke(); // in case we were doing a stroke this aborts it; otherwise nothing happens
       return FALSE;
     }
   }
-  if (ui.ignore_other_devices && ui.stroke_device!=event->device) return FALSE;
+  if (ui.ignore_other_devices && ui.stroke_device!=event->device && !we_have_no_clue) return FALSE;
 
 #ifdef INPUT_DEBUG
   printf("DEBUG: MotionNotify (%s) (x,y)=(%.2f,%.2f), modifier %x\n", 
     event->device->name, event->x, event->y, event->state);
 #endif
   
-  looks_wrong = !(event->state & (1<<(7+ui.which_mouse_button)));
   if (looks_wrong) {
     gdk_device_get_state(ui.stroke_device, event->window, NULL, &mask);
     looks_wrong = !(mask & (1<<(7+ui.which_mouse_button)));
   }
   
-  if (looks_wrong && !ui.ignore_btn_reported_up) { /* mouse button shouldn't be up... give up */
+  if (we_have_no_clue || (looks_wrong && !ui.ignore_btn_reported_up)) { 
+    /* mouse button shouldn't be up... give up */
+#ifdef INPUT_DEBUG
+  printf("DEBUG: aborting on suspicious MotionNotify\n");
+#endif
     if (ui.cur_item_type == ITEM_STROKE) {
-      finalize_stroke();
-      if (ui.cur_brush->recognizer) recognize_patterns();
+      if (ui.cur_path.num_points <= 1) abort_stroke();
+      else { 
+        finalize_stroke();
+        if (ui.cur_brush->recognizer) recognize_patterns();
+      }
     }
     else if (ui.cur_item_type == ITEM_ERASURE) {
       finalize_erasure();
@@ -3743,7 +3778,64 @@ void
 on_optionsTouchAsHandTool_activate     (GtkMenuItem     *menuitem,  
                                         gpointer         user_data)
 {
-  end_text();
   ui.touch_as_handtool = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem));
+}
+
+
+void
+on_optionsPenDisablesTouch_activate    (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+  ui.pen_disables_touch = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem));
+}
+
+
+void
+on_optionsDesignateTouchscreen_activate
+                                        (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+  GtkDialog *dialog;
+  GtkWidget *comboList, *label, *hbox;
+  GList *dev_list; 
+  GdkDevice *dev;
+  gint response, count;
+  gchar *str;
+  
+  dialog = GTK_DIALOG(gtk_dialog_new_with_buttons(_("Select device for Touchscreen"),
+              NULL,
+              GTK_DIALOG_MODAL,
+              GTK_STOCK_OK, GTK_RESPONSE_OK,
+              GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+              NULL));
+  gtk_window_set_resizable(GTK_WINDOW(dialog), FALSE);
+              
+  hbox = gtk_hbox_new(FALSE, 0);
+  gtk_widget_show(hbox);
+  label = gtk_label_new(_("Touchscreen device:"));
+  gtk_widget_show(label);  
+  gtk_box_pack_start(GTK_BOX(dialog->vbox), hbox, FALSE, FALSE, 8);
+  gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, FALSE, 8);
+  
+  comboList = gtk_combo_box_new_text();
+  gtk_widget_show(comboList);
+  gtk_box_pack_start(GTK_BOX(dialog->vbox), comboList, FALSE, FALSE, 8);
+
+  for (dev_list = gdk_devices_list(), count = 0; dev_list != NULL; dev_list = dev_list->next, count++) {
+    dev = GDK_DEVICE(dev_list->data);
+    gtk_combo_box_append_text(GTK_COMBO_BOX(comboList), dev->name);
+    if (strstr(dev->name, ui.device_for_touch)!=NULL)
+      gtk_combo_box_set_active(GTK_COMBO_BOX(comboList), count);
+  }
+
+  response = gtk_dialog_run(dialog);
+  if (response == GTK_RESPONSE_OK) {
+    str = gtk_combo_box_get_active_text(GTK_COMBO_BOX(comboList));
+    if (str!=NULL) {
+      g_free(ui.device_for_touch);
+      ui.device_for_touch = str;
+    }
+  }
+  gtk_widget_destroy(GTK_WIDGET(dialog));
 }
 

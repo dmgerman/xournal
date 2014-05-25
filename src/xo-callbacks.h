@@ -429,6 +429,11 @@ on_canvas_leave_notify_event           (GtkWidget       *widget,
                                         gpointer         user_data);
 
 gboolean
+on_canvas_proximity_event              (GtkWidget       *widget,
+                                        GdkEventProximity *event,
+                                        gpointer         user_data);
+
+gboolean
 on_canvas_expose_event                 (GtkWidget       *widget,
                                         GdkEventExpose  *event,
                                         gpointer         user_data);
@@ -675,4 +680,13 @@ on_optionsPenCursor_activate           (GtkCheckMenuItem *checkmenuitem,
 
 void
 on_optionsTouchAsHandTool_activate     (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_optionsPenDisablesTouch_activate    (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_optionsDesignateTouchscreen_activate
+                                        (GtkMenuItem     *menuitem,
                                         gpointer         user_data);

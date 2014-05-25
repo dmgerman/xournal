@@ -1507,6 +1507,7 @@ void init_config_default(void)
   ui.autoload_pdf_xoj = FALSE;
   ui.poppler_force_cairo = FALSE;
   ui.touch_as_handtool = FALSE;
+  ui.pen_disables_touch = FALSE;
   ui.device_for_touch = DEFAULT_DEVICE_FOR_TOUCH;
   
   // the default UI vertical order
@@ -1648,6 +1649,9 @@ void save_config_to_file(void)
   update_keyval("general", "touchscreen_as_hand_tool",
     _(" always map touchscreen device to hand tool (true/false) (requires separate pen and touch devices)"),
     g_strdup(ui.touch_as_handtool?"true":"false"));
+  update_keyval("general", "pen_disables_touch",
+    _(" disable touchscreen device when pen is in proximity (true/false) (requires separate pen and touch devices)"),
+    g_strdup(ui.pen_disables_touch?"true":"false"));
   update_keyval("general", "touchscreen_device_name",
     _(" name of touchscreen device for touchscreen_as_hand_tool"),
     g_strdup(ui.device_for_touch));
@@ -2048,6 +2052,7 @@ void load_config_from_file(void)
   parse_keyval_boolean("general", "ignore_btn_reported_up", &ui.ignore_btn_reported_up);
   parse_keyval_boolean("general", "use_erasertip", &ui.use_erasertip);
   parse_keyval_boolean("general", "touchscreen_as_hand_tool", &ui.touch_as_handtool);
+  parse_keyval_boolean("general", "pen_disables_touch", &ui.pen_disables_touch);
   if (parse_keyval_string("general", "touchscreen_device_name", &str))
     if (str!=NULL) ui.device_for_touch = str;
   parse_keyval_boolean("general", "buttons_switch_mappings", &ui.button_switch_mapping);

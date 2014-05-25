@@ -118,6 +118,7 @@ void init_stuff (int argc, char *argv[])
 
   ui.cur_mapping = 0;
   ui.which_unswitch_button = 0;
+  ui.in_proximity = FALSE;
   
   reset_recognizer();
 
@@ -160,7 +161,11 @@ void init_stuff (int argc, char *argv[])
   w = GET_COMPONENT("scrolledwindowMain");
   gtk_container_add (GTK_CONTAINER (w), GTK_WIDGET (canvas));
   gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW (w), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
-  gtk_widget_set_events (GTK_WIDGET (canvas), GDK_EXPOSURE_MASK | GDK_POINTER_MOTION_MASK | GDK_BUTTON_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_KEY_PRESS_MASK | GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK);
+  gtk_widget_set_events (GTK_WIDGET (canvas), 
+     GDK_EXPOSURE_MASK | GDK_POINTER_MOTION_MASK | GDK_BUTTON_MOTION_MASK | 
+     GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_KEY_PRESS_MASK | 
+     GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK |
+     GDK_PROXIMITY_IN_MASK | GDK_PROXIMITY_OUT_MASK);
   gnome_canvas_set_pixels_per_unit (canvas, ui.zoom);
   gnome_canvas_set_center_scroll_region (canvas, TRUE);
   gtk_layout_get_hadjustment(GTK_LAYOUT (canvas))->step_increment = ui.scrollbar_step_increment;
@@ -180,6 +185,12 @@ void init_stuff (int argc, char *argv[])
                     NULL);
   g_signal_connect ((gpointer) canvas, "leave_notify_event",
                     G_CALLBACK (on_canvas_leave_notify_event),
+                    NULL);
+  g_signal_connect ((gpointer) canvas, "proximity_in_event",
+                    G_CALLBACK (on_canvas_proximity_event),
+                    NULL);
+  g_signal_connect ((gpointer) canvas, "proximity_out_event",
+                    G_CALLBACK (on_canvas_proximity_event),
                     NULL);
   g_signal_connect ((gpointer) canvas, "expose_event",
                     G_CALLBACK (on_canvas_expose_event),

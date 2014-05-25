@@ -1560,35 +1560,78 @@
 		  </child>
 
 		  <child>
-		    <widget class="GtkCheckMenuItem" id="optionsButtonMappings">
+		    <widget class="GtkMenuItem" id="pen_and_touch">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">_Eraser Tip</property>
+		      <property name="label" translatable="yes">_Pen and Touch</property>
 		      <property name="use_underline">True</property>
-		      <property name="active">False</property>
-		      <signal name="activate" handler="on_optionsButtonMappings_activate" last_modification_time="Thu, 26 Jan 2006 03:45:32 GMT"/>
-		    </widget>
-		  </child>
 
-		  <child>
-		    <widget class="GtkCheckMenuItem" id="optionsTouchAsHandTool">
-		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">_Touchscreen as Hand Tool</property>
-		      <property name="use_underline">True</property>
-		      <property name="active">False</property>
-		      <signal name="activate" handler="on_optionsTouchAsHandTool_activate" last_modification_time="Thu, 23 Mar 2014 03:45:32 GMT"/>
-		    </widget>
-		  </child>
+		      <child>
+			<widget class="GtkMenu" id="pen_and_touch_menu">
 
-		  <child>
-		    <widget class="GtkCheckMenuItem" id="optionsPressureSensitive">
-		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">_Pressure sensitivity</property>
-		      <property name="use_underline">True</property>
-		      <property name="active">False</property>
-		      <signal name="activate" handler="on_optionsPressureSensitive_activate" last_modification_time="Fri, 21 Mar 2008 19:00:32 GMT"/>
-		    </widget>
-		  </child>
+			  <child>
+			    <widget class="GtkCheckMenuItem" id="optionsButtonMappings">
+			      <property name="visible">True</property>
+		 	      <property name="label" translatable="yes">_Eraser Tip</property>
+		 	      <property name="use_underline">True</property>
+			      <property name="active">False</property>
+			      <signal name="activate" handler="on_optionsButtonMappings_activate" last_modification_time="Thu, 26 Jan 2006 03:45:32 GMT"/>
+			    </widget>
+			  </child>
 
+			  <child>
+			    <widget class="GtkCheckMenuItem" id="optionsPressureSensitive">
+			      <property name="visible">True</property>
+			      <property name="label" translatable="yes">_Pressure sensitivity</property>
+			      <property name="use_underline">True</property>
+			      <property name="active">False</property>
+			      <signal name="activate" handler="on_optionsPressureSensitive_activate" last_modification_time="Fri, 21 Mar 2008 19:00:32 GMT"/>
+			    </widget>
+			  </child>
+
+			  <child>
+			    <widget class="GtkCheckMenuItem" id="optionsButtonSwitchMapping">
+			      <property name="visible">True</property>
+			      <property name="label" translatable="yes">Buttons Switch Mappings</property>
+			      <property name="use_underline">True</property>
+			      <property name="active">False</property>
+			      <signal name="toggled" handler="on_optionsButtonsSwitchMappings_activate" last_modification_time="Sun, 20 Sep 2009 22:54:39 GMT"/>
+			    </widget>
+			  </child>
+
+			  <child>
+			    <widget class="GtkCheckMenuItem" id="optionsTouchAsHandTool">
+			      <property name="visible">True</property>
+			      <property name="label" translatable="yes">_Touchscreen as Hand Tool</property>
+			      <property name="use_underline">True</property>
+			      <property name="active">False</property>
+			      <signal name="activate" handler="on_optionsTouchAsHandTool_activate" last_modification_time="Thu, 23 Mar 2014 03:45:32 GMT"/>
+			    </widget>
+			  </child>
+
+			  <child>
+			    <widget class="GtkCheckMenuItem" id="optionsPenDisablesTouch">
+			      <property name="visible">True</property>
+			      <property name="label" translatable="yes">Pen disables Touch</property>
+			      <property name="use_underline">True</property>
+			      <property name="active">False</property>
+			      <signal name="activate" handler="on_optionsPenDisablesTouch_activate" last_modification_time="Sat, 24 May 2014 22:16:32 GMT"/>
+			    </widget>
+			  </child>
+
+			  <child>
+			    <widget class="GtkMenuItem" id="optionsDesignateTouchscreen">
+			      <property name="visible">True</property>
+			      <property name="label" translatable="yes">Designate as Touchscreen...</property>
+			      <property name="use_underline">True</property>
+			      <property name="active">False</property>
+			      <signal name="activate" handler="on_optionsDesignateTouchscreen_activate" last_modification_time="Sat, 24 May 2014 22:16:32 GMT"/>
+			    </widget>
+			  </child>
+
+		         </widget>
+			</child>
+		       </widget>
+		     </child>
 		  <child>
 		    <widget class="GtkMenuItem" id="button2_mapping">
 		      <property name="visible">True</property>
@@ -1884,16 +1927,6 @@
 		  </child>
 
 		  <child>
-		    <widget class="GtkCheckMenuItem" id="optionsButtonSwitchMapping">
-		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Buttons Switch Mappings</property>
-		      <property name="use_underline">True</property>
-		      <property name="active">False</property>
-		      <signal name="toggled" handler="on_optionsButtonsSwitchMappings_activate" last_modification_time="Sun, 20 Sep 2009 22:54:39 GMT"/>
-		    </widget>
-		  </child>
-
-		  <child>
 		    <widget class="GtkSeparatorMenuItem" id="separator18">
 		      <property name="visible">True</property>
 		    </widget>
@@ -1902,7 +1935,7 @@
 		  <child>
 		    <widget class="GtkCheckMenuItem" id="optionsProgressiveBG">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">_Progressive Backgrounds</property>
+		      <property name="label" translatable="yes">Progressive _Backgrounds</property>
 		      <property name="use_underline">True</property>
 		      <property name="active">False</property>
 		      <signal name="activate" handler="on_optionsProgressiveBG_activate" last_modification_time="Thu, 26 Jan 2006 20:15:09 GMT"/>
