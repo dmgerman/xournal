@@ -131,6 +131,8 @@ void init_stuff (int argc, char *argv[])
 
   gtk_check_menu_item_set_active(
     GTK_CHECK_MENU_ITEM(GET_COMPONENT("journalApplyAllPages")), ui.bg_apply_all_pages);
+  gtk_check_menu_item_set_active(
+    GTK_CHECK_MENU_ITEM(GET_COMPONENT("journalNewPageKeepsBG")), ui.new_page_bg_from_pdf);
   if (ui.fullscreen) {
     gtk_check_menu_item_set_active(
       GTK_CHECK_MENU_ITEM(GET_COMPONENT("viewFullscreen")), TRUE);

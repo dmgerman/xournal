@@ -3821,3 +3821,11 @@ on_optionsDesignateTouchscreen_activate
   gtk_widget_destroy(GTK_WIDGET(dialog));
 }
 
+
+void
+on_journalNewPageKeepsBG_activate      (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+  ui.new_page_bg_from_pdf = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem));
+}
+

@@ -1485,6 +1485,7 @@ void init_config_default(void)
   ui.shorten_menu_items = g_strdup(DEFAULT_SHORTEN_MENUS);
   ui.auto_save_prefs = FALSE;
   ui.bg_apply_all_pages = FALSE;
+  ui.new_page_bg_from_pdf = FALSE;
   ui.use_erasertip = FALSE;
   ui.window_default_width = 1000;
   ui.window_default_height = 700;
@@ -1721,6 +1722,9 @@ void save_config_to_file(void)
   update_keyval("paper", "print_ruling",
     _(" include paper ruling when printing or exporting to PDF (true/false)"),
     g_strdup(ui.print_ruling?"true":"false"));
+  update_keyval("paper", "new_page_duplicates_bg",
+    _(" when creating a new page, duplicate a PDF or image background instead of using default paper (true/false)"),
+    g_strdup(ui.new_page_bg_from_pdf?"true":"false"));
   update_keyval("paper", "progressive_bg",
     _(" just-in-time update of page backgrounds (true/false)"),
     g_strdup(ui.progressive_bg?"true":"false"));
@@ -2082,6 +2086,7 @@ void load_config_from_file(void)
   parse_keyval_enum("paper", "default_unit", &ui.default_unit, unit_names, 4);
   parse_keyval_boolean("paper", "progressive_bg", &ui.progressive_bg);
   parse_keyval_boolean("paper", "print_ruling", &ui.print_ruling);
+  parse_keyval_boolean("paper", "new_page_duplicates_bg", &ui.new_page_bg_from_pdf);
   parse_keyval_int("paper", "gs_bitmap_dpi", &GS_BITMAP_DPI, 1, 1200);
   parse_keyval_int("paper", "pdftoppm_printing_dpi", &PDFTOPPM_PRINTING_DPI, 1, 1200);
 

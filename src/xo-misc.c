@@ -78,7 +78,10 @@ struct Page *new_page(struct Page *template)
   l->nitems = 0;
   pg->layers = g_list_append(NULL, l);
   pg->nlayers = 1;
-  pg->bg = (struct Background *)g_memdup(template->bg, sizeof(struct Background));
+  if (template->bg->type != BG_SOLID && !ui.new_page_bg_from_pdf)
+    pg->bg = (struct Background *)g_memdup(ui.default_page.bg, sizeof(struct Background));
+  else 
+    pg->bg = (struct Background *)g_memdup(template->bg, sizeof(struct Background));
   pg->bg->canvas_item = NULL;
   if (pg->bg->type == BG_PIXMAP || pg->bg->type == BG_PDF) {
     g_object_ref(pg->bg->pixbuf);

@@ -93,7 +93,7 @@ typedef struct Background {
 
 #define BG_SOLID 0
 #define BG_PIXMAP 1
-#define BG_PDF 2      // not implemented yet
+#define BG_PDF 2
 
 #define RULING_NONE 0
 #define RULING_LINED 1
@@ -306,6 +306,7 @@ typedef struct UIData {
   gboolean bg_apply_all_pages;
   int window_default_width, window_default_height, scrollbar_step_increment;
   gboolean print_ruling; // print the paper ruling ?
+  gboolean new_page_bg_from_pdf; // do new pages get a duplicated PDF/image background?
   int default_unit; // the default unit for paper sizes
   int startuptool; // the default tool at startup
   int zoom_step_increment; // the increment in the zoom dialog box

@@ -652,6 +652,15 @@
 		  </child>
 
 		  <child>
+		    <widget class="GtkCheckMenuItem" id="journalNewPageKeepsBG">
+		      <property name="visible">True</property>
+		      <property name="label" translatable="yes">New Pages Keep Background</property>
+		      <property name="use_underline">True</property>
+		      <signal name="activate" handler="on_journalNewPageKeepsBG_activate" last_modification_time="Mon, 26 May 2014 19:50:07 GMT"/>
+		    </widget>
+		  </child>
+
+		  <child>
 		    <widget class="GtkMenuItem" id="journalDeletePage">
 		      <property name="visible">True</property>
 		      <property name="label" translatable="yes">_Delete Page</property>
