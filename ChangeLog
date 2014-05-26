@@ -14,6 +14,7 @@ This version:
   - fix a cross-platform g_basename() issue (after Daniel German)
   - "touchscreen as hand tool" option (after Rumen Zarev and Daniel German)
   - "pen disables touchscreen" option; dialog box to designate touch device
+  - tweaks to xinput event processing for touchscreens
 
 Version 0.4.7 (July 4, 2012):
   - insert image tool (based on patches by Victor Saase and Simon Guest)

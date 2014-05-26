@@ -2625,9 +2625,6 @@ on_canvas_enter_notify_event           (GtkWidget       *widget,
                                         GdkEventCrossing *event,
                                         gpointer         user_data)
 {
-  GList *dev_list;
-  GdkDevice *dev;
-
 #ifdef INPUT_DEBUG
   printf("DEBUG: enter notify\n");
   if (ui.cur_item_type!=ITEM_NONE)
@@ -2636,15 +2633,8 @@ on_canvas_enter_notify_event           (GtkWidget       *widget,
     /* re-enable input devices after they've been emergency-disabled
        by leave_notify */
   if (!gtk_check_version(2, 17, 0)) {
-    gdk_flush();
-    gdk_error_trap_push();
-    for (dev_list = gdk_devices_list(); dev_list != NULL; dev_list = dev_list->next) {
-      dev = GDK_DEVICE(dev_list->data);
-      gdk_device_set_mode(dev, GDK_MODE_SCREEN);
-    }
+    emergency_enable_xinput(GDK_MODE_SCREEN);
     ui.is_corestroke = ui.saved_is_corestroke;
-    gdk_flush();
-    gdk_error_trap_pop();
   }
   return FALSE;
 }
@@ -2654,25 +2644,17 @@ on_canvas_leave_notify_event           (GtkWidget       *widget,
                                         GdkEventCrossing *event,
                                         gpointer         user_data)
 {
-  GList *dev_list;
-  GdkDevice *dev;
-
 #ifdef INPUT_DEBUG
   printf("DEBUG: leave notify (mode=%d, details=%d)\n", event->mode, event->detail);
 #endif
     /* emergency disable XInput to avoid segfaults (GTK+ 2.17) or 
        interface non-responsiveness (GTK+ 2.18) */
-  if (!gtk_check_version(2, 17, 0)) {
-    gdk_flush();
-    gdk_error_trap_push();
-    for (dev_list = gdk_devices_list(); dev_list != NULL; dev_list = dev_list->next) {
-      dev = GDK_DEVICE(dev_list->data);
-      gdk_device_set_mode(dev, GDK_MODE_DISABLED);
-    }
+    /* don't do this any more on "final" release GTK+ 2.24 as it does more
+       harm than good, except for text editing boxes which still need it */
+  if (!gtk_check_version(2, 17, 0) && (gtk_check_version(2, 24, 0) || ui.cur_item_type == ITEM_TEXT)) {
+    emergency_enable_xinput(GDK_MODE_DISABLED);
     ui.saved_is_corestroke = ui.is_corestroke;
     ui.is_corestroke = TRUE;
-    gdk_flush();
-    gdk_error_trap_pop();
   }
   // set pen proximity to false (we won't receive prox out event)
   ui.in_proximity = FALSE;

@@ -541,6 +541,22 @@ double get_pressure_multiplier(GdkEvent *event)
   return ((1-rawpressure)*ui.width_minimum_multiplier + rawpressure*ui.width_maximum_multiplier);
 }
 
+
+void emergency_enable_xinput(GdkInputMode mode)
+{
+  GList *dev_list;
+  GdkDevice *dev;
+
+  gdk_flush();
+  gdk_error_trap_push();
+  for (dev_list = gdk_devices_list(); dev_list != NULL; dev_list = dev_list->next) {
+    dev = GDK_DEVICE(dev_list->data);
+    gdk_device_set_mode(dev, mode);
+  }
+  gdk_flush();
+  gdk_error_trap_pop();
+}
+
 void update_item_bbox(struct Item *item)
 {
   int i;

@@ -42,6 +42,7 @@ void get_pointer_coords(GdkEvent *event, double *ret);
 void get_current_pointer_coords(double *ret);
 double get_pressure_multiplier(GdkEvent *event);
 void fix_xinput_coords(GdkEvent *event);
+void emergency_enable_xinput(GdkInputMode mode);
 void update_item_bbox(struct Item *item);
 void make_page_clipbox(struct Page *pg);
 void make_canvas_items(void);
