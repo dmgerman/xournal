@@ -103,6 +103,7 @@ create_winMain (void)
   GtkWidget *journalNewPageBefore;
   GtkWidget *journalNewPageAfter;
   GtkWidget *journalNewPageEnd;
+  GtkWidget *journalNewPageKeepsBG;
   GtkWidget *journalDeletePage;
   GtkWidget *separator7;
   GtkWidget *journalNewLayer;
@@ -697,6 +698,10 @@ create_winMain (void)
   journalNewPageEnd = gtk_menu_item_new_with_mnemonic (_("New Page At _End"));
   gtk_widget_show (journalNewPageEnd);
   gtk_container_add (GTK_CONTAINER (menuJournal_menu), journalNewPageEnd);
+
+  journalNewPageKeepsBG = gtk_check_menu_item_new_with_mnemonic (_("New Pages Keep Background"));
+  gtk_widget_show (journalNewPageKeepsBG);
+  gtk_container_add (GTK_CONTAINER (menuJournal_menu), journalNewPageKeepsBG);
 
   journalDeletePage = gtk_menu_item_new_with_mnemonic (_("_Delete Page"));
   gtk_widget_show (journalDeletePage);
@@ -2147,6 +2152,9 @@ create_winMain (void)
   g_signal_connect ((gpointer) journalNewPageEnd, "activate",
                     G_CALLBACK (on_journalNewPageEnd_activate),
                     NULL);
+  g_signal_connect ((gpointer) journalNewPageKeepsBG, "activate",
+                    G_CALLBACK (on_journalNewPageKeepsBG_activate),
+                    NULL);
   g_signal_connect ((gpointer) journalDeletePage, "activate",
                     G_CALLBACK (on_journalDeletePage_activate),
                     NULL);
@@ -2678,6 +2686,7 @@ create_winMain (void)
   GLADE_HOOKUP_OBJECT (winMain, journalNewPageBefore, "journalNewPageBefore");
   GLADE_HOOKUP_OBJECT (winMain, journalNewPageAfter, "journalNewPageAfter");
   GLADE_HOOKUP_OBJECT (winMain, journalNewPageEnd, "journalNewPageEnd");
+  GLADE_HOOKUP_OBJECT (winMain, journalNewPageKeepsBG, "journalNewPageKeepsBG");
   GLADE_HOOKUP_OBJECT (winMain, journalDeletePage, "journalDeletePage");
   GLADE_HOOKUP_OBJECT (winMain, separator7, "separator7");
   GLADE_HOOKUP_OBJECT (winMain, journalNewLayer, "journalNewLayer");
