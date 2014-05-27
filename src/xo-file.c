@@ -1062,6 +1062,7 @@ struct Background *attempt_screenshot_bg(void)
   GdkPixbuf *pix;
   XEvent x_event;
   GdkWindow *window;
+  GdkColormap *cmap;
   int x,y,w,h;
   Window x_root, x_win;
 
@@ -1080,9 +1081,11 @@ struct Background *attempt_screenshot_bg(void)
   window = gdk_window_foreign_new_for_display(gdk_display_get_default(), x_win);
     
   gdk_window_get_geometry(window, &x, &y, &w, &h, NULL);
+  cmap = gdk_drawable_get_colormap(window);
+  if (cmap == NULL) cmap = gdk_colormap_get_system();
   
   pix = gdk_pixbuf_get_from_drawable(NULL, window,
-    gdk_colormap_get_system(), 0, 0, 0, 0, w, h);
+     cmap, 0, 0, 0, 0, w, h);
     
   if (pix == NULL) return NULL;
   
