@@ -2651,7 +2651,12 @@ on_canvas_leave_notify_event           (GtkWidget       *widget,
        interface non-responsiveness (GTK+ 2.18) */
     /* don't do this any more on "final" release GTK+ 2.24 as it does more
        harm than good, except for text editing boxes which still need it */
-  if (!gtk_check_version(2, 17, 0) && (gtk_check_version(2, 24, 0) || ui.cur_item_type == ITEM_TEXT)) {
+#ifdef WIN32
+  if (!gtk_check_version(2, 17, 0))
+#else
+  if (!gtk_check_version(2, 17, 0) && (gtk_check_version(2, 24, 0) || ui.cur_item_type == ITEM_TEXT))
+#endif
+  {
     emergency_enable_xinput(GDK_MODE_DISABLED);
     ui.saved_is_corestroke = ui.is_corestroke;
     ui.is_corestroke = TRUE;

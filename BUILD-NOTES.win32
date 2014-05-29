@@ -1,0 +1,89 @@
+Win32 compilation/installation/packaging notes
+==============================================
+(Thanks to Dirk Gerrits for initial instructions on which these are based)
+
+This briefly describes the main steps needed to build and package Xournal
+on Windows, for developers.  For end users, downloading a pre-built
+binary package is recommended; see README.win32 for end user instructions.
+
+
+1. Download the development tools and libraries needed:
+
+- Download and install MSys and MinGW.
+    (https://sourceforge.net/projects/mingw/files/)
+  If using the MinGW installer, make sure to include development tools 
+  like autoconf, automake, libtool, and libraries gettext and zlib. 
+  If the installer doesn't place MinGW in the right location, edit 
+  \msys\1.0\etc\fstab to add a line mounting the MinGW installation 
+  directory under /mingw (e.g. "c:/mingw /mingw") or adjust 
+  instructions below as appropriate.
+  Builds and installs of source code below are done within
+  MSys, usually with configure --prefix=/mingw; make; make install
+
+- Download and install (in your MinGW directory) the GTK+ 2.x win32
+  all-in-one bundle (runtime + developer files + dependencies)
+    (http://www.gtk.org/download/win32.php)
+
+- Download and install (in your MinGW directory) the libart_lgpl and 
+  libgnomecanvas libraries (binary + dev packages)
+    (http://ftp.gnome.org/pub/gnome/binaries/win32/)
+
+- Download Poppler source (http://poppler.freedesktop.org/),
+  build and install it (configure --prefix=/mingw, make, make install)
+  This is the trickiest step. Make sure poppler-glib is built successfully.
+  (compile with prefix=/c/mingw/ or as needed for install)
+  Various side packages may be needed (I had to build and install libjpeg,
+  libpng, libtiff, and libopenjpeg-1.5.0) to enable all poppler features,
+  though may not be crucial for xournal.
+
+
+2. Build a custom version of the libgdk-win32 library (optional)
+
+Building a custom version of the GDK library alleviates a bug where the
+drawing area becomes unresponsive to touch/mouse/...  immediately after
+a pen stroke (until the user clicks somewhere outside of the drawing area),
+because GDK discards core pointer events sent to an xinput-aware window, 
+but non-tablet devices do not generate any other events.
+
+Download the latest GTK+ 2.x sources, e.g. 
+http://ftp.gnome.org/pub/gnome/sources/gtk+/2.24/gtk+-2.24.23.tar.xz
+In gdk/win32/gdkinput.c, comment out (add // in front) or delete line 434:
+
+ _gdk_display->ignore_core_events = new_proximity;
+
+Then configure --prefix=/mingw; make; make install
+
+
+3. Compile Xournal:
+
+- run autogen.sh, then configure.
+    If you need internationalization, make sure it is set in config.h 
+    (ENABLE_NLS = 1). If you want the language files to be found
+    directly in a "flat" directly structure, also set PACKAGE_LOCALE_DIR 
+    to "share/locale/" in src/Makefile.
+
+- compile (make) and install (make install).
+
+
+4. The distribution tree for a self-contained binary package consists of:
+
+ - xournal.exe, pkg-readme.win32 (renamed to readme.txt)
+
+ - the pixmaps/ and html-doc/ directories
+
+ - all DLLs needed (test on a clean system to make sure all are there)
+  (probably: freetype, intl, libart_lgpl, libatk, libcairo, libfontconfig,
+   libgdk_pixbuf, libgdk-win32, libgio, libglib, libgmodule, libgnomecanvas,
+   libgobject, libgthread, libgtk-win32, libjpeg, libpango, libpangocairo,
+   libpangoft2, libpangowin32, libpng, libpoppler, libpoppler-glib, zlib;
+   most likely also libexpat, libgailutil, libtiff, ...)
+
+ - the locale files in share/locale/  (share/locale/.../LC_MESSAGES/*.mo)
+    (package the .mo files for gdk-pixbuf, glib20, gtk20, and xournal)
+
+ - gtk files: lib/gtk-2.0/*
+ - fontconfig files: etc/fonts/*
+
+Test on a clean system: all DLLs are found; icons for the toolbar are found; 
+translations work; text fonts work.
+
