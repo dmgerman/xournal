@@ -57,6 +57,20 @@ const char *unit_names[4] = {"cm", "in", "px", "pt"};
 const char *view_mode_names[3] = {"false", "true", "horiz"}; // need 'false' & 'true' for backward compatibility
 int PDFTOPPM_PRINTING_DPI, GS_BITMAP_DPI;
 
+// gzopen() wrapper to handle non-ASCII filenames in Windows
+
+gzFile gzopen_wrapper(const char *path, const char *mode)
+{
+#ifdef WIN32
+   gunichar2 *utf16_path = g_utf8_to_utf16(path, -1, NULL, NULL, NULL);
+   gzFile f = gzopen_w(utf16_path, mode);
+   g_free(utf16_path);
+   return f;
+#else
+   return gzopen(path, mode);
+#endif
+}
+
 // creates a new empty journal
 
 void new_journal(void)
@@ -144,7 +158,7 @@ gboolean save_journal(const char *filename)
   GList *pagelist, *layerlist, *itemlist, *list;
   GtkWidget *dialog;
   
-  f = gzopen(filename, "wb");
+  f = gzopen_wrapper(filename, "wb");
   if (f==NULL) return FALSE;
   chk_attach_names();
 
@@ -204,7 +218,7 @@ gboolean save_journal(const char *filename)
           success = FALSE;
           if (bgpdf.status != STATUS_NOT_INIT && bgpdf.file_contents != NULL)
           {
-            tmpf = fopen(tmpfn, "wb");
+            tmpf = g_fopen(tmpfn, "wb");
             if (tmpf != NULL && fwrite(bgpdf.file_contents, 1, bgpdf.file_length, tmpf) == bgpdf.file_length)
               success = TRUE;
             fclose(tmpf);
@@ -850,7 +864,7 @@ gboolean open_journal(char *filename)
   }
   g_free(tmpfn);
 
-  f = gzopen(filename, "rb");
+  f = gzopen_wrapper(filename, "rb");
   if (f==NULL) return FALSE;
   if (filename[0]=='/') {
     if (ui.default_path != NULL) g_free(ui.default_path);
@@ -999,7 +1013,7 @@ GList *attempt_load_gv_bg(char *filename)
   char *pipename;
   int buflen, remnlen, file_pageno;
   
-  f = fopen(filename, "rb");
+  f = g_fopen(filename, "rb");
   if (f == NULL) return NULL;
   buf = g_malloc(BUFSIZE); // a reasonable buffer size
   if (fread(buf, 1, 4, f) !=4 ||
@@ -1459,7 +1473,7 @@ void save_mru_list(void)
   FILE *f;
   int i;
   
-  f = fopen(ui.mrufile, "w");
+  f = g_fopen(ui.mrufile, "w");
   if (f==NULL) return;
   for (i=0; i<MRU_SIZE; i++)
     if (ui.mru[i]!=NULL) fprintf(f, "%s\n", ui.mru[i]);
@@ -1860,7 +1874,7 @@ void save_config_to_file(void)
 
   buf = g_key_file_to_data(ui.config_data, NULL, NULL);
   if (buf == NULL) return;
-  f = fopen(ui.configfile, "w");
+  f = g_fopen(ui.configfile, "w");
   if (f==NULL) { g_free(buf); return; }
   fputs(buf, f);
   fclose(f);

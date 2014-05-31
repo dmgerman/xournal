@@ -20,6 +20,7 @@
 #define PANGO_ENABLE_BACKEND /* to access PangoFcFont.font_pattern */
 
 #include <gtk/gtk.h>
+#include <glib/gstdio.h>
 #include <libgnomecanvas/libgnomecanvas.h>
 #include <zlib.h>
 #include <string.h>
@@ -1318,7 +1319,7 @@ gboolean print_to_pdf(char *filename)
   struct PdfImage *image;
   char *tmpbuf;
   
-  f = fopen(filename, "wb");
+  f = g_fopen(filename, "wb");
   if (f == NULL) return FALSE;
   setlocale(LC_NUMERIC, "C");
   annot = FALSE;
