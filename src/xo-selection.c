@@ -232,7 +232,16 @@ void finalize_selectregion(void)
     }
   }
   art_svp_free(lassosvp);
-  
+
+   // expand the bounding box by some amount (medium highlighter, or 3 pixels)
+  if (ui.selection->items != NULL) {
+    double margin = MAX(0.6*predef_thickness[TOOL_HIGHLIGHTER][THICKNESS_MEDIUM], 3.0/ui.zoom);
+    ui.selection->bbox.top -= margin;
+    ui.selection->bbox.bottom += margin;
+    ui.selection->bbox.left -= margin;
+    ui.selection->bbox.right += margin;
+  }  
+
   if (ui.selection->items == NULL) {
     // if we clicked inside a text zone or image?
     pt = ui.cur_path.coords; 

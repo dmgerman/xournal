@@ -18,6 +18,7 @@ This version:
   - added "new pages duplicate background" option (new default is false)
   - updated Windows build and packaging instructions
   - bugfix for file paths with non-English characters in Win32
+  - add some margin around lasso selection rectangle (after Niklas Beisert)
 
 Version 0.4.7 (July 4, 2012):
   - insert image tool (based on patches by Victor Saase and Simon Guest)
