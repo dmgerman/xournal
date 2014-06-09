@@ -1526,7 +1526,7 @@ void init_config_default(void)
   ui.poppler_force_cairo = FALSE;
   ui.touch_as_handtool = FALSE;
   ui.pen_disables_touch = FALSE;
-  ui.device_for_touch = DEFAULT_DEVICE_FOR_TOUCH;
+  ui.device_for_touch = g_strdup(DEFAULT_DEVICE_FOR_TOUCH);
   
   // the default UI vertical order
   ui.vertical_order[0][0] = 1; 
