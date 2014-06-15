@@ -523,6 +523,7 @@ gboolean try_closed_polygon(int nsides)
     dist = hypot((r1->reversed?r1->x1:r1->x2)-pt[0],(r1->reversed?r1->y1:r1->y2)-pt[1])
          + hypot((r2->reversed?r2->x2:r2->x1)-pt[0],(r2->reversed?r2->y2:r2->y1)-pt[1]);
     if (dist > POLYGON_LINEAR_TOLERANCE*(r1->radius+r2->radius)) return FALSE;
+    if (fabs(pt[0])>2*ui.cur_page->width || fabs(pt[1])>2*ui.cur_page->height) return FALSE;
   }
   
   // make a polygon of the correct size and slope
