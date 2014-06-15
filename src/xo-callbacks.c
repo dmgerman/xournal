@@ -2471,8 +2471,10 @@ on_canvas_button_press_event           (GtkWidget       *widget,
     return FALSE;
   }
 
+  // record device info so we'll know what motion events to monitor
   ui.is_corestroke = is_core;
   ui.stroke_device = event->device;
+  ui.current_ignore_btn_reported_up = ui.ignore_btn_reported_up;
 
   is_touch = (strstr(event->device->name, ui.device_for_touch) != NULL);
   if (is_touch && ui.pen_disables_touch && ui.in_proximity) return FALSE;
@@ -2807,7 +2809,7 @@ on_canvas_motion_notify_event          (GtkWidget       *widget,
     looks_wrong = !(mask & (1<<(7+ui.which_mouse_button)));
   }
   
-  if (we_have_no_clue || (looks_wrong && !ui.ignore_btn_reported_up)) { 
+  if (we_have_no_clue || (looks_wrong && !ui.current_ignore_btn_reported_up)) { 
     /* mouse button shouldn't be up... give up */
 #ifdef INPUT_DEBUG
   printf("DEBUG: aborting on suspicious MotionNotify\n");
@@ -2840,6 +2842,9 @@ on_canvas_motion_notify_event          (GtkWidget       *widget,
     switch_mapping(0);
     return FALSE;
   }
+  
+  if (!looks_wrong) ui.current_ignore_btn_reported_up = FALSE;
+    // we trust this device knows how to report button state properly
   
   if (ui.cur_item_type == ITEM_STROKE) {
     continue_stroke((GdkEvent *)event);

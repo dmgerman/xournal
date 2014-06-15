@@ -24,8 +24,6 @@ BUGS:
  (todo) - set device to Absolute mode at startup? (GDK doesn't expose API,
           cf XSetDeviceMode() in /usr/include/X11/extensions/XInput.h)
 - lingering issues with Fujitsu, touch, etc. - ButtonPress wrong coordinates
-- color picker into canvas doesn't work in GTK+ 2.16 (should disable
-   xinput first?)
 - export to PDF should see cropbox size if smaller, and map the
    cropbox -- not the entire page -- to the page area! (2009-11-18 forum)
 
@@ -37,10 +35,9 @@ BEHAVIOR TODO:
 WIN32:
 - test further
 - write an installer
-- bug: opening files with accents in name?
 - bug: cairo-scaled-font in printing? (2009-11-18 bug tracker)
-- bug: printf() sometimes generates stroke coordinates 1.#J -1.#J  (???)
-     (filter out inf, -inf, nan, very large values when saving ???)
+- bug: second copy-paste brings back older paste items
+- bug: sometimes seems to hang for a while at/near end_text() ?
 
 PATCHES TO INCORPORATE:
 
@@ -50,6 +47,8 @@ actually not necessary anymore? (ezyang 12/2/2011)
 
 - tauu e-mail of 12/1/2011: 8 small patches for win32, uploaded on tracker
 https://sourceforge.net/tracker/index.php?func=detail&aid=3447356&group_id=163434&atid=827735
+(not usable as such; but a version of XINPUT_BUGFIX to map the device to
+a monitor, and awareness of screen recofigurations, are both desirable)
 
 - patch: add Alt-Up/Dn accelerators for show/hide layer. See
   show_hide_layer.patch
@@ -66,6 +65,7 @@ https://sourceforge.net/tracker/index.php?func=detail&aid=3447356&group_id=16343
    *** NEW VERSION: #2881919 (autosave for 0.4.5, w/ some changes)
    NB: last modif should be triggered by prepare_new_undo() and undo/redo?
    *** NEW VERSION: with threading, by Man, e-mail 12/10/2009 10:51pm
+   *** even newer version 2014
 
 ** customize paper ruling (Gautam Iyer e-mail Nov 30 2009 / SF tracker)
 
@@ -84,8 +84,6 @@ https://sourceforge.net/tracker/index.php?func=detail&aid=3447356&group_id=16343
   the same (so rescaling creates margin around bitmap or PDF background).
   This will need an extension to the file format, to allow a page background
   to have a different size from the page itself.
-
-- option to map device named "touch" to hand tool? (like "Eraser tip")
 
 - roadmap towards SVG support: see 1/25/2010 Mark Edgington email & reply
   (1) export to SVG (using pages and groups for pages and layers; 
