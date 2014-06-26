@@ -119,6 +119,7 @@ void init_stuff (int argc, char *argv[])
   ui.cur_mapping = 0;
   ui.which_unswitch_button = 0;
   ui.in_proximity = FALSE;
+  ui.warned_generate_fontconfig = FALSE;
   
   reset_recognizer();
 

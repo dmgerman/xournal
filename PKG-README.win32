@@ -71,6 +71,24 @@ Note that there may be issues with accessing files located in folders
 whose path contains non-English characters (accents etc.); if you
 encounter difficulties, move the files to a different folder before 
 editing them.
+
+* KNOWN ISSUES
+
+There are various known issues; the worst ones relate to text items, 
+fonts and printing. 
+
+- If xournal seems to hang the first time you create a text item, just
+be patient: the fontconfig library on which xournal maintains a cache 
+of system fonts, and on Windows the creation of the cache can take 
+several minutes. Once the cache is created, things should run smoothly.
+
+- Some fonts may not print well or export to PDF well. If you have
+trouble with File -> Print, try Export to PDF instead; and vice-versa.
+If neither works well, try using different fonts.
+
+- Copy-paste: when copy-pasting items from other windows applications
+to xournal, sometimes xournal receives an old item rather than the 
+one most recently copied into the clipboard.
  
 
 LICENSE AND SOURCE CODE

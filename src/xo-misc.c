@@ -602,6 +602,7 @@ void make_canvas_item_one(GnomeCanvasGroup *group, struct Item *item)
 {
   PangoFontDescription *font_desc;
   GnomeCanvasPoints points;
+  GtkWidget *dialog;
   int j;
 
   if (item->type == ITEM_STROKE) {
@@ -627,6 +628,15 @@ void make_canvas_item_one(GnomeCanvasGroup *group, struct Item *item)
     }
   }
   if (item->type == ITEM_TEXT) {
+#ifdef WIN32  // fontconfig cache generation takes forever, show hourglass
+    if (!ui.warned_generate_fontconfig) {
+      dialog = gtk_message_dialog_new(GTK_WINDOW(winMain), GTK_DIALOG_DESTROY_WITH_PARENT,
+         GTK_MESSAGE_OTHER, GTK_BUTTONS_NONE, "Generating fontconfig library cache, please be patient...");
+      gtk_window_set_title(GTK_WINDOW(dialog), "Generating fontconfig cache...");
+      gtk_widget_show_all(dialog);
+      set_cursor_busy(TRUE);
+    }
+#endif
     font_desc = pango_font_description_from_string(item->font_name);
     pango_font_description_set_absolute_size(font_desc, 
             item->font_size*ui.zoom*PANGO_SCALE);
@@ -636,6 +646,13 @@ void make_canvas_item_one(GnomeCanvasGroup *group, struct Item *item)
           "font-desc", font_desc, "fill-color-rgba", item->brush.color_rgba,
           "text", item->text, NULL);
     update_item_bbox(item);
+#ifdef WIN32 // done
+    if (!ui.warned_generate_fontconfig)  {
+      ui.warned_generate_fontconfig = TRUE;
+      gtk_widget_destroy(dialog);
+      set_cursor_busy(FALSE);
+    }
+#endif
   }
   if (item->type == ITEM_IMAGE) {
     item->canvas_item = gnome_canvas_item_new(group,

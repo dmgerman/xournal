@@ -333,6 +333,7 @@ typedef struct UIData {
   GtkPrintSettings *print_settings;
 #endif
   gboolean poppler_force_cairo; // force poppler to use cairo
+  gboolean warned_generate_fontconfig; // for win32 fontconfig cache
 } UIData;
 
 #define BRUSH_LINKED 0
