@@ -58,15 +58,6 @@ a monitor, and awareness of screen recofigurations, are both desirable)
 ** patch: ortho/snap (revised Apr 13 2009)
    xournal_ortho_snap_patch_4 (by Josef Pavlicek)
 
-** autosave patch (Edward Yang) (should fix: optional only, w/ menu + cfgfile
-   entries; fix: should clean up autosave.xoj.bg* files too; config interval)
-   0001-Implement-autosave-for-documents-revised.patch (2 seconds after
-   modification, vs original 5 seconds)
-   *** NEW VERSION: #2881919 (autosave for 0.4.5, w/ some changes)
-   NB: last modif should be triggered by prepare_new_undo() and undo/redo?
-   *** NEW VERSION: with threading, by Man, e-mail 12/10/2009 10:51pm
-   *** even newer version 2014
-
 ** customize paper ruling (Gautam Iyer e-mail Nov 30 2009 / SF tracker)
 
 ** cairo export to PNG (Man = Paulo Neves, e-mail Feb 3 '10, saved as
@@ -229,7 +220,6 @@ a monitor, and awareness of screen recofigurations, are both desirable)
 - display corruption on scroll down when bottom of window is obscured??
   (probably a gnomecanvas or X bug -- expose event generated for wrong
   region, or not processed?)
-- autosave at a regular interval in a given location
 - keep only a few pages of a PDF file in memory at any given time; generate
   pages by parsing pdf info rather than generating bitmaps for all of them.
 - win32 port (Matteo Abrate)

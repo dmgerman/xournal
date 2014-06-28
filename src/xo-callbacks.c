@@ -190,7 +190,8 @@ on_fileSave_activate                   (GtkMenuItem     *menuitem,
     return;
   }
   set_cursor_busy(TRUE);
-  if (save_journal(ui.filename)) { // success
+  if (save_journal(ui.filename, FALSE)) { // success
+    autosave_cleanup(&ui.autosave_filename_list);
     set_cursor_busy(FALSE);
     ui.saved = TRUE;
     return;
@@ -224,25 +225,10 @@ on_fileSaveAs_activate                 (GtkMenuItem     *menuitem,
   gtk_window_set_default_size(GTK_WINDOW(dialog), 500, 400);
 #endif
      
-  if (ui.filename!=NULL) {
-    gtk_file_chooser_set_filename(GTK_FILE_CHOOSER (dialog), ui.filename);
-    gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (dialog), xo_basename(ui.filename, FALSE));
-  } 
-  else
-  if (bgpdf.status!=STATUS_NOT_INIT && bgpdf.file_domain == DOMAIN_ABSOLUTE 
-      && bgpdf.filename != NULL) {
-    filename = g_strdup_printf("%s.xoj", bgpdf.filename->s);
-    gtk_file_chooser_set_filename(GTK_FILE_CHOOSER (dialog), filename);
-    gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (dialog), xo_basename(filename, FALSE));
-    g_free(filename); 
-  }
-  else {
-    curtime = time(NULL);
-    strftime(stime, 30, "%Y-%m-%d-Note-%H-%M.xoj", localtime(&curtime));
-    if (ui.default_path!=NULL)
-      gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (dialog), ui.default_path);
-    gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (dialog), stime);
-  }
+  filename = candidate_save_filename();
+  gtk_file_chooser_set_filename(GTK_FILE_CHOOSER (dialog), filename);
+  gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (dialog), xo_basename(filename, FALSE));
+  g_free(filename); 
      
   filt_all = gtk_file_filter_new();
   gtk_file_filter_set_name(filt_all, _("All files"));
@@ -284,7 +270,8 @@ on_fileSaveAs_activate                 (GtkMenuItem     *menuitem,
   gtk_widget_destroy(dialog);
 
   set_cursor_busy(TRUE);
-  if (save_journal(filename)) { // success
+  if (save_journal(filename, FALSE)) { // success
+    autosave_cleanup(&ui.autosave_filename_list);
     ui.saved = TRUE;
     set_cursor_busy(FALSE);
     update_file_name(filename);
@@ -377,24 +364,16 @@ on_filePrintPDF_activate               (GtkMenuItem     *menuitem,
   gtk_window_set_default_size(GTK_WINDOW(dialog), 500, 400);
 #endif
      
-  if (ui.filename!=NULL) {
-    if (g_str_has_suffix(ui.filename, ".xoj")) {
-      in_fn = g_strdup(ui.filename);
-      g_strlcpy(g_strrstr(in_fn, "xoj"), "pdf", 4);
-    } 
-    else
-      in_fn = g_strdup_printf("%s.pdf", ui.filename);
-    gtk_file_chooser_set_filename(GTK_FILE_CHOOSER (dialog), in_fn);
-    gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (dialog), xo_basename(in_fn, FALSE));
-  } else {
-    curtime = time(NULL);
-    strftime(stime, 30, "%Y-%m-%d-Note-%H-%M.pdf", localtime(&curtime));
-    if (ui.default_path!=NULL)
-      gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (dialog), ui.default_path);
-    gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (dialog), stime);
-    in_fn = NULL;
+  in_fn = candidate_save_filename();
+  if (g_str_has_suffix(in_fn, ".xoj"))
+    g_strlcpy(g_strrstr(in_fn, "xoj"), "pdf", 4);
+  else {
+    filename = g_strdup_printf("%s.pdf", in_fn);
+    g_free(in_fn); in_fn = filename;
   }
-     
+  gtk_file_chooser_set_filename(GTK_FILE_CHOOSER (dialog), in_fn);
+  gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (dialog), xo_basename(in_fn, FALSE));
+  
   filt_all = gtk_file_filter_new();
   gtk_file_filter_set_name(filt_all, _("All files"));
   gtk_file_filter_add_pattern(filt_all, "*");
@@ -656,6 +635,7 @@ on_editUndo_activate                   (GtkMenuItem     *menuitem,
   u->next = redo;
   redo = u;
   ui.saved = FALSE;
+  ui.need_autosave = TRUE;
   update_undo_redo_enabled();
   if (u->multiop & MULTIOP_CONT_UNDO) on_editUndo_activate(NULL,NULL); // loop
 }
@@ -875,6 +855,7 @@ on_editRedo_activate                   (GtkMenuItem     *menuitem,
   u->next = undo;
   undo = u;
   ui.saved = FALSE;
+  ui.need_autosave = TRUE;
   update_undo_redo_enabled();
   if (u->multiop & MULTIOP_CONT_REDO) on_editRedo_activate(NULL,NULL); // loop
 }
@@ -2618,6 +2599,7 @@ on_canvas_button_release_event         (GtkWidget       *widget,
   if (!ui.which_unswitch_button || event->button == ui.which_unswitch_button)
     switch_mapping(0); // will reset ui.which_unswitch_button
 
+  if (ui.autosave_enabled && ui.autosave_need_catchup) autosave_cb((gpointer)1);
   return FALSE;
 }
 
@@ -2840,6 +2822,7 @@ on_canvas_motion_notify_event          (GtkWidget       *widget,
       ui.cur_item_type = ITEM_NONE;
     }
     switch_mapping(0);
+    if (ui.autosave_enabled && ui.autosave_need_catchup) autosave_cb((gpointer)1);
     return FALSE;
   }
   
@@ -3837,5 +3820,15 @@ on_journalNewPageKeepsBG_activate      (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
   ui.new_page_bg_from_pdf = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem));
+}
+
+
+void
+on_optionsAutosaveXoj_activate         (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+  autosave_cleanup(&ui.autosave_filename_list);
+  ui.autosave_enabled = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem));
+  if (ui.autosave_enabled) init_autosave();
 }
 

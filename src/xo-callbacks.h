@@ -694,3 +694,7 @@ on_optionsDesignateTouchscreen_activate
 void
 on_journalNewPageKeepsBG_activate      (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
+
+void
+on_optionsAutosaveXoj_activate         (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);

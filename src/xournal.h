@@ -314,6 +314,10 @@ typedef struct UIData {
   double zoom_step_factor; // the multiplicative factor in zoom in/out
   double startup_zoom;
   gboolean autoload_pdf_xoj;
+  gboolean autosave_enabled, autosave_loop_running, autosave_need_catchup;
+  GList *autosave_filename_list;
+  int autosave_delay;
+  gboolean need_autosave;
 #if GLIB_CHECK_VERSION(2,6,0)
   GKeyFile *config_data;
 #endif

@@ -22,10 +22,12 @@
 
 extern int GS_BITMAP_DPI, PDFTOPPM_PRINTING_DPI;
 
-#define TMPDIR_TEMPLATE "/tmp/xournalpdf.XXXXXX"
+#define AUTOSAVE_MAX 9
+#define AUTOSAVE_FILENAME_TEMPLATE "%s.autosave%d.xoj"
+#define AUTOSAVE_FILENAME_FILTER "%s.autosave*.xoj"
 
 void new_journal(void);
-gboolean save_journal(const char *filename);
+gboolean save_journal(const char *filename, gboolean is_auto);
 gboolean close_journal(void);
 gboolean open_journal(char *filename);
 
@@ -51,3 +53,8 @@ void save_mru_list(void);
 void init_config_default(void);
 void load_config_from_file(void);
 void save_config_to_file(void);
+
+void autosave_cleanup(GList **list);
+void init_autosave(void);
+gboolean autosave_cb(gpointer is_catchup);
+char *check_for_autosave(char *filename);

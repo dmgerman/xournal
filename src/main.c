@@ -245,6 +245,8 @@ void init_stuff (int argc, char *argv[])
   gtk_check_menu_item_set_active(
     GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsAutoloadPdfXoj")), ui.autoload_pdf_xoj);
   gtk_check_menu_item_set_active(
+    GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsAutosaveXoj")), ui.autosave_enabled);
+  gtk_check_menu_item_set_active(
     GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsLeftHanded")), ui.left_handed);
   gtk_check_menu_item_set_active(
     GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsShortenMenus")), ui.shorten_menus);
@@ -370,6 +372,7 @@ main (int argc, char *argv[])
   if (bgpdf.status != STATUS_NOT_INIT) shutdown_bgpdf();
 
   save_mru_list();
+  autosave_cleanup(&ui.autosave_filename_list);
   if (ui.auto_save_prefs) save_config_to_file();
   
   return 0;

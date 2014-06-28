@@ -22,6 +22,7 @@
 #include <gtk/gtk.h>
 #include <libgnomecanvas/libgnomecanvas.h>
 #include <gdk/gdkkeysyms.h>
+#include <time.h>
 
 #include "xournal.h"
 #include "xo-interface.h"
@@ -65,6 +66,24 @@ gchar *xo_basename(gchar *s, gboolean xplatform)
     if (g_ascii_isalpha(s[0]) && s[1]==':') return s+2;
   }
   return s; // whole string
+}
+
+// candidate xoj filename for save, save-as, autosave, etc.
+
+gchar *candidate_save_filename(void)
+{
+  time_t curtime;
+  char stime[30];
+  
+  if (ui.filename != NULL) return g_strdup(ui.filename);
+  if (bgpdf.status!=STATUS_NOT_INIT && bgpdf.file_domain == DOMAIN_ABSOLUTE 
+        && bgpdf.filename != NULL)
+    return g_strdup_printf("%s.xoj", bgpdf.filename->s);
+  curtime = time(NULL);
+  strftime(stime, 30, "%Y-%m-%d-Note-%H-%M.xoj", localtime(&curtime));
+  if (ui.default_path!=NULL) 
+    return g_strdup_printf("%s/%s", ui.default_path, stime);
+  else return g_strdup(stime);
 }
 
 // some manipulation functions
@@ -192,6 +211,7 @@ void prepare_new_undo(void)
   u->multiop = 0;
   undo = u;
   ui.saved = FALSE;
+  ui.need_autosave = TRUE;
   clear_redo_stack();
 }
 
@@ -631,8 +651,8 @@ void make_canvas_item_one(GnomeCanvasGroup *group, struct Item *item)
 #ifdef WIN32  // fontconfig cache generation takes forever, show hourglass
     if (!ui.warned_generate_fontconfig) {
       dialog = gtk_message_dialog_new(GTK_WINDOW(winMain), GTK_DIALOG_DESTROY_WITH_PARENT,
-         GTK_MESSAGE_OTHER, GTK_BUTTONS_NONE, "Generating fontconfig library cache, please be patient...");
-      gtk_window_set_title(GTK_WINDOW(dialog), "Generating fontconfig cache...");
+         GTK_MESSAGE_OTHER, GTK_BUTTONS_NONE, _("Generating fontconfig library cache, please be patient..."));
+      gtk_window_set_title(GTK_WINDOW(dialog), _("Generating fontconfig cache..."));
       gtk_widget_show_all(dialog);
       set_cursor_busy(TRUE);
     }

@@ -14,6 +14,7 @@
  */
 
 gchar *xo_basename(gchar *s, gboolean xplatform);
+gchar *candidate_save_filename(void);
 
 // data manipulation misc functions
 
