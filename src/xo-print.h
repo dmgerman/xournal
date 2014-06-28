@@ -90,6 +90,7 @@ gboolean pdf_parse_info(GString *pdfbuf, struct PdfInfo *pdfinfo, struct XrefTab
 // main printing functions
 
 gboolean print_to_pdf(char *filename);
+gboolean print_to_pdf_cairo(char *filename);
 
 #if GTK_CHECK_VERSION(2, 10, 0)
 void print_job_render_page(GtkPrintOperation *print, GtkPrintContext *context, gint pageno, gpointer user_data);

@@ -254,6 +254,7 @@ create_winMain (void)
   GtkWidget *separator18;
   GtkWidget *optionsProgressiveBG;
   GtkWidget *optionsPrintRuling;
+  GtkWidget *optionsLegacyPDFExport;
   GtkWidget *optionsAutoloadPdfXoj;
   GtkWidget *optionsAutosaveXoj;
   GtkWidget *optionsLeftHanded;
@@ -1428,6 +1429,10 @@ create_winMain (void)
   gtk_widget_show (optionsPrintRuling);
   gtk_container_add (GTK_CONTAINER (menuOptions_menu), optionsPrintRuling);
 
+  optionsLegacyPDFExport = gtk_check_menu_item_new_with_mnemonic (_("Legacy PDF Export"));
+  gtk_widget_show (optionsLegacyPDFExport);
+  gtk_container_add (GTK_CONTAINER (menuOptions_menu), optionsLegacyPDFExport);
+
   optionsAutoloadPdfXoj = gtk_check_menu_item_new_with_mnemonic (_("Autoload pdf.xoj"));
   gtk_widget_show (optionsAutoloadPdfXoj);
   gtk_container_add (GTK_CONTAINER (menuOptions_menu), optionsAutoloadPdfXoj);
@@ -2445,6 +2450,9 @@ create_winMain (void)
   g_signal_connect ((gpointer) optionsPrintRuling, "activate",
                     G_CALLBACK (on_optionsPrintRuling_activate),
                     NULL);
+  g_signal_connect ((gpointer) optionsLegacyPDFExport, "activate",
+                    G_CALLBACK (on_optionsLegacyPDFExport_activate),
+                    NULL);
   g_signal_connect ((gpointer) optionsAutoloadPdfXoj, "activate",
                     G_CALLBACK (on_optionsAutoloadPdfXoj_activate),
                     NULL);
@@ -2833,6 +2841,7 @@ create_winMain (void)
   GLADE_HOOKUP_OBJECT (winMain, separator18, "separator18");
   GLADE_HOOKUP_OBJECT (winMain, optionsProgressiveBG, "optionsProgressiveBG");
   GLADE_HOOKUP_OBJECT (winMain, optionsPrintRuling, "optionsPrintRuling");
+  GLADE_HOOKUP_OBJECT (winMain, optionsLegacyPDFExport, "optionsLegacyPDFExport");
   GLADE_HOOKUP_OBJECT (winMain, optionsAutoloadPdfXoj, "optionsAutoloadPdfXoj");
   GLADE_HOOKUP_OBJECT (winMain, optionsAutosaveXoj, "optionsAutosaveXoj");
   GLADE_HOOKUP_OBJECT (winMain, optionsLeftHanded, "optionsLeftHanded");

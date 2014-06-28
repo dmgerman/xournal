@@ -1717,6 +1717,7 @@ void init_config_default(void)
   ui.zoom_step_factor = 1.5;
   ui.progressive_bg = TRUE;
   ui.print_ruling = TRUE;
+  ui.exportpdf_prefer_legacy = FALSE;
   ui.default_unit = UNIT_CM;
   ui.default_path = NULL;
   ui.default_image = NULL;
@@ -1930,6 +1931,9 @@ void save_config_to_file(void)
   update_keyval("general", "poppler_force_cairo",
     _(" force PDF rendering through cairo (slower but nicer) (true/false)"),
     g_strdup(ui.poppler_force_cairo?"true":"false"));
+  update_keyval("general", "exportpdf_prefer_legacy",
+    _(" prefer xournal's own PDF code for exporting PDFs (true/false)"),
+    g_strdup(ui.exportpdf_prefer_legacy?"true":"false"));
 
   update_keyval("paper", "width",
     _(" the default page width, in points (1/72 in)"),
@@ -2309,6 +2313,7 @@ void load_config_from_file(void)
   parse_keyval_float("general", "highlighter_opacity", &ui.hiliter_opacity, 0., 1.);
   parse_keyval_boolean("general", "autosave_prefs", &ui.auto_save_prefs);
   parse_keyval_boolean("general", "poppler_force_cairo", &ui.poppler_force_cairo);
+  parse_keyval_boolean("general", "exportpdf_prefer_legacy", &ui.exportpdf_prefer_legacy);
   
   parse_keyval_float("paper", "width", &ui.default_page.width, 1., 5000.);
   parse_keyval_float("paper", "height", &ui.default_page.height, 1., 5000.);

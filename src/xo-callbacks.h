@@ -698,3 +698,7 @@ on_journalNewPageKeepsBG_activate      (GtkMenuItem     *menuitem,
 void
 on_optionsAutosaveXoj_activate         (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
+
+void
+on_optionsLegacyPDFExport_activate     (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);

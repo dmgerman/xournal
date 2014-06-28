@@ -21,6 +21,7 @@ This version:
   - add some margin around lasso selection rectangle (after Niklas Beisert)
   - warn for fontconfig cache generation in Win32
   - option to auto-save documents and recover auto-saves (after Edward Yang, Aiwarrior, Timo Kluck)
+  - new Export to PDF code using cairo (+ config option to prefer old code)
 
 Version 0.4.7 (July 4, 2012):
   - insert image tool (based on patches by Victor Saase and Simon Guest)

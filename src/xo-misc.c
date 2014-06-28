@@ -403,8 +403,10 @@ void delete_layer(struct Layer *l)
   
   while (l->items!=NULL) {
     item = (struct Item *)l->items->data;
-    if (item->type == ITEM_STROKE && item->path != NULL) 
+    if (item->type == ITEM_STROKE && item->path != NULL) {
       gnome_canvas_points_free(item->path);
+      if (item->brush.variable_width) g_free(item->widths);
+    }
     if (item->type == ITEM_TEXT) {
       g_free(item->font_name); g_free(item->text);
     }

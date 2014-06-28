@@ -354,7 +354,7 @@ on_filePrintPDF_activate               (GtkMenuItem     *menuitem,
   char *filename, *in_fn;
   char stime[30];
   time_t curtime;
-  gboolean warn;
+  gboolean warn, prefer_legacy;
   
   end_text();
   dialog = gtk_file_chooser_dialog_new(_("Export to PDF"), GTK_WINDOW (winMain),
@@ -406,12 +406,20 @@ on_filePrintPDF_activate               (GtkMenuItem     *menuitem,
   gtk_widget_destroy(dialog);
 
   set_cursor_busy(TRUE);
-  if (!print_to_pdf(filename)) {
-    set_cursor_busy(FALSE);
-    dialog = gtk_message_dialog_new(GTK_WINDOW (winMain), GTK_DIALOG_DESTROY_WITH_PARENT,
-      GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, _("Error creating file '%s'"), filename);
-    gtk_dialog_run(GTK_DIALOG(dialog));
-    gtk_widget_destroy(dialog);
+
+  prefer_legacy = ui.exportpdf_prefer_legacy;
+  if (prefer_legacy) { // try printing via our own PDF parser and generator
+    if (!print_to_pdf(filename))
+      prefer_legacy = FALSE; // if failed, fall back to cairo
+  }
+  if (!prefer_legacy) { // try printing via cairo
+    if (!print_to_pdf_cairo(filename)) {
+      set_cursor_busy(FALSE);
+      dialog = gtk_message_dialog_new(GTK_WINDOW (winMain), GTK_DIALOG_DESTROY_WITH_PARENT,
+        GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, _("Error creating file '%s'"), filename);
+      gtk_dialog_run(GTK_DIALOG(dialog));
+      gtk_widget_destroy(dialog);
+    }
   }
   set_cursor_busy(FALSE);
   g_free(filename);
@@ -3830,5 +3838,13 @@ on_optionsAutosaveXoj_activate         (GtkMenuItem     *menuitem,
   autosave_cleanup(&ui.autosave_filename_list);
   ui.autosave_enabled = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem));
   if (ui.autosave_enabled) init_autosave();
+}
+
+
+void
+on_optionsLegacyPDFExport_activate     (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+  ui.exportpdf_prefer_legacy = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem));
 }
 
