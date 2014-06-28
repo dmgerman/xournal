@@ -507,7 +507,7 @@ crashes when viewing long documents.
 <p>
 As of version 0.4.5, Xournal uses the gtk-print architecture for printing
 (previous versions used gnome-print). Xournal also includes a native PDF 
-printing feature.
+printing feature. 
 </p>
 <h3 class="subsub">Printing via gtk-print</h3>
 <p>
@@ -529,24 +529,24 @@ the next, so make sure to verify the settings.
 </p>
 <h3 class="subsub">Exporting to PDF</h3>
 <p>
-Xournal also provides its own PDF rendering
-engine. The "Export to PDF" command (in the File menu) produces a
-PDF-1.4 file from the currently loaded document. The pages of the
-resulting PDF file have the same size as in Xournal. Highlighter strokes
-are rendered in a partially transparent manner (note however that
-applications such as xpdf and ghostview do not always handle
-PDF transparency properly). Text items are rendered by embedding
-TrueType subsets or Type 1 fonts into the PDF document as appropriate.
+As of version 0.4.8, the "Export to PDF" command uses the poppler and cairo
+libraries to produce a PDF version of the currently loaded document.
+The pages of the resulting PDF file have the same size as in Xournal. 
+Highlighter strokes are rendered in a partially transparent manner. 
+Text items are rendered by embedding TrueType subsets or Type 1 fonts 
+into the PDF document as appropriate.
 </p>
 <p>
-Xournal includes a PDF file parser compatible with PDF format
-version 1.4; the compression features of PDF 1.5 are
-not supported. When exporting a document that uses PDF
+Xournal still provides its own PDF rendering engine, which was the default
+up to version 0.4.7 and continues to be used if "Legacy PDF Export" is 
+checked in the Options menu. This code includes a PDF file parser 
+compatible with PDF format version 1.4; the compression features of 
+PDF 1.5 are not supported. When exporting a document that uses PDF
 backgrounds, Xournal attempts to preserve most of the structure of
 the original PDF file (however, auxiliary data such as thumbnails, hyperlinks,
 and annotations are lost). If Xournal is unable to parse the PDF
-file, the backgrounds are converted to (compressed) bitmaps and a new
-PDF file is generated from scratch.
+file, the poppler/cairo renderer is used instead to generate a new PDF file
+from scratch.
 </p>
 <hr />
 <a name="configuration"></a>
@@ -717,12 +717,14 @@ Xournal is written by Denis Auroux
 <p>
 The source code includes contributions by the following people: 
 Alvaro, Kit Barnes, Eduardo de Barros Lima, Mathieu Bouchard, 
-Ole J&oslash;rgen Br&oslash;nner, Robert Buchholz, Vincenzo Ciancia, Luca de Cicco, 
-Michele Codutti, Robert Gerlach, Daniel German, Dirk Gerrits, Simon Guest,
+Ole J&oslash;rgen Br&oslash;nner, Robert Buchholz, William Chao, Vincenzo Ciancia, 
+Luca de Cicco, Michele Codutti, Robert Gerlach, Daniel German, 
+Dirk Gerrits, Simon Guest, Andreas Huettel,
 Lukasz Kaiser, Ian Woo Kim, Timo Kluck, David Kolibac, Danny Kukawka, 
-Stefan Lembach, Bob McElrath, Andy Neitzke, David Planella, Marco Poletti, 
-Alex Ray, Jean-Baptiste Rouquier, Victor Saase, Marco Souza, Mike Ter Louw, 
-Uwe Winter, Lu Zhihe.
+Stefan Lembach, Bob McElrath, Mutse, Andy Neitzke, David Planella, 
+Marco Poletti,  Alex Ray, Jean-Baptiste Rouquier, Victor Saase, 
+Hiroshi Saito, Luciano Siqueira, Marco Souza, Mike Ter Louw, 
+Mis Uszatek, Uwe Winter, Edward Z. Yang, Lu Zhihe.
 </p>
 <p style="font-size:0.9em">(Let me know if you are missing from this list or
 if your name is mis-spelled)</p>
