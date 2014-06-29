@@ -1,27 +1,32 @@
-This version:
-  - generate cursors from pixbufs (fixes a Win32 bug)
-  - work around Win32 bug: refuse paste if mismatched format
-  - Chinese (simplified) translation (by Mutse)
-  - updated German translation (Stefan Holtzhauer)
-  - ignore events from non-drawing devices by default (ignore_other_devices)
-  - Polish translation (by Mis Uszatek)
-  - pencil cursor option (patch by Luciano Siqueira)
-  - Chinese (traditional) translation (William Chao)
-  - fix configure.in for automake-1.13 (Florian Bruhin, Andreas Huettel)
-  - Japanese translation (by Hiroshi Saito)
-  - smoother icons for eraser and shapes buttons (by Colin Macdonald)
-  - horizontal view mode
-  - fix a cross-platform g_basename() issue (after Daniel German)
-  - "touchscreen as hand tool" option (after Rumen Zarev and Daniel German)
-  - "pen disables touchscreen" option; dialog box to designate touch device
-  - tweaks to xinput event processing for touchscreens
-  - added "new pages duplicate background" option (new default is false)
-  - updated Windows build and packaging instructions
-  - bugfix for file paths with non-English characters in Win32
-  - add some margin around lasso selection rectangle (after Niklas Beisert)
-  - warn for fontconfig cache generation in Win32
-  - option to auto-save documents and recover auto-saves (after Edward Yang, Aiwarrior, Timo Kluck)
-  - new Export to PDF code using cairo (+ config option to prefer old code)
+Version 0.4.8 (June 30, 2014):
+  * Features:
+    - option to auto-save documents and recover auto-saves (after Edward Yang, Aiwarrior, Timo Kluck)
+    - new Export to PDF code using cairo (and config option to enable legacy code)
+    - horizontal view mode
+    - improved touchscreen handling
+    - pencil cursor option (patch by Luciano Siqueira)
+    - added "new pages duplicate background" option (new default is false)
+    - updated Windows build and packaging instructions
+  * XInput device handling:
+    - ignore events from non-drawing devices by default (ignore_other_devices)
+    - "touchscreen as hand tool" option (after Rumen Zarev and Daniel German)
+    - "pen disables touchscreen" option; dialog box to designate touch device
+    - tweaks to xinput event processing for touchscreens
+  * Bugfixes:
+    - generate cursors from pixbufs (fixes a Win32 bug)
+    - work around Win32 bug: refuse paste if mismatched format
+    - fix configure.in for automake-1.13 (Florian Bruhin, Andreas Huettel)
+    - smoother icons for eraser and shapes buttons (by Colin Macdonald)
+    - fix a cross-platform g_basename() issue (after Daniel German)
+    - bugfix for file paths with non-English characters in Win32
+    - add some margin around lasso selection rectangle (after Niklas Beisert)
+    - warn for fontconfig cache generation in Win32
+  * Translations:
+    - Chinese (simplified) translation (by Mutse)
+    - updated German translation (Stefan Holtzhauer)
+    - Polish translation (by Mis Uszatek)
+    - Chinese (traditional) translation (William Chao)
+    - Japanese translation (by Hiroshi Saito)
 
 Version 0.4.7 (July 4, 2012):
   - insert image tool (based on patches by Victor Saase and Simon Guest)
