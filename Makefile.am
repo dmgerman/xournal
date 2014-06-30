@@ -47,6 +47,9 @@ desktop-install:
 	if test ! -e $(DESTDIR)$$desktopdir/icons/hicolor/scalable/mimetypes/gnome-mime-application-x-xoj.svg; then \
 	  ln -s xoj.svg $(DESTDIR)$$desktopdir/icons/hicolor/scalable/mimetypes/gnome-mime-application-x-xoj.svg; \
 	fi; \
+	if test ! -e $(DESTDIR)$$desktopdir/icons/hicolor/scalable/mimetypes/application-x-xoj.svg; then \
+	  ln -s xoj.svg $(DESTDIR)$$desktopdir/icons/hicolor/scalable/mimetypes/application-x-xoj.svg; \
+	fi; \
 	$(INSTALL_DATA) $(srcdir)/xournal.xml $(DESTDIR)$$desktopdir/mime/packages; \
 	$(INSTALL_DATA) $(srcdir)/xournal.desktop $(DESTDIR)$$desktopdir/applications; \
 	$(INSTALL_DATA) $(srcdir)/x-xoj.desktop $(DESTDIR)/usr/share/mimelnk/application; \
