@@ -2439,6 +2439,11 @@ on_canvas_button_press_event           (GtkWidget       *widget,
 
   if (!finite_sized(event->x) || !finite_sized(event->y)) return FALSE; // Xorg 7.3 bug
 
+  is_touch = (strstr(event->device->name, ui.device_for_touch) != NULL) && ui.use_xinput;
+  if (is_touch && ui.pen_disables_touch && ui.in_proximity) return FALSE;
+
+  if (is_touch && is_core && ui.cur_item_type == ITEM_TEXT && ui.touch_as_handtool && ui.in_proximity) return FALSE; // workaround for touch = core as handtool
+
   if (ui.cur_item_type == ITEM_TEXT) {
     if (!is_event_within_textview(event)) end_text();
     else return FALSE;
@@ -2464,9 +2469,6 @@ on_canvas_button_press_event           (GtkWidget       *widget,
   ui.is_corestroke = is_core;
   ui.stroke_device = event->device;
   ui.current_ignore_btn_reported_up = ui.ignore_btn_reported_up;
-
-  is_touch = (strstr(event->device->name, ui.device_for_touch) != NULL);
-  if (is_touch && ui.pen_disables_touch && ui.in_proximity) return FALSE;
 
   if (ui.use_erasertip && event->device->source == GDK_SOURCE_ERASER)
     mapping = NUM_BUTTONS; // eraser mapping
