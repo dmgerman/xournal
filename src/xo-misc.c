@@ -561,8 +561,9 @@ double get_pressure_multiplier(GdkEvent *event)
 
   rawpressure = axes[2]/(device->axes[2].max - device->axes[2].min);
   if (!finite_sized(rawpressure)) return 1.0;
-  if (rawpressure <= 0. || rawpressure >= 1.0) return 1.0;
-  
+
+  if (rawpressure <= 0.) rawpressure = 0.;
+  if (rawpressure >= 1.0) rawpressure = 1.0;
   return ((1-rawpressure)*ui.width_minimum_multiplier + rawpressure*ui.width_maximum_multiplier);
 }
 

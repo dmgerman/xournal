@@ -248,7 +248,7 @@ void create_new_stroke(GdkEvent *event)
 void continue_stroke(GdkEvent *event)
 {
   GnomeCanvasPoints seg;
-  double *pt, current_width;
+  double *pt, current_width, pressure;
 
   if (ui.cur_brush->ruler) {
     pt = ui.cur_path.coords;
@@ -261,7 +261,13 @@ void continue_stroke(GdkEvent *event)
   
   if (ui.cur_item->brush.variable_width) {
     realloc_cur_widths(ui.cur_path.num_points);
-    current_width = ui.cur_item->brush.thickness*get_pressure_multiplier(event);
+    pressure = get_pressure_multiplier(event);
+    if (pressure > ui.width_minimum_multiplier) 
+      current_width = ui.cur_item->brush.thickness*get_pressure_multiplier(event);
+    else { // reported pressure is 0.
+      if (ui.cur_path.num_points >= 2) current_width = ui.cur_widths[ui.cur_path.num_points-2];
+      else current_width = ui.cur_item->brush.thickness;
+    }
     ui.cur_widths[ui.cur_path.num_points-1] = current_width;
   }
   else current_width = ui.cur_item->brush.thickness;
