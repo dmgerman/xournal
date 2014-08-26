@@ -1110,7 +1110,7 @@ gboolean open_journal(char *filename)
     if (!valid && tmpBg_pdf->file_domain != DOMAIN_ATTACH) {
       p = g_path_get_dirname(filename);
       q = xo_basename(tmpfn, TRUE); // xoj may specify a cross-platform file path
-      tmpfn2 = g_strdup_printf("%s/%s", p, q);
+      tmpfn2 = g_strdup_printf("%s%c%s", p, G_DIR_SEPARATOR, q);
       g_free(p);
       valid = init_bgpdf(tmpfn2, FALSE, tmpBg_pdf->file_domain);
       if (valid) {  // change the file name...

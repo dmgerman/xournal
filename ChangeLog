@@ -1,7 +1,12 @@
+This version:
+  - minor pen and touchscreen input handling bugfixes
+  - fix a minor bug with save file paths in Windows (D. German)
+
 Version 0.4.8 (June 30, 2014):
   * Features:
-    - option to auto-save documents and recover auto-saves (after Edward Yang, Aiwarrior, Timo Kluck)
-    - new Export to PDF code using cairo (and config option to enable legacy code)
+    - option to auto-save documents and recover auto-saves 
+      (after Edward Yang, Aiwarrior, Timo Kluck)
+    - new Export to PDF code using cairo (with option to use legacy code)
     - horizontal view mode
     - improved touchscreen handling
     - pencil cursor option (patch by Luciano Siqueira)

@@ -82,7 +82,7 @@ gchar *candidate_save_filename(void)
   curtime = time(NULL);
   strftime(stime, 30, "%Y-%m-%d-Note-%H-%M.xoj", localtime(&curtime));
   if (ui.default_path!=NULL) 
-    return g_strdup_printf("%s/%s", ui.default_path, stime);
+    return g_strdup_printf("%s%c%s", ui.default_path, G_DIR_SEPARATOR, stime);
   else return g_strdup(stime);
 }
 
