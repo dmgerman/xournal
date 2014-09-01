@@ -2439,7 +2439,8 @@ on_canvas_button_press_event           (GtkWidget       *widget,
 
   if (!finite_sized(event->x) || !finite_sized(event->y)) return FALSE; // Xorg 7.3 bug
 
-  is_touch = (strstr(event->device->name, ui.device_for_touch) != NULL) && ui.use_xinput;
+//is_touch = (strstr(event->device->name, ui.device_for_touch) != NULL) && ui.use_xinput;
+  is_touch = (!strcmp(event->device->name, ui.device_for_touch)) && ui.use_xinput;
   if (is_touch && ui.pen_disables_touch && ui.in_proximity) return FALSE;
 
   if (is_touch && is_core && ui.cur_item_type == ITEM_TEXT && ui.touch_as_handtool && ui.in_proximity) return FALSE; // workaround for touch = core as handtool
@@ -2784,7 +2785,8 @@ on_canvas_motion_notify_event          (GtkWidget       *widget,
     ui.stroke_device = event->device;
     // what if touchscreen is mapped to hand or disabled and was initially received as Core Pointer?
     if ((ui.touch_as_handtool || (ui.pen_disables_touch && ui.in_proximity))
-        && strstr(event->device->name, ui.device_for_touch) != NULL) {
+//      && strstr(event->device->name, ui.device_for_touch) != NULL) {
+        && !strcmp(event->device->name, ui.device_for_touch)) {
       abort_stroke(); // in case we were doing a stroke this aborts it; otherwise nothing happens
       return FALSE;
     }
@@ -3809,7 +3811,8 @@ on_optionsDesignateTouchscreen_activate
   for (dev_list = gdk_devices_list(), count = 0; dev_list != NULL; dev_list = dev_list->next, count++) {
     dev = GDK_DEVICE(dev_list->data);
     gtk_combo_box_append_text(GTK_COMBO_BOX(comboList), dev->name);
-    if (strstr(dev->name, ui.device_for_touch)!=NULL)
+//  if (strstr(dev->name, ui.device_for_touch)!=NULL)
+    if (!strcmp(dev->name, ui.device_for_touch))
       gtk_combo_box_set_active(GTK_COMBO_BOX(comboList), count);
   }
 
