@@ -1,6 +1,7 @@
 This version:
   - minor pen and touchscreen input handling bugfixes
   - fix a minor bug with save file paths in Windows (D. German)
+  - add space and shift-space bindings to page down/up (D. German)
 
 Version 0.4.8 (June 30, 2014):
   * Features:
