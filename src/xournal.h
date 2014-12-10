@@ -17,6 +17,8 @@
 #include <libgnomecanvas/libgnomecanvas.h>
 #include <poppler/glib/poppler.h>
 
+#include "xo-mru.h"
+
 // #define INPUT_DEBUG
 /* uncomment this line if you experience event-processing problems
    and want to list the input events received by xournal. Caution, lots
@@ -35,8 +37,6 @@
 // PREF FILES INFO
 
 #define CONFIG_DIR ".xournal"
-#define MRU_FILE "recent-files"
-#define MRU_SIZE 8 
 #define CONFIG_FILE "config"
 
 // apparently, not all Win32/64 compilers define WIN32 (?)
@@ -311,7 +311,7 @@ typedef struct UIData {
   gboolean pen_cursor; // use pencil cursor (default is a dot in current color)
   gboolean progressive_bg; // update PDF bg's one at a time
   char *mrufile, *configfile; // file names for MRU & config
-  char *mru[MRU_SIZE]; // MRU data
+  mru_item mru[MRU_SIZE]; // MRU data
   GtkWidget *mrumenu[MRU_SIZE];
   gboolean bg_apply_all_pages;
   int window_default_width, window_default_height, scrollbar_step_increment;
@@ -350,6 +350,7 @@ typedef struct UIData {
 #endif
   gboolean poppler_force_cairo; // force poppler to use cairo
   gboolean warned_generate_fontconfig; // for win32 fontconfig cache
+  gboolean save_page_number; // give the option to the user to save the page numbers
 } UIData;
 
 #define BRUSH_LINKED 0

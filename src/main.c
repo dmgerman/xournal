@@ -24,6 +24,7 @@
 #include <libgnomecanvas/libgnomecanvas.h>
 
 #include "xournal.h"
+#include "xo-mru.h"
 #include "xo-interface.h"
 #include "xo-support.h"
 #include "xo-callbacks.h"
@@ -311,7 +312,7 @@ void init_stuff (int argc, char *argv[])
 
   // load the MRU
   
-  init_mru();
+  mru_init();
 
   // and finally, open a file specified on the command line
   // (moved here because display parameters weren't initialized yet...)
@@ -373,10 +374,18 @@ main (int argc, char *argv[])
   gtk_window_set_icon(GTK_WINDOW(winMain), create_pixbuf("xournal.png"));
   
   gtk_main ();
-  
+
   if (bgpdf.status != STATUS_NOT_INIT) shutdown_bgpdf();
 
-  save_mru_list();
+
+  // save page numbers
+  if (ui.filename != NULL && strcmp(mru_filename(0), ui.filename) == 0) {
+  // make sure we have a name before we update it...
+    mru_set_pagenumber(0, ui.pageno+1);
+    journal_metadata_page_save(ui.filename, ui.pageno+1);
+  }
+
+  mru_save_list();
   autosave_cleanup(&ui.autosave_filename_list);
   if (ui.auto_save_prefs) save_config_to_file();
   
