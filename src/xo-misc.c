@@ -1637,7 +1637,7 @@ void update_file_name(char *filename)
   p = xo_basename(filename, FALSE);
   g_snprintf(tmp, 100, _("Xournal - %s"), p);
   gtk_window_set_title(GTK_WINDOW (winMain), tmp);
-  new_mru_entry(filename);
+  mru_new_entry(filename,1);
 
   if (p!=filename) {
     if (ui.default_path!=NULL) g_free(ui.default_path);

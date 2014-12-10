@@ -25,7 +25,8 @@ xournal_SOURCES = \
 	xo-support.c xo-support.h \
 	xo-interface.c xo-interface.h \
 	xo-callbacks.c xo-callbacks.h \
-	xo-shapes.c xo-shapes.h
+	xo-shapes.c xo-shapes.h \
+	xo-mru.c xo-xo-mru.h
 
 if WIN32
   xournal_LDFLAGS = -mwindows

@@ -23,6 +23,7 @@
 #include <libgnomecanvas/libgnomecanvas.h>
 
 #include "xournal.h"
+#include "xo-mru.h"
 #include "xo-interface.h"
 #include "xo-support.h"
 #include "xo-callbacks.h"
@@ -306,7 +307,7 @@ void init_stuff (int argc, char *argv[])
 
   // load the MRU
   
-  init_mru();
+  mru_init();
 
   // and finally, open a file specified on the command line
   // (moved here because display parameters weren't initialized yet...)
@@ -371,7 +372,11 @@ main (int argc, char *argv[])
   
   if (bgpdf.status != STATUS_NOT_INIT) shutdown_bgpdf();
 
-  save_mru_list();
+  // make sure we have a name before we update it...
+  if (ui.filename != NULL && strcmp(mru_filename(0), ui.filename) == 0)
+    mru_set_pagenumber(0, ui.pageno+1);
+
+  mru_save_list();
   autosave_cleanup(&ui.autosave_filename_list);
   if (ui.auto_save_prefs) save_config_to_file();
   

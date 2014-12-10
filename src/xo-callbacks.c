@@ -3279,7 +3279,6 @@ on_mru_activate                        (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
   int which;
-  gboolean success;
   GtkWidget *dialog;
   
   end_text();
@@ -3288,19 +3287,32 @@ on_mru_activate                        (GtkMenuItem     *menuitem,
   for (which = 0 ; which < MRU_SIZE; which++) {
     if (ui.mrumenu[which] == GTK_WIDGET(menuitem)) break;
   }
-  if (which == MRU_SIZE || ui.mru[which] == NULL) return; // not found...
+  if (which == MRU_SIZE || mru_item_is_empty(which)) return; // not found...
 
   set_cursor_busy(TRUE);
-  success = open_journal(ui.mru[which]);
+  // save it before the open_journal changes the order
+  // pages are zero based
+  int page = mru_pagenumber(which) - 1;
+
+
+  if (open_journal(mru_filename(which))) {
+    if (page != 0)  {
+      if (page >= journal.npages)
+	page = journal.npages -1;
+      do_switch_page(page, TRUE, FALSE);
+    }
+    set_cursor_busy(FALSE);
+    return;
+  }
+
   set_cursor_busy(FALSE);
-  if (success) return;
 
   /* open failed */
   dialog = gtk_message_dialog_new(GTK_WINDOW (winMain), GTK_DIALOG_DESTROY_WITH_PARENT,
-    GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, _("Error opening file '%s'"), ui.mru[which]);
+				  GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, _("Error opening file '%s'"), mru_filename(which));
   gtk_dialog_run(GTK_DIALOG(dialog));
   gtk_widget_destroy(dialog);
-  delete_mru_entry(which);
+  mru_delete_entry(which);
 }
 
 
