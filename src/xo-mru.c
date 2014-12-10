@@ -35,7 +35,6 @@ void mru_parse_entry(int index, char *entry)
   // parse entry of the form
   // filename;page with regular expression for page [0-9]+
   // it is backwards compatible: if page number does not exist then return 1 for it
-  // allocates mru
   mru_item *mi;
   assert(index>=0 && index < MRU_SIZE);
   mi = ui.mru + index;
@@ -61,6 +60,8 @@ void mru_parse_entry(int index, char *entry)
     // just replace the null, the free would release the entire string anyways
     mi->filename[i] = 0;
     mi->currentPage = atoi(entry+i+1);
+    if (mi->currentPage <= 0)
+      mi->currentPage =1;
   } else {
     mi->currentPage =1;
   }
@@ -133,6 +134,9 @@ void mru_update_menu(void)
 
 void mru_item_move(int iDest, int iSource)
 {
+  // moves one item from one slot to another
+  // clears source slot
+
   mru_item *source;
   mru_item *dest;
   assert(iDest>=0   && iDest < MRU_SIZE);
@@ -141,8 +145,6 @@ void mru_item_move(int iDest, int iSource)
   source = ui.mru + iSource;
   dest = ui.mru + iDest;
 
-  assert(dest!= NULL);
-  assert(source!= NULL);
   dest->filename = source ->filename;
   dest->currentPage = source ->currentPage;
   source->filename = NULL;
@@ -155,26 +157,23 @@ void mru_item_free(int i)
   assert(i>=0 && i < MRU_SIZE);
   mi = ui.mru + i;
 
-  if (mi->filename != NULL) {
-    g_free(mi->filename);
-    mi->filename = NULL;
-  }
+  g_free(mi->filename);
+
+  mi->filename = NULL;
   mi->currentPage = 0;
 }
 
 void mru_item_set(int i, char *filename, int page)
 {
+  // filename can be NULL
+
   mru_item *mi;
   assert(i>=0 && i < MRU_SIZE);
+  assert(page>= 0);
   mi = ui.mru + i;
 
   assert(mi!= NULL);
-  if (filename == NULL) {
-    mi->filename = NULL;
-  } else {
-    mi->filename = g_strdup(filename);
-  }
-
+  mi->filename = g_strdup(filename);
   mi->currentPage = page;
 }
 
@@ -197,23 +196,25 @@ int mru_item_equal_filename(int i, char *filename)
   assert(mi != NULL);
   assert(filename != NULL);
 
-  if (mi->filename != NULL)
-    return strcmp(mi->filename, filename) == 0;
-  else
-    return 0;
+  return g_strcmp0(mi->filename, filename) == 0;
 }
 
 void mru_shift(int from, int direction)
 {
+  // moves the MRU from given position (from)
+  // if direction is 1
+  // moves it pushes up
+  // if direction is -1
+  // moves it pushes down
   int i;
   if (direction == 1)
     for (i=from+1;i<MRU_SIZE;i++)
       mru_item_move( i -1, i);
   else if (direction == -1)
-    for (i=MRU_SIZE-1; i>=1; i--)
+    for (i=MRU_SIZE-1; i>from; i--)
       mru_item_move( i, i -1 );
   else
-    assert(1); //code should never be here
+    assert(1); //execution should never be here
 }
 
 void mru_new_entry(char *name, int page)
@@ -231,8 +232,8 @@ void mru_new_entry(char *name, int page)
   // it takes care of freeeing its memory
   mru_item_free(MRU_SIZE-1);
 
-  // shift down
-  mru_shift(1, -1);
+  // make space for new one
+  mru_shift(0, -1);
 
   // set the first
   mru_item_set(0, name, page);
@@ -244,10 +245,7 @@ void mru_delete_entry(int which)
 
   mru_item_free(which);
 
-  // shift up
   mru_shift(which, 1);
-  //  for (i=which+1;i<MRU_SIZE;i++)
-  //    mru_item_copy(ui.mru + i -1, ui.mru + i);
 
   mru_update_menu();
 }

@@ -17,7 +17,7 @@
 #define __XO_MRU_H
 
 #define MRU_FILE "recent-files"
-#define MRU_SIZE 8
+#define MRU_SIZE 20
 #define MRU_ITEM_SEPARATOR ';'
 
 typedef struct mru_item {
