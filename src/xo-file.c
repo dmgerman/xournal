@@ -17,6 +17,7 @@
 #  include <config.h>
 #endif
 
+#include <assert.h>
 #include <signal.h>
 #include <memory.h>
 #include <string.h>
@@ -44,6 +45,7 @@
 #include "xo-file.h"
 #include "xo-paint.h"
 #include "xo-image.h"
+#include "xo-metadata.h"
 
 const char *tool_names[NUM_TOOLS] = {"pen", "eraser", "highlighter", "text", "selectregion", "selectrect", "vertspace", "hand", "image"};
 const char *color_names[COLOR_MAX] = {"black", "blue", "red", "green",
@@ -144,6 +146,34 @@ GdkPixbuf *read_pixbuf(const gchar *base64_str, gsize base64_strlen)
 }
 
 // saves the journal to a file: returns true on success, false on error
+
+
+void journal_metadata_page_save(char *filename, int pageno)
+{
+  GFile *file = g_file_new_for_path (filename);
+  if (xo_is_metadata_supported_for_file(file)) {
+    XoMetadata  *metadata = xo_metadata_new(file);
+    xo_metadata_set_int(metadata, "currentPage", pageno);
+    g_object_unref(metadata);
+  }
+  g_object_unref(file);
+
+}
+
+gboolean journal_metadata_page_get(char *filename, gint *page)
+{
+  gboolean result = 0;
+  GFile *file = g_file_new_for_path (filename);
+  if (xo_is_metadata_supported_for_file(file)) {
+    XoMetadata  *metadata = xo_metadata_new(file);
+    result = xo_metadata_get_int(metadata, "currentPage", page);
+    if (result && page > 0)
+      page--; // pages are internally zero based
+    g_object_unref(metadata);
+  }
+  g_object_unref(file);
+  return result;
+}
 
 gboolean save_journal(const char *filename, gboolean is_auto)
 {
@@ -472,6 +502,7 @@ char *check_for_autosave(char *filename)
 }
 
 
+
 // closes a journal: returns true on success, false on abort
 
 gboolean close_journal(void)
@@ -479,6 +510,8 @@ gboolean close_journal(void)
   if (!ok_to_close()) return FALSE;
   
   mru_set_pagenumber(0, ui.pageno+1);
+
+  journal_metadata_page_save(ui.filename, ui.pageno+1);
 
   // free everything...
   reset_selection();
@@ -1175,6 +1208,16 @@ gboolean open_journal(char *filename)
     gtk_widget_destroy(dialog);
   }
   else ui.saved = TRUE;
+
+  // check to see if the current page is different from first
+  gint page;
+  if (journal_metadata_page_get(ui.filename, &page)) {
+    if (page != ui.pageno) {
+      if (page >= journal.npages)
+	page = journal.npages -1;
+      do_switch_page(page, TRUE, FALSE);
+    }
+  }
 
   g_free(filename_actual);
   ui.need_autosave = !ui.saved;

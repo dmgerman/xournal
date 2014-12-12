@@ -3296,7 +3296,8 @@ on_mru_activate                        (GtkMenuItem     *menuitem,
 
 
   if (open_journal(mru_filename(which))) {
-    if (page != 0)  {
+    printf("Open at page [%d] switch to [%d]\n", ui.pageno, page);
+    if (page != ui.pageno)  {
       if (page >= journal.npages)
 	page = journal.npages -1;
       do_switch_page(page, TRUE, FALSE);

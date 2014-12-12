@@ -369,12 +369,16 @@ main (int argc, char *argv[])
   gtk_window_set_icon(GTK_WINDOW(winMain), create_pixbuf("xournal.png"));
   
   gtk_main ();
-  
+
   if (bgpdf.status != STATUS_NOT_INIT) shutdown_bgpdf();
 
+
+  // save page numbers
+  if (ui.filename != NULL && strcmp(mru_filename(0), ui.filename) == 0) {
   // make sure we have a name before we update it...
-  if (ui.filename != NULL && strcmp(mru_filename(0), ui.filename) == 0)
     mru_set_pagenumber(0, ui.pageno+1);
+    journal_metadata_page_save(ui.filename, ui.pageno+1);
+  }
 
   mru_save_list();
   autosave_cleanup(&ui.autosave_filename_list);

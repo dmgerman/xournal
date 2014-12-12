@@ -12,6 +12,8 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#ifndef XO_FILE_H
+#define XO_FILE_H
 
 #define DEFAULT_SHORTEN_MENUS \
   "optionsProgressiveBG optionsLeftHanded optionsButtonSwitchMapping"
@@ -53,3 +55,5 @@ void autosave_cleanup(GList **list);
 void init_autosave(void);
 gboolean autosave_cb(gpointer is_catchup);
 char *check_for_autosave(char *filename);
+void journal_metadata_page_save(char *filename, int pageno);
+#endif
