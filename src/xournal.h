@@ -339,6 +339,7 @@ typedef struct UIData {
 #endif
   gboolean poppler_force_cairo; // force poppler to use cairo
   gboolean warned_generate_fontconfig; // for win32 fontconfig cache
+  gboolean save_page_number; // give the option to the user to save the page numbers
 } UIData;
 
 #define BRUSH_LINKED 0
