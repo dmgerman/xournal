@@ -1214,7 +1214,7 @@ GList *attempt_load_gv_bg(char *filename)
   GdkPixbufLoader *loader;
   FILE *gs_pipe, *f;
   unsigned char *buf;
-  char *pipename;
+  char *pipename, *quotedfilename;
   int buflen, remnlen, file_pageno;
   
   f = g_fopen(filename, "rb");
@@ -1228,8 +1228,14 @@ GList *attempt_load_gv_bg(char *filename)
   }
   
   fclose(f);
-  pipename = g_strdup_printf(GS_CMDLINE, (double)GS_BITMAP_DPI, filename);
+  quotedfilename = g_shell_quote(filename);
+  pipename = g_strdup_printf(GS_CMDLINE, (double)GS_BITMAP_DPI, quotedfilename);
+  g_free(quotedfilename);
+#ifdef WIN32
   gs_pipe = popen(pipename, "rb");
+#else
+  gs_pipe = popen(pipename, "r");
+#endif
   g_free(pipename);
   
   bg_list = NULL;
@@ -1268,7 +1274,7 @@ GList *attempt_load_gv_bg(char *filename)
     }
   }
   if (loader != NULL) gdk_pixbuf_loader_close(loader, NULL);
-  pclose(gs_pipe);
+  if (gs_pipe!=NULL) pclose(gs_pipe);
   g_free(buf);
   return bg_list;
 }
