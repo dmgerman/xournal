@@ -639,6 +639,10 @@ on_optionsLeftHanded_activate          (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
 
 void
+on_optionsLockHorizontalScroll_activate     (GtkMenuItem     *menuitem,
+					     gpointer         user_data);
+
+void
 on_optionsShortenMenus_activate        (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
 
