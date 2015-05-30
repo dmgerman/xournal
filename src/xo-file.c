@@ -200,7 +200,7 @@ gboolean save_journal(const char *filename, gboolean is_auto)
      "<xournal version=\"" VERSION "\">\n"
      "<title>Xournal document - see http://math.mit.edu/~auroux/software/xournal/</title>\n");
   if (ui.save_page_number)
-    gzprintf(f,"<currentpage number=\"%d\" />", ui.pageno);
+    gzprintf(f,"<currentpage number=\"%d\" />\n", ui.pageno);
 
   for (pagelist = journal.pages; pagelist!=NULL; pagelist = pagelist->next) {
     pg = (struct Page *)pagelist->data;
@@ -1221,11 +1221,10 @@ gboolean open_journal(char *filename)
   else ui.saved = TRUE;
 
   // check to see if the current page is different from first
-  gint page;
-  int hasRecentPage = journal_metadata_page_get(ui.filename, &page);
+  gint page = ui.pageno;
 
-  if (!hasRecentPage)
-    page = ui.pageno;
+  if (page == 0)
+    journal_metadata_page_get(ui.filename, &page);
 
   if (page >= journal.npages)
     page = journal.npages -1;
