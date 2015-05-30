@@ -25,6 +25,7 @@
 #include <zlib.h>
 #include <string.h>
 #include <locale.h>
+#include <math.h>
 #include <pango/pango.h>
 #include <pango/pangofc-font.h>
 #include <pango/pangoft2.h>
@@ -1587,6 +1588,27 @@ void print_background(cairo_t *cr, struct Page *pg)
         { cairo_move_to(cr, 0, y); cairo_line_to(cr, pg->width, y); }
       cairo_stroke(cr);
       return;
+    }
+    if (pg->bg->ruling == RULING_DOT) {
+        double xspacer;
+        double yspacer;
+
+        cairo_set_source_rgb(cr, RGBA_RGB(RULING_DOT_COLOR));
+        cairo_set_line_width(cr, RULING_DOT_THICKNESS);
+
+        xspacer = pg->width - 2 * RULING_DOT_SPACING;
+        xspacer = (xspacer - floor(xspacer/RULING_DOT_MARGIN) * RULING_DOT_MARGIN)/2;
+        yspacer = pg->height - 2 * RULING_DOT_SPACING;
+        yspacer = (yspacer - floor(yspacer/RULING_DOT_MARGIN) * RULING_DOT_MARGIN)/2;
+
+        for (x=RULING_DOT_MARGIN+xspacer; x<pg->width-RULING_DOT_MARGIN; x+=RULING_DOT_SPACING) {
+            for (y=RULING_DOT_MARGIN+yspacer; y<pg->height-RULING_DOT_MARGIN; y+=RULING_DOT_SPACING) {
+                cairo_arc(cr, x, y, RULING_DOT_THICKNESS/4, 0, 2 * M_PI);
+                cairo_stroke(cr);
+                cairo_new_path (cr);
+            }
+        }
+        return;
     }
     
     for (y=RULING_TOPMARGIN; y<pg->height-1; y+=RULING_SPACING)
