@@ -744,6 +744,39 @@ void update_canvas_bg(struct Page *pg)
     if (pg->bg->ruling == RULING_NONE) return;
     seg = gnome_canvas_points_new(2);
     pt = seg->coords;
+    if (pg->bg->ruling == RULING_DOT) {
+        // make sure margins are the same left and right
+        double xspacer;
+        double yspacer;
+        xspacer = pg->width - 2 * RULING_DOT_SPACING;
+        xspacer = (xspacer - floor(xspacer/RULING_DOT_MARGIN) * RULING_DOT_MARGIN)/2;
+        yspacer = pg->height - 2 * RULING_DOT_SPACING;
+        yspacer = (yspacer - floor(yspacer/RULING_DOT_MARGIN) * RULING_DOT_MARGIN)/2;
+
+        for (x=RULING_DOT_MARGIN+xspacer; x<pg->width-RULING_DOT_MARGIN; x+=RULING_DOT_SPACING) {
+            for (y=RULING_DOT_MARGIN+yspacer; y<pg->height-RULING_DOT_MARGIN; y+=RULING_DOT_SPACING) {
+                /*
+                pt[0] = x;
+                pt[1] = y;
+                pt[2] = x + RULING_DOT_THICKNESS;
+                pt[3] = y + RULING_DOT_THICKNESS;
+                gnome_canvas_item_new(group, gnome_canvas_line_get_type(),
+                                  "points", seg, "fill-color-rgba", RULING_DOT_COLOR,
+                                  "width-units", RULING_DOT_THICKNESS, NULL);
+                */
+                gnome_canvas_item_new(group, gnome_canvas_ellipse_get_type(),
+                                      "x1", x,
+                                      "y1", y,
+                                      "x2", x+RULING_DOT_THICKNESS,
+                                      "y2", y+RULING_DOT_THICKNESS,
+                                      "fill-color-rgba", RULING_DOT_COLOR,
+                                      "width-units", 0.1, NULL);
+            }
+        }      
+        gnome_canvas_points_free(seg);
+        return;
+    }
+
     if (pg->bg->ruling == RULING_GRAPH) {
       pt[1] = 0; pt[3] = pg->height;
       for (x=RULING_GRAPHSPACING; x<pg->width-1; x+=RULING_GRAPHSPACING) {
