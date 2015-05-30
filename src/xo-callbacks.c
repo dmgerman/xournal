@@ -1446,6 +1446,14 @@ on_paperstyleGraph_activate            (GtkMenuItem     *menuitem,
   process_paperstyle_activate(menuitem, RULING_GRAPH);
 }
 
+void
+on_paperstyleDot_activate              (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+    end_text();
+    process_paperstyle_activate(menuitem, RULING_DOT);
+}
+
 
 void
 on_journalLoadBackground_activate      (GtkMenuItem     *menuitem,

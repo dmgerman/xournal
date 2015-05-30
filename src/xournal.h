@@ -105,6 +105,7 @@ typedef struct Background {
 #define RULING_LINED 1
 #define RULING_RULED 2
 #define RULING_GRAPH 3
+#define RULING_DOT   4
 
 #define DOMAIN_ABSOLUTE 0
 #define DOMAIN_ATTACH 1

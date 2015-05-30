@@ -129,6 +129,7 @@ create_winMain (void)
   GtkWidget *paperstyleLined;
   GtkWidget *paperstyleRuled;
   GtkWidget *paperstyleGraph;
+  GtkWidget *paperstyleDot;
   GtkWidget *paperstyleNA;
   GtkWidget *journalApplyAllPages;
   GtkWidget *separator23;
@@ -818,6 +819,12 @@ create_winMain (void)
   gtk_widget_show (paperstyleGraph);
   gtk_container_add (GTK_CONTAINER (journalPaperStyle_menu), paperstyleGraph);
   gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (paperstyleGraph), TRUE);
+
+  paperstyleDot = gtk_radio_menu_item_new_with_mnemonic (paperstylePlain_group, _("_dot"));
+  paperstylePlain_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (paperstyleDot));
+  gtk_widget_show (paperstyleDot);
+  gtk_container_add (GTK_CONTAINER (journalPaperStyle_menu), paperstyleDot);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (paperstyleDot), TRUE);
 
   paperstyleNA = gtk_radio_menu_item_new_with_mnemonic (paperstylePlain_group, _("NA"));
   paperstylePlain_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (paperstyleNA));
@@ -2218,6 +2225,9 @@ create_winMain (void)
   g_signal_connect ((gpointer) paperstyleGraph, "toggled",
                     G_CALLBACK (on_paperstyleGraph_activate),
                     NULL);
+  g_signal_connect ((gpointer) paperstyleDot, "toggled",
+                    G_CALLBACK (on_paperstyleDot_activate),
+                    NULL);
   g_signal_connect ((gpointer) journalApplyAllPages, "activate",
                     G_CALLBACK (on_journalApplyAllPages_activate),
                     NULL);
@@ -2734,6 +2744,7 @@ create_winMain (void)
   GLADE_HOOKUP_OBJECT (winMain, paperstyleLined, "paperstyleLined");
   GLADE_HOOKUP_OBJECT (winMain, paperstyleRuled, "paperstyleRuled");
   GLADE_HOOKUP_OBJECT (winMain, paperstyleGraph, "paperstyleGraph");
+  GLADE_HOOKUP_OBJECT (winMain, paperstyleDot, "paperstyleDot");
   GLADE_HOOKUP_OBJECT (winMain, paperstyleNA, "paperstyleNA");
   GLADE_HOOKUP_OBJECT (winMain, journalApplyAllPages, "journalApplyAllPages");
   GLADE_HOOKUP_OBJECT (winMain, separator23, "separator23");

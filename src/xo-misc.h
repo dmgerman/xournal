@@ -151,3 +151,7 @@ gint wrapper_gtk_dialog_run(GtkDialog *dialog);
 #define RULING_SPACING 24.0
 #define RULING_BOTTOMMARGIN RULING_SPACING
 #define RULING_GRAPHSPACING 14.17
+#define RULING_DOT_SPACING 11.34 /* 4mm */
+#define RULING_DOT_MARGIN  28.35 /* 10mm */
+#define RULING_DOT_THICKNESS 1.2 /* must be float */
+#define RULING_DOT_COLOR 0xA0A0A0ff
