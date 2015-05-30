@@ -53,7 +53,7 @@ const char *color_names[COLOR_MAX] = {"black", "blue", "red", "green",
 const char *bgtype_names[3] = {"solid", "pixmap", "pdf"};
 const char *bgcolor_names[COLOR_MAX] = {"", "blue", "pink", "green",
    "", "", "", "", "orange", "yellow", "white"};
-const char *bgstyle_names[4] = {"plain", "lined", "ruled", "graph"};
+const char *bgstyle_names[] = {"plain", "lined", "ruled", "graph", "dot"};
 const char *file_domain_names[3] = {"absolute", "attach", "clone"};
 const char *unit_names[4] = {"cm", "in", "px", "pt"};
 const char *view_mode_names[3] = {"false", "true", "horiz"}; // need 'false' & 'true' for backward compatibility
@@ -667,7 +667,7 @@ void xoj_parser_start_element(GMarkupParseContext *context,
         if (tmpPage->bg->type != BG_SOLID) *error = xoj_invalid();
         if (has_attr & 4) *error = xoj_invalid();
         tmpPage->bg->ruling = -1;
-        for (i=0; i<4; i++)
+        for (i=0; i<5; i++)
           if (!strcmp(*attribute_values, bgstyle_names[i]))
             tmpPage->bg->ruling = i;
         if (tmpPage->bg->ruling < 0) *error = xoj_invalid();
@@ -2296,7 +2296,7 @@ void load_config_from_file(void)
   parse_keyval_enum_color("paper", "color", 
      &(ui.default_page.bg->color_no), &(ui.default_page.bg->color_rgba), 
      bgcolor_names, predef_bgcolors_rgba, COLOR_MAX);
-  parse_keyval_enum("paper", "style", &(ui.default_page.bg->ruling), bgstyle_names, 4);
+  parse_keyval_enum("paper", "style", &(ui.default_page.bg->ruling), bgstyle_names, 5);
   parse_keyval_boolean("paper", "apply_all", &ui.bg_apply_all_pages);
   parse_keyval_enum("paper", "default_unit", &ui.default_unit, unit_names, 4);
   parse_keyval_boolean("paper", "progressive_bg", &ui.progressive_bg);

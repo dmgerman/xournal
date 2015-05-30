@@ -205,6 +205,10 @@ on_paperstyleGraph_activate            (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
 
 void
+on_paperstyleDot_activate              (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
 on_journalLoadBackground_activate      (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
 
