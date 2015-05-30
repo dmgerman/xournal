@@ -2991,6 +2991,7 @@ create_papersizeDialog (void)
   gtk_box_pack_start (GTK_BOX (hbox2), comboStdSizes, TRUE, TRUE, 5);
   gtk_combo_box_append_text (GTK_COMBO_BOX (comboStdSizes), _("A4"));
   gtk_combo_box_append_text (GTK_COMBO_BOX (comboStdSizes), _("A4 (landscape)"));
+  gtk_combo_box_append_text (GTK_COMBO_BOX (comboStdSizes), _("A5"));
   gtk_combo_box_append_text (GTK_COMBO_BOX (comboStdSizes), _("US Letter"));
   gtk_combo_box_append_text (GTK_COMBO_BOX (comboStdSizes), _("US Letter (landscape)"));
   gtk_combo_box_append_text (GTK_COMBO_BOX (comboStdSizes), _("Custom"));

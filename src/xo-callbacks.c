@@ -1257,14 +1257,17 @@ gboolean papersize_need_init, papersize_width_valid, papersize_height_valid;
 
 #define STD_SIZE_A4 0
 #define STD_SIZE_A4R 1
-#define STD_SIZE_LETTER 2
-#define STD_SIZE_LETTER_R 3
-#define STD_SIZE_CUSTOM 4
+#define STD_SIZE_A5  2
+#define STD_SIZE_LETTER 3
+#define STD_SIZE_LETTER_R 4
+#define STD_SIZE_CUSTOM 5
 
 double unit_sizes[4] = {28.346, 72., 72./DISPLAY_DPI_DEFAULT, 1.};
-double std_widths[STD_SIZE_CUSTOM] =  {595.27, 841.89, 612., 792.};
-double std_heights[STD_SIZE_CUSTOM] = {841.89, 595.27, 792., 612.};
-double std_units[STD_SIZE_CUSTOM] = {UNIT_CM, UNIT_CM, UNIT_IN, UNIT_IN};
+
+double std_widths[STD_SIZE_CUSTOM] =  {595.27, 841.89, 841.89/2, 612., 792.};
+double std_heights[STD_SIZE_CUSTOM] = {841.89, 595.27, 595.27,   792., 612.};
+
+double std_units[STD_SIZE_CUSTOM] = {UNIT_CM, UNIT_CM, UNIT_CM, UNIT_IN, UNIT_IN};
 
 void
 on_journalPaperSize_activate           (GtkMenuItem     *menuitem,
