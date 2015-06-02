@@ -3463,6 +3463,7 @@
 	      <property name="visible">True</property>
 	      <property name="items" translatable="yes">A4
 A4 (landscape)
+A5
 US Letter
 US Letter (landscape)
 Custom</property>
