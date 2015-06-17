@@ -39,6 +39,12 @@
 #define MRU_SIZE 8 
 #define CONFIG_FILE "config"
 
+// apparently, not all Win32/64 compilers define WIN32 (?)
+
+#ifdef _WIN32
+#define WIN32
+#endif
+
 // version string for about box
 
 #ifdef WIN32
