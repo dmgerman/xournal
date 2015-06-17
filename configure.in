@@ -30,6 +30,15 @@ esac
 AC_MSG_RESULT([$os_win32])
 AM_CONDITIONAL(WIN32, test "$os_win32" = "yes")
 
+dnl test for Linux, so we can add -lX11 manually for broken distributions
+case "$host" in
+ *-*-linux*)
+   os_linux=yes;;
+ *)
+   os_linux=no;;
+esac
+AM_CONDITIONAL(LINUX, test "$os_linux" = "yes")
+
 GETTEXT_PACKAGE=xournal
 AC_SUBST(GETTEXT_PACKAGE)
 AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE", [Gettext package.])

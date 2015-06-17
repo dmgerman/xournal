@@ -3,6 +3,7 @@ This version:
   - fix a minor bug with save file paths in Windows (D. German)
   - add space and shift-space bindings to page down/up (D. German)
   - add A5 paper (D. German)
+  - use GDK macros (not WIN32) to disable X11-specific code (T. Schoonjans)
 
 Version 0.4.8 (June 30, 2014):
   * Features:

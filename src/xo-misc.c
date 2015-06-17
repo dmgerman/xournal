@@ -2296,7 +2296,7 @@ void hide_unimplemented(void)
   }  
   
   /* screenshot feature doesn't work yet in Win32 */
-#ifdef WIN32
+#ifndef GDK_WINDOWING_X11
   gtk_widget_hide(GET_COMPONENT("journalScreenshot"));
 #endif
 }  

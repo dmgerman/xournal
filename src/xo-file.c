@@ -31,7 +31,7 @@
 #include <glib/gstdio.h>
 #include <poppler/glib/poppler.h>
 
-#ifndef WIN32
+#ifdef GDK_WINDOWING_X11
  #include <gdk/gdkx.h>
  #include <X11/Xlib.h>
 #endif
@@ -1281,7 +1281,7 @@ GList *attempt_load_gv_bg(char *filename)
 
 struct Background *attempt_screenshot_bg(void)
 {
-#ifndef WIN32
+#ifdef GDK_WINDOWING_X11
   struct Background *bg;
   GdkPixbuf *pix;
   XEvent x_event;
@@ -1322,7 +1322,7 @@ struct Background *attempt_screenshot_bg(void)
   bg->file_domain = DOMAIN_ATTACH;
   return bg;
 #else
-  // not implemented under WIN32
+  // not implemented on non-X11 backends
   return FALSE;
 #endif
 }
