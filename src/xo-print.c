@@ -1608,7 +1608,15 @@ void print_background(cairo_t *cr, struct Page *pg)
     poppler_page_get_size(pdfpage, &pgwidth, &pgheight);
     cairo_save(cr);
     cairo_scale(cr, pg->width/pgwidth, pg->height/pgheight);
+#if POPPLER_CHECK_VERSION (0, 16, 0)
+    poppler_page_render_for_printing_with_options(pdfpage, cr, POPPLER_PRINT_ALL);
+#else
+#if POPPLER_CHECK_VERSION (0, 8, 0)
+    poppler_page_render_for_printing(pdfpage, cr);
+#else
     poppler_page_render(pdfpage, cr);
+#endif
+#endif
     cairo_restore(cr);
     g_object_unref(pdfpage);
   }
