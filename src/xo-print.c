@@ -1124,7 +1124,7 @@ struct PdfImage *new_pdfimage(struct XrefTable *xref, GList **images, GdkPixbuf 
 // draw a page's graphics
 
 void pdf_draw_page(struct Page *pg, GString *str, gboolean *use_hiliter, 
-                   struct XrefTable *xref, GList **pdffonts, GList **pdfimages)
+                   struct XrefTable *xref, GList **pdffonts, GList **pdfimages, GList *end_layer)
 {
   GList *layerlist, *itemlist, *tmplist;
   struct Layer *l;
@@ -1163,7 +1163,7 @@ void pdf_draw_page(struct Page *pg, GString *str, gboolean *use_hiliter,
     cur_image->used_in_this_page = FALSE;
   }
 
-  for (layerlist = pg->layers; layerlist!=NULL; layerlist = layerlist->next) {
+  for (layerlist = pg->layers; layerlist!=end_layer; layerlist = layerlist->next) {
     l = (struct Layer *)layerlist->data;
     for (itemlist = l->items; itemlist!=NULL; itemlist = itemlist->next) {
       item = (struct Item *)itemlist->data;
@@ -1319,6 +1319,7 @@ gboolean print_to_pdf(char *filename)
   struct PdfFont *font;
   struct PdfImage *image;
   char *tmpbuf;
+  GList *last_layer;
   
   f = g_fopen(filename, "wb");
   if (f == NULL) return FALSE;
@@ -1328,9 +1329,12 @@ gboolean print_to_pdf(char *filename)
   uses_pdf = FALSE;
   pdffonts = NULL;
   pdfimages = NULL;
+  n_page = 0;
   for (pglist = journal.pages; pglist!=NULL; pglist = pglist->next) {
     pg = (struct Page *)pglist->data;
     if (pg->bg->type == BG_PDF) uses_pdf = TRUE;
+    if (ui.exportpdf_layers) n_page += pg->nlayers; 
+    else n_page++;
   }
   
   if (uses_pdf && bgpdf.status != STATUS_NOT_INIT && 
@@ -1367,19 +1371,21 @@ gboolean print_to_pdf(char *filename)
   make_xref(&xref, n_obj_catalog+1, pdfbuf->len);
   g_string_append_printf(pdfbuf,
     "%d 0 obj\n<< /Type /Pages /Kids [", n_obj_catalog+1);
-  for (i=0;i<journal.npages;i++)
+  for (i=0;i<n_page;i++)
     g_string_append_printf(pdfbuf, "%d 0 R ", n_obj_pages_offs+i);
-  g_string_append_printf(pdfbuf, "] /Count %d >> endobj\n", journal.npages);
+  g_string_append_printf(pdfbuf, "] /Count %d >> endobj\n", n_page);
   make_xref(&xref, n_obj_catalog+2, pdfbuf->len);
   g_string_append_printf(pdfbuf, 
     "%d 0 obj\n<< /Type /ExtGState /CA %.2f >> endobj\n",
      n_obj_catalog+2, ui.hiliter_opacity);
-  xref.last = n_obj_pages_offs + journal.npages-1;
+  xref.last = n_obj_pages_offs + n_page-1;
   
   for (pglist = journal.pages, n_page = 0; pglist!=NULL;
-       pglist = pglist->next, n_page++) {
+       pglist = pglist->next) {
     pg = (struct Page *)pglist->data;
-    
+    if (ui.exportpdf_layers) last_layer = pg->layers; else last_layer = NULL;
+  do {
+    if (last_layer!=NULL) last_layer = last_layer->next;
     // draw the background and page into pgstrm
     pgstrm = g_string_new("");
     g_string_printf(pgstrm, "q 1 0 0 -1 0 %.2f cm 1 J 1 j ", pg->height);
@@ -1403,7 +1409,7 @@ gboolean print_to_pdf(char *filename)
       n_obj_bgpix = pdf_draw_bitmap_background(pg, pgstrm, &xref, pdfbuf);
     // draw the page contents
     use_hiliter = FALSE;
-    pdf_draw_page(pg, pgstrm, &use_hiliter, &xref, &pdffonts, &pdfimages);
+    pdf_draw_page(pg, pgstrm, &use_hiliter, &xref, &pdffonts, &pdfimages, last_layer);
     g_string_append_printf(pgstrm, "Q\n");
     
     // deflate pgstrm and write it
@@ -1491,6 +1497,9 @@ gboolean print_to_pdf(char *filename)
     show_pdfobj(obj, pdfbuf);
     free_pdfobj(obj);
     g_string_append(pdfbuf, " >> endobj\n");
+    n_page++;
+  }
+  while (last_layer!=NULL);
   }
   
   // after the pages, we insert fonts and images
@@ -1628,7 +1637,7 @@ void print_background(cairo_t *cr, struct Page *pg)
   }
 }
 
-void print_page_to_cairo(cairo_t *cr, struct Page *pg, gdouble width, gdouble height, PangoLayout *layout)
+void print_page_to_cairo(cairo_t *cr, struct Page *pg, gdouble width, gdouble height, PangoLayout *layout, GList *end_layer)
 {
   gdouble scale;
   guint old_rgba;
@@ -1652,7 +1661,7 @@ void print_page_to_cairo(cairo_t *cr, struct Page *pg, gdouble width, gdouble he
   cairo_set_source_rgb(cr, 0, 0, 0);
   old_thickness = 0.0;
 
-  for (layerlist = pg->layers; layerlist!=NULL; layerlist = layerlist->next) {
+  for (layerlist = pg->layers; layerlist!=end_layer; layerlist = layerlist->next) {
     l = (struct Layer *)layerlist->data;
     for (itemlist = l->items; itemlist!=NULL; itemlist = itemlist->next) {
       item = (struct Item *)itemlist->data;
@@ -1721,7 +1730,7 @@ void print_job_render_page(GtkPrintOperation *print, GtkPrintContext *context, g
   width = gtk_print_context_get_width(context);
   height = gtk_print_context_get_height(context);
   layout = gtk_print_context_create_pango_layout(context);
-  print_page_to_cairo(cr, pg, width, height, layout);
+  print_page_to_cairo(cr, pg, width, height, layout, NULL);
   g_object_unref(layout);
 }
 
@@ -1735,17 +1744,23 @@ gboolean print_to_pdf_cairo(char *filename)
   GList *list;
   PangoLayout *layout;
   cairo_status_t retval;
+  GList *last_layer;
  
   surface = cairo_pdf_surface_create(filename, ui.default_page.width, ui.default_page.height);
   for (list = journal.pages; list!=NULL; list = list->next) {
     pg = (struct Page *)list->data;
-    cairo_pdf_surface_set_size(surface, pg->width, pg->height);
-    cr = cairo_create(surface);
-    layout = pango_cairo_create_layout(cr);
-    print_page_to_cairo(cr, pg, pg->width, pg->height, layout);
-    g_object_unref(layout);
-    cairo_destroy(cr);
-    cairo_surface_show_page(surface);
+    if (ui.exportpdf_layers) last_layer = pg->layers; else last_layer = NULL;
+    do {
+      if (last_layer!=NULL) last_layer = last_layer->next;
+      cairo_pdf_surface_set_size(surface, pg->width, pg->height);
+      cr = cairo_create(surface);
+      layout = pango_cairo_create_layout(cr);
+      print_page_to_cairo(cr, pg, pg->width, pg->height, layout, last_layer);
+      g_object_unref(layout);
+      cairo_destroy(cr);
+      cairo_surface_show_page(surface);
+    }
+    while (last_layer!=NULL);
   }
   cairo_surface_finish(surface);
   retval = cairo_surface_status(surface);

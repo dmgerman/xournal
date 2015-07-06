@@ -1972,6 +1972,16 @@
 		  </child>
 
 		  <child>
+		    <widget class="GtkCheckMenuItem" id="optionsLayersPDFExport">
+		      <property name="visible">True</property>
+		      <property name="label" translatable="yes">Layers in PDF Export</property>
+		      <property name="use_underline">True</property>
+		      <property name="active">False</property>
+		      <signal name="activate" handler="on_optionsLayersPDFExport_activate" last_modification_time="Sat, 4 Jul 2015 20:42:27 GMT"/>
+		    </widget>
+		  </child>
+
+		  <child>
 		    <widget class="GtkCheckMenuItem" id="optionsAutoloadPdfXoj">
 		      <property name="visible">True</property>
 		      <property name="label" translatable="yes">Autoload pdf.xoj</property>

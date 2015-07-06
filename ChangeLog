@@ -5,6 +5,7 @@ This version:
   - add A5 paper (D. German)
   - use GDK macros (not WIN32) to disable X11-specific code (T. Schoonjans)
   - export to PDF and printing: fix resolution loss on some pdf backgrounds
+  - option to export successive layers to separate PDF pages
 
 Version 0.4.8 (June 30, 2014):
   * Features:

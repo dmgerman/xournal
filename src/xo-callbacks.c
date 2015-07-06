@@ -3858,3 +3858,11 @@ on_optionsLegacyPDFExport_activate     (GtkMenuItem     *menuitem,
   ui.exportpdf_prefer_legacy = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem));
 }
 
+
+void
+on_optionsLayersPDFExport_activate     (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+  ui.exportpdf_layers = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem));
+}
+
