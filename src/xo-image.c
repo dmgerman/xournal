@@ -124,7 +124,7 @@ void insert_image(GdkEvent *event)
 
   if (ui.default_image != NULL) gtk_file_chooser_set_filename(GTK_FILE_CHOOSER (dialog), ui.default_image);
 
-  if (gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_OK) {
+  if (wrapper_gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_OK) {
     gtk_widget_destroy(dialog);
     return;
   }
@@ -143,7 +143,7 @@ void insert_image(GdkEvent *event)
   if(pixbuf==NULL) { /* open failed */
     dialog = gtk_message_dialog_new(GTK_WINDOW (winMain), GTK_DIALOG_MODAL,
       GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, _("Error opening image '%s'"), filename);
-    gtk_dialog_run(GTK_DIALOG(dialog));
+    wrapper_gtk_dialog_run(GTK_DIALOG(dialog));
     gtk_widget_destroy(dialog);
     g_free(filename);
     ui.cur_item = NULL;

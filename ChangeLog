@@ -6,6 +6,7 @@ This version:
   - use GDK macros (not WIN32) to disable X11-specific code (T. Schoonjans)
   - export to PDF and printing: fix resolution loss on some pdf backgrounds
   - option to export successive layers to separate PDF pages
+  - disable xinput during modal dialog boxes (bug #159)
 
 Version 0.4.8 (June 30, 2014):
   * Features:

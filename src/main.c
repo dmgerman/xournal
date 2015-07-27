@@ -120,6 +120,7 @@ void init_stuff (int argc, char *argv[])
   ui.which_unswitch_button = 0;
   ui.in_proximity = FALSE;
   ui.warned_generate_fontconfig = FALSE;
+  ui.need_xinput_disable = FALSE;
   
   reset_recognizer();
 
@@ -326,7 +327,7 @@ void init_stuff (int argc, char *argv[])
   if (!success) {
     w = gtk_message_dialog_new(GTK_WINDOW (winMain), GTK_DIALOG_DESTROY_WITH_PARENT,
        GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, _("Error opening file '%s'"), argv[1]);
-    gtk_dialog_run(GTK_DIALOG(w));
+    wrapper_gtk_dialog_run(GTK_DIALOG(w));
     gtk_widget_destroy(w);
   }
 }

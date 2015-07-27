@@ -1897,7 +1897,7 @@ gboolean ok_to_close(void)
   gtk_dialog_add_button(GTK_DIALOG (dialog), GTK_STOCK_SAVE, GTK_RESPONSE_YES);
   gtk_dialog_add_button(GTK_DIALOG (dialog), GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL);
   gtk_dialog_set_default_response(GTK_DIALOG (dialog), GTK_RESPONSE_YES);
-  response = gtk_dialog_run(GTK_DIALOG (dialog));
+  response = wrapper_gtk_dialog_run(GTK_DIALOG (dialog));
   gtk_widget_destroy(dialog);
   if (response == GTK_RESPONSE_CANCEL || response == GTK_RESPONSE_DELETE_EVENT) 
     return FALSE; // aborted
@@ -2538,4 +2538,16 @@ wrapper_poppler_page_render_to_pixbuf (PopplerPage *page,
 
   wrapper_copy_cairo_surface_to_pixbuf (surface, pixbuf);
   cairo_surface_destroy (surface);
+}
+
+// wrapper for gtk_dialog_run that sets ui.need_xinput_disable (bug #159)
+
+gint wrapper_gtk_dialog_run(GtkDialog *dialog)
+{
+  gint response;
+
+  ui.need_xinput_disable = TRUE;
+  response = gtk_dialog_run(dialog);
+  ui.need_xinput_disable = FALSE;
+  return response;            
 }

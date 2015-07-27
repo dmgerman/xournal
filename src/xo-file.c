@@ -199,7 +199,7 @@ gboolean save_journal(const char *filename, gboolean is_auto)
             dialog = gtk_message_dialog_new(GTK_WINDOW(winMain), GTK_DIALOG_MODAL,
               GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, 
               _("Could not write background '%s'. Continuing anyway."), tmpfn);
-            gtk_dialog_run(GTK_DIALOG(dialog));
+            wrapper_gtk_dialog_run(GTK_DIALOG(dialog));
             gtk_widget_destroy(dialog);
           }
           g_free(tmpfn);
@@ -233,7 +233,7 @@ gboolean save_journal(const char *filename, gboolean is_auto)
             dialog = gtk_message_dialog_new(GTK_WINDOW(winMain), GTK_DIALOG_MODAL,
               GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, 
               _("Could not write background '%s'. Continuing anyway."), tmpfn);
-            gtk_dialog_run(GTK_DIALOG(dialog));
+            wrapper_gtk_dialog_run(GTK_DIALOG(dialog));
             gtk_widget_destroy(dialog);
           }
           g_free(tmpfn);
@@ -419,7 +419,7 @@ char *check_for_autosave(char *filename)
   gtk_dialog_add_button(GTK_DIALOG(dialog), _("Restore auto-save"), GTK_RESPONSE_YES);
   gtk_dialog_add_button(GTK_DIALOG(dialog), _("Delete auto-saves"), GTK_RESPONSE_REJECT);
   gtk_dialog_set_default_response(GTK_DIALOG (dialog), GTK_RESPONSE_NO);
-  response = gtk_dialog_run(GTK_DIALOG(dialog));
+  response = wrapper_gtk_dialog_run(GTK_DIALOG(dialog));
   gtk_widget_destroy(dialog);
   
   if (response == GTK_RESPONSE_REJECT) {  // delete all auto-saves + attachments
@@ -460,7 +460,7 @@ char *check_for_autosave(char *filename)
     gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (dialog), filt_autosave);
     gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (dialog), filt_all);
     gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_OK);
-    if (gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_OK) {
+    if (wrapper_gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_OK) {
       gtk_widget_destroy(dialog);
       return g_strdup(filename);
     }
@@ -669,7 +669,7 @@ void xoj_parser_start_element(GMarkupParseContext *context,
                 GTK_MESSAGE_WARNING, GTK_BUTTONS_OK, 
                 _("Could not open background '%s'. Setting background to white."),
                 tmpbg_filename);
-              gtk_dialog_run(GTK_DIALOG(dialog));
+              wrapper_gtk_dialog_run(GTK_DIALOG(dialog));
               gtk_widget_destroy(dialog);
               tmpPage->bg->pixbuf = gdk_pixbuf_new(GDK_COLORSPACE_RGB, FALSE, 8, 1, 1);
               gdk_pixbuf_fill(tmpPage->bg->pixbuf, 0xffffffff); // solid white
@@ -987,7 +987,7 @@ gboolean user_wants_second_chance(char **filename)
     GTK_MESSAGE_ERROR, GTK_BUTTONS_YES_NO, 
     _("Could not open background '%s'.\nSelect another file?"),
     *filename);
-  response = gtk_dialog_run(GTK_DIALOG(dialog));
+  response = wrapper_gtk_dialog_run(GTK_DIALOG(dialog));
   gtk_widget_destroy(dialog);
   if (response != GTK_RESPONSE_YES) return FALSE;
   dialog = gtk_file_chooser_dialog_new(_("Open PDF"), GTK_WINDOW (winMain),
@@ -1008,7 +1008,7 @@ gboolean user_wants_second_chance(char **filename)
 
   if (ui.default_path!=NULL) gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (dialog), ui.default_path);
 
-  if (gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_OK) {
+  if (wrapper_gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_OK) {
     gtk_widget_destroy(dialog);
     return FALSE;
   }
@@ -1136,7 +1136,7 @@ gboolean open_journal(char *filename)
       dialog = gtk_message_dialog_new(GTK_WINDOW(winMain), GTK_DIALOG_MODAL,
         GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, _("Could not open background '%s'."),
         tmpfn);
-      gtk_dialog_run(GTK_DIALOG(dialog));
+      wrapper_gtk_dialog_run(GTK_DIALOG(dialog));
       gtk_widget_destroy(dialog);
     }
     g_free(tmpfn);
@@ -1159,7 +1159,7 @@ gboolean open_journal(char *filename)
     dialog = gtk_message_dialog_new(GTK_WINDOW(winMain), GTK_DIALOG_MODAL,
         GTK_MESSAGE_OTHER, GTK_BUTTONS_YES_NO, 
         _("Save this version and delete auto-save?"));
-    if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_YES) {
+    if (wrapper_gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_YES) {
       if (save_journal(filename, FALSE)) { // success: delete autosave
         delete_autosave(filename_actual);
         ui.saved = TRUE;
@@ -1167,7 +1167,7 @@ gboolean open_journal(char *filename)
         gtk_widget_destroy(dialog);
         dialog = gtk_message_dialog_new(GTK_WINDOW (winMain), GTK_DIALOG_DESTROY_WITH_PARENT,
            GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, _("Error saving file '%s'"), filename);
-        gtk_dialog_run(GTK_DIALOG(dialog));
+        wrapper_gtk_dialog_run(GTK_DIALOG(dialog));
       }
     }
     gtk_widget_destroy(dialog);
@@ -1415,7 +1415,7 @@ gboolean bgpdf_scheduler_callback(gpointer data)
     if (!bgpdf.has_failed) {
       dialog = gtk_message_dialog_new(GTK_WINDOW(winMain), GTK_DIALOG_MODAL,
         GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, _("Unable to render one or more PDF pages."));
-      gtk_dialog_run(GTK_DIALOG(dialog));
+      wrapper_gtk_dialog_run(GTK_DIALOG(dialog));
       gtk_widget_destroy(dialog);
     }
     bgpdf.has_failed = TRUE;

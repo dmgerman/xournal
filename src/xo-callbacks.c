@@ -88,7 +88,7 @@ on_fileNewBackground_activate          (GtkMenuItem     *menuitem,
   gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(attach_opt), FALSE);
   gtk_file_chooser_set_extra_widget(GTK_FILE_CHOOSER (dialog), attach_opt);
   
-  if (gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_OK) {
+  if (wrapper_gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_OK) {
     gtk_widget_destroy(dialog);
     return;
   }
@@ -120,7 +120,7 @@ on_fileNewBackground_activate          (GtkMenuItem     *menuitem,
   /* open failed */
   dialog = gtk_message_dialog_new(GTK_WINDOW (winMain), GTK_DIALOG_DESTROY_WITH_PARENT,
     GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, _("Error opening file '%s'"), filename);
-  gtk_dialog_run(GTK_DIALOG(dialog));
+  wrapper_gtk_dialog_run(GTK_DIALOG(dialog));
   gtk_widget_destroy(dialog);
   g_free(filename);
 }
@@ -156,7 +156,7 @@ on_fileOpen_activate                   (GtkMenuItem     *menuitem,
 
   if (ui.default_path!=NULL) gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (dialog), ui.default_path);
 
-  if (gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_OK) {
+  if (wrapper_gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_OK) {
     gtk_widget_destroy(dialog);
     return;
   }
@@ -171,7 +171,7 @@ on_fileOpen_activate                   (GtkMenuItem     *menuitem,
   /* open failed */
   dialog = gtk_message_dialog_new(GTK_WINDOW (winMain), GTK_DIALOG_DESTROY_WITH_PARENT,
     GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, _("Error opening file '%s'"), filename);
-  gtk_dialog_run(GTK_DIALOG(dialog));
+  wrapper_gtk_dialog_run(GTK_DIALOG(dialog));
   gtk_widget_destroy(dialog);
   g_free(filename);
 
@@ -200,7 +200,7 @@ on_fileSave_activate                   (GtkMenuItem     *menuitem,
   /* save failed */
   dialog = gtk_message_dialog_new(GTK_WINDOW (winMain), GTK_DIALOG_DESTROY_WITH_PARENT,
     GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, _("Error saving file '%s'"), ui.filename);
-  gtk_dialog_run(GTK_DIALOG(dialog));
+  wrapper_gtk_dialog_run(GTK_DIALOG(dialog));
   gtk_widget_destroy(dialog);
 }
 
@@ -243,7 +243,7 @@ on_fileSaveAs_activate                 (GtkMenuItem     *menuitem,
   gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_OK);
 
   do {
-    if (gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_OK) {
+    if (wrapper_gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_OK) {
       gtk_widget_destroy(dialog);
       return;
     }
@@ -261,7 +261,7 @@ on_fileSaveAs_activate                 (GtkMenuItem     *menuitem,
       warning_dialog = gtk_message_dialog_new(GTK_WINDOW(winMain), 
         GTK_DIALOG_MODAL, GTK_MESSAGE_QUESTION, GTK_BUTTONS_YES_NO,
         _("Should the file %s be overwritten?"), filename);
-      if (gtk_dialog_run(GTK_DIALOG(warning_dialog)) == GTK_RESPONSE_YES)
+      if (wrapper_gtk_dialog_run(GTK_DIALOG(warning_dialog)) == GTK_RESPONSE_YES)
         warn = FALSE;
       gtk_widget_destroy(warning_dialog);
     }
@@ -281,7 +281,7 @@ on_fileSaveAs_activate                 (GtkMenuItem     *menuitem,
   /* save failed */
   dialog = gtk_message_dialog_new(GTK_WINDOW (winMain), GTK_DIALOG_DESTROY_WITH_PARENT,
     GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, _("Error saving file '%s'"), filename);
-  gtk_dialog_run(GTK_DIALOG(dialog));
+  wrapper_gtk_dialog_run(GTK_DIALOG(dialog));
   gtk_widget_destroy(dialog);
   g_free(filename);
 }
@@ -387,7 +387,7 @@ on_filePrintPDF_activate               (GtkMenuItem     *menuitem,
   g_free(in_fn);
   
   do {
-    if (gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_OK) {
+    if (wrapper_gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_OK) {
       gtk_widget_destroy(dialog);
       return;
     }
@@ -397,7 +397,7 @@ on_filePrintPDF_activate               (GtkMenuItem     *menuitem,
       warning_dialog = gtk_message_dialog_new(GTK_WINDOW(winMain),
         GTK_DIALOG_MODAL, GTK_MESSAGE_QUESTION, GTK_BUTTONS_YES_NO,
         _("Should the file %s be overwritten?"), filename);
-      if (gtk_dialog_run(GTK_DIALOG(warning_dialog)) == GTK_RESPONSE_YES)
+      if (wrapper_gtk_dialog_run(GTK_DIALOG(warning_dialog)) == GTK_RESPONSE_YES)
         warn = FALSE;
       gtk_widget_destroy(warning_dialog);
     }
@@ -417,7 +417,7 @@ on_filePrintPDF_activate               (GtkMenuItem     *menuitem,
       set_cursor_busy(FALSE);
       dialog = gtk_message_dialog_new(GTK_WINDOW (winMain), GTK_DIALOG_DESTROY_WITH_PARENT,
         GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, _("Error creating file '%s'"), filename);
-      gtk_dialog_run(GTK_DIALOG(dialog));
+      wrapper_gtk_dialog_run(GTK_DIALOG(dialog));
       gtk_widget_destroy(dialog);
     }
   }
@@ -1295,7 +1295,7 @@ on_journalPaperSize_activate           (GtkMenuItem     *menuitem,
        G_OBJECT(papersize_dialog), "comboStdSizes")), NULL);
   gtk_dialog_set_default_response(GTK_DIALOG(papersize_dialog), GTK_RESPONSE_OK);
        
-  response = gtk_dialog_run(GTK_DIALOG(papersize_dialog));
+  response = wrapper_gtk_dialog_run(GTK_DIALOG(papersize_dialog));
   gtk_widget_destroy(papersize_dialog);
   if (response != GTK_RESPONSE_OK) return;
 
@@ -1393,7 +1393,7 @@ on_papercolorOther_activate            (GtkMenuItem     *menuitem,
   rgb_to_gdkcolor(rgba, &gdkcolor);
   gtk_color_selection_set_current_color(colorsel, &gdkcolor);
   
-  if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_OK) {
+  if (wrapper_gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_OK) {
     gtk_color_selection_get_current_color(colorsel, &gdkcolor);
     process_papercolor_activate(menuitem, COLOR_OTHER, gdkcolor_to_rgba(gdkcolor, 0xffff));
   }
@@ -1488,7 +1488,7 @@ on_journalLoadBackground_activate      (GtkMenuItem     *menuitem,
 
   if (ui.default_path!=NULL) gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (dialog), ui.default_path);
   
-  if (gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_OK) {
+  if (wrapper_gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_OK) {
     gtk_widget_destroy(dialog);
     return;
   }
@@ -1506,7 +1506,7 @@ on_journalLoadBackground_activate      (GtkMenuItem     *menuitem,
     dialog = gtk_message_dialog_new(GTK_WINDOW(winMain), GTK_DIALOG_MODAL,
       GTK_MESSAGE_ERROR, GTK_BUTTONS_OK,
       _("Error opening background '%s'"), filename);
-    gtk_dialog_run(GTK_DIALOG(dialog));
+    wrapper_gtk_dialog_run(GTK_DIALOG(dialog));
     gtk_widget_destroy(dialog);
     g_free(filename);
     return;
@@ -2102,7 +2102,7 @@ on_toolsTextFont_activate              (GtkMenuItem     *menuitem,
   str = make_cur_font_name();
   gtk_font_selection_dialog_set_font_name(GTK_FONT_SELECTION_DIALOG(dialog), str);
   g_free(str);
-  if (gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_OK) {
+  if (wrapper_gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_OK) {
     gtk_widget_destroy(dialog);
     return;
   }
@@ -2324,7 +2324,7 @@ on_helpAbout_activate                  (GtkMenuItem     *menuitem,
   labelTitle = GTK_LABEL(g_object_get_data(G_OBJECT(aboutDialog), "labelTitle"));
   gtk_label_set_markup(labelTitle, 
     "<span size=\"xx-large\" weight=\"bold\">Xournal " VERSION_STRING "</span>");
-  gtk_dialog_run (GTK_DIALOG(aboutDialog));
+  wrapper_gtk_dialog_run (GTK_DIALOG(aboutDialog));
   gtk_widget_destroy(aboutDialog);
 }
 
@@ -2494,7 +2494,7 @@ on_canvas_button_press_event           (GtkWidget       *widget,
     dialog = gtk_message_dialog_new(GTK_WINDOW(winMain), GTK_DIALOG_MODAL,
       GTK_MESSAGE_WARNING, GTK_BUTTONS_OK, _("Drawing is not allowed on the "
       "background layer.\n Switching to Layer 1."));
-    gtk_dialog_run(GTK_DIALOG(dialog));
+    wrapper_gtk_dialog_run(GTK_DIALOG(dialog));
     gtk_widget_destroy(dialog);
     on_viewShowLayer_activate(NULL, NULL);
     return FALSE;
@@ -2650,7 +2650,7 @@ on_canvas_leave_notify_event           (GtkWidget       *widget,
 #ifdef WIN32
   if (!gtk_check_version(2, 17, 0))
 #else
-  if (!gtk_check_version(2, 17, 0) && (gtk_check_version(2, 24, 0) || ui.cur_item_type == ITEM_TEXT))
+  if (!gtk_check_version(2, 17, 0) && (gtk_check_version(2, 24, 0) || ui.cur_item_type == ITEM_TEXT || ui.need_xinput_disable))
 #endif
   {
     emergency_enable_xinput(GDK_MODE_DISABLED);
@@ -3299,7 +3299,7 @@ on_mru_activate                        (GtkMenuItem     *menuitem,
   /* open failed */
   dialog = gtk_message_dialog_new(GTK_WINDOW (winMain), GTK_DIALOG_DESTROY_WITH_PARENT,
     GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, _("Error opening file '%s'"), ui.mru[which]);
-  gtk_dialog_run(GTK_DIALOG(dialog));
+  wrapper_gtk_dialog_run(GTK_DIALOG(dialog));
   gtk_widget_destroy(dialog);
   delete_mru_entry(which);
 }
@@ -3525,7 +3525,7 @@ on_viewSetZoom_activate                (GtkMenuItem     *menuitem,
   gtk_widget_show(zoom_dialog);
   
   do {
-    response = gtk_dialog_run(GTK_DIALOG(zoom_dialog));
+    response = wrapper_gtk_dialog_run(GTK_DIALOG(zoom_dialog));
     if (response == GTK_RESPONSE_OK || response == GTK_RESPONSE_APPLY) {
       ui.zoom = DEFAULT_ZOOM*zoom_percent/100;
       gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
@@ -3821,7 +3821,7 @@ on_optionsDesignateTouchscreen_activate
       gtk_combo_box_set_active(GTK_COMBO_BOX(comboList), count);
   }
 
-  response = gtk_dialog_run(dialog);
+  response = wrapper_gtk_dialog_run(dialog);
   if (response == GTK_RESPONSE_OK) {
     str = gtk_combo_box_get_active_text(GTK_COMBO_BOX(comboList));
     if (str!=NULL) {
