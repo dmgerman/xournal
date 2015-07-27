@@ -332,6 +332,7 @@ on_filePrint_activate                  (GtkMenuItem     *menuitem,
       gtk_print_operation_set_job_name(print, xo_basename(ui.filename, FALSE));
     }
     g_signal_connect (print, "draw_page", G_CALLBACK (print_job_render_page), NULL);
+    if (!gtk_check_version(2, 17, 0)) emergency_enable_xinput(GDK_MODE_DISABLED); // bug #159
     res = gtk_print_operation_run(print, GTK_PRINT_OPERATION_ACTION_PRINT_DIALOG,
                                   GTK_WINDOW(winMain), NULL);
     if (res == GTK_PRINT_OPERATION_RESULT_APPLY) {
@@ -2650,7 +2651,7 @@ on_canvas_leave_notify_event           (GtkWidget       *widget,
 #ifdef WIN32
   if (!gtk_check_version(2, 17, 0))
 #else
-  if (!gtk_check_version(2, 17, 0) && (gtk_check_version(2, 24, 0) || ui.cur_item_type == ITEM_TEXT || ui.need_xinput_disable))
+  if (!gtk_check_version(2, 17, 0) && (gtk_check_version(2, 24, 0) || ui.cur_item_type == ITEM_TEXT))
 #endif
   {
     emergency_enable_xinput(GDK_MODE_DISABLED);

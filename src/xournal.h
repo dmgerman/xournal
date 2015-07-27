@@ -288,7 +288,6 @@ typedef struct UIData {
   double width_minimum_multiplier, width_maximum_multiplier; // calibration for pressure sensitivity
   gboolean is_corestroke; // this stroke is painted with core pointer
   gboolean saved_is_corestroke;
-  gboolean need_xinput_disable; // we're in a situation where emergency xinput disable remains desirable, eg modal dialog
   GdkDevice *stroke_device; // who's painting this stroke
   gboolean ignore_other_devices;
   gboolean ignore_btn_reported_up; // config setting: ignore button reported up

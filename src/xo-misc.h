@@ -138,7 +138,7 @@ wrapper_poppler_page_render_to_pixbuf (PopplerPage *page,
 			       int rotation,
 			       GdkPixbuf *pixbuf);
 
-// wrapper for gtk_dialog_run that sets ui.need_xinput_disable (bug #159)
+// wrapper for gtk_dialog_run that disables xinput (bug #159)
 gint wrapper_gtk_dialog_run(GtkDialog *dialog);
 
 // defines for paper rulings

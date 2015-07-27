@@ -573,6 +573,9 @@ void emergency_enable_xinput(GdkInputMode mode)
   GList *dev_list;
   GdkDevice *dev;
 
+#ifdef INPUT_DEBUG
+  printf("DEBUG: Emergency xinput enable/disable: %d\n", mode);
+#endif
   gdk_flush();
   gdk_error_trap_push();
   for (dev_list = gdk_devices_list(); dev_list != NULL; dev_list = dev_list->next) {
@@ -2540,14 +2543,14 @@ wrapper_poppler_page_render_to_pixbuf (PopplerPage *page,
   cairo_surface_destroy (surface);
 }
 
-// wrapper for gtk_dialog_run that sets ui.need_xinput_disable (bug #159)
+// wrapper for gtk_dialog_run that disables xinput (bug #159)
 
 gint wrapper_gtk_dialog_run(GtkDialog *dialog)
 {
   gint response;
 
-  ui.need_xinput_disable = TRUE;
+  if (!gtk_check_version(2, 17, 0))
+    emergency_enable_xinput(GDK_MODE_DISABLED);
   response = gtk_dialog_run(dialog);
-  ui.need_xinput_disable = FALSE;
   return response;            
 }
