@@ -33,6 +33,7 @@
 #include "xo-paint.h"
 #include "xo-shapes.h"
 #include "xo-image.h"
+#include "xo-selection.h"
 
 // some global constants
 

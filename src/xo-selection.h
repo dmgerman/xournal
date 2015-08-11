@@ -20,6 +20,8 @@ void start_selectregion(GdkEvent *event);
 void finalize_selectregion(void);
 void continue_selectregion(GdkEvent *event);
 
+void make_dashed(GnomeCanvasItem *item);
+
 gboolean start_movesel(GdkEvent *event);
 void start_vertspace(GdkEvent *event);
 void continue_movesel(GdkEvent *event);

@@ -36,6 +36,8 @@
 #include "xo-selection.h"
 #include "xo-print.h"
 #include "xo-shapes.h"
+#include "xo-clipboard.h"
+#include "xo-image.h"
 
 void
 on_fileNew_activate                    (GtkMenuItem     *menuitem,
@@ -2769,6 +2771,11 @@ on_canvas_motion_notify_event          (GtkWidget       *widget,
   if (ui.cur_item_type == ITEM_NONE && ui.selection==NULL) return FALSE;
   if (ui.cur_item_type == ITEM_TEXT || ui.cur_item_type == ITEM_IMAGE) return FALSE;
 
+#ifdef INPUT_DEBUG
+  printf("DEBUG: MotionNotify (%s) (x,y)=(%.2f,%.2f), modifier %x\n", 
+    event->device->name, event->x, event->y, event->state);
+#endif
+
   is_core = (event->device == gdk_device_get_core_pointer());
   if (!ui.use_xinput && !is_core) return FALSE;
   if (!is_core) fix_xinput_coords((GdkEvent *)event);
@@ -2799,10 +2806,6 @@ on_canvas_motion_notify_event          (GtkWidget       *widget,
   }
   if (ui.ignore_other_devices && ui.stroke_device!=event->device && !we_have_no_clue) return FALSE;
 
-#ifdef INPUT_DEBUG
-  printf("DEBUG: MotionNotify (%s) (x,y)=(%.2f,%.2f), modifier %x\n", 
-    event->device->name, event->x, event->y, event->state);
-#endif
   
   if (looks_wrong) {
     gdk_device_get_state(ui.stroke_device, event->window, NULL, &mask);

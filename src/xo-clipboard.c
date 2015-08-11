@@ -27,6 +27,7 @@
 #include "xo-misc.h"
 #include "xo-paint.h"
 #include "xo-image.h"
+#include "xo-selection.h"
 
 // the various formats in which we might present clipboard data
 #define TARGET_XOURNAL 1

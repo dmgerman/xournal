@@ -196,7 +196,7 @@ void update_cursor_for_resize(double *pt)
 
 #define SUBDIVIDE_MAXDIST 5.0
 
-void subdivide_cur_path(null)
+void subdivide_cur_path(void)
 {
   int n, pieces, k;
   double *p;
