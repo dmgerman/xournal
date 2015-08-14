@@ -3106,6 +3106,16 @@ create_aboutDialog (void)
   gtk_label_set_justify (GTK_LABEL (labelInfo), GTK_JUSTIFY_CENTER);
   gtk_misc_set_padding (GTK_MISC (labelInfo), 20, 10);
 
+  labelInfo = gtk_label_new (_("This is _NOT_ the official version.\nSee https://github.com/dmgerman/xournal/blob/master/README.org for details "));
+  gtk_widget_modify_font (labelInfo,
+                          pango_font_description_from_string ("16")
+                          );
+  gtk_widget_show (labelInfo);
+
+  gtk_box_pack_start (GTK_BOX (dialog_vbox2), labelInfo, FALSE, FALSE, 0);
+  gtk_label_set_justify (GTK_LABEL (labelInfo), GTK_JUSTIFY_CENTER);
+  gtk_misc_set_padding (GTK_MISC (labelInfo), 20, 10);
+
   dialog_action_area2 = GTK_DIALOG (aboutDialog)->action_area;
   gtk_widget_show (dialog_action_area2);
   gtk_button_box_set_layout (GTK_BUTTON_BOX (dialog_action_area2), GTK_BUTTONBOX_END);
