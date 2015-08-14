@@ -337,6 +337,7 @@ typedef struct UIData {
   gdouble hiliter_opacity;
   guint hiliter_alpha_mask;
   gboolean left_handed; // left-handed mode?
+  gboolean lockHorizontalScroll; // do now allow scroll horizontally
   gboolean auto_save_prefs; // auto-save preferences ?
   gboolean shorten_menus; // shorten menus ?
   gchar *shorten_menu_items; // which items to hide

@@ -1710,6 +1710,7 @@ void init_config_default(void)
   ui.autosave_delay = 5;
   ui.autosave_loop_running = FALSE;
   ui.autosave_need_catchup = FALSE;
+  ui.lockHorizontalScroll = FALSE;
   
   ui.snap_to_grid = FALSE;
   ui.grid_separation = 2.835;   // 1mm in points 2.834645669291339
