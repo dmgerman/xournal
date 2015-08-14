@@ -17,6 +17,7 @@
 #  include <config.h>
 #endif
 
+#include <assert.h>
 #include <signal.h>
 #include <memory.h>
 #include <string.h>
@@ -45,6 +46,7 @@
 #include "xo-paint.h"
 #include "xo-image.h"
 #include "xo-shapes.h"
+#include "xo-metadata.h"
 
 const char *tool_names[NUM_TOOLS] = {"pen", "eraser", "highlighter", "text", "selectregion", "selectrect", "vertspace", "hand", "image"};
 const char *color_names[COLOR_MAX] = {"black", "blue", "red", "green",
@@ -146,6 +148,34 @@ GdkPixbuf *read_pixbuf(const gchar *base64_str, gsize base64_strlen)
 
 // saves the journal to a file: returns true on success, false on error
 
+
+void journal_metadata_page_save(char *filename, int pageno)
+{
+  GFile *file = g_file_new_for_path (filename);
+  if (xo_is_metadata_supported_for_file(file)) {
+    XoMetadata  *metadata = xo_metadata_new(file);
+    xo_metadata_set_int(metadata, "currentPage", pageno);
+    g_object_unref(metadata);
+  }
+  g_object_unref(file);
+
+}
+
+gboolean journal_metadata_page_get(char *filename, gint *page)
+{
+  gboolean result = 0;
+  GFile *file = g_file_new_for_path (filename);
+  if (xo_is_metadata_supported_for_file(file)) {
+    XoMetadata  *metadata = xo_metadata_new(file);
+    result = xo_metadata_get_int(metadata, "currentPage", page);
+    if (result && page > 0)
+      page--; // pages are internally zero based
+    g_object_unref(metadata);
+  }
+  g_object_unref(file);
+  return result;
+}
+
 gboolean save_journal(const char *filename, gboolean is_auto)
 {
   gzFile f;
@@ -170,6 +200,9 @@ gboolean save_journal(const char *filename, gboolean is_auto)
   gzprintf(f, "<?xml version=\"1.0\" standalone=\"no\"?>\n"
      "<xournal version=\"" VERSION "\">\n"
      "<title>Xournal document - see http://math.mit.edu/~auroux/software/xournal/</title>\n");
+  if (ui.save_page_number)
+    gzprintf(f,"<currentpage number=\"%d\" />\n", ui.pageno);
+
   for (pagelist = journal.pages; pagelist!=NULL; pagelist = pagelist->next) {
     pg = (struct Page *)pagelist->data;
     gzprintf(f, "<page width=\"%.2f\" height=\"%.2f\">\n", pg->width, pg->height);
@@ -473,12 +506,17 @@ char *check_for_autosave(char *filename)
 }
 
 
+
 // closes a journal: returns true on success, false on abort
 
 gboolean close_journal(void)
 {
   if (!ok_to_close()) return FALSE;
   
+  mru_set_pagenumber(0, ui.pageno+1);
+
+  journal_metadata_page_save(ui.filename, ui.pageno+1);
+
   // free everything...
   reset_selection();
   reset_recognizer();
@@ -538,6 +576,15 @@ void xoj_parser_start_element(GMarkupParseContext *context,
       return;
     }
     // nothing special to do
+  }
+  else if (!strcmp(element_name, "currentpage")) {
+    if (!strcmp(*attribute_names, "number")) {
+      if (has_attr & 1) *error = xoj_invalid();
+      cleanup_numeric((gchar *)*attribute_values);
+      ui.pageno = g_ascii_strtod(*attribute_values, &ptr);
+      if (ptr == *attribute_values) *error = xoj_invalid();
+    } else
+      *error = xoj_invalid();
   }
   else if (!strcmp(element_name, "page")) { // start of a page
     if (tmpPage != NULL) {
@@ -1045,7 +1092,7 @@ gboolean open_journal(char *filename)
   g_free(tmpfn);
 
   filename_actual = check_for_autosave(filename);
-
+  ui.pageno = 0;
   f = gzopen_wrapper(filename_actual, "rb");
   if (f==NULL) { g_free(filename_actual); return FALSE; }
   if (filename[0]=='/') {
@@ -1142,8 +1189,7 @@ gboolean open_journal(char *filename)
     }
     g_free(tmpfn);
   }
-  
-  ui.pageno = 0;
+
   ui.cur_page = (struct Page *)journal.pages->data;
   ui.layerno = ui.cur_page->nlayers-1;
   ui.cur_layer = (struct Layer *)(g_list_last(ui.cur_page->layers)->data);
@@ -1174,6 +1220,19 @@ gboolean open_journal(char *filename)
     gtk_widget_destroy(dialog);
   }
   else ui.saved = TRUE;
+
+  // check to see if the current page is different from first
+  gint page = ui.pageno;
+
+  if (page == 0)
+    journal_metadata_page_get(ui.filename, &page);
+
+  if (page >= journal.npages)
+    page = journal.npages -1;
+  else if (page < 0)
+    page = 0;
+  if (page != 0)
+    do_switch_page(page, TRUE, FALSE);
 
   g_free(filename_actual);
   ui.need_autosave = !ui.saved;
@@ -1596,101 +1655,6 @@ void bgpdf_update_bg(int pageno, struct BgPdfPage *bgpg)
   }
 }
 
-// initialize the recent files list
-void init_mru(void)
-{
-  int i;
-  gsize lfptr;
-  char s[5];
-  GIOChannel *f;
-  gchar *str;
-  GIOStatus status;
-  
-  g_strlcpy(s, "mru0", 5);
-  for (s[3]='0', i=0; i<MRU_SIZE; s[3]++, i++) {
-    ui.mrumenu[i] = GET_COMPONENT(s);
-    ui.mru[i] = NULL;
-  }
-  f = g_io_channel_new_file(ui.mrufile, "r", NULL);
-  if (f) status = G_IO_STATUS_NORMAL;
-  else status = G_IO_STATUS_ERROR;
-  i = 0;
-  while (status == G_IO_STATUS_NORMAL && i<MRU_SIZE) {
-    lfptr = 0;
-    status = g_io_channel_read_line(f, &str, NULL, &lfptr, NULL);
-    if (status == G_IO_STATUS_NORMAL && lfptr>0) {
-      str[lfptr] = 0;
-      ui.mru[i] = str;
-      i++;
-    }
-  }
-  if (f) {
-    g_io_channel_shutdown(f, FALSE, NULL);
-    g_io_channel_unref(f);
-  }
-  update_mru_menu();
-}
-
-void update_mru_menu(void)
-{
-  int i;
-  gboolean anyone = FALSE;
-  gchar *tmp;
-  
-  for (i=0; i<MRU_SIZE; i++) {
-    if (ui.mru[i]!=NULL) {
-      tmp = g_strdup_printf("_%d %s", i+1,
-               g_strjoinv("__", g_strsplit_set(xo_basename(ui.mru[i], FALSE),"_",-1)));
-      gtk_label_set_text_with_mnemonic(GTK_LABEL(gtk_bin_get_child(GTK_BIN(ui.mrumenu[i]))),
-          tmp);
-      g_free(tmp);
-      gtk_widget_show(ui.mrumenu[i]);
-      anyone = TRUE;
-    }
-    else gtk_widget_hide(ui.mrumenu[i]);
-  }
-  gtk_widget_set_sensitive(GET_COMPONENT("fileRecentFiles"), anyone);
-}
-
-void new_mru_entry(char *name)
-{
-  int i, j;
-  
-  for (i=0;i<MRU_SIZE;i++) 
-    if (ui.mru[i]!=NULL && !strcmp(ui.mru[i], name)) {
-      g_free(ui.mru[i]);
-      for (j=i+1; j<MRU_SIZE; j++) ui.mru[j-1] = ui.mru[j];
-      ui.mru[MRU_SIZE-1]=NULL;
-    }
-  if (ui.mru[MRU_SIZE-1]!=NULL) g_free(ui.mru[MRU_SIZE-1]);
-  for (j=MRU_SIZE-1; j>=1; j--) ui.mru[j] = ui.mru[j-1];
-  ui.mru[0] = g_strdup(name);
-  update_mru_menu();
-}
-
-void delete_mru_entry(int which)
-{
-  int i;
-  
-  if (ui.mru[which]!=NULL) g_free(ui.mru[which]);
-  for (i=which+1;i<MRU_SIZE;i++) 
-    ui.mru[i-1] = ui.mru[i];
-  ui.mru[MRU_SIZE-1] = NULL;
-  update_mru_menu();
-}
-
-void save_mru_list(void)
-{
-  FILE *f;
-  int i;
-  
-  f = g_fopen(ui.mrufile, "w");
-  if (f==NULL) return;
-  for (i=0; i<MRU_SIZE; i++)
-    if (ui.mru[i]!=NULL) fprintf(f, "%s\n", ui.mru[i]);
-  fclose(f);
-}
-
 void init_config_default(void)
 {
   int i, j;
@@ -1740,6 +1704,7 @@ void init_config_default(void)
   ui.touch_as_handtool = FALSE;
   ui.pen_disables_touch = FALSE;
   ui.device_for_touch = g_strdup(DEFAULT_DEVICE_FOR_TOUCH);
+  ui.save_page_number = FALSE;
   ui.autosave_enabled = FALSE;
   ui.autosave_filename_list = NULL;
   ui.autosave_delay = 5;
@@ -1940,6 +1905,9 @@ void save_config_to_file(void)
   update_keyval("general", "poppler_force_cairo",
     _(" force PDF rendering through cairo (slower but nicer) (true/false)"),
     g_strdup(ui.poppler_force_cairo?"true":"false"));
+  update_keyval("general", "save_page_number",
+                _(" save page number in xoj file (true/false)"),
+                g_strdup(ui.save_page_number?"true":"false"));
   update_keyval("general", "exportpdf_prefer_legacy",
     _(" prefer xournal's own PDF code for exporting PDFs (true/false)"),
     g_strdup(ui.exportpdf_prefer_legacy?"true":"false"));
@@ -2329,6 +2297,7 @@ void load_config_from_file(void)
   parse_keyval_float("general", "highlighter_opacity", &ui.hiliter_opacity, 0., 1.);
   parse_keyval_boolean("general", "autosave_prefs", &ui.auto_save_prefs);
   parse_keyval_boolean("general", "poppler_force_cairo", &ui.poppler_force_cairo);
+  parse_keyval_boolean("general", "save_page_number", &ui.save_page_number);
   parse_keyval_boolean("general", "exportpdf_prefer_legacy", &ui.exportpdf_prefer_legacy);
   parse_keyval_boolean("general", "exportpdf_layers", &ui.exportpdf_layers);
   parse_keyval_boolean("general", "show_layers_above_current", &ui.display_layers_above);
