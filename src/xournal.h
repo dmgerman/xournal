@@ -349,6 +349,8 @@ typedef struct UIData {
   gboolean warned_generate_fontconfig; // for win32 fontconfig cache
   gboolean display_layers_above; // if true displays all layers above currently selected one
   gboolean save_page_number; // give the option to the user to save the page numbers
+  gboolean snap_to_grid;        // force points to snap to a given grid
+  gdouble grid_separation;        // distance between grip in point
 } UIData;
 
 #define BRUSH_LINKED 0
