@@ -17,6 +17,7 @@
 #  include <config.h>
 #endif
 
+#include <assert.h>
 #include <math.h>
 #include <string.h>
 #include <gtk/gtk.h>
@@ -25,8 +26,7 @@
 #include <time.h>
 
 #include "xournal.h"
-#include "xo-interface.h"
-#include "xo-support.h"
+#include "xo-intl.h"
 #include "xo-callbacks.h"
 #include "xo-misc.h"
 #include "xo-file.h"
@@ -2104,7 +2104,7 @@ void process_mapping_activate(GtkMenuItem *menuitem, int m, int tool)
 // update the ordering of components in the main vbox
 
 const char *vbox_component_names[VBOX_MAIN_NITEMS]=
- {"scrolledwindowMain", "menubar", "toolbarMain", "toolbarPen", "hbox1"};
+ {"scrolledwindowMain", "menubar", "toolbarMain", "toolbarPen", "statusbar_hbox"};
 
 void update_vbox_order(int *order)
 {
@@ -2286,8 +2286,8 @@ gboolean is_event_within_textview(GdkEventButton *event)
 void hide_unimplemented(void)
 {
   gtk_widget_hide(GET_COMPONENT("filePrintOptions"));
-  gtk_widget_hide(GET_COMPONENT("journalFlatten"));  
-  gtk_widget_hide(GET_COMPONENT("helpIndex")); 
+  gtk_widget_hide(GET_COMPONENT("journalFlatten"));
+  gtk_widget_hide(GET_COMPONENT("helpIndex"));
 
   /* config file only works with glib 2.6 and beyond */
   if (glib_minor_version<6) {
