@@ -22,10 +22,10 @@
 #include <gtk/gtk.h>
 #include <glib/gstdio.h>
 #include <libgnomecanvas/libgnomecanvas.h>
+#include <assert.h>
 
 #include "xournal.h"
-#include "xo-interface.h"
-#include "xo-support.h"
+#include "xo-intl.h"
 #include "xo-callbacks.h"
 #include "xo-misc.h"
 #include "xo-file.h"
@@ -34,6 +34,7 @@
 
 GtkWidget *winMain;
 GnomeCanvas *canvas;
+GtkBuilder *builder;
 
 struct Journal journal; // the journal
 struct BgPdf bgpdf;  // the PDF loader stuff
@@ -154,7 +155,7 @@ void init_stuff (int argc, char *argv[])
           G_CALLBACK(handle_activate_signal), NULL);
   gtk_container_forall(GTK_CONTAINER(winMain), unset_flags, (gpointer)GTK_CAN_FOCUS);
   GTK_WIDGET_SET_FLAGS(GTK_WIDGET(canvas), GTK_CAN_FOCUS);
-  GTK_WIDGET_SET_FLAGS(GTK_WIDGET(GET_COMPONENT("spinPageNo")), GTK_CAN_FOCUS);
+  GTK_WIDGET_SET_FLAGS(GET_COMPONENT("spinPageNo"), GTK_CAN_FOCUS);
   
   // install hooks on button/key/activation events to make the spinPageNo lose focus
   gtk_container_forall(GTK_CONTAINER(winMain), install_focus_hooks, NULL);
@@ -336,6 +337,42 @@ void init_stuff (int argc, char *argv[])
   }
 }
 
+GtkWidget *xo_init_gtk_builder(char *executableFileName)
+{
+  gchar *path = g_path_get_dirname(executableFileName);
+  gchar *pathGlade = g_build_filename(path, GLADE_FILE, NULL);
+
+  GError *err = NULL;
+
+  // Search for the glade file in the location of the binary, its parent, then in the installed data directory
+  builder = gtk_builder_new();
+  if(!gtk_builder_add_from_file(builder, pathGlade, &err)) {
+    gchar *parentPathGlade;
+    parentPathGlade = g_build_filename(path, "..", GLADE_FILE, NULL);
+    err = NULL;
+    if(!gtk_builder_add_from_file(builder, parentPathGlade, &err)) {
+      gchar *dataPathGlade;
+      dataPathGlade = PACKAGE_DATA_DIR "/" PACKAGE "/" GLADE_FILE;
+
+      if (!gtk_builder_add_from_file(builder, dataPathGlade, &err)) {
+        fprintf(stderr, "Not able to find  Glade file from (searched in location of binary (%s), its parent directory (%s), and (%s)) CWD: %s\n", pathGlade, parentPathGlade, dataPathGlade, err->message);
+        exit(1);
+      }
+    }
+    g_free(parentPathGlade);
+  }
+  g_free(path);
+  g_free(pathGlade);
+
+  gtk_builder_connect_signals (builder, NULL);
+
+  winMain = (GtkWidget *)gtk_builder_get_object (builder, "winMain");
+
+}
+
+
+
+
 
 int
 main (int argc, char *argv[])
@@ -367,10 +404,9 @@ main (int argc, char *argv[])
    * (except popup menus), just so that you see something after building
    * the project. Delete any components that you don't want shown initially.
    */
-  winMain = create_winMain ();
-  
+  xo_init_gtk_builder(argv[0]);
+
   init_stuff (argc, argv);
-  gtk_window_set_icon(GTK_WINDOW(winMain), create_pixbuf("xournal.png"));
   
   gtk_main ();
   
