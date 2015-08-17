@@ -4,7 +4,7 @@ SUBDIRS = src po
 
 EXTRA_DIST = \
 	autogen.sh \
-	xournal.glade xournal.gladep \
+	xournal.ui \
 	xournal.xml x-xoj.desktop xournal.desktop
 
 install-data-local:
@@ -28,6 +28,9 @@ install-data-local:
 	    ln -s ../pixmaps $(DESTDIR)$(pkgdatadir)/html-doc/pixmaps; \
 	  fi \
 	fi; \
+	if test -f xournal.ui; then \
+	  $(INSTALL_DATA) xournal.ui $(DESTDIR)$(pkgdatadir)/xournal.ui; \
+	fi
 	echo "*** Desktop files, icons, MIME types not installed. Run 'make desktop-install'"; \
 	echo "*** (or 'make home-desktop-install' for installation in a home directory)."
 
