@@ -11,13 +11,6 @@ AC_PROG_RANLIB
 AM_PROG_AR
 AC_HEADER_STDC
 
-LDFLAGS="$LDFLAGS -lz -lm"
-
-pkg_modules="gtk+-2.0 >= 2.10.0 libgnomecanvas-2.0 >= 2.4.0 poppler-glib >= 0.5.4 pangoft2 >= 1.0"
-PKG_CHECK_MODULES(PACKAGE, [$pkg_modules])
-AC_SUBST(PACKAGE_CFLAGS)
-AC_SUBST(PACKAGE_LIBS)
-
 dnl detect Windows environment...
 AC_CANONICAL_HOST
 AC_MSG_CHECKING([for Windows environment])
@@ -38,6 +31,18 @@ case "$host" in
    os_linux=no;;
 esac
 AM_CONDITIONAL(LINUX, test "$os_linux" = "yes")
+LDFLAGS="$LDFLAGS -lz -lm"
+
+pkg_modules="gtk+-2.0 >= 2.10.0 libgnomecanvas-2.0 >= 2.4.0 poppler-glib >= 0.5.4 pangoft2 >= 1.0"
+
+dnl pkg_modules=
+AM_COND_IF(LINUX, pkg_modules="$pkg_modules gmodule-export-2.0")
+
+PKG_CHECK_MODULES(PACKAGE, [$pkg_modules])
+AC_SUBST(PACKAGE_CFLAGS)
+AC_SUBST(PACKAGE_LIBS)
+
+
 
 GETTEXT_PACKAGE=xournal
 AC_SUBST(GETTEXT_PACKAGE)
