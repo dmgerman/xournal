@@ -222,6 +222,8 @@ typedef struct Item {
 #define ITEM_SELECTREGION 25
 #define ITEM_MOVE_LAYER_DOWN 26
 
+#define ITEM_CHANGE_PAGE  50
+
 typedef struct Layer {
   GList *items; // the items on the layer, from bottom to top
   int nitems;
