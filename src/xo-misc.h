@@ -82,6 +82,7 @@ gchar *make_cur_font_name(void);
 void update_font_button(void);
 
 void update_mapping_linkings(int toolno);
+void do_switch_page_with_undo(int pg, gboolean rescroll, gboolean refresh_all);
 void do_switch_page(int pg, gboolean rescroll, gboolean refresh_all);
 void set_cur_color(int color_no, guint color_rgba);
 void recolor_temp_text(int color_no, guint color_rgba);

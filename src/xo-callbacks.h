@@ -706,3 +706,13 @@ on_optionsLegacyPDFExport_activate     (GtkMenuItem     *menuitem,
 void
 on_optionsLayersPDFExport_activate     (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
+
+gboolean
+on_buttonNextPage_button_press_event (GtkWidget       *widget,
+                                      GdkEventButton  *event,
+                                      gpointer         user_data);
+
+gboolean
+on_buttonPrevPage_button_press_event (GtkWidget       *widget,
+                                      GdkEventButton  *event,
+                                      gpointer         user_data);
