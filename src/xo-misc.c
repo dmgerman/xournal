@@ -1397,6 +1397,20 @@ void update_mappings_menu(void)
   update_mappings_menu_linkings();
 }
 
+void xo_prepare_undo_page_change(void)
+{
+  prepare_new_undo();
+  undo->type = ITEM_CHANGE_PAGE;
+  undo->val = ui.pageno;
+}
+
+void do_switch_page_with_undo(int pg, gboolean rescroll, gboolean refresh_all)
+{
+  if (pg != ui.pageno)
+    xo_prepare_undo_page_change();
+  do_switch_page(pg, rescroll, refresh_all);
+}
+
 void do_switch_page(int pg, gboolean rescroll, gboolean refresh_all)
 {
   int i, cx, cy;
@@ -1404,7 +1418,6 @@ void do_switch_page(int pg, gboolean rescroll, gboolean refresh_all)
   GList *list;
   
   ui.pageno = pg;
-
   /* re-show all the layers of the old page */
   if (ui.cur_page != NULL)
     for (i=0, list = ui.cur_page->layers; list!=NULL; i++, list = list->next) {
@@ -2554,4 +2567,35 @@ gint wrapper_gtk_dialog_run(GtkDialog *dialog)
     emergency_enable_xinput(GDK_MODE_DISABLED);
   response = gtk_dialog_run(dialog);
   return response;            
+}
+
+
+void xo_skip_pages(int number)
+{
+  // number is number of pages to skip
+  // negative => skip backwards
+
+  // number of pages is 1-based
+  // ui.pageno is zero based
+  assert(number != 0);
+
+  end_text();
+  // we don't  want to skip to illegal places
+  if (number < 0 ) {
+
+    if (ui.pageno - number < 0){
+      number = 0;
+    }
+  } else {
+    if (ui.pageno + number >= journal.npages) {
+      number = journal.npages - 1;
+    }
+  }
+  if (number != 0) {
+    // only switch if necessary
+    assert(ui.pageno+number >= 0);
+    assert(ui.pageno+number < journal.npages);
+
+    do_switch_page_with_undo(ui.pageno+number, TRUE, FALSE);
+  }
 }

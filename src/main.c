@@ -337,6 +337,23 @@ void init_stuff (int argc, char *argv[])
   }
 }
 
+
+void xo_toolbutton_enable_button_press(char *name, void *callback)
+{
+    GList *list = gtk_container_get_children(GTK_CONTAINER(GET_COMPONENT(name)));
+
+
+    GtkWidget *w2 = GTK_WIDGET(g_list_first(list)->data);
+
+    // the big assumption is that this list is size 1 and only contains the GtkButton
+    assert(strcmp(G_OBJECT_TYPE_NAME(w2), "GtkButton") == 0);
+
+    g_signal_connect (w2,
+                      "button-press-event", G_CALLBACK (callback),
+                      NULL);
+}
+
+
 GtkWidget *xo_init_gtk_builder(char *executableFileName)
 {
   gchar *path = g_path_get_dirname(executableFileName);
@@ -364,9 +381,16 @@ GtkWidget *xo_init_gtk_builder(char *executableFileName)
   g_free(path);
   g_free(pathGlade);
 
+  xo_toolbutton_enable_button_press("buttonNextPage",      on_buttonNextPage_button_press_event);
+  xo_toolbutton_enable_button_press("buttonPreviousPage",  on_buttonNextPage_button_press_event);
+  xo_toolbutton_enable_button_press("buttonFirstPage",  on_buttonNextPage_button_press_event);
+  xo_toolbutton_enable_button_press("buttonLastPage",  on_buttonNextPage_button_press_event);
+
+
   gtk_builder_connect_signals (builder, NULL);
 
   winMain = (GtkWidget *)gtk_builder_get_object (builder, "winMain");
+
 
 }
 

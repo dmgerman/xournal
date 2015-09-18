@@ -645,6 +645,9 @@ on_editUndo_activate                   (GtkMenuItem     *menuitem,
     update_text_item_displayfont(undo->item);
     update_item_bbox(undo->item);
   }
+  else if (undo->type == ITEM_CHANGE_PAGE) {
+    do_switch_page(undo->val, TRUE, TRUE);
+  }
   
   // move item from undo to redo stack
   u = undo;
@@ -865,6 +868,10 @@ on_editRedo_activate                   (GtkMenuItem     *menuitem,
     update_text_item_displayfont(redo->item);
     update_item_bbox(redo->item);
   }
+  else if (redo->type == ITEM_CHANGE_PAGE) {
+    do_switch_page(redo->val, TRUE, TRUE);
+  }
+
   
   // move item from redo to undo stack
   u = redo;
@@ -1014,7 +1021,7 @@ on_viewFirstPage_activate              (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
   end_text();
-  do_switch_page(0, TRUE, FALSE);
+  do_switch_page_with_undo(0, TRUE, FALSE);
 }
 
 
@@ -1024,7 +1031,7 @@ on_viewPreviousPage_activate           (GtkMenuItem     *menuitem,
 {
   end_text();
   if (ui.pageno == 0) return;
-  do_switch_page(ui.pageno-1, TRUE, FALSE);
+  do_switch_page_with_undo(ui.pageno-1, TRUE, FALSE);
 }
 
 
@@ -1037,16 +1044,43 @@ on_viewNextPage_activate               (GtkMenuItem     *menuitem,
     on_journalNewPageEnd_activate(menuitem, user_data);
     return;
   }
-  do_switch_page(ui.pageno+1, TRUE, FALSE);
+  do_switch_page_with_undo(ui.pageno+1, TRUE, FALSE);
 }
 
+G_MODULE_EXPORT void
+on_viewSkip10Pages_activate(GtkMenuItem     *menuitem,
+                            gpointer         user_data)
+{
+  xo_skip_pages(10);
+}
+
+G_MODULE_EXPORT void
+on_viewSkip5Pages_activate(GtkMenuItem     *menuitem,
+                            gpointer         user_data)
+{
+  xo_skip_pages(5);
+}
+
+G_MODULE_EXPORT void
+on_viewSkipN10Pages_activate(GtkMenuItem     *menuitem,
+                            gpointer         user_data)
+{
+  xo_skip_pages(-10);
+}
+
+G_MODULE_EXPORT void
+on_viewSkipN5Pages_activate(GtkMenuItem     *menuitem,
+                             gpointer         user_data)
+{
+  xo_skip_pages(-5);
+}
 
 G_MODULE_EXPORT void
 on_viewLastPage_activate               (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
   end_text();
-  do_switch_page(journal.npages-1, TRUE, FALSE);
+  do_switch_page_with_undo(journal.npages-1, TRUE, FALSE);
 }
 
 
@@ -2744,7 +2778,7 @@ on_canvas_key_press_event              (GtkWidget       *widget,
     {
       end_text();
       if (ui.pageno < journal.npages-1) {
-        do_switch_page(ui.pageno+1, TRUE, FALSE);
+        do_switch_page_with_undo(ui.pageno+1, TRUE, FALSE);
         gtk_adjustment_set_value(adj, 0.);
       }
       return TRUE;
@@ -2761,7 +2795,7 @@ on_canvas_key_press_event              (GtkWidget       *widget,
     {
       end_text();
       if (ui.pageno != 0) {
-        do_switch_page(ui.pageno-1, TRUE, FALSE);
+        do_switch_page_with_undo(ui.pageno-1, TRUE, FALSE);
         gtk_adjustment_set_value(adj, adj->upper-pgheight);
       }
       return TRUE;
@@ -3027,7 +3061,7 @@ on_vscroll_changed                     (GtkAdjustment   *adjustment,
   }
   if (need_update) {
     end_text();
-    do_switch_page(ui.pageno, FALSE, FALSE);
+    do_switch_page_with_undo(ui.pageno, FALSE, FALSE);
   }
 }
 
@@ -3090,7 +3124,7 @@ on_spinPageNo_value_changed            (GtkSpinButton   *spinbutton,
   if (val == ui.pageno) return;
   if (val < 0) val = 0;
   if (val > journal.npages-1) val = journal.npages-1;
-  do_switch_page(val, TRUE, FALSE);
+  do_switch_page_with_undo(val, TRUE, FALSE);
 }
 
 
@@ -3882,3 +3916,104 @@ on_optionsLayersPDFExport_activate     (GtkMenuItem     *menuitem,
   ui.exportpdf_layers = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem));
 }
 
+G_MODULE_EXPORT gboolean
+on_buttonNextPage_button_press_event (GtkWidget       *widget,
+                                      GdkEventButton  *event,
+                                      gpointer         user_data)
+{
+    GtkWidget *menu;
+
+    if (event->type != GDK_BUTTON_PRESS || event->button == 1) {
+        // ignore regular selection of the button
+        return FALSE;
+    }
+
+    menu = GET_COMPONENT("nextPopUpMenu");
+
+    // run it. It will handled by its corresponding option
+    gtk_menu_popup(GTK_MENU(menu), NULL, NULL, NULL, NULL, event->button, event->time);
+
+    return TRUE;
+}
+
+
+G_MODULE_EXPORT void
+on_NextAnnotation_activate            (GtkMenuItem     *menuitem,
+                                            gpointer         user_data)
+{
+  int pgn = 0;
+  int firstPageNo = -1;
+  struct Page *pg;
+  struct Layer *layer;
+  GList *pagelist, *layerlist;
+
+  for (pagelist = journal.pages; pagelist!=NULL; pagelist = pagelist->next) {
+    pg = (struct Page *)pagelist->data;
+    for (layerlist = pg->layers; layerlist!=NULL; layerlist = layerlist->next) {
+      layer = (struct Layer *)layerlist->data;
+      if (layer->items != NULL) {
+        if (pgn > ui.pageno) {
+          do_switch_page_with_undo(pgn, TRUE, FALSE);
+          return;
+        };
+        // This page is before the current one.
+        if (firstPageNo == -1) {
+          // if it is the first one we see, then save it to
+          // wrap-around if needed
+          firstPageNo = pgn;
+        }
+      }
+    };
+    pgn=pgn+1;
+  };
+  // if we reach this point is because we have not found a "notable" page
+  // so we see if there is one before the current one
+  if (firstPageNo >= 0) {
+    do_switch_page_with_undo(firstPageNo, TRUE, FALSE);
+  }
+}
+
+
+
+G_MODULE_EXPORT void
+on_PrevAnnotation_activate            (GtkMenuItem     *menuitem,
+                                       gpointer         user_data)
+{
+  int pgn = 0;
+  int lastPageNo = -1;
+  int prevPageNo = -1;
+  struct Page *pg;
+  struct Layer *layer;
+  GList *pagelist, *layerlist;
+
+  for (pagelist = journal.pages; pagelist!=NULL; pagelist = pagelist->next) {
+    pg = (struct Page *)pagelist->data;
+    for (layerlist = pg->layers; layerlist!=NULL; layerlist = layerlist->next) {
+      layer = (struct Layer *)layerlist->data;
+      if (layer->items != NULL) {
+        if (pgn > ui.pageno) {
+          // Save this page, it might be the last one with an annotation.
+          lastPageNo = pgn;
+        }
+        if (pgn < ui.pageno) {
+          // Save this page, it might be the next 'previous' page.
+          prevPageNo = pgn;
+        }
+        if (pgn == ui.pageno &&
+            prevPageNo >=0 ) {
+          // we are at the current page, and we found a page to jump to
+          break;
+        }
+      }
+    };
+    pgn=pgn+1;
+  };
+  // We have scanned the list of page.
+
+  if (prevPageNo >= 0)
+    do_switch_page_with_undo(prevPageNo, TRUE, FALSE);
+  else if (lastPageNo >= 0)
+    do_switch_page_with_undo(lastPageNo, TRUE, FALSE);
+  else
+    ; // don't do anything. there isn't a page to jump to
+}
