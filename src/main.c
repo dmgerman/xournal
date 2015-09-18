@@ -331,6 +331,16 @@ void init_stuff (int argc, char *argv[])
   }
 }
 
+void xo_warn_user(gchar *message)
+{
+    GtkWidget *dialog;
+
+    dialog = gtk_message_dialog_new(GTK_WINDOW(winMain), GTK_DIALOG_MODAL,
+                                    GTK_MESSAGE_WARNING, GTK_BUTTONS_OK, 
+                                    message, NULL);
+    gtk_dialog_run(GTK_DIALOG(dialog));
+    gtk_widget_destroy(dialog);
+}
 
 int
 main (int argc, char *argv[])
@@ -367,6 +377,8 @@ main (int argc, char *argv[])
   init_stuff (argc, argv);
   gtk_window_set_icon(GTK_WINDOW(winMain), create_pixbuf("xournal.png"));
   
+  xo_warn_user(_("This is not an official build of xournal.\n\n You should not use it unless you understand what you are doing. You have been warned.\n\n--dmg"));
+
   gtk_main ();
   
   if (bgpdf.status != STATUS_NOT_INIT) shutdown_bgpdf();
