@@ -82,6 +82,7 @@ gchar *make_cur_font_name(void);
 void update_font_button(void);
 
 void update_mapping_linkings(int toolno);
+void do_switch_page_with_undo(int pg, gboolean rescroll, gboolean refresh_all);
 void do_switch_page(int pg, gboolean rescroll, gboolean refresh_all);
 void set_cur_color(int color_no, guint color_rgba);
 void recolor_temp_text(int color_no, guint color_rgba);
@@ -140,7 +141,7 @@ wrapper_poppler_page_render_to_pixbuf (PopplerPage *page,
 
 // wrapper for gtk_dialog_run that disables xinput (bug #159)
 gint wrapper_gtk_dialog_run(GtkDialog *dialog);
-
+void xo_skip_pages(int number);
 // defines for paper rulings
 
 #define RULING_MARGIN_COLOR 0xff0080ff

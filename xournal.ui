@@ -182,6 +182,100 @@ http://xournal.sourceforge.net/</property>
     <property name="can_focus">False</property>
     <property name="pixbuf">pixmaps/medium.png</property>
   </object>
+  <object class="GtkMenu" id="nextPopUpMenu">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <child>
+      <object class="GtkMenuItem" id="nextNextAnno">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="label" translatable="yes">Next page with annotation</property>
+        <property name="use_underline">True</property>
+        <signal name="activate" handler="on_NextAnnotation_activate" swapped="no"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem" id="popUpPrevAnno">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="label" translatable="yes">Prev page with annotation</property>
+        <property name="use_underline">True</property>
+        <signal name="activate" handler="on_PrevAnnotation_activate" swapped="no"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem" id="popUpNext">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="label" translatable="yes">_Next Page</property>
+        <property name="use_underline">True</property>
+        <signal name="activate" handler="on_viewNextPage_activate" swapped="no"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem" id="popUpPrev">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="label" translatable="yes">Previous Page</property>
+        <property name="use_underline">True</property>
+        <signal name="activate" handler="on_viewPreviousPage_activate" swapped="no"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem" id="popUpJump5">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="label" translatable="yes">Skip 5 pages</property>
+        <property name="use_underline">True</property>
+        <signal name="activate" handler="on_viewSkip5Pages_activate" swapped="no"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem" id="popUpJump10">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="label" translatable="yes">Skip _10 pages</property>
+        <property name="use_underline">True</property>
+        <signal name="activate" handler="on_viewSkip10Pages_activate" swapped="no"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem" id="popupJumpN5">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="label" translatable="yes">Skip-5 pages</property>
+        <property name="use_underline">True</property>
+        <signal name="activate" handler="on_viewSkipN5Pages_activate" swapped="no"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem" id="popUpJumpN10">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="label" translatable="yes">Skip -10 pages</property>
+        <property name="use_underline">True</property>
+        <signal name="activate" handler="on_viewSkipN10Pages_activate" swapped="no"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem" id="popUpFirst">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="label" translatable="yes">First Page</property>
+        <property name="use_underline">True</property>
+        <signal name="activate" handler="on_viewFirstPage_activate" swapped="no"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem" id="popUpLast">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="label" translatable="yes">Last Page</property>
+        <property name="use_underline">True</property>
+        <signal name="activate" handler="on_viewLastPage_activate" swapped="no"/>
+      </object>
+    </child>
+  </object>
   <object class="GtkImage" id="orange_icon">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -2676,6 +2770,36 @@ http://xournal.sourceforge.net/</property>
                 <property name="tooltip_text" translatable="yes">Last Page</property>
                 <property name="stock_id">gtk-goto-last</property>
                 <signal name="clicked" handler="on_viewLastPage_activate" swapped="no"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolButton" id="gtk-next-anno1">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="tooltip_text" translatable="yes">Previous page with annotation</property>
+                <property name="label" translatable="yes">Previous Annotation</property>
+                <property name="use_underline">True</property>
+                <property name="stock_id">gtk-media-rewind</property>
+                <signal name="clicked" handler="on_PrevAnnotation_activate" swapped="no"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolButton" id="gtk-next-anno">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="tooltip_text" translatable="yes">Next Page with Annotation</property>
+                <property name="label" translatable="yes">Next Annotation</property>
+                <property name="use_underline">True</property>
+                <property name="stock_id">gtk-media-forward</property>
+                <signal name="clicked" handler="on_NextAnnotation_activate" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
