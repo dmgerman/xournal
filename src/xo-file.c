@@ -1797,7 +1797,6 @@ void update_keyval(const gchar *group_name, const gchar *key,
                 const gchar *comment, gchar *value)
 {
   gboolean has_it = g_key_file_has_key(ui.config_data, group_name, key, NULL);
-  cleanup_numeric(value);
   g_key_file_set_value(ui.config_data, group_name, key, value);
   g_free(value);
   if (!has_it) g_key_file_set_comment(ui.config_data, group_name, key, comment, NULL);
@@ -2120,6 +2119,7 @@ gboolean parse_keyval_float(const gchar *group, const gchar *key, double *val, d
   
   ret = g_key_file_get_value(ui.config_data, group, key, NULL);
   if (ret==NULL) return FALSE;
+  cleanup_numeric(ret);
   conv = g_ascii_strtod(ret, &end);
   if (*end!=0) { g_free(ret); return FALSE; }
   g_free(ret);
@@ -2137,6 +2137,7 @@ gboolean parse_keyval_floatlist(const gchar *group, const gchar *key, double *va
   if (n>5) return FALSE;
   ret = g_key_file_get_value(ui.config_data, group, key, NULL);
   if (ret==NULL) return FALSE;
+  cleanup_numeric(ret);
   end = ret;
   for (i=0; i<n; i++) {
     conv[i] = g_ascii_strtod(end, &end);
