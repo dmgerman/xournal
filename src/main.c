@@ -351,16 +351,16 @@ main (int argc, char *argv[])
   gtk_set_locale ();
   gtk_init (&argc, &argv);
 
-  add_pixmap_directory (PACKAGE_DATA_DIR "/" PACKAGE "/pixmaps");
   path = g_path_get_dirname(argv[0]);
   path1 = g_build_filename(path, "pixmaps", NULL);
   path2 = g_build_filename(path, "..", "pixmaps", NULL);
-  add_pixmap_directory (path1);
-  add_pixmap_directory (path2);
   add_pixmap_directory (path);
+  add_pixmap_directory (path2);
+  add_pixmap_directory (path1);
   g_free(path);
   g_free(path1);
   g_free(path2);
+  add_pixmap_directory (PACKAGE_DATA_DIR "/" PACKAGE "/pixmaps");
 
   /*
    * The following code was added by Glade to create one of each component
