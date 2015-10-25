@@ -20,6 +20,7 @@
 #include <sys/stat.h>
 #include <string.h>
 #include <gtk/gtk.h>
+#include <glib/gstdio.h>
 #include <libgnomecanvas/libgnomecanvas.h>
 
 #include "xournal.h"
@@ -242,6 +243,10 @@ void init_stuff (int argc, char *argv[])
     GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsProgressiveBG")), ui.progressive_bg);
   gtk_check_menu_item_set_active(
     GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsPrintRuling")), ui.print_ruling);
+  gtk_check_menu_item_set_active(
+    GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsLegacyPDFExport")), ui.exportpdf_prefer_legacy);
+  gtk_check_menu_item_set_active(
+    GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsLayersPDFExport")), ui.exportpdf_layers);
   gtk_check_menu_item_set_active(
     GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsAutoloadPdfXoj")), ui.autoload_pdf_xoj);
   gtk_check_menu_item_set_active(
