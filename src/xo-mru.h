@@ -33,5 +33,6 @@ void mru_save_list(void);
 int mru_item_is_empty(int i);
 char *mru_filename(int i);
 int mru_pagenumber(int i);
+int mru_set_pagenumber(int i, int page);
 
 #endif
