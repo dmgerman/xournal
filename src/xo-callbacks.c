@@ -609,12 +609,18 @@ on_editUndo_activate                   (GtkMenuItem     *menuitem,
   else if (undo->type == ITEM_REPAINTSEL) {
     for (itemlist = undo->itemlist, list = undo->auxlist; itemlist!=NULL;
            itemlist = itemlist->next, list = list->next) {
+      // save old brush thickness, we might need it
+      double currentBrushWidth; 
       it = (struct Item *)itemlist->data;
+      currentBrushWidth = it->brush.thickness;
       g_memmove(&tmp_brush, &(it->brush), sizeof(struct Brush));
       g_memmove(&(it->brush), list->data, sizeof(struct Brush));
       g_memmove(list->data, &tmp_brush, sizeof(struct Brush));
       if (it->type == ITEM_STROKE && it->canvas_item != NULL) {
         // remark: a variable-width item might have lost its variable-width
+        if (it->brush.variable_width) {
+            xo_stroke_resize_variable_width(it, it->brush.thickness/ currentBrushWidth, it->brush.thickness);
+        }
         group = (GnomeCanvasGroup *) it->canvas_item->parent;
         gtk_object_destroy(GTK_OBJECT(it->canvas_item));
         make_canvas_item_one(group, it);
@@ -823,12 +829,20 @@ on_editRedo_activate                   (GtkMenuItem     *menuitem,
   else if (redo->type == ITEM_REPAINTSEL) {
     for (itemlist = redo->itemlist, list = redo->auxlist; itemlist!=NULL;
            itemlist = itemlist->next, list = list->next) {
+      double currentBrushWidth; 
       it = (struct Item *)itemlist->data;
+      currentBrushWidth = it->brush.thickness;
       g_memmove(&tmp_brush, &(it->brush), sizeof(struct Brush));
       g_memmove(&(it->brush), list->data, sizeof(struct Brush));
       g_memmove(list->data, &tmp_brush, sizeof(struct Brush));
+
       if (it->type == ITEM_STROKE && it->canvas_item != NULL) {
         // remark: a variable-width item might have lost its variable-width
+
+        if (it->brush.variable_width) {
+            xo_stroke_resize_variable_width(it, it->brush.thickness/currentBrushWidth, it->brush.thickness);
+        }
+
         group = (GnomeCanvasGroup *) it->canvas_item->parent;
         gtk_object_destroy(GTK_OBJECT(it->canvas_item));
         make_canvas_item_one(group, it);

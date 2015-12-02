@@ -128,6 +128,7 @@ gboolean handle_activate_signal(GtkWidget *widget, gpointer user_data);
 void unset_flags(GtkWidget *w, gpointer flag);
 gboolean intercept_activate_events(GtkWidget *w, GdkEvent *ev, gpointer data);
 void install_focus_hooks(GtkWidget *w, gpointer data);
+void xo_stroke_resize_variable_width(struct Item *item, double factor,  double brushWidth);
 
 // wrapper for a function no longer provided by poppler 0.17+
 void
