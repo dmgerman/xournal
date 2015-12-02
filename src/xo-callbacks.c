@@ -1070,27 +1070,28 @@ on_viewNextPage_activate               (GtkMenuItem     *menuitem,
   do_switch_page_with_undo(ui.pageno+1, TRUE, FALSE);
 }
 
-void
+G_MODULE_EXPORT void
 on_viewSkip10Pages_activate(GtkMenuItem     *menuitem,
                             gpointer         user_data)
 {
   xo_skip_pages(10);
 }
 
-void
+G_MODULE_EXPORT void
 on_viewSkip5Pages_activate(GtkMenuItem     *menuitem,
                             gpointer         user_data)
 {
   xo_skip_pages(5);
 }
 
-void
+G_MODULE_EXPORT void
 on_viewSkipN10Pages_activate(GtkMenuItem     *menuitem,
                             gpointer         user_data)
 {
   xo_skip_pages(-10);
 }
 
+G_MODULE_EXPORT void
 on_viewSkipN5Pages_activate(GtkMenuItem     *menuitem,
                              gpointer         user_data)
 {
