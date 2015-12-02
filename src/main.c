@@ -353,7 +353,7 @@ GtkWidget *xo_init_gtk_builder(char *executableFileName)
     if(!gtk_builder_add_from_file(builder, parentPathGlade, &err)) {
       gchar *dataPathGlade;
       dataPathGlade = PACKAGE_DATA_DIR "/" PACKAGE "/" GLADE_FILE;
-
+      err = NULL;
       if (!gtk_builder_add_from_file(builder, dataPathGlade, &err)) {
         fprintf(stderr, "Not able to find  Glade file from (searched in location of binary (%s), its parent directory (%s), and (%s)) CWD: %s\n", pathGlade, parentPathGlade, dataPathGlade, err->message);
         exit(1);
