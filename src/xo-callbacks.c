@@ -3782,7 +3782,7 @@ on_optionsAutoSavePrefs_activate       (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_viewDisplayLayersAbovePrefs_activate       (GtkMenuItem     *menuitem,
                                                gpointer         user_data)
 {
