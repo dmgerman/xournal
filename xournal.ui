@@ -1190,7 +1190,16 @@ http://xournal.sourceforge.net/</property>
                         <signal name="activate" handler="on_viewHideLayer_activate" swapped="no"/>
                       </object>
                     </child>
-                  </object>
+                    <child>
+                       <object class="GtkCheckMenuItem" id="viewDisplayLayersAbovePrefs">
+                         <property name="visible">True</property>
+                         <property name="can_focus">False</property>
+                         <property name="label" translatable="yes">Display Layers Above</property>
+                         <property name="use_underline">True</property>
+                         <signal name="activate" handler="on_viewDisplayLayersAbovePrefs_activate" swapped="no"/>
+                      </object>
+                    </child>
+                </object>
                 </child>
               </object>
             </child>
