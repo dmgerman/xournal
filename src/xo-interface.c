@@ -2501,7 +2501,7 @@ create_winMain (void)
                     G_CALLBACK (on_optionsAutoSavePrefs_activate),
                     NULL);
   g_signal_connect ((gpointer) optionsDisplayLayersAbovePrefs, "toggled",
-                    G_CALLBACK (on_optionsDisplayLayersAbovePrefs_activate),
+                    G_CALLBACK (on_viewDisplayLayersAbovePrefs_activate),
                     NULL);
   g_signal_connect ((gpointer) optionsSavePreferences, "activate",
                     G_CALLBACK (on_optionsSavePreferences_activate),

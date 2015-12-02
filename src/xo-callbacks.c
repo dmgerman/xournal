@@ -3783,8 +3783,8 @@ on_optionsAutoSavePrefs_activate       (GtkMenuItem     *menuitem,
 
 
 void
-on_optionsDisplayLayersAbovePrefs_activate       (GtkMenuItem     *menuitem,
-                                                 gpointer         user_data)
+on_viewDisplayLayersAbovePrefs_activate       (GtkMenuItem     *menuitem,
+                                               gpointer         user_data)
 {
   int i = 0;
   struct Layer *layer;
