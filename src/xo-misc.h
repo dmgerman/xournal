@@ -141,7 +141,7 @@ wrapper_poppler_page_render_to_pixbuf (PopplerPage *page,
 
 // wrapper for gtk_dialog_run that disables xinput (bug #159)
 gint wrapper_gtk_dialog_run(GtkDialog *dialog);
-
+void xo_skip_pages(int number);
 // defines for paper rulings
 
 #define RULING_MARGIN_COLOR 0xff0080ff
@@ -152,3 +152,4 @@ gint wrapper_gtk_dialog_run(GtkDialog *dialog);
 #define RULING_SPACING 24.0
 #define RULING_BOTTOMMARGIN RULING_SPACING
 #define RULING_GRAPHSPACING 14.17
+
