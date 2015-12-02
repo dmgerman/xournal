@@ -4009,7 +4009,7 @@ on_optionsLayersPDFExport_activate     (GtkMenuItem     *menuitem,
   ui.exportpdf_layers = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem));
 }
 
-gboolean
+G_MODULE_EXPORT gboolean
 on_buttonNextPage_button_press_event (GtkWidget       *widget,
                                       GdkEventButton  *event,
                                       gpointer         user_data)
@@ -4030,7 +4030,7 @@ on_buttonNextPage_button_press_event (GtkWidget       *widget,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_NextAnnotation_activate            (GtkMenuItem     *menuitem,
                                             gpointer         user_data)
 {
@@ -4068,7 +4068,7 @@ on_NextAnnotation_activate            (GtkMenuItem     *menuitem,
 
 
 
-void
+G_MODULE_EXPORT void
 on_PrevAnnotation_activate            (GtkMenuItem     *menuitem,
                                        gpointer         user_data)
 {
