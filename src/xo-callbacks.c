@@ -1259,7 +1259,7 @@ on_journalNewLayer_activate            (GtkMenuItem     *menuitem,
   undo->page = ui.cur_page;  
 }
 
-void
+G_MODULE_EXPORT void
 on_journalMoveLayerDown_activate            (GtkMenuItem     *menuitem,
 					     gpointer         user_data)
 {
