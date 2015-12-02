@@ -698,15 +698,17 @@ void rethicken_selection(int val)
     undo->auxlist = g_list_append(undo->auxlist, brush);
     // repaint the stroke
     item->brush.thickness_no = val;
-    item->brush.thickness = predef_thickness[TOOL_PEN][val];
     if (item->canvas_item!=NULL) {
-      if (!item->brush.variable_width)
+      if (!item->brush.variable_width) {
+        item->brush.thickness = predef_thickness[TOOL_PEN][val];
         gnome_canvas_item_set(item->canvas_item, 
-           "width-units", item->brush.thickness, NULL);
-      else {
+           "width-units", item->brush.thickness, NULL); 
+      } else {
+        int j;
+        double oldThickness = item->brush.thickness;
+        xo_stroke_resize_variable_width(item, predef_thickness[TOOL_PEN][val] / oldThickness, predef_thickness[TOOL_PEN][val]);
         group = (GnomeCanvasGroup *) item->canvas_item->parent;
         gtk_object_destroy(GTK_OBJECT(item->canvas_item));
-        item->brush.variable_width = FALSE;
         make_canvas_item_one(group, item);
       }
     }
