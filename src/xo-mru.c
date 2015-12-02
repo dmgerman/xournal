@@ -65,8 +65,6 @@ void mru_parse_entry(int index, char *entry)
   } else {
     mi->currentPage =1;
   }
-
-  printf("[%s][%d] i [%i]\n", mi->filename, mi->currentPage,i);
 }
 
 
@@ -75,13 +73,13 @@ void mru_init(void)
 {
   int i;
   gsize lfptr;
-  char s[5];
+  char s[10];
   GIOChannel *f;
   gchar *str;
   GIOStatus status;
 
-  g_strlcpy(s, "mru0", 5);
-  for (s[3]='0', i=0; i<MRU_SIZE; s[3]++, i++) {
+  for (i=0; i<MRU_SIZE; i++) {
+    sprintf(s, "mru%d", i);
     ui.mrumenu[i] = GET_COMPONENT(s);
     bzero(ui.mru + i, sizeof(ui.mru[i]));
   }
@@ -124,10 +122,13 @@ void mru_update_menu(void)
       gtk_label_set_text_with_mnemonic(GTK_LABEL(gtk_bin_get_child(GTK_BIN(ui.mrumenu[i]))), tmp);
       g_free(tmp);
       g_free(newName);
+
       gtk_widget_show(ui.mrumenu[i]);
       anyone = TRUE;
     }
-    else gtk_widget_hide(ui.mrumenu[i]);
+    else {
+        gtk_widget_hide(ui.mrumenu[i]);
+    } 
   }
   gtk_widget_set_sensitive(GET_COMPONENT("fileRecentFiles"), anyone);
 }
