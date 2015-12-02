@@ -2260,7 +2260,7 @@ on_toolsRuler_activate                 (GtkMenuItem     *menuitem,
   update_ruler_indicator();
 }
 
-void
+G_MODULE_EXPORT void
 on_toolsSnapToGrid_activate                 (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
