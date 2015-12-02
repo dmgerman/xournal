@@ -2878,7 +2878,7 @@ on_canvas_motion_notify_event          (GtkWidget       *widget,
   return FALSE;
 }
 
-void
+G_MODULE_EXPORT void
 on_comboLayer_changed                  (GtkComboBox     *combobox,
                                         gpointer         user_data)
 {
@@ -3042,7 +3042,7 @@ on_hscroll_changed                     (GtkAdjustment   *adjustment,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_spinPageNo_value_changed            (GtkSpinButton   *spinbutton,
                                         gpointer         user_data)
 {
@@ -3164,7 +3164,7 @@ on_comboStdSizes_changed               (GtkComboBox     *combobox,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_entryWidth_changed                  (GtkEditable     *editable,
                                         gpointer         user_data)
 {
