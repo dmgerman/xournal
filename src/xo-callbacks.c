@@ -41,7 +41,7 @@
 
 
 
-void
+G_MODULE_EXPORT void
 on_fileNew_activate                    (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -56,7 +56,7 @@ on_fileNew_activate                    (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_fileNewBackground_activate          (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -130,7 +130,7 @@ on_fileNewBackground_activate          (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_fileOpen_activate                   (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -182,7 +182,7 @@ on_fileOpen_activate                   (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_fileSave_activate                   (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -209,7 +209,7 @@ on_fileSave_activate                   (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_fileSaveAs_activate                 (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -291,14 +291,14 @@ on_fileSaveAs_activate                 (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_filePrintOptions_activate           (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
 
 }
 
-void
+G_MODULE_EXPORT void
 on_filePrint_activate                  (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -349,7 +349,7 @@ on_filePrint_activate                  (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_filePrintPDF_activate               (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -431,7 +431,7 @@ on_filePrintPDF_activate               (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_fileQuit_activate                   (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -440,7 +440,7 @@ on_fileQuit_activate                   (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_editUndo_activate                   (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -670,7 +670,7 @@ on_editUndo_activate                   (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_editRedo_activate                   (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -908,7 +908,7 @@ on_editRedo_activate                   (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_editCut_activate                    (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -918,7 +918,7 @@ on_editCut_activate                    (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_editCopy_activate                   (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -927,7 +927,7 @@ on_editCopy_activate                   (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_editPaste_activate                  (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -936,7 +936,7 @@ on_editPaste_activate                  (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_editDelete_activate                 (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -944,7 +944,7 @@ on_editDelete_activate                 (GtkMenuItem     *menuitem,
   selection_delete();
 }
 
-void do_view_modeswitch(int view_mode)
+G_MODULE_EXPORT void do_view_modeswitch(int view_mode)
 {
   GtkAdjustment *v_adj, *h_adj;
   double xscroll, yscroll;
@@ -964,7 +964,7 @@ void do_view_modeswitch(int view_mode)
   gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
 }
 
-void
+G_MODULE_EXPORT void
 on_viewContinuous_activate             (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -972,7 +972,7 @@ on_viewContinuous_activate             (GtkMenuItem     *menuitem,
   do_view_modeswitch(VIEW_MODE_CONTINUOUS);
 }
 
-void
+G_MODULE_EXPORT void
 on_viewHorizontal_activate             (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -980,7 +980,7 @@ on_viewHorizontal_activate             (GtkMenuItem     *menuitem,
   do_view_modeswitch(VIEW_MODE_HORIZONTAL);
 }
 
-void
+G_MODULE_EXPORT void
 on_viewOnePage_activate                (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -989,7 +989,7 @@ on_viewOnePage_activate                (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_viewZoomIn_activate                 (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -1002,7 +1002,7 @@ on_viewZoomIn_activate                 (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_viewZoomOut_activate                (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -1015,7 +1015,7 @@ on_viewZoomOut_activate                (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_viewNormalSize_activate             (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -1027,7 +1027,7 @@ on_viewNormalSize_activate             (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_viewPageWidth_activate              (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -1039,7 +1039,7 @@ on_viewPageWidth_activate              (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_viewFirstPage_activate              (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -1048,7 +1048,7 @@ on_viewFirstPage_activate              (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_viewPreviousPage_activate           (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -1058,7 +1058,7 @@ on_viewPreviousPage_activate           (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_viewNextPage_activate               (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -1097,7 +1097,7 @@ on_viewSkipN5Pages_activate(GtkMenuItem     *menuitem,
   xo_skip_pages(-5);
 }
 
-void
+G_MODULE_EXPORT void
 on_viewLastPage_activate               (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -1106,7 +1106,7 @@ on_viewLastPage_activate               (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_viewShowLayer_activate              (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -1120,7 +1120,7 @@ on_viewShowLayer_activate              (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_viewHideLayer_activate              (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -1135,7 +1135,7 @@ on_viewHideLayer_activate              (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_journalNewPageBefore_activate       (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -1155,7 +1155,7 @@ on_journalNewPageBefore_activate       (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_journalNewPageAfter_activate        (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -1175,7 +1175,7 @@ on_journalNewPageAfter_activate        (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_journalNewPageEnd_activate          (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -1195,7 +1195,7 @@ on_journalNewPageEnd_activate          (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_journalDeletePage_activate          (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -1231,7 +1231,7 @@ on_journalDeletePage_activate          (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_journalNewLayer_activate            (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -1299,7 +1299,7 @@ on_journalMoveLayerDown_activate            (GtkMenuItem     *menuitem,
 
 }
 
-void
+G_MODULE_EXPORT void
 on_journalDeleteLayer_activate         (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -1344,7 +1344,7 @@ on_journalDeleteLayer_activate         (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_journalFlatten_activate             (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -1371,7 +1371,7 @@ double std_widths[STD_SIZE_CUSTOM] =  {595.27, 841.89, 420.94, 612., 792.};
 double std_heights[STD_SIZE_CUSTOM] = {841.89, 595.27, 595.27, 792., 612.};
 double std_units[STD_SIZE_CUSTOM] = {UNIT_CM, UNIT_CM, UNIT_CM, UNIT_IN, UNIT_IN};
 
-void
+G_MODULE_EXPORT void
 on_journalPaperSize_activate           (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -1424,7 +1424,7 @@ on_journalPaperSize_activate           (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_papercolorWhite_activate            (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -1433,7 +1433,7 @@ on_papercolorWhite_activate            (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_papercolorYellow_activate           (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -1442,7 +1442,7 @@ on_papercolorYellow_activate           (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_papercolorPink_activate             (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -1451,7 +1451,7 @@ on_papercolorPink_activate             (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_papercolorOrange_activate           (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -1460,7 +1460,7 @@ on_papercolorOrange_activate           (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_papercolorBlue_activate             (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -1469,7 +1469,7 @@ on_papercolorBlue_activate             (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_papercolorGreen_activate            (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -1478,7 +1478,7 @@ on_papercolorGreen_activate            (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_papercolorOther_activate            (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -1504,7 +1504,7 @@ on_papercolorOther_activate            (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_paperstylePlain_activate            (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -1513,7 +1513,7 @@ on_paperstylePlain_activate            (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_paperstyleLined_activate            (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -1522,7 +1522,7 @@ on_paperstyleLined_activate            (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_paperstyleRuled_activate            (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -1531,7 +1531,7 @@ on_paperstyleRuled_activate            (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_paperstyleGraph_activate            (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -1540,7 +1540,7 @@ on_paperstyleGraph_activate            (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_journalLoadBackground_activate      (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -1665,7 +1665,7 @@ on_journalLoadBackground_activate      (GtkMenuItem     *menuitem,
   do_switch_page(ui.pageno, TRUE, TRUE);
 }
 
-void
+G_MODULE_EXPORT void
 on_journalScreenshot_activate          (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -1713,7 +1713,7 @@ on_journalScreenshot_activate          (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_journalApplyAllPages_activate       (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -1756,7 +1756,7 @@ on_journalApplyAllPages_activate       (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_toolsPen_activate                   (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -1786,7 +1786,7 @@ on_toolsPen_activate                   (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_toolsEraser_activate                (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -1814,7 +1814,7 @@ on_toolsEraser_activate                (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_toolsHighlighter_activate           (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -1844,7 +1844,7 @@ on_toolsHighlighter_activate           (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_toolsText_activate                  (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -1871,7 +1871,7 @@ on_toolsText_activate                  (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_toolsImage_activate                 (GtkMenuItem *menuitem,
                                         gpointer         user_data)
 {
@@ -1898,7 +1898,7 @@ on_toolsImage_activate                 (GtkMenuItem *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_toolsSelectRegion_activate          (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -1924,7 +1924,7 @@ on_toolsSelectRegion_activate          (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_toolsSelectRectangle_activate       (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -1950,7 +1950,7 @@ on_toolsSelectRectangle_activate       (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_toolsVerticalSpace_activate         (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -1977,7 +1977,7 @@ on_toolsVerticalSpace_activate         (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_colorBlack_activate                 (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -1985,7 +1985,7 @@ on_colorBlack_activate                 (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_colorBlue_activate                  (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -1993,7 +1993,7 @@ on_colorBlue_activate                  (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_colorRed_activate                   (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -2001,7 +2001,7 @@ on_colorRed_activate                   (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_colorGreen_activate                 (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -2009,7 +2009,7 @@ on_colorGreen_activate                 (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_colorGray_activate                  (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -2017,7 +2017,7 @@ on_colorGray_activate                  (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_colorLightBlue_activate             (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -2025,7 +2025,7 @@ on_colorLightBlue_activate             (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_colorLightGreen_activate            (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -2033,7 +2033,7 @@ on_colorLightGreen_activate            (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_colorMagenta_activate               (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -2041,7 +2041,7 @@ on_colorMagenta_activate               (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_colorOrange_activate                (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -2049,7 +2049,7 @@ on_colorOrange_activate                (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_colorYellow_activate                (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -2057,7 +2057,7 @@ on_colorYellow_activate                (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_colorWhite_activate                 (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -2065,7 +2065,7 @@ on_colorWhite_activate                 (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_colorOther_activate                 (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -2073,7 +2073,7 @@ on_colorOther_activate                 (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_penthicknessVeryFine_activate       (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -2081,7 +2081,7 @@ on_penthicknessVeryFine_activate       (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_penthicknessFine_activate           (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -2089,7 +2089,7 @@ on_penthicknessFine_activate           (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_penthicknessMedium_activate         (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -2097,7 +2097,7 @@ on_penthicknessMedium_activate         (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_penthicknessThick_activate          (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -2105,7 +2105,7 @@ on_penthicknessThick_activate          (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_penthicknessVeryThick_activate      (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -2113,7 +2113,7 @@ on_penthicknessVeryThick_activate      (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_eraserFine_activate                 (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -2121,7 +2121,7 @@ on_eraserFine_activate                 (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_eraserMedium_activate               (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -2129,7 +2129,7 @@ on_eraserMedium_activate               (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_eraserThick_activate                (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -2137,7 +2137,7 @@ on_eraserThick_activate                (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_eraserStandard_activate             (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -2148,7 +2148,7 @@ on_eraserStandard_activate             (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_eraserWhiteout_activate             (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -2159,7 +2159,7 @@ on_eraserWhiteout_activate             (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_eraserDeleteStrokes_activate        (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -2170,7 +2170,7 @@ on_eraserDeleteStrokes_activate        (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_highlighterFine_activate            (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -2178,7 +2178,7 @@ on_highlighterFine_activate            (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_highlighterMedium_activate          (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -2186,7 +2186,7 @@ on_highlighterMedium_activate          (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_highlighterThick_activate           (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -2194,7 +2194,7 @@ on_highlighterThick_activate           (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_toolsTextFont_activate              (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -2214,7 +2214,7 @@ on_toolsTextFont_activate              (GtkMenuItem     *menuitem,
   process_font_sel(str);
 }    
 
-void
+G_MODULE_EXPORT void
 on_toolsDefaultPen_activate            (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -2233,7 +2233,7 @@ on_toolsDefaultPen_activate            (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_toolsDefaultEraser_activate         (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -2252,7 +2252,7 @@ on_toolsDefaultEraser_activate         (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_toolsDefaultHighlighter_activate    (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -2270,7 +2270,7 @@ on_toolsDefaultHighlighter_activate    (GtkMenuItem     *menuitem,
   update_cursor();
 }
 
-void
+G_MODULE_EXPORT void
 on_toolsDefaultText_activate           (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -2296,7 +2296,7 @@ on_toolsDefaultText_activate           (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_toolsSetAsDefault_activate          (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -2327,7 +2327,7 @@ on_toolsSetAsDefault_activate          (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_toolsRuler_activate                 (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -2374,7 +2374,7 @@ on_toolsSnapToGrid_activate                 (GtkMenuItem     *menuitem,
 
 
 
-void
+G_MODULE_EXPORT void
 on_toolsReco_activate                  (GtkMenuItem *menuitem,
                                         gpointer         user_data)
 {
@@ -2411,7 +2411,7 @@ on_toolsReco_activate                  (GtkMenuItem *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_optionsSavePreferences_activate     (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -2420,7 +2420,7 @@ on_optionsSavePreferences_activate     (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_helpIndex_activate                  (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -2428,7 +2428,7 @@ on_helpIndex_activate                  (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_helpAbout_activate                  (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -2445,7 +2445,7 @@ on_helpAbout_activate                  (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_buttonToolDefault_clicked           (GtkToolButton   *toolbutton,
                                         gpointer         user_data)
 {
@@ -2469,7 +2469,7 @@ on_buttonToolDefault_clicked           (GtkToolButton   *toolbutton,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_buttonFine_clicked                  (GtkToolButton   *toolbutton,
                                         gpointer         user_data)
 {
@@ -2478,7 +2478,7 @@ on_buttonFine_clicked                  (GtkToolButton   *toolbutton,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_buttonMedium_clicked                (GtkToolButton   *toolbutton,
                                         gpointer         user_data)
 {
@@ -2487,7 +2487,7 @@ on_buttonMedium_clicked                (GtkToolButton   *toolbutton,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_buttonThick_clicked                 (GtkToolButton   *toolbutton,
                                         gpointer         user_data)
 {
@@ -2496,7 +2496,7 @@ on_buttonThick_clicked                 (GtkToolButton   *toolbutton,
 }
 
 
-gboolean
+G_MODULE_EXPORT gboolean
 on_canvas_button_press_event           (GtkWidget       *widget,
                                         GdkEventButton  *event,
                                         gpointer         user_data)
@@ -2679,7 +2679,7 @@ on_canvas_button_press_event           (GtkWidget       *widget,
 }
 
 
-gboolean
+G_MODULE_EXPORT gboolean
 on_canvas_button_release_event         (GtkWidget       *widget,
                                         GdkEventButton  *event,
                                         gpointer         user_data)
@@ -2732,7 +2732,7 @@ on_canvas_button_release_event         (GtkWidget       *widget,
 }
 
 
-gboolean
+G_MODULE_EXPORT gboolean
 on_canvas_enter_notify_event           (GtkWidget       *widget,
                                         GdkEventCrossing *event,
                                         gpointer         user_data)
@@ -2751,7 +2751,7 @@ on_canvas_enter_notify_event           (GtkWidget       *widget,
   return FALSE;
 }
 
-gboolean
+G_MODULE_EXPORT gboolean
 on_canvas_leave_notify_event           (GtkWidget       *widget,
                                         GdkEventCrossing *event,
                                         gpointer         user_data)
@@ -2778,7 +2778,7 @@ on_canvas_leave_notify_event           (GtkWidget       *widget,
   return FALSE;
 }
 
-gboolean
+G_MODULE_EXPORT gboolean
 on_canvas_proximity_event              (GtkWidget       *widget,
                                         GdkEventProximity *event,
                                         gpointer         user_data)
@@ -2792,7 +2792,7 @@ on_canvas_proximity_event              (GtkWidget       *widget,
 }
 
 
-gboolean
+G_MODULE_EXPORT gboolean
 on_canvas_expose_event                 (GtkWidget       *widget,
                                         GdkEventExpose  *event,
                                         gpointer         user_data)
@@ -2802,7 +2802,7 @@ on_canvas_expose_event                 (GtkWidget       *widget,
 }
 
 
-gboolean
+G_MODULE_EXPORT gboolean
 on_canvas_key_press_event              (GtkWidget       *widget,
                                         GdkEventKey     *event,
                                         gpointer         user_data)
@@ -2866,7 +2866,7 @@ on_canvas_key_press_event              (GtkWidget       *widget,
 }
 
 
-gboolean
+G_MODULE_EXPORT gboolean
 on_canvas_motion_notify_event          (GtkWidget       *widget,
                                         GdkEventMotion  *event,
                                         gpointer         user_data)
@@ -3013,7 +3013,7 @@ on_comboLayer_changed                  (GtkComboBox     *combobox,
 }
 
 
-gboolean
+G_MODULE_EXPORT gboolean
 on_winMain_delete_event                (GtkWidget       *widget,
                                         GdkEvent        *event,
                                         gpointer         user_data)
@@ -3024,7 +3024,7 @@ on_winMain_delete_event                (GtkWidget       *widget,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_optionsUseXInput_activate           (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -3079,7 +3079,7 @@ on_optionsUseXInput_activate           (GtkMenuItem     *menuitem,
   update_mappings_menu();
 }
 
-void
+G_MODULE_EXPORT void
 on_vscroll_changed                     (GtkAdjustment   *adjustment,
                                         gpointer         user_data)
 {
@@ -3112,7 +3112,7 @@ on_vscroll_changed                     (GtkAdjustment   *adjustment,
   }
 }
 
-void
+G_MODULE_EXPORT void
 on_hscroll_changed                     (GtkAdjustment   *adjustment,
                                         gpointer         user_data)
 {
@@ -3175,7 +3175,7 @@ on_spinPageNo_value_changed            (GtkSpinButton   *spinbutton,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_journalDefaultBackground_activate   (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -3212,7 +3212,7 @@ on_journalDefaultBackground_activate   (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_journalSetAsDefault_activate        (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -3232,7 +3232,7 @@ on_journalSetAsDefault_activate        (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_comboStdSizes_changed               (GtkComboBox     *combobox,
                                         gpointer         user_data)
 {
@@ -3290,7 +3290,7 @@ on_entryWidth_changed                  (GtkEditable     *editable,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_entryHeight_changed                 (GtkEditable     *editable,
                                         gpointer         user_data)
 {
@@ -3312,7 +3312,7 @@ on_entryHeight_changed                 (GtkEditable     *editable,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_comboUnit_changed                   (GtkComboBox     *combobox,
                                         gpointer         user_data)
 {
@@ -3340,7 +3340,7 @@ on_comboUnit_changed                   (GtkComboBox     *combobox,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_viewFullscreen_activate             (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -3356,7 +3356,7 @@ on_viewFullscreen_activate             (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_optionsButtonMappings_activate      (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -3367,7 +3367,7 @@ on_optionsButtonMappings_activate      (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_optionsProgressiveBG_activate       (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -3381,7 +3381,7 @@ on_optionsProgressiveBG_activate       (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_mru_activate                        (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -3424,7 +3424,7 @@ on_mru_activate                        (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_button2Pen_activate                 (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -3432,7 +3432,7 @@ on_button2Pen_activate                 (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_button2Eraser_activate              (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -3440,7 +3440,7 @@ on_button2Eraser_activate              (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_button2Highlighter_activate         (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -3448,7 +3448,7 @@ on_button2Highlighter_activate         (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_button2Text_activate                (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -3456,7 +3456,7 @@ on_button2Text_activate                (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_button2Image_activate               (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -3464,7 +3464,7 @@ on_button2Image_activate               (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_button2SelectRegion_activate        (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -3472,7 +3472,7 @@ on_button2SelectRegion_activate        (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_button2SelectRectangle_activate     (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -3480,7 +3480,7 @@ on_button2SelectRectangle_activate     (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_button2VerticalSpace_activate       (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -3488,7 +3488,7 @@ on_button2VerticalSpace_activate       (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_button2LinkBrush_activate           (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -3501,7 +3501,7 @@ on_button2LinkBrush_activate           (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_button2CopyBrush_activate           (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -3517,7 +3517,7 @@ on_button2CopyBrush_activate           (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_button3Pen_activate                 (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -3525,7 +3525,7 @@ on_button3Pen_activate                 (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_button3Eraser_activate              (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -3533,7 +3533,7 @@ on_button3Eraser_activate              (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_button3Highlighter_activate         (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -3541,7 +3541,7 @@ on_button3Highlighter_activate         (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_button3Text_activate                (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -3549,7 +3549,7 @@ on_button3Text_activate                (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_button3Image_activate               (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -3557,7 +3557,7 @@ on_button3Image_activate               (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_button3SelectRegion_activate        (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -3565,7 +3565,7 @@ on_button3SelectRegion_activate        (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_button3SelectRectangle_activate     (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -3573,7 +3573,7 @@ on_button3SelectRectangle_activate     (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_button3VerticalSpace_activate       (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -3581,7 +3581,7 @@ on_button3VerticalSpace_activate       (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_button3LinkBrush_activate           (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -3594,7 +3594,7 @@ on_button3LinkBrush_activate           (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_button3CopyBrush_activate           (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -3614,7 +3614,7 @@ on_button3CopyBrush_activate           (GtkMenuItem     *menuitem,
 GtkWidget *zoom_dialog;
 double zoom_percent;
 
-void
+G_MODULE_EXPORT void
 on_viewSetZoom_activate                (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -3654,7 +3654,7 @@ on_viewSetZoom_activate                (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_spinZoom_value_changed              (GtkSpinButton   *spinbutton,
                                         gpointer         user_data)
 {
@@ -3670,7 +3670,7 @@ on_spinZoom_value_changed              (GtkSpinButton   *spinbutton,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_radioZoom_toggled                   (GtkToggleButton *togglebutton,
                                         gpointer         user_data)
 {
@@ -3678,7 +3678,7 @@ on_radioZoom_toggled                   (GtkToggleButton *togglebutton,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_radioZoom100_toggled                (GtkToggleButton *togglebutton,
                                         gpointer         user_data)
 {
@@ -3688,7 +3688,7 @@ on_radioZoom100_toggled                (GtkToggleButton *togglebutton,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_radioZoomWidth_toggled              (GtkToggleButton *togglebutton,
                                         gpointer         user_data)
 {
@@ -3698,7 +3698,7 @@ on_radioZoomWidth_toggled              (GtkToggleButton *togglebutton,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_radioZoomHeight_toggled             (GtkToggleButton *togglebutton,
                                         gpointer         user_data)
 {
@@ -3708,7 +3708,7 @@ on_radioZoomHeight_toggled             (GtkToggleButton *togglebutton,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_toolsHand_activate                  (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -3735,7 +3735,7 @@ on_toolsHand_activate                  (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_button2Hand_activate                (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -3743,7 +3743,7 @@ on_button2Hand_activate                (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_button3Hand_activate                (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -3751,7 +3751,7 @@ on_button3Hand_activate                (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_optionsPrintRuling_activate         (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -3759,7 +3759,7 @@ on_optionsPrintRuling_activate         (GtkMenuItem     *menuitem,
   ui.print_ruling = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem));
 }
 
-void
+G_MODULE_EXPORT void
 on_optionsAutoloadPdfXoj_activate      (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -3767,7 +3767,7 @@ on_optionsAutoloadPdfXoj_activate      (GtkMenuItem     *menuitem,
   ui.autoload_pdf_xoj = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem));
 }
 
-void
+G_MODULE_EXPORT void
 on_fontButton_font_set                 (GtkFontButton   *fontbutton,
                                         gpointer         user_data)
 {
@@ -3777,7 +3777,7 @@ on_fontButton_font_set                 (GtkFontButton   *fontbutton,
   process_font_sel(str);
 }
 
-void
+G_MODULE_EXPORT void
 on_optionsLeftHanded_activate          (GtkMenuItem     *menuitem,   
                                         gpointer         user_data)
 {
@@ -3787,7 +3787,7 @@ on_optionsLeftHanded_activate          (GtkMenuItem     *menuitem,
     ui.left_handed?GTK_CORNER_TOP_RIGHT:GTK_CORNER_TOP_LEFT);
 }
 
-void
+G_MODULE_EXPORT void
 on_optionsLockHorizontalScroll_activate     (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -3795,7 +3795,7 @@ on_optionsLockHorizontalScroll_activate     (GtkMenuItem     *menuitem,
   ui.lockHorizontalScroll = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem));
 }
 
-void
+G_MODULE_EXPORT void
 on_optionsShortenMenus_activate        (GtkMenuItem     *menuitem,  
                                         gpointer         user_data)
 {
@@ -3829,7 +3829,7 @@ on_optionsShortenMenus_activate        (GtkMenuItem     *menuitem,
   // maybe we should also make sure the drawing area stays visible ?
 }
 
-void
+G_MODULE_EXPORT void
 on_optionsAutoSavePrefs_activate       (GtkMenuItem     *menuitem,  
                                         gpointer         user_data)
 {
@@ -3837,8 +3837,7 @@ on_optionsAutoSavePrefs_activate       (GtkMenuItem     *menuitem,
   ui.auto_save_prefs = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem));
 }
 
-
-void
+G_MODULE_EXPORT void
 on_optionsDisplayLayersAbovePrefs_activate       (GtkMenuItem     *menuitem,
                                                  gpointer         user_data)
 {
@@ -3863,8 +3862,7 @@ on_optionsDisplayLayersAbovePrefs_activate       (GtkMenuItem     *menuitem,
   }
 }
 
-
-void
+G_MODULE_EXPORT void
 on_optionsPressureSensitive_activate   (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -3878,7 +3876,7 @@ on_optionsPressureSensitive_activate   (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_buttonColorChooser_set              (GtkColorButton  *colorbutton,
                                         gpointer         user_data)
 {
@@ -3891,7 +3889,7 @@ on_buttonColorChooser_set              (GtkColorButton  *colorbutton,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_optionsButtonsSwitchMappings_activate(GtkMenuItem    *menuitem,
                                         gpointer         user_data)
 {
@@ -3902,7 +3900,7 @@ on_optionsButtonsSwitchMappings_activate(GtkMenuItem    *menuitem,
 
 
 
-void
+G_MODULE_EXPORT void
 on_optionsPenCursor_activate           (GtkCheckMenuItem *checkmenuitem,
                                         gpointer         user_data)
 {
@@ -3911,7 +3909,7 @@ on_optionsPenCursor_activate           (GtkCheckMenuItem *checkmenuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_optionsTouchAsHandTool_activate     (GtkMenuItem     *menuitem,  
                                         gpointer         user_data)
 {
@@ -3919,7 +3917,7 @@ on_optionsTouchAsHandTool_activate     (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_optionsPenDisablesTouch_activate    (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -3927,7 +3925,7 @@ on_optionsPenDisablesTouch_activate    (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_optionsDesignateTouchscreen_activate
                                         (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
@@ -3978,7 +3976,7 @@ on_optionsDesignateTouchscreen_activate
 }
 
 
-void
+G_MODULE_EXPORT void
 on_journalNewPageKeepsBG_activate      (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -3986,7 +3984,7 @@ on_journalNewPageKeepsBG_activate      (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_optionsAutosaveXoj_activate         (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -3996,7 +3994,7 @@ on_optionsAutosaveXoj_activate         (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_optionsLegacyPDFExport_activate     (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
@@ -4004,7 +4002,7 @@ on_optionsLegacyPDFExport_activate     (GtkMenuItem     *menuitem,
 }
 
 
-void
+G_MODULE_EXPORT void
 on_optionsLayersPDFExport_activate     (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
