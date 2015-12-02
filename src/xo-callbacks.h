@@ -659,7 +659,7 @@ on_optionsAutoSavePrefs_activate       (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
 
 void
-on_optionsDisplayLayersAbovePrefs_activate       (GtkMenuItem     *menuitem,
+on_viewDisplayLayersAbovePrefs_activate       (GtkMenuItem     *menuitem,
 						  gpointer         user_data);
 
 void
