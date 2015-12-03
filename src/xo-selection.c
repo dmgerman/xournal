@@ -691,7 +691,7 @@ void rethicken_selection(int val)
   for (itemlist = ui.selection->items; itemlist!=NULL; itemlist = itemlist->next) {
     item = (struct Item *)itemlist->data;
     if (item->type != ITEM_STROKE || item->brush.tool_type!=TOOL_PEN) continue;
-    // store info for undo
+
     undo->itemlist = g_list_append(undo->itemlist, item);
     brush = (struct Brush *)g_malloc(sizeof(struct Brush));
     g_memmove(brush, &(item->brush), sizeof(struct Brush));
@@ -699,14 +699,19 @@ void rethicken_selection(int val)
     // repaint the stroke
     item->brush.thickness_no = val;
     if (item->canvas_item!=NULL) {
+      double oldThickness = item->brush.thickness;
+
       if (!item->brush.variable_width) {
         item->brush.thickness = predef_thickness[TOOL_PEN][val];
         gnome_canvas_item_set(item->canvas_item, 
            "width-units", item->brush.thickness, NULL); 
       } else {
         int j;
-        double oldThickness = item->brush.thickness;
-        xo_stroke_resize_variable_width(item, predef_thickness[TOOL_PEN][val] / oldThickness, predef_thickness[TOOL_PEN][val]);
+        if (oldThickness == predef_thickness[TOOL_PEN][val]) {
+          item->brush.variable_width = FALSE;
+        } else {
+          xo_stroke_resize_variable_width(item, predef_thickness[TOOL_PEN][val] / oldThickness, predef_thickness[TOOL_PEN][val]);
+        }
         group = (GnomeCanvasGroup *) item->canvas_item->parent;
         gtk_object_destroy(GTK_OBJECT(item->canvas_item));
         make_canvas_item_one(group, item);
