@@ -2672,3 +2672,13 @@ void xo_skip_pages(int number)
   }
 }
 
+void xo_stroke_resize_variable_width(struct Item *item, double factor,  double brushWidth)
+{
+  int j;
+
+  item->brush.thickness = brushWidth;
+  for (j = 0; j < item->path->num_points-1; j++) {
+    item->widths[j] = item->widths[j]  * factor;
+  }
+}
+
