@@ -359,7 +359,7 @@ on_filePrintPDF_activate               (GtkMenuItem     *menuitem,
   char *filename, *in_fn;
   char stime[30];
   time_t curtime;
-  gboolean warn, prefer_legacy;
+  gboolean warn, warn_more, prefer_legacy;
   
   end_text();
   dialog = gtk_file_chooser_dialog_new(_("Export to PDF"), GTK_WINDOW (winMain),
@@ -398,10 +398,16 @@ on_filePrintPDF_activate               (GtkMenuItem     *menuitem,
     }
     filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
     warn = g_file_test(filename, G_FILE_TEST_EXISTS);
+    if (warn && bgpdf.filename!=NULL) warn_more = !strcmp(filename, bgpdf.filename->s);
+    else warn_more = FALSE;
     if (warn) {
       warning_dialog = gtk_message_dialog_new(GTK_WINDOW(winMain),
         GTK_DIALOG_MODAL, GTK_MESSAGE_QUESTION, GTK_BUTTONS_YES_NO,
-        _("Should the file %s be overwritten?"), filename);
+        warn_more?_("You are about to overwrite the file %s, "
+         "which you are annotating. This is not recommended, and cannot "
+         "be undone. All existing annotations will become permanently "
+         "part of the background. Are you sure you want to proceed?") :
+         _("Should the file %s be overwritten?"), filename);
       if (wrapper_gtk_dialog_run(GTK_DIALOG(warning_dialog)) == GTK_RESPONSE_YES)
         warn = FALSE;
       gtk_widget_destroy(warning_dialog);
@@ -418,6 +424,7 @@ on_filePrintPDF_activate               (GtkMenuItem     *menuitem,
       prefer_legacy = FALSE; // if failed, fall back to cairo
   }
   if (!prefer_legacy) { // try printing via cairo
+    g_unlink(filename);  // bug #160: poppler might have the file open if we're overwriting bgpdf, avoid corrupting it. 
     if (!print_to_pdf_cairo(filename)) {
       set_cursor_busy(FALSE);
       dialog = gtk_message_dialog_new(GTK_WINDOW (winMain), GTK_DIALOG_DESTROY_WITH_PARENT,

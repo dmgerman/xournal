@@ -21,7 +21,6 @@
 #include <string.h>
 #include <gtk/gtk.h>
 #include <glib/gstdio.h>
-
 #include <libgnomecanvas/libgnomecanvas.h>
 #include <assert.h>
 
@@ -247,6 +246,10 @@ void init_stuff (int argc, char *argv[])
   gtk_check_menu_item_set_active(
     GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsPrintRuling")), ui.print_ruling);
   gtk_check_menu_item_set_active(
+    GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsLegacyPDFExport")), ui.exportpdf_prefer_legacy);
+  gtk_check_menu_item_set_active(
+    GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsLayersPDFExport")), ui.exportpdf_layers);
+  gtk_check_menu_item_set_active(
     GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsAutoloadPdfXoj")), ui.autoload_pdf_xoj);
   gtk_check_menu_item_set_active(
     GTK_CHECK_MENU_ITEM(GET_COMPONENT("optionsAutosaveXoj")), ui.autosave_enabled);
@@ -422,13 +425,16 @@ main (int argc, char *argv[])
   gtk_set_locale ();
   gtk_init (&argc, &argv);
 
-  add_pixmap_directory (PACKAGE_DATA_DIR "/" PACKAGE "/pixmaps");
   path = g_path_get_dirname(argv[0]);
   path1 = g_build_filename(path, "pixmaps", NULL);
   path2 = g_build_filename(path, "..", "pixmaps", NULL);
-  add_pixmap_directory (path1);
-  add_pixmap_directory (path2);
   add_pixmap_directory (path);
+  add_pixmap_directory (path2);
+  add_pixmap_directory (path1);
+  g_free(path);
+  g_free(path1);
+  g_free(path2);
+  add_pixmap_directory (PACKAGE_DATA_DIR "/" PACKAGE "/pixmaps");
 
   xo_init_gtk_builder(argv[0]);
 
