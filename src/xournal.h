@@ -62,6 +62,7 @@
 #define MAX_AXES 12
 #define EPSILON 1E-7
 #define MAX_ZOOM 20.0
+#define DEFAULT_ZOOM_FAST_FACTOR 3
 #define DISPLAY_DPI_DEFAULT 96.0
 #define MIN_ZOOM 0.2
 #define RESIZE_MARGIN 6.0
@@ -326,6 +327,7 @@ typedef struct UIData {
   int startuptool; // the default tool at startup
   int zoom_step_increment; // the increment in the zoom dialog box
   double zoom_step_factor; // the multiplicative factor in zoom in/out
+  double zoom_fast_factor; // multiplicative for fast zoom
   double startup_zoom;
   gboolean autoload_pdf_xoj;
   gboolean autocreate_new_xoj;

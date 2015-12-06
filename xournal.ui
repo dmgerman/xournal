@@ -1016,6 +1016,16 @@ http://xournal.sourceforge.net/</property>
                                 <signal name="activate" handler="on_viewSetZoom_activate" swapped="no"/>
                               </object>
                             </child>
+                            <child>
+                              <object class="GtkMenuItem" id="viewZoomFast">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="label" translatable="yes">_Fast Zoom</property>
+                                <property name="use_underline">True</property>
+                                <accelerator key="slash" signal="activate" modifiers="GDK_CONTROL_MASK"/>
+                                <signal name="activate" handler="on_buttonZoomFast_activate" swapped="no"/>
+                              </object>
+                            </child>
                           </object>
                         </child>
                       </object>
@@ -2771,6 +2781,19 @@ http://xournal.sourceforge.net/</property>
                 <property name="use_underline">True</property>
                 <property name="icon_widget">fullscreen_icon</property>
                 <signal name="toggled" handler="on_viewFullscreen_activate" swapped="no"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolButton" id="buttonZoomFast">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="tooltip_text" translatable="yes">Set Zoom</property>
+                <property name="stock_id">gtk-add</property>
+                <signal name="clicked" handler="on_buttonZoomFast_activate" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>

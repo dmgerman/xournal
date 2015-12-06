@@ -1742,6 +1742,7 @@ void init_config_default(void)
   ui.scrollbar_step_increment = 30;
   ui.zoom_step_increment = 1;
   ui.zoom_step_factor = 1.5;
+  ui.zoom_fast_factor = DEFAULT_ZOOM_FAST_FACTOR;
   ui.progressive_bg = TRUE;
   ui.print_ruling = TRUE;
   ui.exportpdf_prefer_legacy = FALSE;
@@ -1887,6 +1888,9 @@ void save_config_to_file(void)
   update_keyval("general", "zoom_step_factor",
     _(" the multiplicative factor for zoom in/out"),
     g_strdup_printf("%.3f", ui.zoom_step_factor));
+  update_keyval("general", "zoom_fast_factor",
+    _(" the multiplicative factor for fast zoom (valid range from 1 to 10)"),
+    g_strdup_printf("%.3f", ui.zoom_fast_factor));
   update_keyval("general", "view_continuous",
     _(" continuous view (false = one page, true = continuous, horiz = horizontal)"),
     g_strdup(view_mode_names[ui.view_continuous]));
@@ -2329,6 +2333,7 @@ void load_config_from_file(void)
   parse_keyval_int("general", "scrollbar_speed", &ui.scrollbar_step_increment, 1, 5000);
   parse_keyval_int("general", "zoom_dialog_increment", &ui.zoom_step_increment, 1, 500);
   parse_keyval_float("general", "zoom_step_factor", &ui.zoom_step_factor, 1., 5.);
+  parse_keyval_float("general", "zoom_fast_factor", &ui.zoom_fast_factor, 1., 10);
   parse_keyval_enum("general", "view_continuous", &ui.view_continuous, view_mode_names, 3);
   parse_keyval_boolean("general", "use_xinput", &ui.allow_xinput);
   parse_keyval_boolean("general", "discard_corepointer", &ui.discard_corepointer);

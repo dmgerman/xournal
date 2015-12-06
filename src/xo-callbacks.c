@@ -3274,6 +3274,25 @@ on_viewFullscreen_activate             (GtkMenuItem     *menuitem,
   do_fullscreen(active);
 }
 
+G_MODULE_EXPORT void
+on_buttonZoomFast_activate             (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+    static double oldZoom = -1 ; // keeps the previous zoom, to easily undo it
+    double currentZoom = ui.zoom;
+
+    if (fabs(ui.zoom -DEFAULT_ZOOM * ui.zoom_fast_factor) < EPSILON)
+        ui.zoom = oldZoom;
+    else
+        ui.zoom = DEFAULT_ZOOM * ui.zoom_fast_factor;
+
+    oldZoom = currentZoom;
+    gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
+    rescale_text_items();
+    rescale_bg_pixmaps();
+    rescale_images();
+}
+
 
 G_MODULE_EXPORT void
 on_optionsButtonMappings_activate      (GtkMenuItem     *menuitem,
