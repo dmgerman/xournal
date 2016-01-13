@@ -35,6 +35,21 @@
 GtkWidget *winMain;
 GnomeCanvas *canvas;
 
+//--------------------
+// command line options
+
+typedef struct command_line_options {
+    gint openAtPageNumber;
+    int fileCount;
+    char **fileArguments;
+} command_line_options;
+
+
+
+//--------------------
+
+
+
 struct Journal journal; // the journal
 struct BgPdf bgpdf;  // the PDF loader stuff
 struct UIData ui;   // the user interface data
@@ -42,7 +57,7 @@ struct UndoItem *undo, *redo; // the undo and redo stacks
 
 double DEFAULT_ZOOM;
 
-void init_stuff (int argc, char *argv[])
+void init_stuff (command_line_options *clOptions)
 {
   GtkWidget *w;
   GList *dev_list;
@@ -52,6 +67,11 @@ void init_stuff (int argc, char *argv[])
   struct Brush *b;
   gboolean can_xinput, success;
   gchar *tmppath, *tmpfn;
+  char *filename;
+
+  // use only first filename, ignore the rest
+  filename = (clOptions->fileCount > 0)? clOptions->fileArguments[0] : NULL;
+
 
   // create some data structures needed to populate the preferences
   ui.default_page.bg = g_new(struct Background, 1);
@@ -77,11 +97,6 @@ void init_stuff (int argc, char *argv[])
   ui.default_page.bg->canvas_item = NULL;
   ui.layerbox_length = 0;
 
-  if (argc > 2 || (argc == 2 && argv[1][0] == '-')) {
-    printf(_("Invalid command line parameters.\n"
-           "Usage: %s [filename.xoj]\n"), argv[0]);
-    gtk_exit(0);
-  }
    
   undo = NULL; redo = NULL;
   journal.pages = NULL;
@@ -316,32 +331,83 @@ void init_stuff (int argc, char *argv[])
   // and finally, open a file specified on the command line
   // (moved here because display parameters weren't initialized yet...)
   
-  if (argc == 1) return;
+  if (filename == NULL) return;
   set_cursor_busy(TRUE);
-  if (g_path_is_absolute(argv[1]))
-    tmpfn = g_strdup(argv[1]);
+  if (g_path_is_absolute(filename))
+    tmpfn = g_strdup(filename);
   else {
     tmppath = g_get_current_dir();
-    tmpfn = g_build_filename(tmppath, argv[1], NULL);
+    tmpfn = g_build_filename(tmppath, filename, NULL);
     g_free(tmppath);
   }
   success = open_journal(tmpfn);
+
+  if (success) {
+    // make sure the page to jump to is valid
+    if (clOptions->openAtPageNumber > journal.npages) {
+      clOptions->openAtPageNumber = journal.npages;
+    } else if (clOptions->openAtPageNumber < 1) {
+      clOptions->openAtPageNumber = 1;
+    }
+    // only jump in needed
+    if (clOptions->openAtPageNumber != 1) 
+      do_switch_page(clOptions->openAtPageNumber - 1, TRUE, TRUE);
+  }
+  
   g_free(tmpfn);
   set_cursor_busy(FALSE);
   if (!success) {
     w = gtk_message_dialog_new(GTK_WINDOW (winMain), GTK_DIALOG_DESTROY_WITH_PARENT,
-       GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, _("Error opening file '%s'"), argv[1]);
+       GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, _("Error opening file '%s'"), filename);
     wrapper_gtk_dialog_run(GTK_DIALOG(w));
     gtk_widget_destroy(w);
   }
 }
 
+void parse_command_line(int argc, char* argv[], command_line_options *clo)
+{
+  GError  *error = NULL;
+  GOptionEntry entries[] = {
+    { "page", 'p', 0, G_OPTION_ARG_INT, &(clo->openAtPageNumber), "Jump to Page", "N" },
+    { G_OPTION_REMAINING, 0, 0, G_OPTION_ARG_FILENAME_ARRAY, &(clo->fileArguments), NULL, N_("[FILE]") },
+    { NULL }
+  };
+  GOptionContext *context;
+  
+  // parse command line options
+  context = g_option_context_new ("");
+  g_option_context_add_main_entries (context, entries, GETTEXT_PACKAGE);
+  g_option_context_add_group (context, gtk_get_option_group (TRUE));
+  if (!g_option_context_parse (context, &argc, &argv, &error)) {
+    fprintf(stderr, "%s\n\nUsage %s [options]* [filename]\n\nOptions:\n\n-p <n> --page=<n>  : open at page <n>\n\n",
+            error->message, argv[0]);
+    exit (1);
+  }
+  
+  // The pointer to the rest of the arguments marks its end with NULL, so we need to traverse it to find out how many they were
+  
+  clo->fileCount = 0;
+  if (clo->fileArguments) {
+    char **p = clo->fileArguments;
+    while (*p != NULL) {
+      p++;
+      clo->fileCount++;
+    }
+  }
+}
 
 int
 main (int argc, char *argv[])
 {
   gchar *path, *path1, *path2;
-  
+
+  command_line_options clOptions = {
+      1, // openAtPagenumber
+      0, // fileCount
+      NULL, //fileArguments
+  };
+
+
 #ifdef ENABLE_NLS
   bindtextdomain (GETTEXT_PACKAGE, PACKAGE_LOCALE_DIR);
   bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
@@ -349,7 +415,11 @@ main (int argc, char *argv[])
 #endif
   
   gtk_set_locale ();
+
+
   gtk_init (&argc, &argv);
+
+  parse_command_line(argc, argv, &clOptions);
 
   path = g_path_get_dirname(argv[0]);
   path1 = g_build_filename(path, "pixmaps", NULL);
@@ -369,7 +439,8 @@ main (int argc, char *argv[])
    */
   winMain = create_winMain ();
   
-  init_stuff (argc, argv);
+  init_stuff (&clOptions);
+
   gtk_window_set_icon(GTK_WINDOW(winMain), create_pixbuf("xournal.png"));
   
   gtk_main ();
