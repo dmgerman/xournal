@@ -63,32 +63,37 @@ experimental features.
 
 These branches are reliable and do not break compatibility with Xournal:
 
-| Name                   | Purpose                                                                              | Rebased to head  | Integrated into next |
-|------------------------+--------------------------------------------------------------------------------------+------------------+----------------------|
-| snap-to-grid           | Defines a grid to which any annotation is snapped to.                                | <2015-12-02 Wed> | yes                  |
-| mru                    | Update the Most-Recently-Used list with the currently opened page                    | <2015-12-02 Wed> | yes                  |
-| layers                 | Option to see layers above the current one                                           | <2015-12-02 Wed> | yes                  |
-| horizontal-scroll-lock | Option to Lock the scroll horizontally                                               | <2015-12-02 Wed> | yes                  |
-| popupmenu              | Add a menu to right click on next/prev page to improve stylus navigation             | <2015-12-02 Wed> | yes                  |
-| glade                  | Uses XML glade interface for configuration files                                     | <2015-12-02 Wed> | yes                  |
-| fix-update-width       | Fixes annoyance: resets the width of selected strokes now keeps their variable width | <2015-12-02 Wed> | yes                  |
+| Name                   | Purpose                                                                             | Rebased to head  | Integrated into next |
+|------------------------+-------------------------------------------------------------------------------------+------------------+----------------------|
+| Master                 | Identical to upstream except for this file                                          | <2016-04-20 Wed> | yes                  |
+| Upstream               | Identical to Denis repo                                                             | <2016-04-20 Wed> | yes                  |
+|------------------------+-------------------------------------------------------------------------------------+------------------+----------------------|
+| fix-update-width       | Fixes annoyance: when rest the width of selected strokes, keep their variable width | <2016-04-20 Wed> | yes                  |
+| glade                  | Uses XML glade interface for configuration files                                    | <2016-04-20 Wed> | yes                  |
+| horizontal-scroll-lock | Option to Lock the scroll horizontally                                              | <2016-04-20 Wed> | yes                  |
+| layers                 | Option to see layers above the current one                                          | <2016-04-20 Wed> | yes                  |
+| message                | Add a pop up warning that you are using my code (used by next, useless stand alone) | <2016-04-20 Wed> | yes                  |
+| mru                    | Update the Most-Recently-Used list with the currently opened page                   | <2016-04-20 Wed> | yes                  |
+| popupmenu              | Add a menu to right click on next/prev page to improve stylus navigation            | <2016-04-20 Wed> | yes                  |
+| snap-to-grid           | Defines a grid to which any annotation is snapped to.                               | <2016-04-20 Wed> | yes                  |
+| quick-zoom             | Quickly zoom-in/zoom-out to a predefined zoom factor                                | <2016-04-20 Wed> | yes                  |
+|------------------------+-------------------------------------------------------------------------------------+------------------+----------------------|
+| next                   | This branch integrates all the branches above plus current xournal code             | <2016-04-20 Wed> |                      |
+|------------------------+-------------------------------------------------------------------------------------+------------------+----------------------|
+| cl-options             | Command line options management                                                     | <2016-04-20 Wed> | NO                   |
+| snap-to-grid           | Any annotation snaps to grid                                                        | <2016-04-20 Wed> | NO                   |
 
 Some experimental branches, they are incomplete or break compatibility:
 
-| Name            | Purpose                                                 | Todo                     | 
-|-----------------+---------------------------------------------------------+--------------------------+
-| gtk3            | Attempts to replace gtk2 with gtk3                      | Performance issues       | 
-| dot-paper-style | Implements dotted paper style, breaks XOJ compatibility | Fully implemented        | 
-| cmake           | Replaces autogen/automake with cmake                    | Problems detecting glade | 
+| Name            | Purpose                                                 | Todo                     |
+|-----------------+---------------------------------------------------------+--------------------------|
+| bookmarks       | Tries to implement bookmarks                            | Code is a bit outdated   |
+| cmake           | Replaces autogen/automake with cmake                    | Problems detecting glade |
+| dot-paper-style | Implements dotted paper style, breaks XOJ compatibility | Fully implemented        |
+| gtk3            | Attempts to replace gtk2 with gtk3                      | Performance issues       |
 
 
-Other branches:
-
-| Name     | Purpose                     |
-|----------+-----------------------------|
-| next     | My experimental branch      |
-| upstream | Code upstream in Denis repo |
-
+** 
 
 ** How to contribute
 
