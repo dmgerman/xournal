@@ -457,7 +457,7 @@ void refstring_unref(struct Refstring *rs)
 
 int finite_sized(double x) // detect unrealistic coordinate values
 {
-  return (finite(x) && x<1E6 && x>-1E6);
+  return (finite(x) && x<1E8 && x>-1E8);
 }
 
 

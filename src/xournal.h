@@ -221,9 +221,12 @@ typedef struct Item {
 #define ITEM_RECOGNIZER 23
 #define ITEM_IMAGE 24
 #define ITEM_SELECTREGION 25
-#define ITEM_MOVE_LAYER_DOWN 26
+#define ITEM_TEXT_PENDING 26 // will do when button release
+#define ITEM_IMAGE_PENDING 27 // will do when button release
 
-#define ITEM_CHANGE_PAGE  50
+#define ITEM_MOVE_LAYER_DOWN 50
+#define ITEM_CHANGE_PAGE  51
+
 
 typedef struct Layer {
   GList *items; // the items on the layer, from bottom to top

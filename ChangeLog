@@ -1,5 +1,5 @@
 This version:
-  - minor pen and touchscreen input handling bugfixes
+  - pen and touchscreen input handling bugfixes (bug #136 and others)
   - fix a minor bug with save file paths in Windows (D. German)
   - add space and shift-space bindings to page down/up (D. German)
   - add A5 paper (D. German)
@@ -7,6 +7,10 @@ This version:
   - export to PDF and printing: fix resolution loss on some pdf backgrounds
   - option to export successive layers to separate PDF pages
   - disable xinput during modal dialog boxes (bug #159)
+  - avoid data corruption when exporting to overwrite a PDF
+  - fix path search order for toolbar bitmaps
+  - text and image tools activate on button release instead of button press
+    to avoid subsequent confusion between clicks in toolbar and drawing area
 
 Version 0.4.8 (June 30, 2014):
   * Features:

@@ -2692,10 +2692,17 @@ on_canvas_button_press_event           (GtkWidget       *widget,
     start_vertspace((GdkEvent *)event);
   }
   else if (ui.toolno[mapping] == TOOL_TEXT) {
-    start_text((GdkEvent *)event, NULL);
+    ui.cur_item_type = ITEM_TEXT_PENDING; 
+    /* 2016-04-05: postpone until button_release, as an emergency xinput disable 
+       is needed for text box to be responsive, but disabling while we have an 
+       automatic pointer grab results in mangled event processing upon re-enabling */
   }
   else if (ui.toolno[mapping] == TOOL_IMAGE) {
-    insert_image((GdkEvent *)event);
+    ui.cur_item_type = ITEM_IMAGE_PENDING; 
+    /* 2016-04-05: postpone until button_release, for same reason as above;
+       emergency xinput disable needed on some window managers to avoid an
+       unresponsive dialog box, but shouldn't do it while we have automatic
+       pointer grab on the device */
   }
   return FALSE;
 }
@@ -2743,6 +2750,13 @@ on_canvas_button_release_event         (GtkWidget       *widget,
     finalize_resizesel();
   }
   else if (ui.cur_item_type == ITEM_HAND) {
+    ui.cur_item_type = ITEM_NONE;
+  }
+  else if (ui.cur_item_type == ITEM_TEXT_PENDING) {
+    start_text((GdkEvent *)event, NULL);
+  }
+  else if (ui.cur_item_type == ITEM_IMAGE_PENDING) {
+    insert_image((GdkEvent *)event);
     ui.cur_item_type = ITEM_NONE;
   }
   
