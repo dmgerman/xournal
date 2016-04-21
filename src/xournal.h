@@ -324,6 +324,7 @@ typedef struct UIData {
   double zoom_step_factor; // the multiplicative factor in zoom in/out
   double startup_zoom;
   gboolean autoload_pdf_xoj;
+  gboolean autocreate_new_xoj;
   gboolean autosave_enabled, autosave_loop_running, autosave_need_catchup;
   GList *autosave_filename_list;
   int autosave_delay;
