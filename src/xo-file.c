@@ -1046,6 +1046,27 @@ gboolean open_journal(char *filename)
 
   filename_actual = check_for_autosave(filename);
 
+  if (ui.autocreate_new_xoj && 
+      !g_file_test(filename_actual, G_FILE_TEST_EXISTS) &&
+      g_str_has_suffix(filename_actual, ".xoj"))
+  { // doesn't exist yet -- make a new journal and pre-populate its name?
+    p = g_path_get_dirname(filename_actual);
+    q = xo_basename(filename_actual, FALSE);
+    valid = g_file_test(p, G_FILE_TEST_IS_DIR) && (q[0]!='.');
+    g_free(p);
+    if (valid) { // seems legit
+      dialog = gtk_message_dialog_new(GTK_WINDOW(winMain), GTK_DIALOG_MODAL,
+              GTK_MESSAGE_WARNING, GTK_BUTTONS_OK, 
+              _("File '%s' doesn't exist yet. Creating a new document."), filename_actual);
+      wrapper_gtk_dialog_run(GTK_DIALOG(dialog));
+      gtk_widget_destroy(dialog);
+      ui.saved = TRUE; // allow close journal without re-prompting
+      on_fileNew_activate(NULL, NULL); // close_journal, new_journal, reset UI
+      update_file_name(filename_actual);
+      return TRUE;
+    }
+  }
+
   f = gzopen_wrapper(filename_actual, "rb");
   if (f==NULL) { g_free(filename_actual); return FALSE; }
   if (filename[0]=='/') {
@@ -1736,6 +1757,7 @@ void init_config_default(void)
   ui.width_maximum_multiplier = 1.25;
   ui.button_switch_mapping = FALSE;
   ui.autoload_pdf_xoj = FALSE;
+  ui.autocreate_new_xoj = FALSE;
   ui.poppler_force_cairo = FALSE;
   ui.touch_as_handtool = FALSE;
   ui.pen_disables_touch = FALSE;
@@ -1896,6 +1918,9 @@ void save_config_to_file(void)
   update_keyval("general", "autoload_pdf_xoj",
     _(" automatically load filename.pdf.xoj instead of filename.pdf (true/false)"),
     g_strdup(ui.autoload_pdf_xoj?"true":"false"));
+  update_keyval("general", "autocreate_new_xoj",
+    _(" when attempting to open a non-existent file, treat it as a new file (true/false)"),
+    g_strdup(ui.autocreate_new_xoj?"true":"false"));
   update_keyval("general", "autosave_enabled",
     _(" enable periodic autosaves (true/false)"),
     g_strdup(ui.autosave_enabled?"true":"false"));
@@ -2309,6 +2334,7 @@ void load_config_from_file(void)
     if (str!=NULL) ui.device_for_touch = str;
   parse_keyval_boolean("general", "buttons_switch_mappings", &ui.button_switch_mapping);
   parse_keyval_boolean("general", "autoload_pdf_xoj", &ui.autoload_pdf_xoj);
+  parse_keyval_boolean("general", "autocreate_new_xoj", &ui.autocreate_new_xoj);
   parse_keyval_boolean("general", "autosave_enabled", &ui.autosave_enabled);
   parse_keyval_int("general", "autosave_delay", &ui.autosave_delay, 1, 3600);
   parse_keyval_string("general", "default_path", &ui.default_path);
