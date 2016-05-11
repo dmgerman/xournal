@@ -2695,6 +2695,7 @@ on_canvas_proximity_event              (GtkWidget       *widget,
   printf("DEBUG: proximity %s (%s)\n", 
      (event->type == GDK_PROXIMITY_IN)?"in":"out", event->device->name);
 #endif
+  if (!strcmp(event->device->name, ui.device_for_touch)) return FALSE;
   ui.in_proximity = (event->type==GDK_PROXIMITY_IN);
   return FALSE;
 }
@@ -2784,7 +2785,8 @@ on_canvas_motion_notify_event          (GtkWidget       *widget,
   GdkModifierType mask;
 
   // if pen is sending motion events then it's in proximity
-  if (event->device->source == GDK_SOURCE_PEN) ui.in_proximity = TRUE;
+  if (event->device->source == GDK_SOURCE_PEN &&
+      strcmp(event->device->name, ui.device_for_touch)) ui.in_proximity = TRUE;
   
   /* we don't care about this event unless some operation is in progress;
      or if there's a selection (then we might want to change the mouse
