@@ -1,0 +1,26 @@
+*.o
+Makefile
+*.a
+src/xournal
+stamp*
+*.Po
+*.gmo
+compile
+autom4te.cache/
+*.log
+*.guess
+ar-lib
+*.status
+
+# specific files
+config.h
+config.sub
+configure
+po/Makefile.in
+po/Makefile.in.in
+po/POTFILES
+src/Makefile.in
+src/ttsubset/Makefile.in
+Makefile.in
+aclocal.m4
+

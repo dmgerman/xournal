@@ -540,6 +540,103 @@ gboolean try_closed_polygon(int nsides)
   return TRUE;
 }
 
+// this only checks lines, therefore can be slightly more generous in checking for deviations
+// it detects my own lines quite reliably.  I suck at drawing straight lines :-P
+gboolean check_line(struct Item *it) {
+/*  struct RecoSegment *rs;*/
+  GnomeCanvasPoints *points;
+  int num_points;
+  double *coords;
+  int n;
+  float x0, y0, xN, yN, xm, ym, a, b, l, invsqrt1plusbsquared, lastDistance;
+  float x, y, thisDistance, perpDistance;
+
+/*  printf("it->type %i\n", it->type);*/
+  points = it->path;
+  num_points = points->num_points;
+  coords = points->coords;
+  // what we will do is assume the line is between the first and last points
+  // since those points will tend to be well-defined by the person who is drawing them
+  // (I reckon; certainly they are for me; whereas the bits in between are all over the place :-P )
+  // then we measure the mean perpendicular squared loss, something like
+  // http://mathworld.wolfram.com/LeastSquaresFittingPerpendicularOffsets.html
+  // then we figure out how large this is compared to things like, how long is the line
+
+  if(num_points < 3) {
+    // not much point in doing anything with only 2 points...
+    return FALSE;
+  }
+
+  x0 = coords[0];
+  y0 = coords[1];
+  xN = coords[(num_points-1)*2];
+  yN = coords[(num_points-2)*2+1];
+
+  // get equation of a line, hope it's not vertical for now...
+  if(x0 == xN) {
+    // we dont handle vertical lines yet...
+    return FALSE;
+  }
+  // for y = a + xb
+  b = (yN - y0) / (xN - x0);
+  xm = (x0 + xN) / 2.0f; // mean point between lines
+  ym = (y0 + yN) / 2.0f;
+  a = ym - b * xm;
+
+  l = sqrt((yN-y0)*(yN-y0) + (xN-x0)*(xN-x0)); // line length
+
+  printf("%f,%f %f,%f  y = %f + %f x   l=%f\n",
+     x0, y0, xN, yN, a, b, l);
+
+  invsqrt1plusbsquared = 1.0f / sqrt(1 + b * b);
+  // if too big, we're vertical, just abort...
+  if(abs(invsqrt1plusbsquared > 1e8)) {
+/*    printf("too vertical\n");*/
+    return FALSE;
+  }
+  lastDistance = 0.0f;
+  for(n = 1; n < num_points; n++) {
+/*     printf("%.2f,%.2f\n", coords[i * 2], coords[i*2+1]);*/
+    x = coords[n*2];
+    y = coords[n*2+1];
+    // actually, we should check that distance from first point is always increasing
+    // if not, immediately return
+    thisDistance = sqrt((x-x0)*(x-x0) + (y-y0)*(y-y0));
+    if(thisDistance <= lastDistance) {
+/*      printf("backwards...\n");*/
+      return FALSE;
+    }
+    perpDistance = abs(y - (a + b * x)) * invsqrt1plusbsquared;
+/*    printf("%i/%i thisDistance %f perpdistance %f\n", n, num_points, thisDistance, perpDistance);*/
+    if(perpDistance > l / 10.0f) {
+/*      printf("too deviant\n");*/
+      return FALSE;
+    }
+  }
+  // its a line ... update it.. somehow
+/*  points->num_points = 2;*/
+/*  coords[2] = xN;*/
+/*  coords[3] = yN;*/
+
+/*  rs = recognizer_queue;*/
+
+  realloc_cur_path(2);
+  ui.cur_path.num_points = 2;
+  ui.cur_path.coords[0] = x0;
+  ui.cur_path.coords[1] = y0;
+  ui.cur_path.coords[2] = xN;
+  ui.cur_path.coords[3] = yN;
+  recognizer_queue[0].item = it;
+/*  remove_recognized_strokes(rs, 1);*/
+  remove_recognized_strokes(recognizer_queue, 1);
+  insert_recognized_curpath();
+
+  printf("updated :-)\n");
+  return TRUE;
+
+/*  return FALSE;*/
+}
+
 /* the main pattern recognition function, called after finalize_stroke() */
 void recognize_patterns(void)
 {
@@ -561,6 +658,10 @@ void recognize_patterns(void)
      "Rad=%.2f, Det=%.4f \n", 
      s.mass, center_x(s), center_y(s), I_xx(s), I_yy(s), I_xy(s), I_rad(s), I_det(s));
 #endif
+
+  if(check_line(it)) {
+    return;
+  }
 
   // first see if it's a polygon
   n = find_polygonal(it->path->coords, 0, it->path->num_points-1, MAX_POLYGON_SIDES, brk, ss);
