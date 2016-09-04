@@ -43,6 +43,7 @@ GtkBuilder *builder;
 typedef struct command_line_options {
     gint openAtPageNumber;
     gboolean screenshot;
+    gboolean noNextSplash;
     int fileCount;
     char **fileArguments;
 } command_line_options;
@@ -472,7 +473,8 @@ void parse_command_line(int argc, char* argv[], command_line_options *clo)
   GError  *error = NULL;
   GOptionEntry entries[] = {
     { "page", 'p', 0, G_OPTION_ARG_INT,       &(clo->openAtPageNumber), "Jump to Page", "N" },
-    { "screenshot", 's', 0, G_OPTION_ARG_NONE, &(clo->screenshot), "Start with screenshot", "N" },
+    { "screenshot", 's', 0, G_OPTION_ARG_NONE, &(clo->screenshot), "Start with screenshot", "S" },
+    { "no-next-splash-message", 0, 0, G_OPTION_ARG_NONE, &(clo->noNextSplash), "Do not show the Next splash message ", NULL },
     { G_OPTION_REMAINING, 0, 0, G_OPTION_ARG_FILENAME_ARRAY, &(clo->fileArguments), NULL, N_("[FILE]") },
     { NULL }
   };
@@ -487,7 +489,13 @@ void parse_command_line(int argc, char* argv[], command_line_options *clo)
             error->message, argv[0]);
     exit (1);
   }
-  
+
+  if (clo->screenshot) {
+      // simply disable it it. It gets on the way
+      clo->noNextSplash = FALSE;
+  }
+      
+
   // The pointer to the rest of the arguments marks its end with NULL, so we need to traverse it to find out how many they were
   
   clo->fileCount = 0;
@@ -508,6 +516,7 @@ main (int argc, char *argv[])
   command_line_options clOptions = {
       1, // openAtPagenumber
       FALSE, // screenshot
+      FALSE, // noNextSplash
       0, // fileCount
       NULL, //fileArguments
   };
@@ -544,7 +553,9 @@ main (int argc, char *argv[])
 
   gtk_window_set_icon(GTK_WINDOW(winMain), create_pixbuf("xournal.png"));
   
-  xo_warn_user(_("This is not an official build of xournal.\n\n You should not use it unless you understand what you are doing. You have been warned.\n\n--dmg"));
+  if (!clOptions.noNextSplash) {
+      xo_warn_user(_("This is not an official build of xournal.\n\n You should not use it unless you understand what you are doing. You have been warned.\n\n--dmg"));
+  }
 
   gtk_main ();
 
