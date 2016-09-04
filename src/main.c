@@ -40,6 +40,7 @@ GnomeCanvas *canvas;
 
 typedef struct command_line_options {
     gint openAtPageNumber;
+    gboolean screenshot;
     int fileCount;
     char **fileArguments;
 } command_line_options;
@@ -71,6 +72,27 @@ void init_stuff (command_line_options *clOptions)
 
   // use only first filename, ignore the rest
   filename = (clOptions->fileCount > 0)? clOptions->fileArguments[0] : NULL;
+
+
+#ifndef GDK_WINDOWING_X11
+  if (clOptions->screenshot) {
+      w = gtk_message_dialog_new(GTK_WINDOW (winMain), GTK_DIALOG_DESTROY_WITH_PARENT,
+                                 GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, _("--screenshot option is only supported in X11. Ignoring option"));
+      wrapper_gtk_dialog_run(GTK_DIALOG(w));
+      gtk_widget_destroy(w);
+      clOptions->screenshot = FALSE;
+  }
+#endif
+
+
+  // check that screenshot and filename options  are not both given
+  if (clOptions->screenshot && filename) {
+      w = gtk_message_dialog_new(GTK_WINDOW (winMain), GTK_DIALOG_DESTROY_WITH_PARENT,
+                                 GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, _("--screenshot option can not be used at the same time as filename. Ignoring option"));
+      wrapper_gtk_dialog_run(GTK_DIALOG(w));
+      gtk_widget_destroy(w);
+      clOptions->screenshot = FALSE;
+  }
 
 
   // create some data structures needed to populate the preferences
@@ -331,7 +353,14 @@ void init_stuff (command_line_options *clOptions)
   // and finally, open a file specified on the command line
   // (moved here because display parameters weren't initialized yet...)
   
-  if (filename == NULL) return;
+  if (filename == NULL) {
+      if (clOptions->screenshot) {
+          printf("Click on screen to make screenshot...\n");
+          on_journalScreenshot_activate(NULL, NULL);
+      }
+      return;
+  }
+
   set_cursor_busy(TRUE);
   if (g_path_is_absolute(filename))
     tmpfn = g_strdup(filename);
@@ -368,7 +397,8 @@ void parse_command_line(int argc, char* argv[], command_line_options *clo)
 {
   GError  *error = NULL;
   GOptionEntry entries[] = {
-    { "page", 'p', 0, G_OPTION_ARG_INT, &(clo->openAtPageNumber), "Jump to Page", "N" },
+    { "page", 'p', 0, G_OPTION_ARG_INT,       &(clo->openAtPageNumber), "Jump to Page", "N" },
+    { "screenshot", 's', 0, G_OPTION_ARG_NONE, &(clo->screenshot), "Start with screenshot", "N" },
     { G_OPTION_REMAINING, 0, 0, G_OPTION_ARG_FILENAME_ARRAY, &(clo->fileArguments), NULL, N_("[FILE]") },
     { NULL }
   };
@@ -403,6 +433,7 @@ main (int argc, char *argv[])
 
   command_line_options clOptions = {
       1, // openAtPagenumber
+      FALSE, // screenshot
       0, // fileCount
       NULL, //fileArguments
   };
