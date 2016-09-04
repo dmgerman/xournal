@@ -11,6 +11,9 @@ This version:
   - fix path search order for toolbar bitmaps
   - text and image tools activate on button release instead of button press
     to avoid subsequent confusion between clicks in toolbar and drawing area
+  - config option to create new file when trying to open non-existent .xoj
+  - fix "pen disable touch" when touchscreen sends prox events (A. Kittenberger)
+  - fix crash when pasting text or images via xclip (bug #171)
 
 Version 0.4.8 (June 30, 2014):
   * Features:
