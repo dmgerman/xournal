@@ -485,7 +485,7 @@ void parse_command_line(int argc, char* argv[], command_line_options *clo)
   g_option_context_add_main_entries (context, entries, GETTEXT_PACKAGE);
   g_option_context_add_group (context, gtk_get_option_group (TRUE));
   if (!g_option_context_parse (context, &argc, &argv, &error)) {
-    fprintf(stderr, "%s\n\nUsage %s [options]* [filename]\n\nOptions:\n\n-p <n> --page=<n>  : open at page <n>\n\n",
+    fprintf(stderr, "%s\n\nUsage %s [options]* [filename]\n\nUse --help to see options\n\n",
             error->message, argv[0]);
     exit (1);
   }
