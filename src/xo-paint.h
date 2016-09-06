@@ -27,7 +27,10 @@ void subdivide_cur_path(void);
 void do_eraser(GdkEvent *event, double radius, gboolean whole_strokes);
 void finalize_erasure(void);
 
+void start_hand(GdkEvent *event);
 void do_hand(GdkEvent *event);
+void finalize_hand(void);
+void stop_scrolling(void);
 
 /* text functions */
 

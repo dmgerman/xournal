@@ -2456,6 +2456,8 @@ on_canvas_button_press_event           (GtkWidget       *widget,
 
   if (is_touch && is_core && ui.cur_item_type == ITEM_TEXT && ui.touch_as_handtool && ui.in_proximity) return FALSE; // workaround for touch = core as handtool
 
+  stop_scrolling();
+  
   if (ui.cur_item_type == ITEM_TEXT) {
     if (!is_event_within_textview(event)) end_text();
     else return FALSE;
@@ -2541,9 +2543,7 @@ on_canvas_button_press_event           (GtkWidget       *widget,
   
   if (ui.toolno[mapping] == TOOL_HAND) {
     ui.cur_item_type = ITEM_HAND;
-    get_pointer_coords((GdkEvent *)event, ui.hand_refpt);
-    ui.hand_refpt[0] += ui.cur_page->hoffset;
-    ui.hand_refpt[1] += ui.cur_page->voffset;
+    start_hand((GdkEvent *)event);
   } 
   else if (ui.toolno[mapping] == TOOL_PEN || ui.toolno[mapping] == TOOL_HIGHLIGHTER ||
         (ui.toolno[mapping] == TOOL_ERASER && ui.cur_brush->tool_options == TOOLOPT_ERASER_WHITEOUT)) {
@@ -2622,6 +2622,11 @@ on_canvas_button_release_event         (GtkWidget       *widget,
     finalize_resizesel();
   }
   else if (ui.cur_item_type == ITEM_HAND) {
+    /* If the mouse stopped moving for some time before the release event,
+     * then we didn't get further motion events. However, do_hand() needs
+     * to know that time passed, to not wrongly continue scrolling */
+    do_hand((GdkEvent *)event);
+    finalize_hand();
     ui.cur_item_type = ITEM_NONE;
   }
   else if (ui.cur_item_type == ITEM_TEXT_PENDING) {
@@ -2863,6 +2868,7 @@ on_canvas_motion_notify_event          (GtkWidget       *widget,
       finalize_resizesel();
     }
     else if (ui.cur_item_type == ITEM_HAND) {
+      finalize_hand();
       ui.cur_item_type = ITEM_NONE;
     }
     switch_mapping(0);

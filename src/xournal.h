@@ -69,6 +69,11 @@
 // default touch device
 #define DEFAULT_DEVICE_FOR_TOUCH "Touchscr"
 
+// For gesture scrolling:
+#define SCROLL_MEASURE_INTERVAL 50 // least time interval used to measure finger speed (in millisec)
+#define SCROLL_FRAMETIME 20 // time between two frames of scrolling (in millisec)
+#define SCROLL_SLOWDOWN 0.1 // decrease of scrolling speed in each frame (speed is in pixel per millisec)
+
 /* a string (+ aux data) that maintains a refcount */
 
 typedef struct Refstring {
@@ -297,6 +302,8 @@ typedef struct UIData {
   int screen_width, screen_height; // initial screen size, for XInput events
   double hand_refpt[2];
   int hand_scrollto_cx, hand_scrollto_cy;
+  int hand_prev_time;
+  double hand_speed_x, hand_speed_y;
   gboolean hand_scrollto_pending;
   char *filename;
   gchar *default_path; // default path for new notes

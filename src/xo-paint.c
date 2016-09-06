@@ -521,20 +521,84 @@ gboolean do_hand_scrollto(gpointer data)
   return FALSE;
 }
 
+
+gboolean do_continue_scrolling(gpointer data)
+{
+  int cx, cy, ncx, ncy;
+  gboolean continue_scrolling;
+
+  //printf("%.3f %.3f\n", ui.hand_speed_x, ui.hand_speed_y);
+  
+  gnome_canvas_get_scroll_offsets(canvas, &cx, &cy);
+  gnome_canvas_scroll_to(canvas, cx + ui.hand_speed_x * SCROLL_FRAMETIME, cy + ui.hand_speed_y * SCROLL_FRAMETIME);
+  gnome_canvas_get_scroll_offsets(canvas, &ncx, &ncy);
+  
+  if (ncx == cx && ncy == cy)
+    return FALSE;
+  
+  continue_scrolling = FALSE;
+  if (ui.hand_speed_x > SCROLL_SLOWDOWN) { ui.hand_speed_x -= SCROLL_SLOWDOWN; continue_scrolling = TRUE; }
+  else if (ui.hand_speed_x < -SCROLL_SLOWDOWN) { ui.hand_speed_x += SCROLL_SLOWDOWN; continue_scrolling = TRUE; }
+  else { ui.hand_speed_x = 0; }
+  if (ui.hand_speed_y > SCROLL_SLOWDOWN) { ui.hand_speed_y -= SCROLL_SLOWDOWN; continue_scrolling = TRUE; }
+  else if (ui.hand_speed_y < -SCROLL_SLOWDOWN) { ui.hand_speed_y += SCROLL_SLOWDOWN; continue_scrolling = TRUE; }
+  else { ui.hand_speed_y = 0; }
+  
+  return continue_scrolling;
+}
+
+
+void start_hand(GdkEvent *event)
+{
+  get_pointer_coords(event, ui.hand_refpt);
+  ui.hand_refpt[0] += ui.cur_page->hoffset;
+  ui.hand_refpt[1] += ui.cur_page->voffset;
+  ui.hand_prev_time = event->button.time;
+  ui.hand_speed_x = 0;
+  ui.hand_speed_y = 0;
+  printf("st\n");
+}
+
+
 void do_hand(GdkEvent *event)
 {
   double pt[2];
   int cx, cy;
+  double dx, dy;
+  int dt;
   
   get_pointer_coords(event, pt);
   pt[0] += ui.cur_page->hoffset;
   pt[1] += ui.cur_page->voffset;
+  dx = -(pt[0]-ui.hand_refpt[0])*ui.zoom;
+  dy = -(pt[1]-ui.hand_refpt[1])*ui.zoom;
+
   gnome_canvas_get_scroll_offsets(canvas, &cx, &cy);
-  ui.hand_scrollto_cx = cx - (pt[0]-ui.hand_refpt[0])*ui.zoom;
-  ui.hand_scrollto_cy = cy - (pt[1]-ui.hand_refpt[1])*ui.zoom;
+  ui.hand_scrollto_cx = cx + dx;
+  ui.hand_scrollto_cy = cy + dy;
   if (!ui.hand_scrollto_pending) g_idle_add(do_hand_scrollto, NULL);
   ui.hand_scrollto_pending = TRUE;
+  dt = event->motion.time - ui.hand_prev_time;
+  printf("%d %.1f\n", dt, dy);
+  if (dt < SCROLL_MEASURE_INTERVAL) {
+    dx += ui.hand_speed_x * (SCROLL_MEASURE_INTERVAL - dt);
+    dy += ui.hand_speed_y * (SCROLL_MEASURE_INTERVAL - dt);
+    dt = SCROLL_MEASURE_INTERVAL;
+  }
+  ui.hand_speed_x = dx / dt;
+  ui.hand_speed_y = dy / dt;
+  ui.hand_prev_time = event->motion.time;
 }
+
+void finalize_hand(void) {
+  g_timeout_add(SCROLL_FRAMETIME, do_continue_scrolling, NULL);
+}
+
+void stop_scrolling(void) {
+  ui.hand_speed_x = 0;
+  ui.hand_speed_y = 0;
+}
+
 
 /************ TEXT FUNCTIONS **************/
 
