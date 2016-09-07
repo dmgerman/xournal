@@ -525,26 +525,24 @@ gboolean do_hand_scrollto(gpointer data)
 gboolean do_continue_scrolling(gpointer data)
 {
   int cx, cy, ncx, ncy;
-  gboolean continue_scrolling;
-
-  //printf("%.3f %.3f\n", ui.hand_speed_x, ui.hand_speed_y);
+  double speed, factor;
   
   gnome_canvas_get_scroll_offsets(canvas, &cx, &cy);
   gnome_canvas_scroll_to(canvas, cx + ui.hand_speed_x * SCROLL_FRAMETIME, cy + ui.hand_speed_y * SCROLL_FRAMETIME);
   gnome_canvas_get_scroll_offsets(canvas, &ncx, &ncy);
   
-  if (ncx == cx && ncy == cy)
+  /* Hit a border? */
+  if (ncx == cx) ui.hand_speed_x = 0;
+  if (ncy == cy) ui.hand_speed_y = 0;
+    
+  speed = sqrt(ui.hand_speed_x * ui.hand_speed_x + ui.hand_speed_y * ui.hand_speed_y);
+  if (speed < SCROLL_SLOWDOWN)
     return FALSE;
-  
-  continue_scrolling = FALSE;
-  if (ui.hand_speed_x > SCROLL_SLOWDOWN) { ui.hand_speed_x -= SCROLL_SLOWDOWN; continue_scrolling = TRUE; }
-  else if (ui.hand_speed_x < -SCROLL_SLOWDOWN) { ui.hand_speed_x += SCROLL_SLOWDOWN; continue_scrolling = TRUE; }
-  else { ui.hand_speed_x = 0; }
-  if (ui.hand_speed_y > SCROLL_SLOWDOWN) { ui.hand_speed_y -= SCROLL_SLOWDOWN; continue_scrolling = TRUE; }
-  else if (ui.hand_speed_y < -SCROLL_SLOWDOWN) { ui.hand_speed_y += SCROLL_SLOWDOWN; continue_scrolling = TRUE; }
-  else { ui.hand_speed_y = 0; }
-  
-  return continue_scrolling;
+  factor = (speed - SCROLL_SLOWDOWN) / speed;
+  ui.hand_speed_x *= factor;
+  ui.hand_speed_y *= factor;
+    
+  return TRUE;
 }
 
 
@@ -556,7 +554,6 @@ void start_hand(GdkEvent *event)
   ui.hand_prev_time = event->button.time;
   ui.hand_speed_x = 0;
   ui.hand_speed_y = 0;
-  printf("st\n");
 }
 
 
@@ -579,7 +576,6 @@ void do_hand(GdkEvent *event)
   if (!ui.hand_scrollto_pending) g_idle_add(do_hand_scrollto, NULL);
   ui.hand_scrollto_pending = TRUE;
   dt = event->motion.time - ui.hand_prev_time;
-  printf("%d %.1f\n", dt, dy);
   if (dt < SCROLL_MEASURE_INTERVAL) {
     dx += ui.hand_speed_x * (SCROLL_MEASURE_INTERVAL - dt);
     dy += ui.hand_speed_y * (SCROLL_MEASURE_INTERVAL - dt);
