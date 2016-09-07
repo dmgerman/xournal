@@ -683,6 +683,12 @@ void start_text(GdkEvent *event, struct Item *item)
   gtk_widget_grab_focus(item->widget); 
 }
 
+void end_text_and_stop_scrolling(void)
+{
+  end_text();
+  stop_scrolling();
+}
+
 void end_text(void)
 {
   GtkTextBuffer *buffer;

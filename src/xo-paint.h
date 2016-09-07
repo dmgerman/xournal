@@ -42,6 +42,7 @@ void stop_scrolling(void);
 #define DEFAULT_FONT_SIZE 12
 
 void start_text(GdkEvent *event, struct Item *item);
+void end_text_and_stop_scrolling(void);
 void end_text(void);
 void update_text_item_displayfont(struct Item *item);
 void rescale_text_items(void);

@@ -43,7 +43,7 @@ void
 on_fileNew_activate                    (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  end_text();
+  end_text_and_stop_scrolling();
   if (close_journal()) {
     new_journal();
     ui.zoom = ui.startup_zoom;
@@ -64,7 +64,7 @@ on_fileNewBackground_activate          (GtkMenuItem     *menuitem,
   int file_domain;
   gboolean success;
   
-  end_text();
+  end_text_and_stop_scrolling();
   if (!ok_to_close()) return; // user aborted on save confirmation
   
   dialog = gtk_file_chooser_dialog_new(_("Open PDF"), GTK_WINDOW (winMain),
@@ -137,7 +137,7 @@ on_fileOpen_activate                   (GtkMenuItem     *menuitem,
   char *filename;
   gboolean success;
   
-  end_text();
+  end_text_and_stop_scrolling();
   if (!ok_to_close()) return; // user aborted on save confirmation
   
   dialog = gtk_file_chooser_dialog_new(_("Open Journal"), GTK_WINDOW (winMain),
@@ -186,7 +186,7 @@ on_fileSave_activate                   (GtkMenuItem     *menuitem,
 {
   GtkWidget *dialog;
   
-  end_text();
+  end_text_and_stop_scrolling();
   if (ui.filename == NULL) {
     on_fileSaveAs_activate(menuitem, user_data);
     return;
@@ -219,7 +219,7 @@ on_fileSaveAs_activate                 (GtkMenuItem     *menuitem,
   gboolean warn;
   struct stat stat_buf;
   
-  end_text();
+  end_text_and_stop_scrolling();
   dialog = gtk_file_chooser_dialog_new(_("Save Journal"), GTK_WINDOW (winMain),
      GTK_FILE_CHOOSER_ACTION_SAVE, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
      GTK_STOCK_SAVE, GTK_RESPONSE_OK, NULL);
@@ -308,7 +308,7 @@ on_filePrint_activate                  (GtkMenuItem     *menuitem,
   int response;
   char *in_fn, *p;
 
-  end_text();
+  end_text_and_stop_scrolling();
   if (!gtk_check_version(2, 10, 0)) {
     print = gtk_print_operation_new();
 /*
@@ -359,7 +359,7 @@ on_filePrintPDF_activate               (GtkMenuItem     *menuitem,
   time_t curtime;
   gboolean warn, warn_more, prefer_legacy;
   
-  end_text();
+  end_text_and_stop_scrolling();
   dialog = gtk_file_chooser_dialog_new(_("Export to PDF"), GTK_WINDOW (winMain),
      GTK_FILE_CHOOSER_ACTION_SAVE, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
      GTK_STOCK_SAVE, GTK_RESPONSE_OK, NULL);
@@ -440,7 +440,7 @@ void
 on_fileQuit_activate                   (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  end_text();
+  end_text_and_stop_scrolling();
   if (ok_to_close()) gtk_main_quit ();
 }
 
@@ -459,7 +459,7 @@ on_editUndo_activate                   (GtkMenuItem     *menuitem,
   gchar *tmpstr;
   GnomeCanvasGroup *group;
   
-  end_text();
+  end_text_and_stop_scrolling();
   if (undo == NULL) return; // nothing to undo!
   reset_selection(); // safer
   reset_recognizer(); // safer
@@ -674,7 +674,7 @@ on_editRedo_activate                   (GtkMenuItem     *menuitem,
   gchar *tmpstr;
   GnomeCanvasGroup *group;
   
-  end_text();
+  end_text_and_stop_scrolling();
   if (redo == NULL) return; // nothing to redo!
   reset_selection(); // safer
   reset_recognizer(); // safer
@@ -883,7 +883,7 @@ void
 on_editCut_activate                    (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  end_text();
+  end_text_and_stop_scrolling();
   selection_to_clip();
   selection_delete();
 }
@@ -893,7 +893,7 @@ void
 on_editCopy_activate                   (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  end_text();
+  end_text_and_stop_scrolling();
   selection_to_clip();
 }
 
@@ -902,7 +902,7 @@ void
 on_editPaste_activate                  (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  end_text();
+  end_text_and_stop_scrolling();
   clipboard_paste();
 }
 
@@ -911,7 +911,7 @@ void
 on_editDelete_activate                 (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  end_text();
+  end_text_and_stop_scrolling();
   selection_delete();
 }
 
@@ -1014,7 +1014,7 @@ void
 on_viewFirstPage_activate              (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  end_text();
+  end_text_and_stop_scrolling();
   do_switch_page(0, TRUE, FALSE);
 }
 
@@ -1023,7 +1023,7 @@ void
 on_viewPreviousPage_activate           (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  end_text();
+  end_text_and_stop_scrolling();
   if (ui.pageno == 0) return;
   do_switch_page(ui.pageno-1, TRUE, FALSE);
 }
@@ -1033,7 +1033,7 @@ void
 on_viewNextPage_activate               (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  end_text();
+  end_text_and_stop_scrolling();
   if (ui.pageno == journal.npages-1) { // create a page at end
     on_journalNewPageEnd_activate(menuitem, user_data);
     return;
@@ -1046,7 +1046,7 @@ void
 on_viewLastPage_activate               (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  end_text();
+  end_text_and_stop_scrolling();
   do_switch_page(journal.npages-1, TRUE, FALSE);
 }
 
@@ -1055,7 +1055,7 @@ void
 on_viewShowLayer_activate              (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  end_text();
+  end_text_and_stop_scrolling();
   if (ui.layerno == ui.cur_page->nlayers-1) return;
   reset_selection();
   ui.layerno++;
@@ -1069,7 +1069,7 @@ void
 on_viewHideLayer_activate              (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  end_text();
+  end_text_and_stop_scrolling();
   if (ui.layerno == -1) return;
   reset_selection();
   gnome_canvas_item_hide(GNOME_CANVAS_ITEM(ui.cur_layer->group));
@@ -1086,7 +1086,7 @@ on_journalNewPageBefore_activate       (GtkMenuItem     *menuitem,
 {
   struct Page *pg;
 
-  end_text();
+  end_text_and_stop_scrolling();
   reset_selection();
   pg = new_page(ui.cur_page);
   journal.pages = g_list_insert(journal.pages, pg, ui.pageno);
@@ -1106,7 +1106,7 @@ on_journalNewPageAfter_activate        (GtkMenuItem     *menuitem,
 {
   struct Page *pg;
 
-  end_text();
+  end_text_and_stop_scrolling();
   reset_selection();
   pg = new_page(ui.cur_page);
   journal.pages = g_list_insert(journal.pages, pg, ui.pageno+1);
@@ -1126,7 +1126,7 @@ on_journalNewPageEnd_activate          (GtkMenuItem     *menuitem,
 {
   struct Page *pg;
 
-  end_text();
+  end_text_and_stop_scrolling();
   reset_selection();
   pg = new_page((struct Page *)g_list_last(journal.pages)->data);
   journal.pages = g_list_append(journal.pages, pg);
@@ -1147,7 +1147,7 @@ on_journalDeletePage_activate          (GtkMenuItem     *menuitem,
   GList *layerlist, *itemlist;
   struct Layer *l;
 
-  end_text();
+  end_text_and_stop_scrolling();
   if (journal.npages == 1) return;
   reset_selection();  
   reset_recognizer(); // safer
@@ -1182,7 +1182,7 @@ on_journalNewLayer_activate            (GtkMenuItem     *menuitem,
 {
   struct Layer *l;
   
-  end_text();
+  end_text_and_stop_scrolling();
   reset_selection();
   l = g_new(struct Layer, 1);
   l->items = NULL;
@@ -1211,7 +1211,7 @@ on_journalDeleteLayer_activate         (GtkMenuItem     *menuitem,
 {
   GList *list;
   
-  end_text();
+  end_text_and_stop_scrolling();
   if (ui.cur_layer == NULL) return;
   reset_selection();
   reset_recognizer(); // safer
@@ -1285,7 +1285,7 @@ on_journalPaperSize_activate           (GtkMenuItem     *menuitem,
   struct Page *pg;
   GList *pglist;
   
-  end_text();
+  end_text_and_stop_scrolling();
   papersize_dialog = create_papersizeDialog();
   papersize_width = ui.cur_page->width;
   papersize_height = ui.cur_page->height;
@@ -1335,7 +1335,7 @@ void
 on_papercolorWhite_activate            (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  end_text();
+  end_text_and_stop_scrolling();
   process_papercolor_activate(menuitem, COLOR_WHITE, predef_bgcolors_rgba[COLOR_WHITE]);
 }
 
@@ -1344,7 +1344,7 @@ void
 on_papercolorYellow_activate           (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  end_text();
+  end_text_and_stop_scrolling();
   process_papercolor_activate(menuitem, COLOR_YELLOW, predef_bgcolors_rgba[COLOR_YELLOW]);
 }
 
@@ -1353,7 +1353,7 @@ void
 on_papercolorPink_activate             (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  end_text();
+  end_text_and_stop_scrolling();
   process_papercolor_activate(menuitem, COLOR_RED, predef_bgcolors_rgba[COLOR_RED]);
 }
 
@@ -1362,7 +1362,7 @@ void
 on_papercolorOrange_activate           (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  end_text();
+  end_text_and_stop_scrolling();
   process_papercolor_activate(menuitem, COLOR_ORANGE, predef_bgcolors_rgba[COLOR_ORANGE]);
 }
 
@@ -1371,7 +1371,7 @@ void
 on_papercolorBlue_activate             (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  end_text();
+  end_text_and_stop_scrolling();
   process_papercolor_activate(menuitem, COLOR_BLUE, predef_bgcolors_rgba[COLOR_BLUE]);
 }
 
@@ -1380,7 +1380,7 @@ void
 on_papercolorGreen_activate            (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  end_text();
+  end_text_and_stop_scrolling();
   process_papercolor_activate(menuitem, COLOR_GREEN, predef_bgcolors_rgba[COLOR_GREEN]);
 }
 
@@ -1395,7 +1395,7 @@ on_papercolorOther_activate            (GtkMenuItem     *menuitem,
   guint rgba;
   GdkColor gdkcolor;
   
-  end_text();
+  end_text_and_stop_scrolling();
   dialog = gtk_color_selection_dialog_new(_("Pick a Paper Color"));
   colorsel = GTK_COLOR_SELECTION(GTK_COLOR_SELECTION_DIALOG(dialog)->colorsel);
   if (ui.cur_page->bg->type == BG_SOLID) rgba = ui.cur_page->bg->color_rgba;
@@ -1415,7 +1415,7 @@ void
 on_paperstylePlain_activate            (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  end_text();
+  end_text_and_stop_scrolling();
   process_paperstyle_activate(menuitem, RULING_NONE);
 }
 
@@ -1424,7 +1424,7 @@ void
 on_paperstyleLined_activate            (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  end_text();
+  end_text_and_stop_scrolling();
   process_paperstyle_activate(menuitem, RULING_LINED);
 }
 
@@ -1433,7 +1433,7 @@ void
 on_paperstyleRuled_activate            (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  end_text();
+  end_text_and_stop_scrolling();
   process_paperstyle_activate(menuitem, RULING_RULED);
 }
 
@@ -1442,7 +1442,7 @@ void
 on_paperstyleGraph_activate            (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-  end_text();
+  end_text_and_stop_scrolling();
   process_paperstyle_activate(menuitem, RULING_GRAPH);
 }
 
@@ -1460,7 +1460,7 @@ on_journalLoadBackground_activate      (GtkMenuItem     *menuitem,
   char *filename;
   gboolean attach;
   
-  end_text();
+  end_text_and_stop_scrolling();
   dialog = gtk_file_chooser_dialog_new(_("Open Background"), GTK_WINDOW (winMain),
      GTK_FILE_CHOOSER_ACTION_OPEN, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
      GTK_STOCK_OPEN, GTK_RESPONSE_OK, NULL);
@@ -1578,7 +1578,7 @@ on_journalScreenshot_activate          (GtkMenuItem     *menuitem,
 {
   struct Background *bg;
   
-  end_text();
+  end_text_and_stop_scrolling();
   reset_selection();
   gtk_window_iconify(GTK_WINDOW(winMain)); // hide ourselves
   gdk_display_sync(gdk_display_get_default());
@@ -1626,7 +1626,7 @@ on_journalApplyAllPages_activate       (GtkMenuItem     *menuitem,
 {
   gboolean active;
   
-  end_text();
+  end_text_and_stop_scrolling();
   active = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM (menuitem));
   if (active == ui.bg_apply_all_pages) return;
   ui.bg_apply_all_pages = active;
@@ -2423,6 +2423,7 @@ on_canvas_button_press_event           (GtkWidget       *widget,
          so the core button event gets discarded and the scroll event never 
          gets processed by the main window. This is arguably a GTK+ bug.
          We work around it. */
+      stop_scrolling();
       scroll_event.scroll.type = GDK_SCROLL;
       scroll_event.scroll.window = event->window;
       scroll_event.scroll.send_event = event->send_event;
@@ -2749,7 +2750,7 @@ on_canvas_key_press_event              (GtkWidget       *widget,
          (0.96 * ui.zoom * ui.cur_page->height < pgheight ||
           adj->value == adj->upper-pgheight)) 
     {
-      end_text();
+      end_text_and_stop_scrolling();
       if (ui.pageno < journal.npages-1) {
         do_switch_page(ui.pageno+1, TRUE, FALSE);
         gtk_adjustment_set_value(adj, 0.);
@@ -2766,7 +2767,7 @@ on_canvas_key_press_event              (GtkWidget       *widget,
          (0.96 * ui.zoom * ui.cur_page->height < pgheight ||
           adj->value == adj->lower))
     {
-      end_text();
+      end_text_and_stop_scrolling();
       if (ui.pageno != 0) {
         do_switch_page(ui.pageno-1, TRUE, FALSE);
         gtk_adjustment_set_value(adj, adj->upper-pgheight);
@@ -2945,7 +2946,7 @@ on_winMain_delete_event                (GtkWidget       *widget,
                                         GdkEvent        *event,
                                         gpointer         user_data)
 {
-  end_text();
+  end_text_and_stop_scrolling();
   if (ok_to_close()) gtk_main_quit();
   return TRUE;
 }
@@ -3086,7 +3087,7 @@ on_spinPageNo_value_changed            (GtkSpinButton   *spinbutton,
 
   if (!GTK_WIDGET_HAS_FOCUS(spinbutton))
     gtk_widget_grab_focus(GTK_WIDGET(canvas));
-  end_text();
+  end_text_and_stop_scrolling();
 
   val = gtk_spin_button_get_value_as_int(spinbutton) - 1;
 
@@ -3109,7 +3110,7 @@ on_journalDefaultBackground_activate   (GtkMenuItem     *menuitem,
   struct Page *pg;
   GList *pglist;
   
-  end_text();
+  end_text_and_stop_scrolling();
   reset_selection();
   
   pg = ui.cur_page;
@@ -3316,7 +3317,7 @@ on_mru_activate                        (GtkMenuItem     *menuitem,
   gboolean success;
   GtkWidget *dialog;
   
-  end_text();
+  end_text_and_stop_scrolling();
   if (!ok_to_close()) return; // user aborted on save confirmation
   
   for (which = 0 ; which < MRU_SIZE; which++) {
@@ -3536,7 +3537,7 @@ on_viewSetZoom_activate                (GtkMenuItem     *menuitem,
   double test_w, test_h;
   GtkSpinButton *spinZoom;
   
-  end_text();
+  end_text_and_stop_scrolling();
   zoom_dialog = create_zoomDialog();
   zoom_percent = 100*ui.zoom / DEFAULT_ZOOM;
   spinZoom = GTK_SPIN_BUTTON(g_object_get_data(G_OBJECT(zoom_dialog), "spinZoom"));
