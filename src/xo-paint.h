@@ -27,7 +27,10 @@ void subdivide_cur_path(void);
 void do_eraser(GdkEvent *event, double radius, gboolean whole_strokes);
 void finalize_erasure(void);
 
+void start_hand(GdkEvent *event);
 void do_hand(GdkEvent *event);
+void finalize_hand(void);
+void stop_scrolling(void);
 
 /* text functions */
 
@@ -39,6 +42,7 @@ void do_hand(GdkEvent *event);
 #define DEFAULT_FONT_SIZE 12
 
 void start_text(GdkEvent *event, struct Item *item);
+void end_text_and_stop_scrolling(void);
 void end_text(void);
 void update_text_item_displayfont(struct Item *item);
 void rescale_text_items(void);

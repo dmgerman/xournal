@@ -519,14 +519,55 @@ gboolean do_hand_scrollto(gpointer data)
   return FALSE;
 }
 
+
+gboolean do_continue_scrolling(gpointer data)
+{
+  int cx, cy, ncx, ncy;
+  double speed, factor;
+  
+  gnome_canvas_get_scroll_offsets(canvas, &cx, &cy);
+  gnome_canvas_scroll_to(canvas, cx + ui.hand_speed_x * SCROLL_FRAMETIME, cy + ui.hand_speed_y * SCROLL_FRAMETIME);
+  gnome_canvas_get_scroll_offsets(canvas, &ncx, &ncy);
+  
+  /* Hit a border? */
+  if (ncx == cx) ui.hand_speed_x = 0;
+  if (ncy == cy) ui.hand_speed_y = 0;
+    
+  speed = sqrt(ui.hand_speed_x * ui.hand_speed_x + ui.hand_speed_y * ui.hand_speed_y);
+  if (speed < SCROLL_SLOWDOWN)
+    return FALSE;
+  factor = (speed - SCROLL_SLOWDOWN) / speed;
+  ui.hand_speed_x *= factor;
+  ui.hand_speed_y *= factor;
+    
+  return TRUE;
+}
+
+
+void start_hand(GdkEvent *event)
+{
+  get_pointer_coords(event, ui.hand_refpt);
+  ui.hand_refpt[0] += ui.cur_page->hoffset;
+  ui.hand_refpt[1] += ui.cur_page->voffset;
+  ui.hand_prev_time = event->button.time;
+  ui.hand_speed_x = 0;
+  ui.hand_speed_y = 0;
+}
+
+
 void do_hand(GdkEvent *event)
 {
   double pt[2];
   int cx, cy;
+  double dx, dy;
+  int dt;
   
   get_pointer_coords(event, pt);
   pt[0] += ui.cur_page->hoffset;
   pt[1] += ui.cur_page->voffset;
+  dx = -(pt[0]-ui.hand_refpt[0])*ui.zoom;
+  dy = -(pt[1]-ui.hand_refpt[1])*ui.zoom;
+
   gnome_canvas_get_scroll_offsets(canvas, &cx, &cy);
 
   if (ui.lockHorizontalScroll)
@@ -537,7 +578,26 @@ void do_hand(GdkEvent *event)
   ui.hand_scrollto_cy = cy - (pt[1]-ui.hand_refpt[1])*ui.zoom;
   if (!ui.hand_scrollto_pending) g_idle_add(do_hand_scrollto, NULL);
   ui.hand_scrollto_pending = TRUE;
+  dt = event->motion.time - ui.hand_prev_time;
+  if (dt < SCROLL_MEASURE_INTERVAL) {
+    dx += ui.hand_speed_x * (SCROLL_MEASURE_INTERVAL - dt);
+    dy += ui.hand_speed_y * (SCROLL_MEASURE_INTERVAL - dt);
+    dt = SCROLL_MEASURE_INTERVAL;
+  }
+  ui.hand_speed_x = dx / dt;
+  ui.hand_speed_y = dy / dt;
+  ui.hand_prev_time = event->motion.time;
 }
+
+void finalize_hand(void) {
+  g_timeout_add(SCROLL_FRAMETIME, do_continue_scrolling, NULL);
+}
+
+void stop_scrolling(void) {
+  ui.hand_speed_x = 0;
+  ui.hand_speed_y = 0;
+}
+
 
 /************ TEXT FUNCTIONS **************/
 
@@ -624,6 +684,12 @@ void start_text(GdkEvent *event, struct Item *item)
   gtk_widget_set_sensitive(GET_COMPONENT("editPaste"), FALSE);
   gtk_widget_set_sensitive(GET_COMPONENT("buttonPaste"), FALSE);
   gtk_widget_grab_focus(item->widget); 
+}
+
+void end_text_and_stop_scrolling(void)
+{
+  end_text();
+  stop_scrolling();
 }
 
 void end_text(void)
