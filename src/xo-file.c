@@ -1859,6 +1859,8 @@ void save_config_to_file(void)
     gdk_drawable_get_size(winMain->window, 
       &ui.window_default_width, &ui.window_default_height);
 
+  setlocale(LC_NUMERIC, "C");
+
   update_keyval("general", "display_dpi",
     _(" the display resolution, in pixels per inch"),
     g_strdup_printf("%.2f", DEFAULT_ZOOM*72));
@@ -2126,6 +2128,8 @@ void save_config_to_file(void)
   update_keyval("tools", "default_font_size",
     _(" default font size"),
     g_strdup_printf("%.1f", ui.default_font_size));
+
+  setlocale(LC_NUMERIC, "");
 
   buf = g_key_file_to_data(ui.config_data, NULL, NULL);
   if (buf == NULL) return;
