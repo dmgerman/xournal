@@ -1722,9 +1722,21 @@ void set_cur_color(int color_no, guint color_rgba)
   update_mapping_linkings(tool);
 }
 
+void text_background_color(GdkColor *color, GdkColor *bgcolor)
+{
+  // http://stackoverflow.com/a/3943023/2085149
+  double sum = color->red*0.299 + color->green*0.587 + color->blue*0.114;
+  if (sum > 47802) {
+    gdk_color_parse ("black", bgcolor);
+  } else {
+    gdk_color_parse ("white", bgcolor);
+  }
+}
+
 void recolor_temp_text(int color_no, guint color_rgba)
 {
   GdkColor gdkcolor;
+  GdkColor bgcolor;
   
   if (ui.cur_item_type!=ITEM_TEXT) return;
   if (ui.cur_item->text!=NULL && ui.cur_item->brush.color_rgba != color_rgba) {
@@ -1738,7 +1750,9 @@ void recolor_temp_text(int color_no, guint color_rgba)
   ui.cur_item->brush.color_no = color_no;
   ui.cur_item->brush.color_rgba = color_rgba;
   rgb_to_gdkcolor(color_rgba, &gdkcolor);
+  text_background_color(&gdkcolor, &bgcolor);
   gtk_widget_modify_text(ui.cur_item->widget, GTK_STATE_NORMAL, &gdkcolor);
+  gtk_widget_modify_base(ui.cur_item->widget, GTK_STATE_NORMAL, &bgcolor);
   gtk_widget_grab_focus(ui.cur_item->widget);
 }
 
