@@ -17,3 +17,4 @@ GdkPixbuf *pixbuf_from_buffer(const gchar *buf, gsize buflen);
 void create_image_from_pixbuf(GdkPixbuf *pixbuf, double *pt);
 void insert_image(GdkEvent *event);
 void rescale_images(void);
+gchar* find_pixmap_file(const gchar *filename);
