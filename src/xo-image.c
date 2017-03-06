@@ -195,11 +195,10 @@ find_pixmap_file                       (const gchar     *filename)
   return NULL;
 }
 
-GdkPixbuf*
-create_pixbuf                          (const gchar     *filename)
+void
+create_pixbuf                          (const gchar     *filename, const GdkPixbuf* pixbuf)
 {
   gchar *pathname = NULL;
-  GdkPixbuf *pixbuf;
   GError *error = NULL;
 
   if (!filename || !filename[0])
@@ -221,5 +220,4 @@ create_pixbuf                          (const gchar     *filename)
       g_error_free (error);
     }
   g_free (pathname);
-  return pixbuf;
 }

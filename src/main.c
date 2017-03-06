@@ -551,7 +551,10 @@ main (int argc, char *argv[])
   
   init_stuff (&clOptions);
 
-  gtk_window_set_icon(GTK_WINDOW(winMain), create_pixbuf("xournal.png"));
+
+  const GdkPixbuf* pixbuf;
+  create_pixbuf("xournal.png", pixbuf);
+  gtk_window_set_icon(GTK_WINDOW(winMain), pixbuf);
   
   if (!clOptions.noNextSplash) {
       xo_warn_user(_("This is not an official build of xournal.\n\n You should not use it unless you understand what you are doing. You have been warned.\n\n--dmg"));
