@@ -32,6 +32,7 @@
 #include "xo-file.h"
 #include "xo-paint.h"
 #include "xo-shapes.h"
+#include "xo-image.h"
 
 GtkWidget *winMain;
 GnomeCanvas *canvas;
@@ -551,7 +552,10 @@ main (int argc, char *argv[])
   
   init_stuff (&clOptions);
 
-  gtk_window_set_icon(GTK_WINDOW(winMain), create_pixbuf("xournal.png"));
+  gchar *icon = find_pixmap_file("xournal.png");
+  if (icon) {
+      gtk_window_set_default_icon_from_file(icon, NULL);
+  }
   
   if (!clOptions.noNextSplash) {
       xo_warn_user(_("This is not an official build of xournal.\n\n You should not use it unless you understand what you are doing. You have been warned.\n\n--dmg"));
