@@ -370,7 +370,12 @@ main (int argc, char *argv[])
   winMain = create_winMain ();
   
   init_stuff (argc, argv);
-  gtk_window_set_icon(GTK_WINDOW(winMain), create_pixbuf("xournal.png"));
+
+  gchar *icon = find_pixmap_file("xournal.png");
+  
+  if (icon) {
+       gtk_window_set_default_icon_from_file(icon, NULL);
+  }
   
   gtk_main ();
   
