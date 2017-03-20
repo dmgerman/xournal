@@ -1,0 +1,97 @@
+#+STARTUP: showall
+
+* This is a testing repository for new features of Xournal
+
+This is a mirror of the git repository of Xournal
+(http://xournal.sourceforge.net) and contains experimental code that
+is not yet in the official repo. Its purpose is to help in the
+development of new features
+
+It should *not be used* for code intended for further distribution.
+
+* Xournal
+
+Xournal is hosted in sourceforge at [[http://sourceforge.net/projects/xournal/][http://xournal.sourceforge.net/]]
+with a mailing list located at sourceforge too
+[[http://sourceforge.net/p/xournal/mailman/]]
+
+The latest official version of xournal can always be found at
+[[http://xournal.sourceforge.net/]]
+
+* Where to find the code
+
+** Official Repository
+
+The official repository of xournal is managed under git. It can be
+found in sourceforge at: [[git://git.code.sf.net/p/xournal/code%20xournal-code][git://git.code.sf.net/p/xournal/code
+xournal-code]]
+
+For compatibility reasons a CVS repo is still maintained and it mirrors the
+git repository, but its use is deprecated.
+
+** Experimental repository
+
+The Xournal development team has an experimental repository where new
+features of Xournal are tested before they are incorporated into the
+official version. These features are not considered to be
+stable enough for wider distributions and should be considered as
+unstable and prone to crash.
+
+The experimental repository is hosted at github in the
+following repository [[https://github.com/dmgerman/xournal]]
+
+Currently this repository contains the following [[https://github.com/dmgerman/xournal/branches][branches]]:
+
+1. [[https://github.com/dmgerman/xournal][Master]]. *DO NOT* use this branch as the basis of your code.
+1. [[https://github.com/dmgerman/xournal/tree/upstream][upstream]]. Its purpose is to mirror the official repository. Use
+   this branch as the basis to develop your new features.
+2. for-denis. This branch is expected to be merged into the official
+   repository. It contains features that are ready to be included in
+   his repository.
+3. [[https://github.com/dmgerman/xournal/tree/next][next]]. This branch is for integration of several features that have
+   been considered solid, but not yet incorporated into the official
+   repository.
+4. [[https://github.com/dmgerman/xournal/tree/gtk3][gtk3]]. It is an advanced effort towards porting xournal to
+   gtk3+. Currently Xournal uses gtk2+
+5. Other experimental branches. They will contain features that are
+   being tested before they are deployed to a wider audience.
+
+The repository is likely to contain other branches with other
+experimental features.
+
+** How to contribute
+
+One of the features that characterizes Xournal is its
+robustness. Features that make it to the official repository should be
+rock-solid and error-free (to the extent that this is feasible).  In
+order to guarantee this we propose the following workflow:
+
+1. New ideas should be posted as a short proposal to the mailing list
+   (xournal-devel@lists.sourceforge.net, you can subscribe here
+   http://sourceforge.net/p/xournal/mailman/). Xournal developers will
+   be able to comment whether the idea fits within the vision of
+   xournal. They might also provide valuable comments and advice, and
+   direct to existing code (such as experimental branches).
+2. Make a clone of the *upstream* branch of the github repo
+   https://github.com/dmgerman/xournal/tree/upstream
+3. Develop your feature, test it.
+4. When it is ready, submit a pull-request to Daniel (github user
+   dmgerman). Make sure your commits are rebased to the upstream
+   branch to facilitate integration. Submit only one feature per
+   request.
+5. If the feature aligns with the short and long term goals of
+   Xournal, Daniel will incorporate your changes as a branch, where
+   they will be tested by others. At this point it becomes an
+   experimental feature. The name of the branch will reflect the
+   feature. Ideally each independent feature should be incorporated
+   into a separate branch. That will facilitate testing and code
+   review. Daniel will make sure the feature is continuously rebased
+   to the front of official.
+6. Daniel will evaluate the feature for inclusion into next, where it
+   can be used along many other features not yet in official (and
+   further tested).
+7. Simultaneously, Denis will evaluate the feature for inclusion in
+   official. If he accepts the feature, it will be submitted to him
+   via the for-denis branch.
+8. Once the feature is merged into official (and hence into next) the
+   branch is removed.
