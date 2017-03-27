@@ -14,6 +14,7 @@ This version:
   - config option to create new file when trying to open non-existent .xoj
   - fix "pen disable touch" when touchscreen sends prox events (A. Kittenberger)
   - fix crash when pasting text or images via xclip (bug #171)
+  - updated Italian translation (Marco Ciampa)
 
 Version 0.4.8 (June 30, 2014):
   * Features:
