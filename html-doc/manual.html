@@ -753,6 +753,31 @@ Bug reports and suggestions can also be submitted on Xournal's
 <a name="changelog"></a>
 <h2 class="subtitle">Version history</h2>
 <p>
+Version 0.4.8.2016 (July 20, 2017 bugfix release):
+<ul>
+<li>Bug fixes:
+ <ul><li>pen and touchscreen input handling bugfixes (bug #136 and others)
+</li><li>fix a minor bug with save file paths in Windows (D. German)
+</li><li>use GDK macros (not WIN32) to disable X11-specific code (T. Schoonjans)
+</li><li>export to PDF and printing: fix resolution loss on some pdf backgrounds
+</li><li>disable xinput during modal dialog boxes (bug #159)
+</li><li>avoid data corruption when exporting to overwrite a PDF
+</li><li>fix path search order for toolbar bitmaps
+</li><li>text and image tools activate on button release instead of button press
+to avoid subsequent confusion between clicks in toolbar and drawing area
+</li><li>fix "pen disable touch" when touchscreen sends prox events (A. Kittenberger)
+</li><li>fix crash when pasting text or images via xclip (bug #171)
+</li><li>updated Italian translation (Marco Ciampa)
+</li></ul>
+</li><li>Features:
+ <ul><li>add space and shift-space bindings to page down/up (D. German)
+</li><li>add A5 paper (D. German)
+</li><li>config option to export successive layers to separate PDF pages
+</li><li>config option to create new file when trying to open non-existent .xoj
+</li></ul>
+</li></ul>
+</p>
+<p>
 Version 0.4.8 (June 30, 2014):
 <ul>
 <li>Features:
