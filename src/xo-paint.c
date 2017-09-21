@@ -310,7 +310,7 @@ void abort_stroke(void)
 
 #define HOOK_MAX_ANGLE_COS 0.9
 
-void fix_origin_if_needed(double *pt)
+gboolean fix_origin_if_needed(double *pt)
 {
   double dotproduct,len1,len2;
   dotproduct = (pt[2]-pt[0])*(pt[4]-pt[2]) + (pt[3]-pt[1])*(pt[5]-pt[3]);
@@ -327,11 +327,15 @@ void fix_origin_if_needed(double *pt)
       pt[0] = pt[2];
       pt[1] = pt[3];
     }
+    return TRUE;
   }
+  return FALSE;
 }
 
 void finalize_stroke(void)
 {
+  gboolean need_refresh = FALSE;
+  
   if (ui.cur_path.num_points == 1) { // GnomeCanvas doesn't like num_points=1
     ui.cur_path.coords[2] = ui.cur_path.coords[0]+0.1;
     ui.cur_path.coords[3] = ui.cur_path.coords[1];
@@ -341,7 +345,7 @@ void finalize_stroke(void)
   
   /* fix AES pen mess on Lenovo X1 Yoga 2nd gen and similar... */
   if (ui.fix_stroke_origin && ui.cur_path.num_points > 2) {
-    fix_origin_if_needed(ui.cur_path.coords);
+    need_refresh = fix_origin_if_needed(ui.cur_path.coords);
   }
   
   if (!ui.cur_item->brush.variable_width)
@@ -357,7 +361,7 @@ void finalize_stroke(void)
   update_item_bbox(ui.cur_item);
   ui.cur_path.num_points = 0;
 
-  if (!ui.cur_item->brush.variable_width) {
+  if (!ui.cur_item->brush.variable_width || need_refresh) {
     // destroy the entire group of temporary line segments
     gtk_object_destroy(GTK_OBJECT(ui.cur_item->canvas_item));
     // make a new line item to replace it
