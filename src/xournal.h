@@ -271,6 +271,7 @@ typedef struct UIData {
   gboolean touch_as_handtool; // always map touch device to hand tool?
   gboolean pen_disables_touch; // pen proximity should disable touch device?
   gboolean in_proximity;
+  gboolean fix_stroke_origin; // fix for devices with bad button-press coords?
   char *device_for_touch;
   int which_mouse_button; // the mouse button drawing the current path
   int which_unswitch_button; // if button_switch_mapping, the mouse button that switched the mapping
