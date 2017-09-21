@@ -189,6 +189,8 @@ void selection_to_clip(void)
   gtk_clipboard_set_with_data(gtk_clipboard_get(GDK_SELECTION_CLIPBOARD), 
        targets, n_targets,
        callback_clipboard_get, callback_clipboard_clear, sel);
+  gtk_clipboard_set_can_store(gtk_clipboard_get(GDK_SELECTION_CLIPBOARD),
+       targets, n_targets);
   gtk_target_table_free(targets, n_targets);
 }
 

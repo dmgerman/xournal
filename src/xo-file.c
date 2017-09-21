@@ -1767,6 +1767,7 @@ void init_config_default(void)
   ui.autosave_delay = 5;
   ui.autosave_loop_running = FALSE;
   ui.autosave_need_catchup = FALSE;
+  ui.fix_stroke_origin = FALSE;
   
   // the default UI vertical order
   ui.vertical_order[0][0] = 1; 
@@ -1917,6 +1918,9 @@ void save_config_to_file(void)
   update_keyval("general", "buttons_switch_mappings",
     _(" buttons 2 and 3 switch mappings instead of drawing (useful for some tablets) (true/false)"),
     g_strdup(ui.button_switch_mapping?"true":"false"));
+  update_keyval("general", "fix_stroke_origin",
+    _(" fix origin of strokes (devices with unreliable button press coordinates, e.g. Lenovo's AES pens) (true/false)"),
+    g_strdup(ui.fix_stroke_origin?"true":"false"));
   update_keyval("general", "autoload_pdf_xoj",
     _(" automatically load filename.pdf.xoj instead of filename.pdf (true/false)"),
     g_strdup(ui.autoload_pdf_xoj?"true":"false"));
@@ -2337,6 +2341,7 @@ void load_config_from_file(void)
   if (parse_keyval_string("general", "touchscreen_device_name", &str))
     if (str!=NULL) ui.device_for_touch = str;
   parse_keyval_boolean("general", "buttons_switch_mappings", &ui.button_switch_mapping);
+  parse_keyval_boolean("general", "fix_stroke_origin", &ui.fix_stroke_origin);
   parse_keyval_boolean("general", "autoload_pdf_xoj", &ui.autoload_pdf_xoj);
   parse_keyval_boolean("general", "autocreate_new_xoj", &ui.autocreate_new_xoj);
   parse_keyval_boolean("general", "autosave_enabled", &ui.autosave_enabled);

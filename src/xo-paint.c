@@ -258,7 +258,7 @@ void continue_stroke(GdkEvent *event)
   } 
   
   get_pointer_coords(event, pt+2);
-  
+
   if (ui.cur_item->brush.variable_width) {
     realloc_cur_widths(ui.cur_path.num_points);
     pressure = get_pressure_multiplier(event);
@@ -308,6 +308,28 @@ void abort_stroke(void)
   ui.cur_item_type = ITEM_NONE;
 }
 
+#define HOOK_MAX_ANGLE_COS 0.9
+
+void fix_origin_if_needed(double *pt)
+{
+  double dotproduct,len1,len2;
+  dotproduct = (pt[2]-pt[0])*(pt[4]-pt[2]) + (pt[3]-pt[1])*(pt[5]-pt[3]);
+  len1 = hypot(pt[2]-pt[0],pt[3]-pt[1]);
+  len2 = hypot(pt[4]-pt[2],pt[5]-pt[3]);
+  if (dotproduct < HOOK_MAX_ANGLE_COS * len1 * len2) {
+    // straighten
+/*
+    if (dotproduct > 0 && len2 > EPSILON) {
+      pt[0] = pt[2]-dotproduct*(pt[4]-pt[2])/len2/len2;
+      pt[1] = pt[3]-dotproduct*(pt[5]-pt[3])/len2/len2;
+    } else */
+    {
+      pt[0] = pt[2];
+      pt[1] = pt[3];
+    }
+  }
+}
+
 void finalize_stroke(void)
 {
   if (ui.cur_path.num_points == 1) { // GnomeCanvas doesn't like num_points=1
@@ -315,6 +337,11 @@ void finalize_stroke(void)
     ui.cur_path.coords[3] = ui.cur_path.coords[1];
     ui.cur_path.num_points = 2;
     ui.cur_item->brush.variable_width = FALSE;
+  }
+  
+  /* fix AES pen mess on Lenovo X1 Yoga 2nd gen and similar... */
+  if (ui.fix_stroke_origin && ui.cur_path.num_points > 2) {
+    fix_origin_if_needed(ui.cur_path.coords);
   }
   
   if (!ui.cur_item->brush.variable_width)
