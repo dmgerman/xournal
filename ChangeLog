@@ -3,6 +3,7 @@ This version:
   - config option to fix unreliable stroke origin (Lenovo AES pen issues)
      (use in conjunction with xsetwacom to set RawSample = 1 or 2 until
       wacom driver fix is committed).
+  - added Russian translation (Igor Nedoboy)
 
 Version 0.4.8.2016 (July 20, 2017 bugfix release):
  * Bug fixes:
