@@ -1,0 +1,1456 @@
+# Russian translations for xournal package.
+# This file is distributed under the same license as the xournal package.
+#
+# Igor Nedoboy <sylpheedru@gmail.com>, 2015, 2017.
+msgid ""
+msgstr ""
+"Project-Id-Version: Xournal\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=glib&keywords=I18N+L10N&component=general\n"
+"POT-Creation-Date: 2014-06-29 09:02+0200\n"
+"PO-Revision-Date: 2017-11-19 09:18+0300\n"
+"Last-Translator: Igor Nedoboy <sylpheedru@gmail.com>\n"
+"Language-Team: Russian <ru@li.org>\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.5.4\n"
+"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+
+#: ../src/main.c:80
+#, c-format
+msgid ""
+"Invalid command line parameters.\n"
+"Usage: %s [filename.xoj]\n"
+msgstr ""
+"Неверные параметры запуска.\n"
+"Синтаксис: %s [filename.xoj]\n"
+
+#: ../src/main.c:328 ../src/xo-callbacks.c:122 ../src/xo-callbacks.c:173
+#: ../src/xo-callbacks.c:3292
+#, c-format
+msgid "Error opening file '%s'"
+msgstr "Сбой открытия файла '%s'"
+
+#: ../src/xo-interface.c:364 ../src/xo-interface.c:3088 ../src/xo-misc.c:1633
+msgid "Xournal"
+msgstr "Xournal"
+
+#: ../src/xo-interface.c:374
+msgid "_File"
+msgstr "_Файл"
+
+#: ../src/xo-interface.c:385
+msgid "Annotate PD_F"
+msgstr "_Аннотировать PDF"
+
+#: ../src/xo-interface.c:410
+msgid "Recent Doc_uments"
+msgstr "_Недавно открытые"
+
+#: ../src/xo-interface.c:417
+msgid "0"
+msgstr "0"
+
+#: ../src/xo-interface.c:421
+msgid "1"
+msgstr "1"
+
+#: ../src/xo-interface.c:425
+msgid "2"
+msgstr "2"
+
+#: ../src/xo-interface.c:429
+msgid "3"
+msgstr "3"
+
+#: ../src/xo-interface.c:433
+msgid "4"
+msgstr "4"
+
+#: ../src/xo-interface.c:437
+msgid "5"
+msgstr "5"
+
+#: ../src/xo-interface.c:441
+msgid "6"
+msgstr "6"
+
+#: ../src/xo-interface.c:445
+msgid "7"
+msgstr "7"
+
+#: ../src/xo-interface.c:454
+msgid "Print Options"
+msgstr "Параметры печати"
+
+#: ../src/xo-interface.c:469
+msgid "_Export to PDF"
+msgstr "_Экспорт в PDF"
+
+#: ../src/xo-interface.c:485
+msgid "_Edit"
+msgstr "_Правка"
+
+#: ../src/xo-interface.c:530
+msgid "_View"
+msgstr "_Вид"
+
+#: ../src/xo-interface.c:537
+msgid "_Continuous"
+msgstr "_Непрерывный"
+
+#: ../src/xo-interface.c:543
+msgid "Horizontal"
+msgstr "_Горизонтальный"
+
+#: ../src/xo-interface.c:549
+msgid "_One Page"
+msgstr "_Одна страница"
+
+#: ../src/xo-interface.c:560
+msgid "Full Screen"
+msgstr "_Полноэкранный режим"
+
+#: ../src/xo-interface.c:572
+msgid "_Zoom"
+msgstr "_Масштаб"
+
+#: ../src/xo-interface.c:600
+msgid "Page _Width"
+msgstr "_По ширине страницы"
+
+#: ../src/xo-interface.c:611
+msgid "_Set Zoom"
+msgstr "_Выбрать..."
+
+#: ../src/xo-interface.c:620
+msgid "_First Page"
+msgstr "_Первая страница"
+
+#: ../src/xo-interface.c:631
+msgid "_Previous Page"
+msgstr "_Предыдущая страница"
+
+#: ../src/xo-interface.c:642
+msgid "_Next Page"
+msgstr "_Следующая страница"
+
+#: ../src/xo-interface.c:653
+msgid "_Last Page"
+msgstr "_Последняя страница"
+
+#: ../src/xo-interface.c:669
+msgid "_Show Layer"
+msgstr "_Показать слой"
+
+#: ../src/xo-interface.c:677
+msgid "_Hide Layer"
+msgstr "_Скрыть слой"
+
+#: ../src/xo-interface.c:685
+msgid "_Page"
+msgstr "_Страница"
+
+#: ../src/xo-interface.c:692
+msgid "New Page _Before"
+msgstr "_Создать до"
+
+#: ../src/xo-interface.c:696
+msgid "New Page _After"
+msgstr "_Создать после"
+
+#: ../src/xo-interface.c:700
+msgid "New Page At _End"
+msgstr "_Создать в конце"
+
+#: ../src/xo-interface.c:704
+msgid "New Pages Keep Background"
+msgstr "Наследовать фон"
+
+#: ../src/xo-interface.c:708
+msgid "_Delete Page"
+msgstr "_Удалить страницу"
+
+#: ../src/xo-interface.c:717
+msgid "_New Layer"
+msgstr "_Создать слой"
+
+#: ../src/xo-interface.c:721
+msgid "Delete La_yer"
+msgstr "_Удалить слой"
+
+#: ../src/xo-interface.c:725
+msgid "_Flatten"
+msgstr "_Выровнять"
+
+#: ../src/xo-interface.c:734
+msgid "Paper Si_ze"
+msgstr "_Размер бумаги"
+
+#: ../src/xo-interface.c:738
+msgid "Paper _Color"
+msgstr "_Цвет бумаги"
+
+#: ../src/xo-interface.c:745
+msgid "_white paper"
+msgstr "_белая"
+
+#: ../src/xo-interface.c:751
+msgid "_yellow paper"
+msgstr "_жёлтая"
+
+#: ../src/xo-interface.c:757
+msgid "_pink paper"
+msgstr "_розовая"
+
+#: ../src/xo-interface.c:763
+msgid "_orange paper"
+msgstr "_оранжевая"
+
+#: ../src/xo-interface.c:769
+msgid "_blue paper"
+msgstr "_голубая"
+
+#: ../src/xo-interface.c:775
+msgid "_green paper"
+msgstr "_зелёная"
+
+#: ../src/xo-interface.c:781 ../src/xo-interface.c:1058
+msgid "other..."
+msgstr "_выбрать..."
+
+#: ../src/xo-interface.c:785 ../src/xo-interface.c:821
+#: ../src/xo-interface.c:1062 ../src/xo-interface.c:1332
+#: ../src/xo-interface.c:1414
+msgid "NA"
+msgstr "Н/Д"
+
+#: ../src/xo-interface.c:790
+msgid "Paper _Style"
+msgstr "_Стиль бумаги"
+
+#: ../src/xo-interface.c:797
+msgid "_plain"
+msgstr "_обычная"
+
+#: ../src/xo-interface.c:803
+msgid "_lined"
+msgstr "_с полем"
+
+#: ../src/xo-interface.c:809
+msgid "_ruled"
+msgstr "_в линейку"
+
+#: ../src/xo-interface.c:815
+msgid "_graph"
+msgstr "_в клетку"
+
+#: ../src/xo-interface.c:826
+msgid "Apply _To All Pages"
+msgstr "_Для всех страниц"
+
+#: ../src/xo-interface.c:835
+msgid "_Load Background"
+msgstr "_Загрузить фон"
+
+#: ../src/xo-interface.c:843
+msgid "Background Screens_hot"
+msgstr "_Снимок окна как фон"
+
+#: ../src/xo-interface.c:852
+msgid "Default _Paper"
+msgstr "_Бумага по умолчанию"
+
+#: ../src/xo-interface.c:856
+msgid "Set As De_fault"
+msgstr "_Заменить умолчание"
+
+#: ../src/xo-interface.c:860
+msgid "_Tools"
+msgstr "_Инструменты"
+
+#: ../src/xo-interface.c:867 ../src/xo-interface.c:1262
+#: ../src/xo-interface.c:1344
+msgid "_Pen"
+msgstr "_Перо"
+
+#: ../src/xo-interface.c:876 ../src/xo-interface.c:1268
+#: ../src/xo-interface.c:1350
+msgid "_Eraser"
+msgstr "_Ластик"
+
+#: ../src/xo-interface.c:885 ../src/xo-interface.c:1274
+#: ../src/xo-interface.c:1356
+msgid "_Highlighter"
+msgstr "_Фломастер"
+
+#: ../src/xo-interface.c:894 ../src/xo-interface.c:1280
+#: ../src/xo-interface.c:1362
+msgid "_Text"
+msgstr "_Текст"
+
+#: ../src/xo-interface.c:903 ../src/xo-interface.c:1286
+#: ../src/xo-interface.c:1368
+msgid "_Image"
+msgstr "_Изображение"
+
+#: ../src/xo-interface.c:917
+msgid "_Shape Recognizer"
+msgstr "_Распознавать фигуры"
+
+#: ../src/xo-interface.c:924
+msgid "Ru_ler"
+msgstr "_По линейке"
+
+#: ../src/xo-interface.c:936 ../src/xo-interface.c:1292
+#: ../src/xo-interface.c:1374
+msgid "Select Re_gion"
+msgstr "_Выделение лассо"
+
+#: ../src/xo-interface.c:945 ../src/xo-interface.c:1298
+#: ../src/xo-interface.c:1380
+msgid "Select _Rectangle"
+msgstr "_Прямоугольное выделение"
+
+#: ../src/xo-interface.c:954 ../src/xo-interface.c:1304
+#: ../src/xo-interface.c:1386
+msgid "_Vertical Space"
+msgstr "_Вертикальное пространство"
+
+#: ../src/xo-interface.c:963 ../src/xo-interface.c:1310
+#: ../src/xo-interface.c:1392
+msgid "H_and Tool"
+msgstr "_Рука"
+
+#: ../src/xo-interface.c:976
+msgid "_Color"
+msgstr "_Цвет"
+
+#: ../src/xo-interface.c:987
+msgid "blac_k"
+msgstr "_чёрный"
+
+#: ../src/xo-interface.c:993
+msgid "_blue"
+msgstr "_синий"
+
+#: ../src/xo-interface.c:999
+msgid "_red"
+msgstr "_красный"
+
+#: ../src/xo-interface.c:1005
+msgid "_green"
+msgstr "_зелёный"
+
+#: ../src/xo-interface.c:1011
+msgid "gr_ay"
+msgstr "_серый"
+
+#: ../src/xo-interface.c:1022
+msgid "light bl_ue"
+msgstr "_голубой"
+
+#: ../src/xo-interface.c:1028
+msgid "light gr_een"
+msgstr "_салатный"
+
+#: ../src/xo-interface.c:1034
+msgid "_magenta"
+msgstr "_пурпурный"
+
+#: ../src/xo-interface.c:1040
+msgid "_orange"
+msgstr "_оранжевый"
+
+#: ../src/xo-interface.c:1046
+msgid "_yellow"
+msgstr "_жёлтый"
+
+#: ../src/xo-interface.c:1052
+msgid "_white"
+msgstr "_белый"
+
+#: ../src/xo-interface.c:1067
+msgid "Pen _Options"
+msgstr "_Режим пера"
+
+#: ../src/xo-interface.c:1074
+msgid "_very fine"
+msgstr "_очень тонкий"
+
+#: ../src/xo-interface.c:1080 ../src/xo-interface.c:1111
+#: ../src/xo-interface.c:1159
+msgid "_fine"
+msgstr "_тонкий"
+
+#: ../src/xo-interface.c:1086 ../src/xo-interface.c:1117
+#: ../src/xo-interface.c:1165
+msgid "_medium"
+msgstr "_средний"
+
+#: ../src/xo-interface.c:1092 ../src/xo-interface.c:1123
+#: ../src/xo-interface.c:1171
+msgid "_thick"
+msgstr "_толстый"
+
+#: ../src/xo-interface.c:1098
+msgid "ver_y thick"
+msgstr "_очень толстый"
+
+#: ../src/xo-interface.c:1104
+msgid "Eraser Optio_ns"
+msgstr "_Режим ластика"
+
+#: ../src/xo-interface.c:1134
+msgid "_standard"
+msgstr "_обычный"
+
+#: ../src/xo-interface.c:1140
+msgid "_whiteout"
+msgstr "_белила"
+
+#: ../src/xo-interface.c:1146
+msgid "_delete strokes"
+msgstr "_удаление белил"
+
+#: ../src/xo-interface.c:1152
+msgid "Highlighter Opt_ions"
+msgstr "_Режим фломастера"
+
+#: ../src/xo-interface.c:1177
+msgid "Text _Font..."
+msgstr "_Шрифт..."
+
+#: ../src/xo-interface.c:1193
+msgid "_Default Pen"
+msgstr "_Перо по умолчанию"
+
+#: ../src/xo-interface.c:1197
+msgid "Default Eraser"
+msgstr "_Ластик по умолчанию"
+
+#: ../src/xo-interface.c:1201
+msgid "Default Highlighter"
+msgstr "_Фломастер по умолчанию"
+
+#: ../src/xo-interface.c:1205
+msgid "Default Te_xt"
+msgstr "_Текст по умолчанию"
+
+#: ../src/xo-interface.c:1209
+msgid "Set As Default"
+msgstr "_Заменить умолчание"
+
+#: ../src/xo-interface.c:1213
+msgid "_Options"
+msgstr "_Настройки"
+
+#: ../src/xo-interface.c:1220
+msgid "Use _XInput"
+msgstr "_Использовать XInput"
+
+#: ../src/xo-interface.c:1224
+msgid "_Pen and Touch"
+msgstr "_Стилус и сенсор"
+
+#: ../src/xo-interface.c:1231
+msgid "_Eraser Tip"
+msgstr "_Ластик стилуса как Ластик"
+
+#: ../src/xo-interface.c:1235
+msgid "_Pressure sensitivity"
+msgstr "_Различать силу нажатия"
+
+#: ../src/xo-interface.c:1239
+msgid "Buttons Switch Mappings"
+msgstr "2-я и 3-я меняют инструмент 1-й"
+
+#: ../src/xo-interface.c:1243
+msgid "_Touchscreen as Hand Tool"
+msgstr "_Сенсор как Рука"
+
+#: ../src/xo-interface.c:1247
+msgid "Pen disables Touch"
+msgstr "Стилус отключает сенсор"
+
+#: ../src/xo-interface.c:1251
+msgid "Designate as Touchscreen..."
+msgstr "_Устройство-сенсор..."
+
+#: ../src/xo-interface.c:1255
+msgid "Button _2 Mapping"
+msgstr "_2-я кнопка (СКМ)"
+
+#: ../src/xo-interface.c:1320 ../src/xo-interface.c:1402
+msgid "_Link to Primary Brush"
+msgstr "_Связь с кистью 1-й кнопки"
+
+#: ../src/xo-interface.c:1326 ../src/xo-interface.c:1408
+msgid "_Copy of Current Brush"
+msgstr "_Копия текущей кисти"
+
+#: ../src/xo-interface.c:1337
+msgid "Button _3 Mapping"
+msgstr "_3-я кнопка (ПКМ)"
+
+#: ../src/xo-interface.c:1424
+msgid "Progressive _Backgrounds"
+msgstr "_Загружать только видимый фон "
+
+#: ../src/xo-interface.c:1428
+msgid "Print Paper _Ruling"
+msgstr "_Печатать линовку"
+
+#: ../src/xo-interface.c:1432
+msgid "Legacy PDF Export"
+msgstr "_Экспорт в несжатый PDF (1.4)"
+
+#: ../src/xo-interface.c:1436
+msgid "Autoload pdf.xoj"
+msgstr "_Автозагрузка pdf.xoj"
+
+#: ../src/xo-interface.c:1440
+msgid "Auto-Save Files"
+msgstr "Автосохранение файлов"
+
+#: ../src/xo-interface.c:1444
+msgid "Left-Handed Scrollbar"
+msgstr "Полоса прокрутки слева"
+
+#: ../src/xo-interface.c:1448
+msgid "Shorten _Menus"
+msgstr "_Сократить меню"
+
+#: ../src/xo-interface.c:1452
+msgid "Pencil Cursor"
+msgstr "_Курсор-карандаш"
+
+#: ../src/xo-interface.c:1461
+msgid "A_uto-Save Preferences"
+msgstr "_Сохранять при выходе"
+
+#: ../src/xo-interface.c:1465
+msgid "_Save Preferences"
+msgstr "_Сохранить сейчас"
+
+#: ../src/xo-interface.c:1469
+msgid "_Help"
+msgstr "_Помощь"
+
+#: ../src/xo-interface.c:1480
+msgid "_About"
+msgstr "_О программе"
+
+#: ../src/xo-interface.c:1493
+msgid "Save"
+msgstr "Сохранить"
+
+#: ../src/xo-interface.c:1498
+msgid "New"
+msgstr "Создать"
+
+#: ../src/xo-interface.c:1503
+msgid "Open"
+msgstr "Открыть"
+
+#: ../src/xo-interface.c:1516
+msgid "Cut"
+msgstr "Вырезать"
+
+#: ../src/xo-interface.c:1521
+msgid "Copy"
+msgstr "Копировать"
+
+#: ../src/xo-interface.c:1526
+msgid "Paste"
+msgstr "Вставить"
+
+#: ../src/xo-interface.c:1539
+msgid "Undo"
+msgstr "Отменить"
+
+#: ../src/xo-interface.c:1544
+msgid "Redo"
+msgstr "Вернуть"
+
+#: ../src/xo-interface.c:1557
+msgid "First Page"
+msgstr "Первая страница"
+
+#: ../src/xo-interface.c:1562
+msgid "Previous Page"
+msgstr "Предыдущая страница"
+
+#: ../src/xo-interface.c:1567
+msgid "Next Page"
+msgstr "Следующая страница"
+
+#: ../src/xo-interface.c:1572
+msgid "Last Page"
+msgstr "Последняя страница"
+
+#: ../src/xo-interface.c:1585
+msgid "Zoom Out"
+msgstr "Уменьшить"
+
+#: ../src/xo-interface.c:1590 ../src/xo-interface.c:3182
+msgid "Page Width"
+msgstr "По ширине страницы"
+
+#: ../src/xo-interface.c:1596
+msgid "Zoom In"
+msgstr "Увеличить"
+
+#: ../src/xo-interface.c:1601
+msgid "Normal Size"
+msgstr "Исходный"
+
+#: ../src/xo-interface.c:1606 ../src/xo-interface.c:3141
+msgid "Set Zoom"
+msgstr "Выбор масштаба"
+
+#: ../src/xo-interface.c:1615
+msgid "Toggle Fullscreen"
+msgstr "Во весь экран"
+
+#: ../src/xo-interface.c:1624
+msgid "Pencil"
+msgstr "Карандаш"
+
+#: ../src/xo-interface.c:1630
+msgid "Pen"
+msgstr "Перо"
+
+#: ../src/xo-interface.c:1635 ../src/xo-interface.c:1641
+msgid "Eraser"
+msgstr "Ластик"
+
+#: ../src/xo-interface.c:1646 ../src/xo-interface.c:1652
+msgid "Highlighter"
+msgstr "Фломастер"
+
+#: ../src/xo-interface.c:1657 ../src/xo-interface.c:1663
+msgid "Text"
+msgstr "Текст"
+
+#: ../src/xo-interface.c:1668 ../src/xo-interface.c:1674
+msgid "Image"
+msgstr "Изображение"
+
+#: ../src/xo-interface.c:1679 ../src/xo-interface.c:1685
+msgid "Shape Recognizer"
+msgstr "Распознавать фигуры"
+
+#: ../src/xo-interface.c:1688 ../src/xo-interface.c:1694
+msgid "Ruler"
+msgstr "По линейке"
+
+#: ../src/xo-interface.c:1705 ../src/xo-interface.c:1711
+msgid "Select Region"
+msgstr "Выделение лассо"
+
+#: ../src/xo-interface.c:1716 ../src/xo-interface.c:1722
+msgid "Select Rectangle"
+msgstr "Прямоугольное выделение"
+
+#: ../src/xo-interface.c:1727 ../src/xo-interface.c:1733
+msgid "Vertical Space"
+msgstr "Вертикальное пространство"
+
+#: ../src/xo-interface.c:1738
+msgid "Hand Tool"
+msgstr "Рука"
+
+#: ../src/xo-interface.c:1757 ../src/xo-interface.c:1761
+msgid "Default"
+msgstr "Умолчание"
+
+#: ../src/xo-interface.c:1765 ../src/xo-interface.c:1768
+msgid "Default Pen"
+msgstr "Перо по умолчанию"
+
+#: ../src/xo-interface.c:1779 ../src/xo-interface.c:1787
+msgid "Fine"
+msgstr "Тонкая кисть"
+
+#: ../src/xo-interface.c:1792 ../src/xo-interface.c:1800
+msgid "Medium"
+msgstr "Средняя кисть"
+
+#: ../src/xo-interface.c:1805 ../src/xo-interface.c:1813
+msgid "Thick"
+msgstr "Толстая кисть"
+
+#: ../src/xo-interface.c:1832 ../src/xo-interface.c:1839
+msgid "Black"
+msgstr "Чёрный"
+
+#: ../src/xo-interface.c:1844 ../src/xo-interface.c:1851
+msgid "Blue"
+msgstr "Синий"
+
+#: ../src/xo-interface.c:1856 ../src/xo-interface.c:1863
+msgid "Red"
+msgstr "Красный"
+
+#: ../src/xo-interface.c:1868 ../src/xo-interface.c:1875
+msgid "Green"
+msgstr "Зелёный"
+
+#: ../src/xo-interface.c:1880 ../src/xo-interface.c:1887
+msgid "Gray"
+msgstr "Серый"
+
+#: ../src/xo-interface.c:1892 ../src/xo-interface.c:1899
+msgid "Light Blue"
+msgstr "Голубой"
+
+#: ../src/xo-interface.c:1904 ../src/xo-interface.c:1911
+msgid "Light Green"
+msgstr "Салатный"
+
+#: ../src/xo-interface.c:1916 ../src/xo-interface.c:1923
+msgid "Magenta"
+msgstr "Пурпурный"
+
+#: ../src/xo-interface.c:1928 ../src/xo-interface.c:1935
+msgid "Orange"
+msgstr "Оранжевый"
+
+#: ../src/xo-interface.c:1940 ../src/xo-interface.c:1947
+msgid "Yellow"
+msgstr "Жёлтый"
+
+#: ../src/xo-interface.c:1952 ../src/xo-interface.c:1959
+msgid "White"
+msgstr "Белый"
+
+#: ../src/xo-interface.c:2006
+msgid "  Page  "
+msgstr "  Страница  "
+
+#: ../src/xo-interface.c:2014
+msgid "Set page number"
+msgstr "Номер страницы"
+
+#: ../src/xo-interface.c:2018
+msgid " of n"
+msgstr " из n"
+
+#: ../src/xo-interface.c:2026
+msgid "  Layer:  "
+msgstr "  Слой:  "
+
+#: ../src/xo-interface.c:2963
+msgid "Set Paper Size"
+msgstr "Размер бумаги"
+
+#: ../src/xo-interface.c:2975
+msgid "Standard paper sizes:"
+msgstr "Форматы бумаги:"
+
+#: ../src/xo-interface.c:2983
+msgid "A4"
+msgstr "А4"
+
+#: ../src/xo-interface.c:2984
+msgid "A4 (landscape)"
+msgstr "А4 (ландшафт)"
+
+#: ../src/xo-interface.c:2985
+msgid "US Letter"
+msgstr "Леттер"
+
+#: ../src/xo-interface.c:2986
+msgid "US Letter (landscape)"
+msgstr "Леттер (ландшафт)"
+
+#: ../src/xo-interface.c:2987
+msgid "Custom"
+msgstr "Другой"
+
+#: ../src/xo-interface.c:2993
+msgid "Width:"
+msgstr "Ширина:"
+
+#: ../src/xo-interface.c:3002
+msgid "Height:"
+msgstr "Высота:"
+
+#: ../src/xo-interface.c:3014
+msgid "cm"
+msgstr "сантиметров"
+
+#: ../src/xo-interface.c:3015
+msgid "in"
+msgstr "дюймов"
+
+#: ../src/xo-interface.c:3016
+msgid "pixels"
+msgstr "пикселей"
+
+#: ../src/xo-interface.c:3017
+msgid "points"
+msgstr "точек"
+
+#: ../src/xo-interface.c:3077
+msgid "About Xournal"
+msgstr "О программе"
+
+#: ../src/xo-interface.c:3093
+msgid ""
+"Written by Denis Auroux\n"
+"and other contributors\n"
+"       http://xournal.sourceforge.net/       "
+msgstr ""
+"Создан Denis Auroux\n"
+"и другими участниками\n"
+"\n"
+"http://xournal.sourceforge.net"
+
+#: ../src/xo-interface.c:3157
+msgid "Zoom: "
+msgstr "Масштаб:"
+
+#: ../src/xo-interface.c:3170
+msgid "%"
+msgstr "%"
+
+#: ../src/xo-interface.c:3175
+msgid "Normal size (100%)"
+msgstr "Исходный (100%)"
+
+#: ../src/xo-interface.c:3189
+msgid "Page Height"
+msgstr "По высоте страницы"
+
+#. user aborted on save confirmation
+#: ../src/xo-callbacks.c:68 ../src/xo-file.c:993
+msgid "Open PDF"
+msgstr "Открыть PDF"
+
+#: ../src/xo-callbacks.c:76 ../src/xo-callbacks.c:149
+#: ../src/xo-callbacks.c:234 ../src/xo-callbacks.c:378
+#: ../src/xo-callbacks.c:1461 ../src/xo-file.c:453 ../src/xo-file.c:1001
+#: ../src/xo-image.c:117
+msgid "All files"
+msgstr "Все файлы"
+
+#: ../src/xo-callbacks.c:79 ../src/xo-callbacks.c:381 ../src/xo-file.c:1004
+msgid "PDF files"
+msgstr "Файлы PDF"
+
+#: ../src/xo-callbacks.c:87 ../src/xo-callbacks.c:1484
+msgid "Attach file to the journal"
+msgstr "Вложить файл в журнал"
+
+#. user aborted on save confirmation
+#: ../src/xo-callbacks.c:141
+msgid "Open Journal"
+msgstr "Открыть Журнал"
+
+#: ../src/xo-callbacks.c:152 ../src/xo-callbacks.c:237
+msgid "Xournal files"
+msgstr "Файлы Xournal"
+
+#: ../src/xo-callbacks.c:202 ../src/xo-callbacks.c:283 ../src/xo-file.c:1169
+#, c-format
+msgid "Error saving file '%s'"
+msgstr "Сбой сохранения файла '%s'"
+
+#: ../src/xo-callbacks.c:221
+msgid "Save Journal"
+msgstr "Сохранить Журнал"
+
+#: ../src/xo-callbacks.c:263 ../src/xo-callbacks.c:399
+#, c-format
+msgid "Should the file %s be overwritten?"
+msgstr "Перезаписать файл %s?"
+
+#: ../src/xo-callbacks.c:360
+msgid "Export to PDF"
+msgstr "Экспорт в PDF"
+
+#: ../src/xo-callbacks.c:419
+#, c-format
+msgid "Error creating file '%s'"
+msgstr "Сбой создания файла '%s'"
+
+#: ../src/xo-callbacks.c:1388
+msgid "Pick a Paper Color"
+msgstr "Выбор цвета бумаги"
+
+#: ../src/xo-callbacks.c:1453
+msgid "Open Background"
+msgstr "Загрузить фон"
+
+#: ../src/xo-callbacks.c:1469
+msgid "Bitmap files"
+msgstr "Растровые изображения"
+
+#: ../src/xo-callbacks.c:1477
+msgid "PS/PDF files (as bitmaps)"
+msgstr "Файлы PS/PDF (как растр)"
+
+#: ../src/xo-callbacks.c:1507
+#, c-format
+msgid "Error opening background '%s'"
+msgstr "Сбой открытия фона '%s'"
+
+#: ../src/xo-callbacks.c:2100
+msgid "Select Font"
+msgstr "Выбор шрифта"
+
+#: ../src/xo-callbacks.c:2491
+msgid ""
+"Drawing is not allowed on the background layer.\n"
+" Switching to Layer 1."
+msgstr ""
+"Рисование на фоновом слое запрещено.\n"
+"Переключение на Слой 1."
+
+#: ../src/xo-callbacks.c:3788
+msgid "Select device for Touchscreen"
+msgstr "Выбор сенсора"
+
+#: ../src/xo-callbacks.c:3798
+msgid "Touchscreen device:"
+msgstr "Устройство-сенсор:"
+
+#: ../src/xo-support.c:90 ../src/xo-support.c:114
+#, c-format
+msgid "Couldn't find pixmap file: %s"
+msgstr "Не удалось найти растровый файл: %s"
+
+#: ../src/xo-file.c:201 ../src/xo-file.c:235
+#, c-format
+msgid "Could not write background '%s'. Continuing anyway."
+msgstr "Не удалось записать фон  '%s'. Работа будет продолжена."
+
+#: ../src/xo-file.c:417
+#, c-format
+msgid "%d auto-save files were found, including '%s'"
+msgstr "найдено %d автосохранённых файлов, включая '%s'"
+
+#: ../src/xo-file.c:418
+msgid "Ignore"
+msgstr "Пропустить"
+
+#: ../src/xo-file.c:419
+msgid "Restore auto-save"
+msgstr "Восстановить автосохранения"
+
+#: ../src/xo-file.c:420
+msgid "Delete auto-saves"
+msgstr "Удалить автосохранения"
+
+#: ../src/xo-file.c:443
+msgid "Multiple auto-saves found"
+msgstr "Найдено несколько автосохранений"
+
+#: ../src/xo-file.c:457
+msgid "Auto-save files"
+msgstr "Автосохранение файлов"
+
+#: ../src/xo-file.c:520
+#, c-format
+msgid "Invalid file contents"
+msgstr "Файл повреждён"
+
+#: ../src/xo-file.c:670
+#, c-format
+msgid "Could not open background '%s'. Setting background to white."
+msgstr "Не удалось открыть фон '%s'. Установлен белый фон."
+
+#: ../src/xo-file.c:988
+#, c-format
+msgid ""
+"Could not open background '%s'.\n"
+"Select another file?"
+msgstr ""
+"Не удалось открыть фон '%s'.\n"
+"Выбрать другой файл?"
+
+#: ../src/xo-file.c:1137
+#, c-format
+msgid "Could not open background '%s'."
+msgstr "Не удалось открыть фон '%s'."
+
+#: ../src/xo-file.c:1161
+msgid "Save this version and delete auto-save?"
+msgstr "Сохранить эту версию и удалить автосохранения?"
+
+#: ../src/xo-file.c:1411
+msgid "Unable to render one or more PDF pages."
+msgstr "Сбой отображения одной или нескольких страниц PDF."
+
+#: ../src/xo-file.c:1833
+msgid " the display resolution, in pixels per inch"
+msgstr " разрешение дисплея, пикселей на дюйм"
+
+#: ../src/xo-file.c:1836
+msgid " the initial zoom level, in percent"
+msgstr " начальное значение масштаба, процентов"
+
+#: ../src/xo-file.c:1839
+msgid " maximize the window at startup (true/false)"
+msgstr " максимизировать окно при запуске (true/false)"
+
+#: ../src/xo-file.c:1842
+msgid " start in full screen mode (true/false)"
+msgstr " запуск в полноэкранном режиме (true/false)"
+
+#: ../src/xo-file.c:1845
+msgid " the window width in pixels (when not maximized)"
+msgstr " ширина окна, пикселей (когда не во весь экран)"
+
+#: ../src/xo-file.c:1848
+msgid " the window height in pixels"
+msgstr " высота окна, пикселей"
+
+#: ../src/xo-file.c:1851
+msgid " scrollbar step increment (in pixels)"
+msgstr " шаг прокрутки, пикселей"
+
+#: ../src/xo-file.c:1854
+msgid " the step increment in the zoom dialog box"
+msgstr " шаг изменения в диалоге настройки масштабирования"
+
+#: ../src/xo-file.c:1857
+msgid " the multiplicative factor for zoom in/out"
+msgstr " шаг изменения масштаба"
+
+#: ../src/xo-file.c:1860
+msgid ""
+" continuous view (false = one page, true = continuous, horiz = horizontal)"
+msgstr ""
+" непрерывный вид (false = одна страница, true = непрерывный, horiz = "
+"горизонтальный)"
+
+#: ../src/xo-file.c:1863
+msgid " use XInput extensions (true/false)"
+msgstr " использовать расширения XInput (true/false)"
+
+#: ../src/xo-file.c:1866
+msgid " discard Core Pointer events in XInput mode (true/false)"
+msgstr " игнорировать события Core Pointer в режиме XInput (true/false)"
+
+#: ../src/xo-file.c:1869
+msgid " ignore events from other devices while drawing (true/false)"
+msgstr " игнорировать события от других устройств при рисовании (true/false)"
+
+#: ../src/xo-file.c:1872
+msgid ""
+" do not worry if device reports button isn't pressed while drawing (true/"
+"false)"
+msgstr ""
+" игнорировать сообщения устройства о не нажатой кнопке при рисовании (true/"
+"false)"
+
+#: ../src/xo-file.c:1875
+msgid " always map eraser tip to eraser (true/false)"
+msgstr ""
+" всегда сопоставлять ластик-наконечник стилуса инструменту Ластик (true/"
+"false)"
+
+#: ../src/xo-file.c:1878
+msgid ""
+" always map touchscreen device to hand tool (true/false) (requires separate "
+"pen and touch devices)"
+msgstr ""
+" всегда сопоставлять устройство-сенсор инструменту Рука (true/false) "
+"(требуются перо и устройство-сенсор в виде отдельных устройств)"
+
+#: ../src/xo-file.c:1881
+msgid ""
+" disable touchscreen device when pen is in proximity (true/false) (requires "
+"separate pen and touch devices)"
+msgstr ""
+" отключать сенсорное устройство, когда перо находится рядом (true/false) "
+"(требуются перо и устройство-сенсор в виде отдельных устройств)"
+
+#: ../src/xo-file.c:1884
+msgid " name of touchscreen device for touchscreen_as_hand_tool"
+msgstr " имя устройства для функции /Сенсор как Рука/"
+
+#: ../src/xo-file.c:1887
+msgid ""
+" buttons 2 and 3 switch mappings instead of drawing (useful for some "
+"tablets) (true/false)"
+msgstr ""
+" удержание 2-й или 3-й кнопки выбирает инструмент, рисование выполняется 1-й "
+"кнопкой (true/false), удобно для некоторых планшетов"
+
+#: ../src/xo-file.c:1890
+msgid ""
+" automatically load filename.pdf.xoj instead of filename.pdf (true/false)"
+msgstr " автозагрузка filename.pdf.xoj вместо filename.pdf (true/false)"
+
+#: ../src/xo-file.c:1893
+msgid " enable periodic autosaves (true/false)"
+msgstr " включить периодическое автосохранение (true/false)"
+
+#: ../src/xo-file.c:1896
+msgid " delay for periodic autosaves (in seconds)"
+msgstr " интервал автосохранения (секунд)"
+
+#: ../src/xo-file.c:1899
+msgid " default path for open/save (leave blank for current directory)"
+msgstr ""
+" путь по умолчанию для открытия/сохранения (оставьте пустым для текущей "
+"рабочей папки, обычно ~/)"
+
+#: ../src/xo-file.c:1902
+msgid " use pressure sensitivity to control pen stroke width (true/false)"
+msgstr ""
+" различать степень нажатия для управления толщиной кисти пера (true/false)"
+
+#: ../src/xo-file.c:1905
+msgid " minimum width multiplier"
+msgstr " коэффициент минимальной ширины"
+
+#: ../src/xo-file.c:1908
+msgid " maximum width multiplier"
+msgstr " коэффициент максимальной ширины"
+
+#: ../src/xo-file.c:1911
+msgid ""
+" interface components from top to bottom\n"
+" valid values: drawarea menu main_toolbar pen_toolbar statusbar"
+msgstr ""
+" компоненты интерфейса сверху вниз\n"
+" допустимые значения: drawarea main_toolbar menu pen_toolbar statusbar"
+
+#: ../src/xo-file.c:1914
+msgid " interface components in fullscreen mode, from top to bottom"
+msgstr " компоненты интерфейса в полноэкранном режиме, сверху вниз"
+
+#: ../src/xo-file.c:1917
+msgid " interface has left-handed scrollbar (true/false)"
+msgstr " полоса прокрутки слева (true/false)"
+
+#: ../src/xo-file.c:1920
+msgid " hide some unwanted menu or toolbar items (true/false)"
+msgstr ""
+" скрыть некоторые пункты меню и элементы панелей инструментов (true/false)"
+
+#: ../src/xo-file.c:1923
+msgid ""
+" interface items to hide (customize at your own risk!)\n"
+" see source file xo-interface.c for a list of item names"
+msgstr ""
+" элементы интерфейса для скрытия (под Вашу ответственность!)\n"
+" смотрите названия элементов в файле исходного кода xo-interface.c"
+
+#: ../src/xo-file.c:1926
+msgid ""
+" highlighter opacity (0 to 1, default 0.5)\n"
+" warning: opacity level is not saved in xoj files!"
+msgstr ""
+" прозрачность фломастера (от 0 до 1, по умолчанию 0.5)\n"
+" внимание: уровень прозрачности не сохраняется в xoj-файлах, а считывается "
+"из настроек!"
+
+#: ../src/xo-file.c:1929
+msgid " auto-save preferences on exit (true/false)"
+msgstr " автосохранение настроек при выходе из программы (true/false)"
+
+#: ../src/xo-file.c:1932
+msgid " force PDF rendering through cairo (slower but nicer) (true/false)"
+msgstr ""
+" принудительное отображение PDF через cairo (медленнее, но качественнее) "
+"(true/false)"
+
+#: ../src/xo-file.c:1935
+msgid " prefer xournal's own PDF code for exporting PDFs (true/false)"
+msgstr ""
+" предпочитать встроенный в Xournal движок рендеринга PDF при экспорте PDF-"
+"файлов (true/false)"
+
+#: ../src/xo-file.c:1939
+msgid " the default page width, in points (1/72 in)"
+msgstr " ширина страницы, по умолчанию, точек (1 точка = 1/72 дюйма)"
+
+#: ../src/xo-file.c:1942
+msgid " the default page height, in points (1/72 in)"
+msgstr " высота страницы, по умолчанию, точек (1 точка = 1/72 дюйма)"
+
+#: ../src/xo-file.c:1945
+msgid " the default paper color"
+msgstr " цвет бумаги, по умолчанию"
+
+#: ../src/xo-file.c:1950
+msgid " the default paper style (plain, lined, ruled, or graph)"
+msgstr ""
+" стиль бумаги, по умолчанию (plain, lined, ruled, graph) (обычная, с полем, "
+"в линейку, в клетку)"
+
+#: ../src/xo-file.c:1953
+msgid " apply paper style changes to all pages (true/false)"
+msgstr " применить изменения стиля бумаги ко всем страницам (true/false)"
+
+#: ../src/xo-file.c:1956
+msgid " preferred unit (cm, in, px, pt)"
+msgstr ""
+" предпочтительные единицы измерения (cm, in, px, pt) (сантиметры, дюймы, "
+"пиксели, точки)"
+
+#: ../src/xo-file.c:1959
+msgid " include paper ruling when printing or exporting to PDF (true/false)"
+msgstr ""
+" включить линовку бумаги в документ при его печати или экспорте в PDF (true/"
+"false)"
+
+#: ../src/xo-file.c:1962
+msgid ""
+" when creating a new page, duplicate a PDF or image background instead of "
+"using default paper (true/false)"
+msgstr ""
+" при создании страницы дублировать фон (PDF или изображение) вместо "
+"использования бумаги по умолчанию (true/false)"
+
+#: ../src/xo-file.c:1965
+msgid " just-in-time update of page backgrounds (true/false)"
+msgstr " загрузка фона страниц точно-в-срок по мере видимости (true/false)"
+
+#: ../src/xo-file.c:1968
+msgid ""
+" bitmap resolution of PS/PDF backgrounds rendered using ghostscript (dpi)"
+msgstr ""
+" разрешение изображения фонов PS/PDF при рендеринге через ghostscript (dpi)"
+
+#: ../src/xo-file.c:1971
+msgid ""
+" bitmap resolution of PDF backgrounds when printing with libgnomeprint (dpi)"
+msgstr " разрешение изображения фонов PDF при печати через libgnomeprint (dpi)"
+
+#: ../src/xo-file.c:1975
+msgid ""
+" selected tool at startup (pen, eraser, highlighter, selectregion, "
+"selectrect, vertspace, hand, image)"
+msgstr ""
+" инструмент, выбранный при запуске (pen, eraser, highlighter, selectregion, "
+"selectrect, vertspace, hand, image)\n"
+" (перо, ластик, фломастер, выделение лассо, прямоугольное выделение, "
+"вертикальное пространство, рука, изображение)"
+
+#: ../src/xo-file.c:1978
+msgid " Use the pencil from cursor theme instead of a color dot (true/false)"
+msgstr ""
+" использовать курсор-карандаш из темы курсоров вместо цветной точки (true/"
+"false)"
+
+#: ../src/xo-file.c:1981
+msgid " default pen color"
+msgstr " цвет пера, по умолчанию"
+
+#: ../src/xo-file.c:1986
+msgid " default pen thickness (fine = 1, medium = 2, thick = 3)"
+msgstr ""
+" толщина кисти пера, по умолчанию (тонкая кисть = 1, средняя кисть = 2, "
+"толстая кисть = 3)"
+
+#: ../src/xo-file.c:1989
+msgid " default pen is in ruler mode (true/false)"
+msgstr " перо в режиме /По линейке/, по умолчанию (true/false)"
+
+#: ../src/xo-file.c:1992
+msgid " default pen is in shape recognizer mode (true/false)"
+msgstr " перо в режиме /Распознавать фигуры/, по умолчанию (true/false)"
+
+#: ../src/xo-file.c:1995
+msgid " default eraser thickness (fine = 1, medium = 2, thick = 3)"
+msgstr ""
+" толщина кисти ластика, по умолчанию (тонкая кисть = 1, средняя кисть = 2, "
+"толстая кисть = 3)"
+
+#: ../src/xo-file.c:1998
+msgid " default eraser mode (standard = 0, whiteout = 1, strokes = 2)"
+msgstr ""
+" режим ластика, по умолчанию (обычный = 0, белила = 1, удаление белил = 2)"
+
+#: ../src/xo-file.c:2001
+msgid " default highlighter color"
+msgstr " цвет фломастера, по умолчанию"
+
+#: ../src/xo-file.c:2006
+msgid " default highlighter thickness (fine = 1, medium = 2, thick = 3)"
+msgstr ""
+" толщина кисти маркера, по умолчанию (тонкая кисть = 1, средняя кисть = 2, "
+"толстая кисть = 3)"
+
+#: ../src/xo-file.c:2009
+msgid " default highlighter is in ruler mode (true/false)"
+msgstr " фломастер в режиме /По линейке/, по умолчанию (true/false)"
+
+#: ../src/xo-file.c:2012
+msgid " default highlighter is in shape recognizer mode (true/false)"
+msgstr " фломастер в режиме /Распознавать фигуры/, по умолчанию (true/false)"
+
+#: ../src/xo-file.c:2015
+msgid ""
+" button 2 tool (pen, eraser, highlighter, text, selectregion, selectrect, "
+"vertspace, hand, image)"
+msgstr ""
+" инструмент 2-й кнопки (pen, eraser, highlighter, text, selectregion, "
+"selectrect, vertspace, hand, image)\n"
+" (перо, ластик, фломастер, текст, выделение лассо, прямоугольное выделение, "
+"вертикальное пространство, рука, изображение)"
+
+#: ../src/xo-file.c:2018
+msgid ""
+" button 2 brush linked to primary brush (true/false) (overrides all other "
+"settings)"
+msgstr ""
+" кисть 2-й кнопки связана с кистью 1-й кнопки (true/false) (отменяет все "
+"остальные настройки)"
+
+#: ../src/xo-file.c:2021
+msgid " button 2 brush color (for pen or highlighter only)"
+msgstr " цвет кисти 2-й кнопки (только для пера или фломастера)"
+
+#: ../src/xo-file.c:2028
+msgid " button 2 brush thickness (pen, eraser, or highlighter only)"
+msgstr " толщина кисти 2-й кнопки (только для пера, ластика или фломастера)"
+
+#: ../src/xo-file.c:2032
+msgid " button 2 ruler mode (true/false) (for pen or highlighter only)"
+msgstr ""
+" режим /По линейке/ для 2-й кнопки (true/false) (только для пера или "
+"фломастера)"
+
+#: ../src/xo-file.c:2036
+msgid " button 2 shape recognizer mode (true/false) (pen or highlighter only)"
+msgstr ""
+" режим /Распознавать фигуры/ для 2-й кнопки (true/false) (только для пера "
+"или фломастера)"
+
+#: ../src/xo-file.c:2040
+msgid " button 2 eraser mode (eraser only)"
+msgstr " режим ластика для 2-й кнопки (только для ластика)"
+
+#: ../src/xo-file.c:2043
+msgid ""
+" button 3 tool (pen, eraser, highlighter, text, selectregion, selectrect, "
+"vertspace, hand, image)"
+msgstr ""
+" инструмент 3-й кнопки (pen, eraser, highlighter, text, selectregion, "
+"selectrect, vertspace, hand, image)\n"
+" (перо, ластик, фломастер, текст, выделение лассо, прямоугольное выделение, "
+"вертикальное пространство, рука, изображение)"
+
+#: ../src/xo-file.c:2046
+msgid ""
+" button 3 brush linked to primary brush (true/false) (overrides all other "
+"settings)"
+msgstr ""
+" кисть 3-й кнопки связана с кистью 1-й кнопки (true/false) (отменяет все "
+"остальные настройки)"
+
+#: ../src/xo-file.c:2049
+msgid " button 3 brush color (for pen or highlighter only)"
+msgstr " цвет кисти 3-й кнопки (только для пера или фломастера)"
+
+#: ../src/xo-file.c:2056
+msgid " button 3 brush thickness (pen, eraser, or highlighter only)"
+msgstr " толщина кисти 3-й кнопки (только для пера, ластика или фломастера)"
+
+#: ../src/xo-file.c:2060
+msgid " button 3 ruler mode (true/false) (for pen or highlighter only)"
+msgstr ""
+" режим /По линейке/ для 3-й кнопки (true/false) (только для пера или "
+"фломастера)"
+
+#: ../src/xo-file.c:2064
+msgid " button 3 shape recognizer mode (true/false) (pen or highlighter only)"
+msgstr ""
+" режим /Распознавать фигуры/ для 3-й кнопки (true/false) (только для пера "
+"или фломастера)"
+
+#: ../src/xo-file.c:2068
+msgid " button 3 eraser mode (eraser only)"
+msgstr " режим ластика для 3-й кнопки (только для ластика)"
+
+#: ../src/xo-file.c:2072
+msgid " thickness of the various pens (in points, 1 pt = 1/72 in)"
+msgstr " все варианты толщины кисти для пера, точек (1 точка = 1/72 дюйма)"
+
+#: ../src/xo-file.c:2078
+msgid " thickness of the various erasers (in points, 1 pt = 1/72 in)"
+msgstr " все варианты толщины кисти для ластика, точек (1 точка = 1/72 дюйма)"
+
+#: ../src/xo-file.c:2083
+msgid " thickness of the various highlighters (in points, 1 pt = 1/72 in)"
+msgstr ""
+" все варианты толщины кисти для фломастера, точек (1 точка = 1/72 дюйма)"
+
+#: ../src/xo-file.c:2088
+msgid " name of the default font"
+msgstr " гарнитура шрифта, по умолчанию"
+
+#: ../src/xo-file.c:2091
+msgid " default font size"
+msgstr " кегль шрифта, по умолчанию"
+
+#: ../src/xo-file.c:2269
+msgid ""
+" Xournal configuration file.\n"
+" This file is generated automatically upon saving preferences.\n"
+" Use caution when editing this file manually.\n"
+msgstr ""
+" Файл конфигурации Xournal.\n"
+" Создаётся автоматически при сохранении настроек.\n"
+" Будьте внимательны при ручном редактировании.\n"
+
+#: ../src/xo-misc.c:656
+msgid "Generating fontconfig library cache, please be patient..."
+msgstr "Создаётся кэш шрифтов, подождите..."
+
+#: ../src/xo-misc.c:657
+msgid "Generating fontconfig cache..."
+msgstr "Создание кэша шрифтов..."
+
+#: ../src/xo-misc.c:1499
+#, c-format
+msgid " of %d"
+msgstr " из %d"
+
+#: ../src/xo-misc.c:1504
+msgid "Background"
+msgstr "Фон"
+
+#: ../src/xo-misc.c:1512
+#, c-format
+msgid "Layer %d"
+msgstr "Слой %d"
+
+#: ../src/xo-misc.c:1637
+#, c-format
+msgid "Xournal - %s"
+msgstr "Xournal - %s"
+
+#: ../src/xo-misc.c:1893
+#, c-format
+msgid "Save changes to '%s'?"
+msgstr "Сохранить изменения в '%s'?"
+
+#: ../src/xo-misc.c:1894
+msgid "Untitled"
+msgstr "Безымянный"
+
+#: ../src/xo-image.c:109
+msgid "Insert Image"
+msgstr "Вставить изображение"
+
+#: ../src/xo-image.c:120
+msgid "Image files"
+msgstr "Изображения"
+
+#: ../src/xo-image.c:145
+#, c-format
+msgid "Error opening image '%s'"
+msgstr "Сбой открытия изображения '%s'"
+
