@@ -65,21 +65,21 @@ These branches are reliable and do not break compatibility with Xournal:
 
 | Name                   | Purpose                                                                             | Rebased to head  | Integrated into next |
 |------------------------+-------------------------------------------------------------------------------------+------------------+----------------------|
-| Master                 | Identical to upstream except for this file                                          | <2016-09-04 Sun> | yes                  |
-| Upstream               | Identical to Denis repo                                                             | <2016-09-04 Sun> | yes                  |
+| Master                 | Identical to upstream except for this file                                          | <2018-01-09 Tue> | yes                  |
+| Upstream               | Identical to Denis repo                                                             | <2018-01-09 Tue> | yes                  |
 |------------------------+-------------------------------------------------------------------------------------+------------------+----------------------|
-| fix-update-width       | Fixes annoyance: when rest the width of selected strokes, keep their variable width | <2016-09-04 Sun> | yes                  |
+| fix-update-width       | Fixes annoyance: when rest the width of selected strokes, keep their variable width | <2018-01-09 Tue> | yes                  |
 | glade                  | Uses XML glade interface for configuration files                                    | <2016-04-20 Wed> | yes                  |
-| horizontal-scroll-lock | Option to Lock the scroll horizontally                                              | <2016-09-04 Sun> | yes                  |
-| layers                 | Option to see layers above the current one                                          | <2016-09-04 Sun> | yes                  |
-| message                | Add a pop up warning that you are using my code (used by next, useless stand alone) | <2016-09-04 Sun> | yes                  |
-| mru                    | Update the Most-Recently-Used list with the currently opened page                   | <2016-09-04 Sun> | yes                  |
-| popupmenu              | Add a menu to right click on next/prev page to improve stylus navigation            | <2016-09-04 Sun> | yes                  |
-| snap-to-grid           | Defines a grid to which any annotation is snapped to.                               | <2016-09-04 Sun> | yes                  |
-| quick-zoom             | Quickly zoom-in/zoom-out to a predefined zoom factor                                | <2016-09-04 Sun> | yes                  |
-| cl-options             | Command line options management                                                     | <2016-09-04 Sun> | yes                  |
+| horizontal-scroll-lock | Option to Lock the scroll horizontally                                              | <2018-01-09 Tue> | yes                  |
+| layers                 | Option to see layers above the current one                                          | <2018-01-09 Tue> | yes                  |
+| message                | Add a pop up warning that you are using my code (used by next, useless stand alone) | <2018-01-09 Tue> | yes                  |
+| mru                    | Update the Most-Recently-Used list with the currently opened page                   | <2018-01-09 Tue> | yes                  |
+| popupmenu              | Add a menu to right click on next/prev page to improve stylus navigation            | <2018-01-09 Tue> | yes                  |
+| snap-to-grid           | Defines a grid to which any annotation is snapped to.                               | <2018-01-09 Tue> | yes                  |
+| quick-zoom             | Quickly zoom-in/zoom-out to a predefined zoom factor                                | <2018-01-09 Tue> | yes                  |
+| cl-options             | Command line options management                                                     | <2018-01-09 Tue> | yes                  |
 |------------------------+-------------------------------------------------------------------------------------+------------------+----------------------|
-| next                   | This branch integrates all the branches above plus current xournal code             | <2016-09-04 Sun> |                      |
+| next                   | This branch integrates all the branches above plus current xournal code             | <2018-01-09 Tue> |                      |
 |------------------------+-------------------------------------------------------------------------------------+------------------+----------------------|
 
 Some experimental branches, they are incomplete or break compatibility:
