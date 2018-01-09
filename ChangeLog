@@ -1,19 +1,29 @@
 This version:
+  - keep selection in clipboard after exiting
+  - config option to fix unreliable stroke origin (Lenovo AES pen issues)
+     (use in conjunction with xsetwacom to set RawSample = 1 or 2 until
+      wacom driver fix is committed).
+  - added Russian translation (Igor Nedoboy)
+
+Version 0.4.8.2016 (July 20, 2017 bugfix release):
+ * Bug fixes:
   - pen and touchscreen input handling bugfixes (bug #136 and others)
   - fix a minor bug with save file paths in Windows (D. German)
-  - add space and shift-space bindings to page down/up (D. German)
-  - add A5 paper (D. German)
   - use GDK macros (not WIN32) to disable X11-specific code (T. Schoonjans)
   - export to PDF and printing: fix resolution loss on some pdf backgrounds
-  - option to export successive layers to separate PDF pages
   - disable xinput during modal dialog boxes (bug #159)
   - avoid data corruption when exporting to overwrite a PDF
   - fix path search order for toolbar bitmaps
   - text and image tools activate on button release instead of button press
     to avoid subsequent confusion between clicks in toolbar and drawing area
-  - config option to create new file when trying to open non-existent .xoj
   - fix "pen disable touch" when touchscreen sends prox events (A. Kittenberger)
   - fix crash when pasting text or images via xclip (bug #171)
+  - updated Italian translation (Marco Ciampa)
+ * Features:
+  - add space and shift-space bindings to page down/up (D. German)
+  - add A5 paper (D. German)
+  - config option to export successive layers to separate PDF pages
+  - config option to create new file when trying to open non-existent .xoj
 
 Version 0.4.8 (June 30, 2014):
   * Features:
