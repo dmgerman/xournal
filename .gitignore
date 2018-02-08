@@ -11,6 +11,7 @@ config.guess
 config.h
 config.status
 config.sub
+config.log
 configure
 po/Makefile.in.in
 po/POTFILES
