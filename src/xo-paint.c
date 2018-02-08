@@ -659,6 +659,7 @@ void start_text(GdkEvent *event, struct Item *item)
   GnomeCanvasItem *canvas_item;
   PangoFontDescription *font_desc;
   GdkColor color;
+  GdkColor bgcolor;
 
   get_pointer_coords(event, pt);
 
@@ -692,6 +693,8 @@ void start_text(GdkEvent *event, struct Item *item)
   gtk_widget_modify_font(item->widget, font_desc);
   rgb_to_gdkcolor(item->brush.color_rgba, &color);
   gtk_widget_modify_text(item->widget, GTK_STATE_NORMAL, &color);
+  text_background_color(&color, &bgcolor);
+  gtk_widget_modify_base(item->widget, GTK_STATE_NORMAL, &bgcolor);
   pango_font_description_free(font_desc);
 
   canvas_item = gnome_canvas_item_new(ui.cur_layer->group,

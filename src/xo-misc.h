@@ -85,6 +85,7 @@ void update_mapping_linkings(int toolno);
 void do_switch_page_with_undo(int pg, gboolean rescroll, gboolean refresh_all);
 void do_switch_page(int pg, gboolean rescroll, gboolean refresh_all);
 void set_cur_color(int color_no, guint color_rgba);
+void text_background_color(GdkColor *color, GdkColor *bgcolor);
 void recolor_temp_text(int color_no, guint color_rgba);
 void process_color_activate(GtkMenuItem *menuitem, int color_no, guint color_rgba);
 void process_thickness_activate(GtkMenuItem *menuitem, int tool, int val);
