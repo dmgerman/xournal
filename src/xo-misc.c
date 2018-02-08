@@ -2270,6 +2270,23 @@ void add_scroll_bindings(void)
   gtk_binding_entry_add_signal(binding_set, GDK_space, GDK_SHIFT_MASK,
     "scroll_child", 2, GTK_TYPE_SCROLL_TYPE, GTK_SCROLL_PAGE_UP, 
     G_TYPE_BOOLEAN, TRUE);  
+  // vim movements
+  // up
+  gtk_binding_entry_add_signal(binding_set, GDK_k, 0,
+    "scroll_child", 2, GTK_TYPE_SCROLL_TYPE, GTK_SCROLL_STEP_BACKWARD,
+    G_TYPE_BOOLEAN, FALSE);
+  // down
+  gtk_binding_entry_add_signal(binding_set, GDK_j, 0,
+    "scroll_child", 2, GTK_TYPE_SCROLL_TYPE, GTK_SCROLL_STEP_FORWARD,
+    G_TYPE_BOOLEAN, FALSE);
+  // left
+  gtk_binding_entry_add_signal(binding_set, GDK_h, 0,
+    "scroll_child", 2, GTK_TYPE_SCROLL_TYPE, GTK_SCROLL_STEP_BACKWARD,
+    G_TYPE_BOOLEAN, TRUE);
+  // right
+  gtk_binding_entry_add_signal(binding_set, GDK_l, 0,
+    "scroll_child", 2, GTK_TYPE_SCROLL_TYPE, GTK_SCROLL_STEP_FORWARD,
+    G_TYPE_BOOLEAN, TRUE);
 }
 
 gboolean is_event_within_textview(GdkEventButton *event)
