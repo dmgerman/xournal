@@ -25,7 +25,7 @@ install-data-local:
 	    fi \
 	  done; \
 	  if test ! -e $(DESTDIR)$(htmldir)/pixmaps; then \
-	    ln -s $(DESTDIR)$(pkgdatadir)/pixmaps $(DESTDIR)$(htmldir)/pixmaps; \
+	    ln -s $(pkgdatadir)/pixmaps $(DESTDIR)$(htmldir)/pixmaps; \
 	  fi \
 	fi; \
 	echo "*** Desktop files, icons, MIME types not installed. Run 'make desktop-install'"; \
