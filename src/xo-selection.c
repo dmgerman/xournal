@@ -279,6 +279,13 @@ void finalize_selectregion(void)
 
 /*** moving/resizing the selection ***/
 
+#define RESIZE_LOCK_NA   0
+#define RESIZE_LOCK_WIDE 1
+#define RESIZE_LOCK_TALL 2
+#define RESIZE_LOCK_BOTH 3
+#define RESIZE_LOCK_TOOWIDE 4
+#define RESIZE_LOCK_TOOTALL 5
+
 gboolean start_movesel(GdkEvent *event)
 {
   double pt[2];
@@ -299,6 +306,7 @@ gboolean start_movesel(GdkEvent *event)
     ui.selection->move_layer = ui.selection->layer;
     ui.selection->move_pagedelta = 0.;
     gnome_canvas_item_set(ui.selection->canvas_item, "dash", NULL, NULL);
+    gnome_canvas_item_raise_to_top(ui.selection->canvas_item);
     update_cursor();
     return TRUE;
   }
@@ -339,13 +347,20 @@ gboolean start_resizesel(GdkEvent *event)
     if (!(ui.selection->resizing_left || ui.selection->resizing_right ||
           ui.selection->resizing_top  || ui.selection->resizing_bottom)) 
       return FALSE;
-
+      
+    if ((ui.selection->resizing_left || ui.selection->resizing_right) && 
+        (ui.selection->resizing_top  || ui.selection->resizing_bottom)) 
+      ui.selection->resizing_aspect_lock_mode = RESIZE_LOCK_BOTH;
+    else
+      ui.selection->resizing_aspect_lock_mode = RESIZE_LOCK_NA;
+      
     ui.cur_item_type = ITEM_RESIZESEL;
     ui.selection->new_y1 = ui.selection->bbox.top;
     ui.selection->new_y2 = ui.selection->bbox.bottom;
     ui.selection->new_x1 = ui.selection->bbox.left;
     ui.selection->new_x2 = ui.selection->bbox.right;
     gnome_canvas_item_set(ui.selection->canvas_item, "dash", NULL, NULL);
+    gnome_canvas_item_raise_to_top(ui.selection->canvas_item);
     update_cursor_for_resize(pt);
     return TRUE;
   }
@@ -487,20 +502,84 @@ void continue_movesel(GdkEvent *event)
   }
 }
 
+/* test where we are in relation to a reference line for locking aspect ratio, with tolerance.
+   Return 1 if we are taller, 0 if we are wider */
+int resize_aspectratio_test(gdouble x, gdouble y, gdouble refx, gdouble refy, 
+                                  gdouble slope, gdouble margin)
+{
+  gdouble delta = (y-refy) - slope * (x-refx);
+  if (slope*(x-refx)<0) delta = -delta;
+  if (delta > margin*hypot(1., slope)/ui.zoom) return 1; // taller
+  else return 0; // wider
+}
+
 void continue_resizesel(GdkEvent *event)
 {
   double pt[2];
+  gboolean can_snap, should_snap;
+  double aspect_orig, aspect_new, aspect_factor;
+  double height, width, refx, refy;
+  int *lock_mode = &(ui.selection->resizing_aspect_lock_mode);
+  guint linecolor;
 
   get_pointer_coords(event, pt);
+
+  if (*lock_mode != RESIZE_LOCK_NA) {
+    aspect_orig = (ui.selection->bbox.bottom - ui.selection->bbox.top)/(ui.selection->bbox.right - ui.selection->bbox.left);
+    if (ui.selection->resizing_top) 
+       { refy = ui.selection->bbox.bottom; aspect_orig = -aspect_orig; }
+    else refy = ui.selection->bbox.top;
+    if (ui.selection->resizing_left)
+       { refx = ui.selection->bbox.right; aspect_orig = -aspect_orig; }
+    else refx = ui.selection->bbox.left;
+    
+    if (resize_aspectratio_test(pt[0], pt[1], refx, refy, aspect_orig*RESIZE_SNAP_TOLERANCE2, RESIZE_SNAP_MARGIN))
+      *lock_mode = RESIZE_LOCK_TOOTALL; // disengage
+    else if (resize_aspectratio_test(pt[0], pt[1], refx, refy, aspect_orig*RESIZE_SNAP_TOLERANCE1, RESIZE_SNAP_MARGIN))
+    {
+      if (*lock_mode == RESIZE_LOCK_TALL) *lock_mode = RESIZE_LOCK_TOOTALL; // disengage on weak lock side
+      if (*lock_mode == RESIZE_LOCK_WIDE) *lock_mode = RESIZE_LOCK_BOTH; // lock both ways
+    }
+    else if (resize_aspectratio_test(pt[0], pt[1], refx, refy, aspect_orig, 0.))
+    {
+      if (*lock_mode == RESIZE_LOCK_TOOWIDE) *lock_mode = RESIZE_LOCK_WIDE; // engage weak locking
+    }
+    else if (resize_aspectratio_test(pt[0], pt[1], refx, refy, aspect_orig/RESIZE_SNAP_TOLERANCE1, -RESIZE_SNAP_MARGIN))
+    {
+      if (*lock_mode == RESIZE_LOCK_TOOTALL) *lock_mode = RESIZE_LOCK_TALL; // engage weak locking
+    }
+    else if (resize_aspectratio_test(pt[0], pt[1], refx, refy, aspect_orig/RESIZE_SNAP_TOLERANCE2, -RESIZE_SNAP_MARGIN))
+    {
+      if (*lock_mode == RESIZE_LOCK_WIDE) *lock_mode = RESIZE_LOCK_TOOWIDE; // disengage on weak lock side
+      if (*lock_mode == RESIZE_LOCK_TALL) *lock_mode = RESIZE_LOCK_BOTH; // lock both ways
+    }
+    else *lock_mode = RESIZE_LOCK_TOOWIDE; // disengage
+  }
 
   if (ui.selection->resizing_top) ui.selection->new_y1 = pt[1];
   if (ui.selection->resizing_bottom) ui.selection->new_y2 = pt[1];
   if (ui.selection->resizing_left) ui.selection->new_x1 = pt[0];
   if (ui.selection->resizing_right) ui.selection->new_x2 = pt[0];
 
+  if (*lock_mode == RESIZE_LOCK_WIDE || *lock_mode == RESIZE_LOCK_TALL || *lock_mode == RESIZE_LOCK_BOTH) {
+    aspect_new = (ui.selection->new_y2-ui.selection->new_y1) / (ui.selection->new_x2-ui.selection->new_x1);
+    aspect_factor = sqrt(fabs(aspect_new/aspect_orig));
+    if (finite(aspect_factor) && aspect_factor > 0.01 && aspect_factor < 100.0) { // avoid NaN's
+      height = (ui.selection->new_y2-ui.selection->new_y1) / aspect_factor;
+      width =  (ui.selection->new_x2-ui.selection->new_x1) * aspect_factor;
+      if (ui.selection->resizing_top) ui.selection->new_y1 = ui.selection->new_y2 - height;
+      if (ui.selection->resizing_bottom) ui.selection->new_y2 = ui.selection->new_y1 + height;
+      if (ui.selection->resizing_left) ui.selection->new_x1 = ui.selection->new_x2 - width;
+      if (ui.selection->resizing_right) ui.selection->new_x2 = ui.selection->new_x1 + width;
+      linecolor = 0xff0000ff;
+    }
+  }
+  else linecolor = 0x000000ff;
+      
   gnome_canvas_item_set(ui.selection->canvas_item, 
     "x1", ui.selection->new_x1, "x2", ui.selection->new_x2,
-    "y1", ui.selection->new_y1, "y2", ui.selection->new_y2, NULL);
+    "y1", ui.selection->new_y1, "y2", ui.selection->new_y2, 
+    "outline-color-rgba", linecolor, NULL);
 }
 
 void finalize_movesel(void)
