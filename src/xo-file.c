@@ -354,6 +354,7 @@ gboolean autosave_cb(gpointer is_catchup)
   // keep track of old save filenames
   old_filenames = ui.autosave_filename_list;
   ui.autosave_filename_list = NULL;
+  ui.autosave_need_catchup = FALSE;
   if (save_journal(test_filename, TRUE)) { // non-interactive save -> success
     ui.need_autosave = FALSE; // no longer need an auto-save
     autosave_cleanup(&old_filenames);
@@ -1767,7 +1768,7 @@ void init_config_default(void)
   ui.device_for_touch = g_strdup(DEFAULT_DEVICE_FOR_TOUCH);
   ui.autosave_enabled = FALSE;
   ui.autosave_filename_list = NULL;
-  ui.autosave_delay = 5;
+  ui.autosave_delay = 20;
   ui.autosave_loop_running = FALSE;
   ui.autosave_need_catchup = FALSE;
   ui.fix_stroke_origin = FALSE;
