@@ -61,7 +61,7 @@
 #define MAX_ZOOM 20.0
 #define DISPLAY_DPI_DEFAULT 96.0
 #define MIN_ZOOM 0.2
-#define RESIZE_MARGIN 6.0
+#define RESIZE_MARGIN 10.0
 #define MAX_SAFE_RENDER_DPI 720 // max dpi at which PDF bg's get rendered
 
 #define VBOX_MAIN_NITEMS 5 // number of interface items in vboxMain
@@ -241,12 +241,18 @@ typedef struct Journal {
   int last_attach_no; // for naming of attached backgrounds
 } Journal;
 
+// snapping parameters for aspect ratio preserving selection resize
+#define RESIZE_SNAP_TOLERANCE1 1.05
+#define RESIZE_SNAP_TOLERANCE2 1.3
+#define RESIZE_SNAP_MARGIN 20.0
+
 typedef struct Selection {
   int type;  // ITEM_SELECTRECT, ITEM_MOVESEL_VERT, ITEM_SELECTREGION
   BBox bbox; // the rectangle bbox of the selection
   struct Layer *layer; // the layer on which the selection lives
   double anchor_x, anchor_y, last_x, last_y; // for selection motion
   gboolean resizing_top, resizing_bottom, resizing_left, resizing_right; // for selection resizing
+  int resizing_aspect_lock_mode; // which way aspect-preserving resize is 'snapping'
   double new_x1, new_x2, new_y1, new_y2; // for selection resizing
   GnomeCanvasItem *canvas_item; // if the selection box is on screen 
   GList *items; // the selected items (a list of struct Item)

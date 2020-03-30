@@ -18,14 +18,14 @@ install-data-local:
 	  done \
 	fi; \
 	if test -d $(srcdir)/html-doc; then \
-	  $(mkinstalldirs) $(DESTDIR)$(pkgdatadir)/html-doc; \
+	  $(mkinstalldirs) $(DESTDIR)$(htmldir); \
 	  for docfile in $(srcdir)/html-doc/*; do \
 	    if test -f $$docfile; then \
-	      $(INSTALL_DATA) $$docfile $(DESTDIR)$(pkgdatadir)/html-doc; \
+	      $(INSTALL_DATA) $$docfile $(DESTDIR)$(htmldir); \
 	    fi \
 	  done; \
-	  if test ! -e $(DESTDIR)$(pkgdatadir)/html-doc/pixmaps; then \
-	    ln -s ../pixmaps $(DESTDIR)$(pkgdatadir)/html-doc/pixmaps; \
+	  if test ! -e $(DESTDIR)$(htmldir)/pixmaps; then \
+	    ln -s $(pkgdatadir)/pixmaps $(DESTDIR)$(htmldir)/pixmaps; \
 	  fi \
 	fi; \
 	echo "*** Desktop files, icons, MIME types not installed. Run 'make desktop-install'"; \

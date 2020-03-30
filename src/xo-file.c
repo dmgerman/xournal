@@ -354,6 +354,7 @@ gboolean autosave_cb(gpointer is_catchup)
   // keep track of old save filenames
   old_filenames = ui.autosave_filename_list;
   ui.autosave_filename_list = NULL;
+  ui.autosave_need_catchup = FALSE;
   if (save_journal(test_filename, TRUE)) { // non-interactive save -> success
     ui.need_autosave = FALSE; // no longer need an auto-save
     autosave_cleanup(&old_filenames);
@@ -1169,7 +1170,6 @@ gboolean open_journal(char *filename)
   ui.layerno = ui.cur_page->nlayers-1;
   ui.cur_layer = (struct Layer *)(g_list_last(ui.cur_page->layers)->data);
   ui.zoom = ui.startup_zoom;
-  update_file_name(g_strdup(filename));
   gnome_canvas_set_pixels_per_unit(canvas, ui.zoom);
   make_canvas_items();
   update_page_stuff();
@@ -1196,6 +1196,10 @@ gboolean open_journal(char *filename)
   }
   else ui.saved = TRUE;
 
+  update_file_name(g_strdup(filename)); /* postpone till now, as it
+     may corrupt the contents of filename if it was in MRU data -- updating the MRU
+     causes redundant MRU entries to get free()'d */
+     
   g_free(filename_actual);
   ui.need_autosave = !ui.saved;
   return TRUE;
@@ -1764,7 +1768,7 @@ void init_config_default(void)
   ui.device_for_touch = g_strdup(DEFAULT_DEVICE_FOR_TOUCH);
   ui.autosave_enabled = FALSE;
   ui.autosave_filename_list = NULL;
-  ui.autosave_delay = 5;
+  ui.autosave_delay = 20;
   ui.autosave_loop_running = FALSE;
   ui.autosave_need_catchup = FALSE;
   ui.fix_stroke_origin = FALSE;
